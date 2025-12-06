@@ -1,6 +1,6 @@
 // src/utils/apiPaths.js
-// export const API_BASE_URL = 'https://interview-preparation-app.onrender.com/api';
-export const API_BASE_URL = 'http://localhost:5000/api';
+export const API_BASE_URL = 'https://interviewai2-0sever.onrender.com/api';
+// export const API_BASE_URL = 'http://localhost:5000/api';
 
 export const API = {
   REGISTER: `${API_BASE_URL}/auth/register`,

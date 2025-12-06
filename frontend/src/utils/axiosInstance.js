@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  // baseURL: 'https://interview-preparation-app.onrender.com/api',
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'https://interviewai2-0sever.onrender.com/api',
+  // baseURL: 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },
