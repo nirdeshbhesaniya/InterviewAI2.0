@@ -56,9 +56,9 @@ const SignUp = ({ onSwitch }) => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto bg-white shadow-xl rounded-2xl p-6">
-      <h2 className="text-2xl font-bold text-center text-orange-600 mb-1">Create an Account ✨</h2>
-      <p className="text-sm text-gray-500 text-center mb-6">Join us by filling the details below</p>
+    <div className="w-full max-w-md mx-auto bg-bg-card shadow-xl shadow-primary/10 rounded-2xl p-6 border border-border-subtle">
+      <h2 className="text-2xl font-bold text-center text-highlight mb-1">Create an Account ✨</h2>
+      <p className="text-sm text-text-muted text-center mb-6">Join us by filling the details below</p>
 
       {/* Profile Upload */}
       <div className="flex justify-center mb-6">
@@ -67,11 +67,11 @@ const SignUp = ({ onSwitch }) => {
             <img
               src={photoPreview}
               alt="Profile"
-              className="w-20 h-20 rounded-full object-cover border-2 border-orange-500"
+              className="w-20 h-20 rounded-full object-cover border-2 border-highlight shadow-md shadow-highlight/30"
             />
           ) : (
-            <div className="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center">
-              <Upload className="text-orange-500" />
+            <div className="w-20 h-20 rounded-full bg-highlight/20 flex items-center justify-center border-2 border-highlight/50">
+              <Upload className="text-highlight" />
             </div>
           )}
           <input
@@ -86,45 +86,45 @@ const SignUp = ({ onSwitch }) => {
       <form className="space-y-4" onSubmit={handleSubmit}>
         {/* Full Name */}
         <div className="relative">
-          <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
           <input
             type="text"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="Full Name"
             required
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full pl-10 pr-4 py-2 bg-bg-body border border-border-subtle rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           />
         </div>
 
         {/* Email */}
         <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email Address"
             required
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full pl-10 pr-4 py-2 bg-bg-body border border-border-subtle rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           />
         </div>
 
         {/* Password */}
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
           <input
             type={showPassword ? 'text' : 'password'}
             placeholder="Min 8 characters"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full pl-10 pr-10 py-2 bg-bg-body border border-border-subtle rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           />
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-orange-500"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-highlight"
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
@@ -135,10 +135,10 @@ const SignUp = ({ onSwitch }) => {
           type="submit"
           whileTap={{ scale: 0.97 }}
           disabled={loading}
-          className={`w-full py-2 rounded-md transition font-semibold tracking-wide ${
+          className={`w-full py-2 rounded-md transition font-semibold tracking-wide shadow-md ${
             loading
-              ? 'bg-orange-300 text-white cursor-not-allowed'
-              : 'bg-orange-500 hover:bg-orange-600 text-white'
+              ? 'bg-text-muted/50 text-text-secondary cursor-not-allowed'
+              : 'bg-gradient-to-r from-highlight to-pink-500 hover:shadow-lg hover:shadow-highlight/50 text-white'
           }`}
         >
           {loading ? 'Signing Up...' : 'SIGN UP'}
@@ -146,11 +146,11 @@ const SignUp = ({ onSwitch }) => {
       </form>
 
       {/* Switch to login */}
-      <p className="text-sm text-center mt-5">
+      <p className="text-sm text-center mt-5 text-text-secondary">
         Already have an account?{' '}
         <button
           onClick={onSwitch}
-          className="text-orange-600 hover:underline font-medium"
+          className="text-highlight hover:text-pink-500 font-medium transition-colors"
         >
           Login
         </button>

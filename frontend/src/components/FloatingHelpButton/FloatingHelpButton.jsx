@@ -1,10 +1,16 @@
 import React from 'react';
 import { HelpCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 const FloatingHelpButton = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Hide on MCQ test page
+    if (location.pathname === '/mcq-test') {
+        return null;
+    }
 
     return (
         <motion.button

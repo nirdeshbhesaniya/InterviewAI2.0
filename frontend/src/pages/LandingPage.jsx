@@ -133,26 +133,26 @@ const LandingPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-bg-body">
         <div className="flex flex-col items-center gap-6">
           <div className="flex space-x-3">
-            <div className="w-5 h-5 rounded-full bg-orange-500 animate-ping [animation-delay:-0.30s]"></div>
-            <div className="w-5 h-5 rounded-full bg-orange-500 animate-ping [animation-delay:-0.35s]"></div>
-            <div className="w-5 h-5 rounded-full bg-orange-500 animate-ping"></div>
+            <div className="w-5 h-5 rounded-full bg-primary animate-ping [animation-delay:-0.30s]"></div>
+            <div className="w-5 h-5 rounded-full bg-secondary animate-ping [animation-delay:-0.35s]"></div>
+            <div className="w-5 h-5 rounded-full bg-highlight animate-ping"></div>
           </div>
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 animate-pulse">
-              <Bot className="w-7 h-7 text-orange-600 drop-shadow-md" />
-              <h1 className="text-xl md:text-2xl font-bold text-orange-600 tracking-wide">
+              <Bot className="w-7 h-7 text-primary drop-shadow-md" />
+              <h1 className="text-xl md:text-2xl font-bold text-text-primary tracking-wide">
                 Interview AI
               </h1>
             </div>
-            <p className="text-sm md:text-base text-gray-600 dark:text-gray-300 mt-2 animate-fade-in-slow">
+            <p className="text-sm md:text-base text-text-secondary mt-2 animate-fade-in-slow">
               Setting up your landing page, hold tight...
             </p>
           </div>
-          <div className="w-48 h-2 bg-orange-100 dark:bg-gray-800 rounded-full overflow-hidden">
-            <div className="h-full bg-orange-500 animate-loading-bar rounded-full"></div>
+          <div className="w-48 h-2 bg-bg-card-alt rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-highlight to-pink-500 animate-loading-bar rounded-full"></div>
           </div>
         </div>
       </div>
@@ -160,7 +160,7 @@ const LandingPage = () => {
   }
 
   return (
-    <div className="font-[Urbanist] bg-gradient-to-br from-orange-50 via-white to-blue-50 min-h-screen">
+    <div className="font-[Urbanist] bg-gradient-hero min-h-screen">
       <Header onLoginClick={openModal} />
 
       {/* Hero Section with Enhanced Mobile Design */}
@@ -168,8 +168,8 @@ const LandingPage = () => {
       <HeroSection />
 
       {/* MCQ Test Highlight Section */}
-      <section className="px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600">
-        <div className="max-w-6xl mx-auto">
+      <section className="px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-br from-primary via-indigo-600 to-secondary relative overflow-hidden">
+        <div className="max-w-6xl mx-auto relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -177,18 +177,18 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center text-white"
           >
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-8 border border-white/20">
               <BrainCircuit className="w-10 h-10 text-white" />
             </div>
 
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
               Test Your Knowledge with
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-300">
+              <span className="block text-white">
                 AI-Powered MCQ Tests
               </span>
             </h2>
 
-            <p className="text-xl sm:text-2xl text-blue-100 max-w-4xl mx-auto mb-12 leading-relaxed">
+            <p className="text-xl sm:text-2xl text-white/80 max-w-4xl mx-auto mb-12 leading-relaxed">
               Challenge yourself with 30 AI-generated multiple choice questions tailored to your expertise.
               Get instant evaluation, detailed feedback, and comprehensive results delivered to your email.
             </p>
@@ -199,13 +199,13 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
+                className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all"
               >
-                <div className="w-12 h-12 bg-green-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">30 AI Questions</h3>
-                <p className="text-blue-100">Personalized questions based on your topic and experience level</p>
+                <p className="text-white/70">Personalized questions based on your topic and experience level</p>
               </motion.div>
 
               <motion.div
@@ -213,13 +213,13 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
+                className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all"
               >
-                <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 bg-highlight rounded-full flex items-center justify-center mx-auto mb-4">
                   <Zap className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">Instant Results</h3>
-                <p className="text-blue-100">AI evaluation with detailed explanations and improvement tips</p>
+                <p className="text-white/70">AI evaluation with detailed explanations and improvement tips</p>
               </motion.div>
 
               <motion.div
@@ -227,13 +227,13 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
+                className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all"
               >
-                <div className="w-12 h-12 bg-purple-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
                   <Trophy className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">Email Report</h3>
-                <p className="text-blue-100">Comprehensive analysis sent directly to your inbox</p>
+                <p className="text-white/70">Comprehensive analysis sent directly to your inbox</p>
               </motion.div>
             </div>
 
@@ -248,14 +248,14 @@ const LandingPage = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => user ? navigate('/mcq-test') : openModal()}
-                className="inline-flex items-center gap-3 px-8 py-4 bg-white text-blue-600 rounded-2xl font-bold text-lg hover:bg-gray-50 transition-all duration-300 shadow-2xl hover:shadow-3xl"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-highlight to-pink-500 text-white rounded-full font-bold text-lg hover:shadow-button-hover transition-all duration-300 shadow-button-primary"
               >
                 <BrainCircuit className="w-6 h-6" />
                 <span>Start MCQ Test</span>
                 <ArrowRight className="w-5 h-5" />
               </motion.button>
 
-              <div className="flex items-center gap-2 text-blue-100">
+              <div className="flex items-center gap-2 text-white/80">
                 <Shield className="w-5 h-5" />
                 <span className="text-sm">Free • No Credit Card Required</span>
               </div>
@@ -272,7 +272,7 @@ const LandingPage = () => {
 
 
       {/* Enhanced Features Section */}
-      <section className="px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-br from-white via-orange-50/30 to-blue-50/30">
+      <section className="px-4 sm:px-6 lg:px-8 py-20 bg-bg-body-alt">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -281,10 +281,10 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              App <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">Features</span>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-text-primary mb-6">
+              App <span className="text-text-primary">Features</span>
             </h2>
-            <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-text-secondary max-w-3xl mx-auto">
               Discover powerful tools designed to accelerate your interview preparation journey
             </p>
           </motion.div>
@@ -301,36 +301,36 @@ const LandingPage = () => {
                   y: -10,
                   transition: { duration: 0.3 }
                 }}
-                className="group relative bg-white p-8 rounded-2xl border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden"
+                className="group relative bg-bg-card p-8 rounded-2xl border border-border-subtle shadow-lg hover:shadow-2xl hover:bg-bg-card-alt transition-all duration-500 overflow-hidden"
               >
                 {/* Background Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                 {/* Feature Number Badge */}
                 <div className="relative z-10 mb-6">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-bold text-lg shadow-lg">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-highlight to-pink-500 text-white rounded-xl font-bold text-lg shadow-button-primary">
                     {feature.id}
                   </div>
                 </div>
 
                 {/* Content */}
                 <div className="relative z-10">
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 group-hover:text-orange-600 transition-colors duration-300">
+                  <h3 className="text-xl sm:text-2xl font-bold text-text-primary mb-4 group-hover:text-highlight transition-colors duration-300">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-600 leading-relaxed mb-6">
+                  <p className="text-text-secondary leading-relaxed mb-6">
                     {feature.description}
                   </p>
 
                   {/* Learn More Link */}
-                  <div className="flex items-center text-orange-500 font-medium opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-[-10px] group-hover:translate-x-0">
+                  <div className="flex items-center text-primary font-medium opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-[-10px] group-hover:translate-x-0">
                     <span className="text-sm">Learn more</span>
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
 
                 {/* Decorative Element */}
-                <div className="absolute top-4 right-4 w-20 h-20 bg-gradient-to-br from-orange-200/20 to-blue-200/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute top-4 right-4 w-20 h-20 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </motion.div>
             ))}
           </div>
@@ -347,7 +347,7 @@ const LandingPage = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleGetStarted}
-              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl font-semibold hover:from-orange-600 hover:to-red-600 transition-all duration-300 shadow-xl hover:shadow-2xl"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-highlight to-pink-500 text-white rounded-full font-semibold hover:shadow-button-hover transition-all duration-300 shadow-button-primary"
             >
               <span>Start Your Journey</span>
               <ArrowRight className="w-5 h-5" />
@@ -357,7 +357,7 @@ const LandingPage = () => {
       </section>
 
       {/* Enhanced Testimonials Section */}
-      <section className="py-20 bg-gradient-to-br from-orange-50 via-white to-blue-50">
+      <section className="py-20 bg-bg-body">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -366,10 +366,10 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              What <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">Users Say</span>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-text-primary mb-6">
+              What <span className="text-text-primary">Users Say</span>
             </h2>
-            <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-text-secondary max-w-3xl mx-auto">
               Join thousands of developers who have transformed their interview skills
             </p>
 
@@ -377,13 +377,13 @@ const LandingPage = () => {
             <div className="flex items-center justify-center gap-4 mt-8">
               <div className="flex items-center gap-1">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-6 h-6 text-yellow-400 fill-current" />
+                  <Star key={i} className="w-6 h-6 text-highlight fill-current" />
                 ))}
               </div>
-              <div className="text-gray-600">
-                <span className="font-bold text-2xl text-gray-900">4.9</span> out of 5
+              <div className="text-text-secondary">
+                <span className="font-bold text-2xl text-text-primary">4.9</span> out of 5
               </div>
-              <div className="hidden sm:block text-gray-500">
+              <div className="hidden sm:block text-text-muted">
                 Based on 1,000+ reviews
               </div>
             </div>
@@ -399,28 +399,28 @@ const LandingPage = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.15 }}
                 whileHover={{ y: -10, transition: { duration: 0.3 } }}
-                className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 p-8 border border-gray-100 overflow-hidden"
+                className="group relative bg-bg-card rounded-2xl shadow-lg hover:shadow-2xl hover:bg-bg-card-alt transition-all duration-500 p-8 border border-border-subtle overflow-hidden"
               >
                 {/* Background Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                 {/* Quote Icon */}
                 <div className="relative z-10 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-red-400 rounded-full flex items-center justify-center text-white font-bold text-2xl">
+                  <div className="w-12 h-12 bg-gradient-to-r from-highlight to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-button-primary">
                     "
                   </div>
                 </div>
 
                 {/* Testimonial Content */}
                 <div className="relative z-10">
-                  <p className="text-gray-700 text-lg leading-relaxed mb-6 italic">
+                  <p className="text-text-secondary text-lg leading-relaxed mb-6 italic">
                     "{item.feedback}"
                   </p>
 
                   {/* Rating */}
                   <div className="flex items-center gap-1 mb-4">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                      <Star key={i} className="w-4 h-4 text-highlight fill-current" />
                     ))}
                   </div>
 
@@ -429,16 +429,16 @@ const LandingPage = () => {
                     <div className="relative">
                       <img
                         src={item.avatar}
-                        className="w-14 h-14 rounded-full object-cover border-2 border-orange-200"
+                        className="w-14 h-14 rounded-full object-cover border-2 border-primary"
                         alt={item.name}
                       />
-                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-secondary rounded-full border-2 border-bg-card flex items-center justify-center">
                         <CheckCircle className="w-3 h-3 text-white" />
                       </div>
                     </div>
                     <div>
-                      <h4 className="font-bold text-gray-900 text-lg">{item.name}</h4>
-                      <p className="text-orange-600 font-medium">{item.role}</p>
+                      <h4 className="font-bold text-text-primary text-lg">{item.name}</h4>
+                      <p className="text-primary font-medium">{item.role}</p>
                     </div>
                   </div>
                 </div>
@@ -456,7 +456,7 @@ const LandingPage = () => {
               {testimonials.map((item, index) => (
                 <motion.div
                   key={`mobile-${item.id}`}
-                  className="snap-start flex-shrink-0 w-[85vw] sm:w-[70vw] max-w-sm bg-white rounded-xl shadow-lg p-6"
+                  className="snap-start flex-shrink-0 w-[85vw] sm:w-[70vw] max-w-sm bg-bg-card rounded-xl shadow-lg p-6 border border-border-subtle"
                   initial={{ opacity: 0, x: 50 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
@@ -469,11 +469,11 @@ const LandingPage = () => {
                       alt={item.name}
                     />
                     <div>
-                      <h4 className="font-semibold text-gray-900">{item.name}</h4>
-                      <p className="text-sm text-orange-600">{item.role}</p>
+                      <h4 className="font-semibold text-text-primary">{item.name}</h4>
+                      <p className="text-sm text-primary">{item.role}</p>
                     </div>
                   </div>
-                  <p className="text-gray-700 text-sm leading-relaxed">"{item.feedback}"</p>
+                  <p className="text-text-secondary text-sm leading-relaxed">"{item.feedback}"</p>
                 </motion.div>
               ))}
             </div>
@@ -485,7 +485,7 @@ const LandingPage = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 pt-16 border-t border-gray-200"
+            className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 pt-16 border-t border-border-subtle"
           >
             {[
               { icon: Users, label: "Active Users", value: "10,000+" },
@@ -501,11 +501,11 @@ const LandingPage = () => {
                 transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
                 className="text-center"
               >
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl mb-4 shadow-lg">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-highlight to-pink-500 text-white rounded-2xl mb-4 shadow-button-primary">
                   <stat.icon className="w-8 h-8" />
                 </div>
-                <div className="font-bold text-2xl text-gray-900">{stat.value}</div>
-                <div className="text-gray-600">{stat.label}</div>
+                <div className="font-bold text-2xl text-text-primary">{stat.value}</div>
+                <div className="text-text-secondary">{stat.label}</div>
               </motion.div>
             ))}
           </motion.div>
@@ -514,7 +514,7 @@ const LandingPage = () => {
 
 
       {/* Enhanced Why Choose Section */}
-      <section className="px-4 sm:px-6 lg:px-8 py-20 bg-white">
+      <section className="px-4 sm:px-6 lg:px-8 py-20 bg-bg-body-alt">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -523,10 +523,10 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Why Choose <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">Interview AI?</span>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-text-primary mb-6">
+              Why Choose <span className="text-text-primary">Interview AI?</span>
             </h2>
-            <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-text-secondary max-w-3xl mx-auto">
               Experience the future of interview preparation with our cutting-edge AI technology
             </p>
           </motion.div>
@@ -537,19 +537,19 @@ const LandingPage = () => {
                 title: 'Tailored Q&A',
                 text: 'Generate interview questions specific to your role and experience level, powered by advanced AI that understands industry trends and requirements.',
                 icon: BrainCircuit,
-                color: 'from-orange-500 to-red-500'
+                color: 'from-highlight to-pink-500'
               },
               {
                 title: 'Interactive Practice',
                 text: 'Expand, edit, and regenerate answers. Practice like it\'s a real interview, with flexibility and depth that adapts to your learning style.',
                 icon: Zap,
-                color: 'from-blue-500 to-purple-500'
+                color: 'from-primary to-indigo-600'
               },
               {
                 title: 'Session History',
                 text: 'Save and revisit your past Q&A sessions. Export them as PDFs or markdown files for future reference and continuous improvement.',
                 icon: Shield,
-                color: 'from-green-500 to-teal-500'
+                color: 'from-secondary to-cyan-500'
               }
             ].map((item, idx) => (
               <motion.div
@@ -562,32 +562,32 @@ const LandingPage = () => {
                   y: -10,
                   transition: { duration: 0.3 }
                 }}
-                className="group relative bg-gradient-to-br from-white to-gray-50 border border-gray-100 p-8 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden"
+                className="group relative bg-bg-card border border-border-subtle p-8 rounded-3xl shadow-lg hover:shadow-2xl hover:bg-bg-card-alt transition-all duration-500 overflow-hidden"
               >
                 {/* Background Effects */}
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-200/20 to-blue-200/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform translate-x-16 -translate-y-16" />
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform translate-x-16 -translate-y-16" />
 
                 {/* Icon */}
                 <div className="relative z-10 mb-6">
-                  <div className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r ${item.color} text-white rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                  <div className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r ${item.color} text-white rounded-2xl shadow-button-primary group-hover:scale-110 transition-transform duration-300`}>
                     <item.icon className="w-8 h-8" />
                   </div>
                 </div>
 
                 {/* Content */}
                 <div className="relative z-10">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-orange-600 transition-colors duration-300">
+                  <h3 className="text-2xl font-bold text-text-primary mb-4 group-hover:text-highlight transition-colors duration-300">
                     {item.title}
                   </h3>
-                  <p className="text-gray-600 leading-relaxed text-lg">
+                  <p className="text-text-secondary leading-relaxed text-lg">
                     {item.text}
                   </p>
                 </div>
 
                 {/* Decorative Elements */}
-                <div className="absolute bottom-4 right-4 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
-                  <item.icon className="w-24 h-24 text-gray-400" />
+                <div className="absolute bottom-4 right-4 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
+                  <item.icon className="w-24 h-24 text-text-muted" />
                 </div>
               </motion.div>
             ))}
@@ -613,10 +613,10 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
-                className="text-center p-6 bg-gradient-to-br from-orange-50 to-blue-50 rounded-2xl"
+                className="text-center p-6 bg-bg-card border border-border-subtle rounded-2xl hover:bg-bg-card-alt transition-all"
               >
-                <benefit.icon className="w-12 h-12 mx-auto mb-3 text-orange-600" />
-                <div className="font-semibold text-gray-900">{benefit.label}</div>
+                <benefit.icon className="w-12 h-12 mx-auto mb-3 text-primary" />
+                <div className="font-semibold text-text-primary">{benefit.label}</div>
               </motion.div>
             ))}
           </motion.div>
@@ -624,7 +624,7 @@ const LandingPage = () => {
       </section>
 
       {/* Enhanced FAQ Section */}
-      <section className="bg-gradient-to-br from-gray-50 to-white py-20 px-4 sm:px-6 lg:px-8">
+      <section className="bg-bg-body py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -633,10 +633,10 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-              Frequently Asked <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">Questions</span>
+            <h2 className="text-4xl sm:text-5xl font-bold text-text-primary mb-6">
+              Frequently Asked <span className="text-text-primary">Questions</span>
             </h2>
-            <p className="text-lg sm:text-xl text-gray-600">
+            <p className="text-lg sm:text-xl text-text-secondary">
               Everything you need to know about Interview AI
             </p>
           </motion.div>
@@ -650,17 +650,17 @@ const LandingPage = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                <details className="group bg-white p-6 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
-                  <summary className="flex items-center justify-between font-bold text-lg text-gray-900 cursor-pointer list-none">
+                <details className="group bg-bg-card p-6 rounded-2xl shadow-lg border border-border-subtle hover:shadow-xl hover:bg-bg-card-alt transition-all duration-300">
+                  <summary className="flex items-center justify-between font-bold text-lg text-text-primary cursor-pointer list-none">
                     <span className="pr-4">{faq.question}</span>
                     <div className="flex-shrink-0">
-                      <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white transform group-open:rotate-45 transition-transform duration-300">
+                      <div className="w-8 h-8 bg-gradient-to-r from-highlight to-pink-500 rounded-full flex items-center justify-center text-white transform group-open:rotate-45 transition-transform duration-300 shadow-button-primary">
                         <span className="text-xl leading-none">+</span>
                       </div>
                     </div>
                   </summary>
-                  <div className="mt-4 pt-4 border-t border-gray-100">
-                    <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+                  <div className="mt-4 pt-4 border-t border-border-subtle">
+                    <p className="text-text-secondary leading-relaxed">{faq.answer}</p>
                   </div>
                 </details>
               </motion.div>
@@ -673,17 +673,17 @@ const LandingPage = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.5 }}
-            className="text-center mt-16 p-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-3xl text-white"
+            className="text-center mt-16 p-8 bg-gradient-to-r from-highlight to-pink-500 rounded-3xl text-white shadow-button-primary"
           >
             <h3 className="text-2xl font-bold mb-4">Still have questions?</h3>
-            <p className="text-orange-100 mb-6">
+            <p className="text-white/80 mb-6">
               Our support team is here to help you get the most out of Interview AI
             </p>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/support')}
-              className="px-8 py-3 bg-white text-orange-600 rounded-xl font-semibold hover:bg-gray-50 transition-colors shadow-lg"
+              className="px-8 py-3 bg-white text-black rounded-xl font-semibold hover:bg-gray-50 transition-colors shadow-lg"
             >
               Contact Support
             </motion.button>

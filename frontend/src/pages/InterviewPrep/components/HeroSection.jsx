@@ -29,7 +29,7 @@ const HeroSection = () => {
     navigate('/codebase');
   };
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-hero">
       
       {/* Enhanced Background with Multiple Layers */}
       <div className="absolute inset-0 z-0">
@@ -39,24 +39,24 @@ const HeroSection = () => {
           muted
           loop
           playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-15 sm:opacity-25"
+          className="absolute inset-0 w-full h-full object-cover opacity-15 sm:opacity-20"
         >
           <source src="/assets/hero.mp4" type="video/mp4" />
         </video>
         
         {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-900/60 via-blue-900/50 to-purple-900/60"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-bg-body to-secondary/20"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20"></div>
         
         {/* Animated Grid Pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px] animate-pulse"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(99,102,241,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(99,102,241,0.03)_1px,transparent_1px)] bg-[size:50px_50px] animate-pulse"></div>
       </div>
 
       {/* Enhanced Floating Elements */}
       <div className="absolute inset-0 z-0 hidden md:block">
         {/* Top Left Orb */}
         <motion.div
-          className="absolute top-20 left-10 w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-orange-400/30 to-red-500/20 rounded-full blur-xl"
+          className="absolute top-20 left-10 w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-primary/30 to-indigo-500/20 rounded-full blur-xl"
           animate={{
             x: [0, 40, 0],
             y: [0, -30, 0],
@@ -68,7 +68,7 @@ const HeroSection = () => {
         
         {/* Bottom Right Orb */}
         <motion.div
-          className="absolute bottom-40 right-20 w-32 h-32 lg:w-40 lg:h-40 bg-gradient-to-br from-blue-400/30 to-purple-500/20 rounded-full blur-xl"
+          className="absolute bottom-40 right-20 w-32 h-32 lg:w-40 lg:h-40 bg-gradient-to-br from-secondary/30 to-cyan-500/20 rounded-full blur-xl"
           animate={{
             x: [0, -50, 0],
             y: [0, 40, 0],
@@ -80,7 +80,7 @@ const HeroSection = () => {
         
         {/* Center Accent */}
         <motion.div
-          className="absolute top-1/2 left-1/4 w-16 h-16 bg-gradient-to-br from-yellow-400/20 to-orange-500/15 rounded-full blur-lg"
+          className="absolute top-1/2 left-1/4 w-16 h-16 bg-gradient-to-br from-highlight/20 to-pink-500/15 rounded-full blur-lg"
           animate={{
             scale: [1, 1.5, 1],
             opacity: [0.3, 0.6, 0.3]
@@ -88,6 +88,7 @@ const HeroSection = () => {
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
         />
       </div>
+
 
       {/* Main Content Container */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
@@ -100,12 +101,12 @@ const HeroSection = () => {
           className="flex justify-center mb-6 sm:mb-8 lg:mb-10"
         >
           <div className="group relative">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-400 to-red-500 rounded-full blur opacity-60 group-hover:opacity-80 transition duration-300"></div>
-            <span className="relative inline-flex items-center gap-2 sm:gap-3 px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 text-xs sm:text-sm lg:text-base font-semibold text-white bg-black/80 backdrop-blur-xl rounded-full border border-white/20 hover:border-white/40 transition-all duration-300">
-              <BrainCircuit className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-orange-400 animate-pulse" />
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-highlight to-pink-500 rounded-full blur opacity-60 group-hover:opacity-80 transition duration-300"></div>
+            <span className="relative inline-flex items-center gap-2 sm:gap-3 px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 text-xs sm:text-sm lg:text-base font-semibold text-white bg-bg-card/80 backdrop-blur-xl rounded-full border border-border-subtle hover:border-primary/40 transition-all duration-300">
+              <BrainCircuit className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-primary animate-pulse" />
               <span className="hidden sm:inline">AI-Powered Interview Assistant</span>
               <span className="sm:hidden">AI Interview Assistant</span>
-              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-yellow-400 animate-spin" style={{ animationDuration: '3s' }} />
+              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-highlight animate-spin" style={{ animationDuration: '3s' }} />
             </span>
           </div>
         </motion.div>
@@ -121,7 +122,7 @@ const HeroSection = () => {
             <span className="block text-white drop-shadow-2xl mb-2 sm:mb-4">
               Ace Interviews with
             </span>
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-yellow-400 to-red-500 animate-gradient-x filter drop-shadow-lg">
+            <span className="block text-white">
               AI-Powered Learning
             </span>
           </h1>
@@ -154,9 +155,9 @@ const HeroSection = () => {
             </div>
 
             {/* Verification Badge */}
-            <div className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-green-500/20 backdrop-blur-sm rounded-full border border-green-400/30">
-              <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
-              <span className="text-green-300 text-xs sm:text-sm lg:text-base font-medium">Verified Platform</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary/20 backdrop-blur-sm rounded-full border border-secondary/30">
+              <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-secondary" />
+              <span className="text-secondary/90 text-xs sm:text-sm lg:text-base font-medium">Verified Platform</span>
             </div>
           </motion.div>
         </motion.div>
@@ -169,16 +170,16 @@ const HeroSection = () => {
           className="text-center space-y-6 sm:space-y-8 mb-12 sm:mb-16 lg:mb-20"
         >
           <p className="text-lg sm:text-xl lg:text-2xl xl:text-3xl text-white/90 leading-relaxed max-w-4xl mx-auto font-light">
-            Get <span className="font-semibold text-orange-300">role-specific questions</span>, expand answers when needed, and dive deeper into concepts with our <span className="font-semibold text-blue-300">intelligent AI assistant</span>.
+            Get <span className="font-semibold text-highlight">role-specific questions</span>, expand answers when needed, and dive deeper into concepts with our <span className="font-semibold text-secondary">intelligent AI assistant</span>.
           </p>
 
           {/* Enhanced Feature Highlights */}
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4 lg:gap-6">
             {[
-              { icon: CheckCircle, text: "Personalized Questions", shortText: "Personalized", color: "text-green-400" },
-              { icon: Zap, text: "Instant Feedback", shortText: "Instant", color: "text-yellow-400" },
-              { icon: Trophy, text: "Track Progress", shortText: "Progress", color: "text-purple-400" },
-              { icon: Target, text: "Role-Specific", shortText: "Targeted", color: "text-orange-400" }
+              { icon: CheckCircle, text: "Personalized Questions", shortText: "Personalized", color: "text-secondary" },
+              { icon: Zap, text: "Instant Feedback", shortText: "Instant", color: "text-highlight" },
+              { icon: Trophy, text: "Track Progress", shortText: "Progress", color: "text-primary" },
+              { icon: Target, text: "Role-Specific", shortText: "Targeted", color: "text-pink-400" }
             ].map((feature, index) => (
               <motion.div
                 key={index}
@@ -215,8 +216,8 @@ const HeroSection = () => {
             className="group relative w-full sm:w-auto min-w-[200px] lg:min-w-[240px] overflow-hidden"
             onClick={handleGetStarted}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl blur-lg opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
-            <div className="relative px-6 py-4 sm:px-8 sm:py-5 lg:px-10 lg:py-6 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl font-semibold text-base sm:text-lg lg:text-xl hover:from-orange-600 hover:to-red-600 transition-all duration-300 shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-highlight to-pink-600 rounded-full blur-lg opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
+            <div className="relative px-6 py-4 sm:px-8 sm:py-5 lg:px-10 lg:py-6 bg-gradient-to-r from-highlight to-pink-500 text-white rounded-full font-semibold text-base sm:text-lg lg:text-xl hover:shadow-button-hover transition-all duration-300 shadow-button-primary">
               <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
               <div className="relative flex items-center justify-center gap-3">
                 <Play className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
@@ -233,8 +234,8 @@ const HeroSection = () => {
             className="group relative w-full sm:w-auto min-w-[200px] lg:min-w-[240px] overflow-hidden"
             onClick={handleGoCodebase}
           >
-            <div className="absolute inset-0 bg-white/10 rounded-2xl blur-lg opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
-            <div className="relative px-6 py-4 sm:px-8 sm:py-5 lg:px-10 lg:py-6 bg-white/10 text-white border-2 border-white/30 rounded-2xl font-semibold text-base sm:text-lg lg:text-xl hover:bg-white/20 hover:border-white/50 backdrop-blur-xl transition-all duration-300 shadow-2xl">
+            <div className="absolute inset-0 bg-primary/10 rounded-full blur-lg opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
+            <div className="relative px-6 py-4 sm:px-8 sm:py-5 lg:px-10 lg:py-6 bg-bg-card/50 text-white border-2 border-border-subtle rounded-full font-semibold text-base sm:text-lg lg:text-xl hover:bg-bg-card-alt hover:border-primary/50 backdrop-blur-xl transition-all duration-300 shadow-2xl">
               <div className="flex items-center justify-center gap-3">
                 <FileCode className="w-5 h-5 sm:w-6 sm:h-6 group-hover:rotate-12 transition-transform duration-300" />
                 <span>Explore Codebase</span>
@@ -251,10 +252,10 @@ const HeroSection = () => {
           className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 max-w-5xl mx-auto"
         >
           {[
-            { number: "10K+", label: "Active Users", icon: Users, color: "from-blue-400 to-blue-600" },
-            { number: "50K+", label: "Questions Solved", icon: FileCode, color: "from-green-400 to-green-600" },
-            { number: "95%", label: "Success Rate", icon: Trophy, color: "from-yellow-400 to-yellow-600" },
-            { number: "24/7", label: "AI Support", icon: Bot, color: "from-purple-400 to-purple-600" }
+            { number: "10K+", label: "Active Users", icon: Users, color: "from-primary to-indigo-600" },
+            { number: "50K+", label: "Questions Solved", icon: FileCode, color: "from-secondary to-cyan-600" },
+            { number: "95%", label: "Success Rate", icon: Trophy, color: "from-highlight to-pink-600" },
+            { number: "24/7", label: "AI Support", icon: Bot, color: "from-purple-500 to-purple-700" }
           ].map((stat, index) => (
             <motion.div
               key={index}

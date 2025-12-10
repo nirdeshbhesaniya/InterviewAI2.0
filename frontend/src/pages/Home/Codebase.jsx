@@ -175,24 +175,24 @@ const CodeExecution = () => {
             initial="hidden"
             animate="visible"
             variants={containerVariants}
-            className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-3 sm:p-6 font-[Urbanist]"
+            className="min-h-screen bg-bg-body p-3 sm:p-6 font-[Urbanist]"
         >
             <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
                 {/* Enhanced Header */}
                 <motion.div
                     variants={itemVariants}
-                    className="flex flex-col gap-4 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700"
+                    className="flex flex-col gap-4 bg-bg-card backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-lg border border-border-subtle"
                 >
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl shadow-lg">
+                            <div className="p-2.5 bg-gradient-to-r from-highlight to-pink-500 rounded-xl shadow-lg shadow-highlight/30">
                                 <Code className="h-6 w-6 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                                <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
                                     Code Execution Platform
                                 </h1>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                <p className="text-sm text-text-muted mt-1">
                                     Write, test, and execute code in multiple languages
                                 </p>
                             </div>
@@ -201,10 +201,10 @@ const CodeExecution = () => {
                         {/* Language Selector */}
                         <div className="relative w-full sm:w-auto">
                             <div className="flex items-center gap-2 w-full sm:w-auto">
-                                <Terminal className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                                <Terminal className="h-4 w-4 text-text-muted flex-shrink-0" />
                                 <div className="relative flex-1 sm:flex-none">
                                     <select
-                                        className="w-full sm:w-auto appearance-none p-3 pr-10 rounded-xl bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 font-medium min-w-[180px] cursor-pointer"
+                                        className="w-full sm:w-auto appearance-none p-3 pr-10 rounded-xl bg-bg-body text-text-primary border border-border-subtle focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 font-medium min-w-[180px] cursor-pointer"
                                         value={language}
                                         onChange={(e) => handleLanguageChange(Number(e.target.value))}
                                     >
@@ -214,14 +214,14 @@ const CodeExecution = () => {
                                             </option>
                                         ))}
                                     </select>
-                                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-orange-500 pointer-events-none" />
+                                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-primary pointer-events-none" />
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border-subtle">
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -266,7 +266,7 @@ const CodeExecution = () => {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={resetCode}
-                            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-lg shadow-md transition-all duration-200 font-medium"
+                            className="flex items-center gap-2 bg-gradient-to-r from-highlight to-pink-500 hover:shadow-lg hover:shadow-highlight/50 text-white px-4 py-2.5 rounded-lg shadow-md transition-all duration-200 font-medium"
                         >
                             <RotateCcw className="h-4 w-4" />
                             <span className="hidden sm:inline">Reset</span>
@@ -276,7 +276,7 @@ const CodeExecution = () => {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => setShowSettings(!showSettings)}
-                            className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2.5 rounded-lg shadow-md transition-all duration-200 font-medium"
+                            className="flex items-center gap-2 bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/50 text-white px-4 py-2.5 rounded-lg shadow-md transition-all duration-200 font-medium"
                         >
                             <Settings className="h-4 w-4" />
                             <span className="hidden sm:inline">Settings</span>
@@ -289,18 +289,18 @@ const CodeExecution = () => {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 border border-gray-200 dark:border-gray-600"
+                            className="bg-bg-body rounded-xl p-4 border border-border-subtle"
                         >
-                            <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Editor Settings</h3>
+                            <h3 className="font-semibold text-text-primary mb-3">Editor Settings</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-text-secondary mb-2">
                                         Theme
                                     </label>
                                     <select
                                         value={theme}
                                         onChange={(e) => setTheme(e.target.value)}
-                                        className="w-full p-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                        className="w-full p-2 border border-border-subtle rounded-lg bg-bg-card text-text-primary"
                                     >
                                         <option value="vs-dark">Dark Theme</option>
                                         <option value="light">Light Theme</option>
@@ -308,13 +308,13 @@ const CodeExecution = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-text-secondary mb-2">
                                         Font Size
                                     </label>
                                     <select
                                         value={fontSize}
                                         onChange={(e) => setFontSize(Number(e.target.value))}
-                                        className="w-full p-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                        className="w-full p-2 border border-border-subtle rounded-lg bg-bg-card text-text-primary"
                                     >
                                         <option value={12}>12px</option>
                                         <option value={14}>14px</option>
@@ -333,9 +333,9 @@ const CodeExecution = () => {
                     {/* Code Editor */}
                     <motion.div
                         variants={itemVariants}
-                        className="xl:col-span-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
+                        className="xl:col-span-2 bg-bg-card backdrop-blur-sm rounded-2xl shadow-lg border border-border-subtle overflow-hidden"
                     >
-                        <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                        <div className="p-3 sm:p-4 border-b border-border-subtle bg-bg-body">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <div className="flex gap-2">
@@ -343,11 +343,11 @@ const CodeExecution = () => {
                                         <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                                         <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                                     </div>
-                                    <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                                    <span className="text-sm text-text-secondary ml-2">
                                         {selectedLanguage?.icon} {selectedLanguage?.name} Editor
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-1 text-xs text-gray-500">
+                                <div className="flex items-center gap-1 text-xs text-text-muted">
                                     <span className="hidden sm:inline">Lines: {code.split('\n').length}</span>
                                     <span className="sm:hidden">{code.split('\n').length}L</span>
                                 </div>
@@ -395,35 +395,35 @@ const CodeExecution = () => {
                     {/* Input & Controls Panel */}
                     <motion.div variants={itemVariants} className="space-y-4 sm:space-y-6">
                         {/* Input Section */}
-                        <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+                        <div className="bg-bg-card backdrop-blur-sm rounded-2xl shadow-lg border border-border-subtle p-4 sm:p-6">
                             <div className="flex items-center gap-2 mb-4">
-                                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                                    <Terminal className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                <div className="p-2 bg-secondary/20 rounded-lg">
+                                    <Terminal className="h-4 w-4 text-secondary" />
                                 </div>
-                                <h2 className="font-semibold text-lg text-gray-900 dark:text-white">Input (stdin)</h2>
+                                <h2 className="font-semibold text-lg text-text-primary">Input (stdin)</h2>
                             </div>
                             <textarea
-                                className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+                                className="w-full p-3 border border-border-subtle rounded-xl bg-bg-body text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 resize-none"
                                 placeholder="Enter input data here..."
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 rows={4}
                             />
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                            <p className="text-xs text-text-muted mt-2">
                                 Provide input data that your program will read from stdin
                             </p>
                         </div>
 
                         {/* Quick Actions */}
-                        <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
-                            <h2 className="font-semibold text-lg text-gray-900 dark:text-white mb-4">Quick Actions</h2>
+                        <div className="bg-bg-card backdrop-blur-sm rounded-2xl shadow-lg border border-border-subtle p-4 sm:p-6">
+                            <h2 className="font-semibold text-lg text-text-primary mb-4">Quick Actions</h2>
                             <div className="grid grid-cols-2 gap-2">
                                 <motion.button
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() => copyToClipboard(output)}
                                     disabled={!output}
-                                    className="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-lg transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                    className="flex items-center justify-center gap-2 bg-bg-body hover:bg-bg-card-alt text-text-primary px-3 py-2 rounded-lg transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm border border-border-subtle"
                                 >
                                     <Copy className="h-3 w-3" />
                                     Copy Output
@@ -432,7 +432,7 @@ const CodeExecution = () => {
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() => setInput('')}
-                                    className="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-sm"
+                                    className="flex items-center justify-center gap-2 bg-bg-body hover:bg-bg-card-alt text-text-primary px-3 py-2 rounded-lg transition-all duration-200 font-medium text-sm border border-border-subtle"
                                 >
                                     <RotateCcw className="h-3 w-3" />
                                     Clear Input
@@ -446,7 +446,7 @@ const CodeExecution = () => {
                             whileTap={{ scale: 0.98 }}
                             onClick={runCode}
                             disabled={loading}
-                            className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-400 disabled:to-gray-500 text-white px-6 py-4 rounded-xl shadow-lg transition-all duration-200 font-semibold flex items-center justify-center gap-2 disabled:cursor-not-allowed"
+                            className="w-full bg-gradient-to-r from-highlight to-pink-500 hover:shadow-lg hover:shadow-highlight/50 disabled:from-gray-400 disabled:to-gray-500 text-white px-6 py-4 rounded-xl shadow-lg transition-all duration-200 font-semibold flex items-center justify-center gap-2 disabled:cursor-not-allowed"
                         >
                             {loading ? (
                                 <>
@@ -466,17 +466,17 @@ const CodeExecution = () => {
                 {/* Enhanced Output Section */}
                 <motion.div
                     variants={itemVariants}
-                    className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
+                    className="bg-bg-card backdrop-blur-sm rounded-2xl shadow-lg border border-border-subtle overflow-hidden"
                 >
-                    <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                    <div className="p-4 sm:p-6 border-b border-border-subtle bg-bg-body">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                                    <Terminal className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                <div className="p-2 bg-green-500/20 rounded-lg">
+                                    <Terminal className="h-5 w-5 text-green-400" />
                                 </div>
                                 <div>
-                                    <h2 className="font-semibold text-lg text-gray-900 dark:text-white">Console Output</h2>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Program execution results</p>
+                                    <h2 className="font-semibold text-lg text-text-primary">Console Output</h2>
+                                    <p className="text-xs text-text-muted">Program execution results</p>
                                 </div>
                             </div>
                             {output && (
@@ -484,7 +484,7 @@ const CodeExecution = () => {
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => copyToClipboard(output)}
-                                    className="flex items-center gap-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded-lg transition-all duration-200 text-sm"
+                                    className="flex items-center gap-1 bg-bg-body hover:bg-bg-card-alt text-text-primary px-3 py-1.5 rounded-lg transition-all duration-200 text-sm border border-border-subtle"
                                 >
                                     <Copy className="h-3 w-3" />
                                     <span className="hidden sm:inline">Copy</span>
@@ -493,7 +493,7 @@ const CodeExecution = () => {
                         </div>
                     </div>
                     <div className="p-4 sm:p-6">
-                        <div className="bg-gray-900 dark:bg-black rounded-xl p-4 min-h-[120px] max-h-[300px] overflow-auto border border-gray-300 dark:border-gray-600">
+                        <div className="bg-gray-900 rounded-xl p-4 min-h-[120px] max-h-[300px] overflow-auto border border-border-subtle">
                             <pre className="whitespace-pre-wrap text-sm font-mono leading-relaxed">
                                 {output ? (
                                     <span className={
@@ -506,7 +506,7 @@ const CodeExecution = () => {
                                         {output}
                                     </span>
                                 ) : (
-                                    <span className="text-gray-500 italic flex items-center gap-2">
+                                    <span className="text-text-muted italic flex items-center gap-2">
                                         <Terminal className="h-4 w-4" />
                                         Output will appear here after code execution...
                                     </span>
@@ -514,7 +514,7 @@ const CodeExecution = () => {
                             </pre>
                         </div>
                         {output && (
-                            <div className="mt-3 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                            <div className="mt-3 flex items-center justify-between text-xs text-text-muted">
                                 <span>Execution completed</span>
                                 <span>{new Date().toLocaleTimeString()}</span>
                             </div>

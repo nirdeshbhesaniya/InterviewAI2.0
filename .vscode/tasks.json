@@ -1,0 +1,11 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "No-op",
+			"type": "shell",
+			"command": "echo Updating gradient text to solid colors",
+			"isBackground": false
+		}
+	]
+}

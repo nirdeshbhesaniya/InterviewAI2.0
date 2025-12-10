@@ -12,28 +12,30 @@ const Button = ({
     const getVariantClasses = () => {
         switch (variant) {
             case 'outline':
-                return 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700';
+                return 'border border-border-subtle bg-transparent text-text-secondary hover:bg-bg-card-alt hover:text-text-primary';
             case 'ghost':
-                return 'bg-transparent text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800';
+                return 'bg-transparent text-text-secondary hover:bg-bg-card-alt hover:text-text-primary';
             case 'destructive':
-                return 'bg-red-600 text-white hover:bg-red-700';
+                return 'bg-danger text-white hover:bg-red-600';
+            case 'secondary':
+                return 'bg-primary text-white hover:bg-indigo-500';
             default:
-                return 'bg-blue-600 text-white hover:bg-blue-700';
+                return 'bg-gradient-to-r from-highlight to-pink-500 text-white hover:shadow-button-hover hover:scale-[1.02] shadow-button-primary';
         }
     };
 
     const getSizeClasses = () => {
         switch (size) {
             case 'sm':
-                return 'px-3 py-1.5 text-sm h-8';
+                return 'px-3 py-1.5 text-sm h-8 rounded-lg';
             case 'lg':
-                return 'px-6 py-3 text-lg h-11';
+                return 'px-6 py-3 text-lg h-11 rounded-xl';
             default:
-                return 'px-4 py-2 text-sm h-9';
+                return 'px-4 py-2 text-sm h-9 rounded-xl';
         }
     };
 
-    const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+    const baseClasses = 'inline-flex items-center justify-center font-medium transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-bg-body disabled:opacity-50 disabled:cursor-not-allowed';
 
     const classes = `${baseClasses} ${getVariantClasses()} ${getSizeClasses()} ${className}`;
 

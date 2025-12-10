@@ -102,14 +102,14 @@ const ChatbotWindow = () => {
                 }}
                 exit={{ opacity: 0, scale: 0.8, y: 50 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="fixed bottom-6 right-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl z-40 flex flex-col overflow-hidden"
+                className="fixed bottom-6 right-6 bg-bg-card border border-border-subtle rounded-xl shadow-card z-40 flex flex-col overflow-hidden"
                 style={{
                     maxHeight: '80vh',
                     minHeight: isMinimized ? '60px' : '400px'
                 }}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white">
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-secondary to-primary text-white">
                     <div className="flex items-center space-x-3">
                         <Icon3D size="sm" color="secondary" animated={false}>
                             <Bot size={16} />
@@ -146,7 +146,7 @@ const ChatbotWindow = () => {
                 {!isMinimized && (
                     <>
                         {/* Messages Area */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-800/50">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-bg-body">
                             {messages.length === 1 && (
                                 <div className="space-y-3">
                                     <div className="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">
@@ -163,7 +163,7 @@ const ChatbotWindow = () => {
                                                 whileHover={{ scale: 1.02 }}
                                                 whileTap={{ scale: 0.98 }}
                                                 onClick={() => handleSendMessage(question)}
-                                                className="p-3 text-left text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-orange-300 dark:hover:border-orange-600 transition-colors"
+                                                className="p-3 text-left text-sm bg-bg-card border border-border-subtle rounded-lg hover:border-primary transition-colors text-text-secondary"
                                             >
                                                 {question}
                                             </motion.button>
@@ -182,8 +182,8 @@ const ChatbotWindow = () => {
                                     <div className={`max-w-[85%] ${message.isBot ? 'order-2' : 'order-1'}`}>
                                         <div
                                             className={`rounded-lg p-3 ${message.isBot
-                                                    ? 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600'
-                                                    : 'bg-gradient-to-r from-orange-500 to-pink-500 text-white'
+                                                    ? 'bg-bg-card border border-border-subtle text-text-primary'
+                                                    : 'bg-gradient-to-r from-secondary to-primary text-white'
                                                 } ${message.isError ? 'border-red-300 bg-red-50 dark:bg-red-900/20' : ''}`}
                                         >
                                             {message.isBot ? (
@@ -227,7 +227,7 @@ const ChatbotWindow = () => {
                                                         whileHover={{ scale: 1.1 }}
                                                         whileTap={{ scale: 0.9 }}
                                                         onClick={() => copyToClipboard(message.text, message.id)}
-                                                        className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                                                        className="p-1 rounded-md hover:bg-bg-elevated-alt transition-colors"
                                                     >
                                                         {copiedMessageId === message.id ? (
                                                             <Check size={14} className="text-green-500" />
@@ -289,7 +289,7 @@ const ChatbotWindow = () => {
                         </div>
 
                         {/* Input Area */}
-                        <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+                        <div className="p-4 bg-bg-card border-t border-border-subtle">
                             <div className="flex space-x-2">
                                 <div className="flex-1 relative">
                                     <textarea
@@ -298,7 +298,7 @@ const ChatbotWindow = () => {
                                         onChange={(e) => setInputMessage(e.target.value)}
                                         onKeyPress={handleKeyPress}
                                         placeholder="Ask me anything about interviews..."
-                                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white resize-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                                        className="w-full p-3 border border-border-subtle rounded-lg bg-bg-body text-text-primary resize-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
                                         rows="1"
                                         style={{ minHeight: '44px', maxHeight: '120px' }}
                                         disabled={isLoading}
@@ -310,7 +310,7 @@ const ChatbotWindow = () => {
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => handleSendMessage()}
                                     disabled={!inputMessage.trim() || isLoading}
-                                    className="px-4 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg hover:from-orange-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
+                                    className="px-4 py-3 bg-gradient-to-r from-secondary to-primary text-white rounded-lg hover:from-primary hover:to-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
                                 >
                                     <Send size={18} />
                                 </motion.button>

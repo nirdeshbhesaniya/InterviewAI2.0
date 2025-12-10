@@ -53,13 +53,13 @@ const FAQSection = () => {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8">
+        <div className="bg-bg-card rounded-2xl shadow-card border border-border-subtle p-6 lg:p-8">
             <div className="mb-6">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                    <HelpCircle className="w-6 h-6 text-orange-500" />
+                <h3 className="text-2xl font-bold text-text-primary mb-2 flex items-center gap-2">
+                    <HelpCircle className="w-6 h-6 text-accent" />
                     Frequently Asked Questions
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300">
+                <p className="text-text-secondary">
                     Find quick answers to common questions about Interview AI.
                 </p>
             </div>
@@ -68,19 +68,19 @@ const FAQSection = () => {
                 {faqs.map((faq, index) => (
                     <div
                         key={index}
-                        className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden"
+                        className="border border-border-subtle rounded-lg overflow-hidden"
                     >
                         <button
                             onClick={() => toggleItem(index)}
-                            className="w-full px-4 py-4 text-left bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center justify-between gap-3"
+                            className="w-full px-4 py-4 text-left bg-bg-elevated-alt hover:bg-bg-card transition-colors flex items-center justify-between gap-3"
                         >
-                            <span className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">
+                            <span className="font-medium text-text-primary text-sm sm:text-base">
                                 {faq.question}
                             </span>
                             {openItems.has(index) ? (
-                                <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                                <ChevronUp className="w-5 h-5 text-text-secondary flex-shrink-0" />
                             ) : (
-                                <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                                <ChevronDown className="w-5 h-5 text-text-secondary flex-shrink-0" />
                             )}
                         </button>
 
@@ -93,8 +93,8 @@ const FAQSection = () => {
                                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                                     className="overflow-hidden"
                                 >
-                                    <div className="px-4 py-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-600">
-                                        <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base leading-relaxed">
+                                    <div className="px-4 py-4 bg-bg-card border-t border-border-subtle">
+                                        <p className="text-text-secondary text-sm sm:text-base leading-relaxed">
                                             {faq.answer}
                                         </p>
                                     </div>
@@ -106,10 +106,10 @@ const FAQSection = () => {
             </div>
 
             {/* Contact Prompt */}
-            <div className="mt-8 p-4 bg-gradient-to-r from-orange-50 to-pink-50 dark:from-orange-900/20 dark:to-pink-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                <p className="text-sm text-gray-700 dark:text-gray-300 text-center">
+            <div className="mt-8 p-4 bg-accent/10 rounded-lg border border-accent/20">
+                <p className="text-sm text-text-secondary text-center">
                     Can't find what you're looking for?
-                    <span className="font-medium text-orange-600 dark:text-orange-400 ml-1">
+                    <span className="font-medium text-accent ml-1">
                         Use the contact form to get personalized help!
                     </span>
                 </p>
