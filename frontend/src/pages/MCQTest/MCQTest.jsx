@@ -731,11 +731,10 @@ const MCQTest = () => {
                             <button
                                 onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
                                 disabled={currentQuestion === 0}
-                                className={`flex-1 flex items-center justify-center gap-2 rounded-2xl py-2.5 font-semibold text-sm transition-all ${
-                                    currentQuestion === 0
+                                className={`flex-1 flex items-center justify-center gap-2 rounded-2xl py-2.5 font-semibold text-sm transition-all ${currentQuestion === 0
                                         ? 'bg-[#1F2933] text-[#9CA3AF] opacity-50 cursor-not-allowed'
                                         : 'bg-[#1F2933] text-[#E5E7EB] active:scale-95'
-                                }`}
+                                    }`}
                             >
                                 <ChevronLeft className="w-4 h-4" />
                                 Prev

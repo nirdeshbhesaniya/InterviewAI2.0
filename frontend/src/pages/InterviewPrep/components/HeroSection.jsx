@@ -2,15 +2,15 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
-  BrainCircuit, 
-  Sparkles, 
-  Star, 
-  CheckCircle, 
-  Zap, 
-  Trophy, 
-  ArrowRight, 
-  FileCode, 
-  Users, 
+  BrainCircuit,
+  Sparkles,
+  Star,
+  CheckCircle,
+  Zap,
+  Trophy,
+  ArrowRight,
+  FileCode,
+  Users,
   Bot,
   Play,
   Shield,
@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 const HeroSection = () => {
-      const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const handleGetStarted = () => {
     navigate('/dashboard');
@@ -30,7 +30,7 @@ const HeroSection = () => {
   };
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-hero">
-      
+
       {/* Enhanced Background with Multiple Layers */}
       <div className="absolute inset-0 z-0">
         {/* Primary Video Background */}
@@ -43,11 +43,11 @@ const HeroSection = () => {
         >
           <source src="/assets/hero.mp4" type="video/mp4" />
         </video>
-        
+
         {/* Gradient Overlays */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-bg-body to-secondary/20"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20"></div>
-        
+
         {/* Animated Grid Pattern */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(99,102,241,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(99,102,241,0.03)_1px,transparent_1px)] bg-[size:50px_50px] animate-pulse"></div>
       </div>
@@ -65,7 +65,7 @@ const HeroSection = () => {
           }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         />
-        
+
         {/* Bottom Right Orb */}
         <motion.div
           className="absolute bottom-40 right-20 w-32 h-32 lg:w-40 lg:h-40 bg-gradient-to-br from-secondary/30 to-cyan-500/20 rounded-full blur-xl"
@@ -77,7 +77,7 @@ const HeroSection = () => {
           }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
-        
+
         {/* Center Accent */}
         <motion.div
           className="absolute top-1/2 left-1/4 w-16 h-16 bg-gradient-to-br from-highlight/20 to-pink-500/15 rounded-full blur-lg"
@@ -92,7 +92,7 @@ const HeroSection = () => {
 
       {/* Main Content Container */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
-        
+
         {/* AI Badge - Enhanced */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8, y: -20 }}

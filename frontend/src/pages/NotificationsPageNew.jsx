@@ -183,8 +183,8 @@ const NotificationsPageNew = () => {
                     <button
                         onClick={() => setFilter('all')}
                         className={`px-4 py-2 rounded-lg font-medium transition-all shadow-md ${filter === 'all'
-                                ? 'bg-gradient-to-r from-highlight to-pink-500 text-white shadow-highlight/30'
-                                : 'bg-bg-card text-text-secondary border border-border-subtle hover:bg-bg-card-alt hover:text-text-primary'
+                            ? 'bg-gradient-to-r from-highlight to-pink-500 text-white shadow-highlight/30'
+                            : 'bg-bg-card text-text-secondary border border-border-subtle hover:bg-bg-card-alt hover:text-text-primary'
                             }`}
                     >
                         All
@@ -192,8 +192,8 @@ const NotificationsPageNew = () => {
                     <button
                         onClick={() => setFilter('unread')}
                         className={`px-4 py-2 rounded-lg font-medium transition-all shadow-md ${filter === 'unread'
-                                ? 'bg-gradient-to-r from-highlight to-pink-500 text-white shadow-highlight/30'
-                                : 'bg-bg-card text-text-secondary border border-border-subtle hover:bg-bg-card-alt hover:text-text-primary'
+                            ? 'bg-gradient-to-r from-highlight to-pink-500 text-white shadow-highlight/30'
+                            : 'bg-bg-card text-text-secondary border border-border-subtle hover:bg-bg-card-alt hover:text-text-primary'
                             }`}
                     >
                         Unread ({unreadCount})
@@ -217,8 +217,8 @@ const NotificationsPageNew = () => {
                             <div
                                 key={notification._id}
                                 className={`bg-bg-card rounded-xl shadow-md border transition-all duration-200 p-5 ${!notification.read
-                                        ? 'border-l-4 border-l-highlight shadow-highlight/10'
-                                        : 'border-l-4 border-l-transparent border border-border-subtle'
+                                    ? 'border-l-4 border-l-highlight shadow-highlight/10'
+                                    : 'border-l-4 border-l-transparent border border-border-subtle'
                                     }`}
                             >
                                 <div className="flex items-start gap-4">

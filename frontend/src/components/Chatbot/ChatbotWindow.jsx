@@ -182,8 +182,8 @@ const ChatbotWindow = () => {
                                     <div className={`max-w-[85%] ${message.isBot ? 'order-2' : 'order-1'}`}>
                                         <div
                                             className={`rounded-lg p-3 ${message.isBot
-                                                    ? 'bg-bg-card border border-border-subtle text-text-primary'
-                                                    : 'bg-gradient-to-r from-secondary to-primary text-white'
+                                                ? 'bg-bg-card border border-border-subtle text-text-primary'
+                                                : 'bg-gradient-to-r from-secondary to-primary text-white'
                                                 } ${message.isError ? 'border-red-300 bg-red-50 dark:bg-red-900/20' : ''}`}
                                         >
                                             {message.isBot ? (

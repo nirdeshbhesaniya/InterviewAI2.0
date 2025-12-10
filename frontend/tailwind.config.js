@@ -8,17 +8,17 @@ export default {
     extend: {
       colors: {
         // AI Tech Dark Gradient Theme - High Contrast System
-        
+
         // Core backgrounds
         'bg-body': '#0B0F1A',           // main app background
         'bg-body-alt': '#111827',       // secondary background
         'bg-elevated': '#111827',       // cards, headers, dropdowns
         'bg-elevated-alt': '#1F2933',   // hover / higher elevation
-        
+
         // Legacy aliases (for compatibility)
         'bg-card': '#111827',
         'bg-card-alt': '#1F2933',
-        
+
         // Brand & accents
         'primary': '#6366F1',           // main accent (indigo)
         'primary-hover': '#818CF8',     // lighter primary for hover
@@ -28,23 +28,23 @@ export default {
         'accent-warm': '#F97316',       // CTA / highlight (orange)
         'highlight': '#F97316',         // alias for accent-warm
         'highlight-soft': 'rgba(249, 115, 22, 0.12)',
-        
+
         // High-contrast text (WCAG AA compliant)
         'text-primary': '#F9FAFB',      // main headings, important labels
         'text-secondary': '#E5E7EB',    // normal body text
         'text-muted': '#9CA3AF',        // subtle labels, helper text
         'text-disabled': '#6B7280',     // disabled text
-        
+
         // Borders & dividers
         'border-subtle': '#1F2937',
         'border-strong': '#374151',
         'border': '#1F2937',            // alias
-        
+
         // Status colors
         'success': '#22C55E',
         'warning': '#FACC15',
         'danger': '#EF4444',
-        
+
         // Gradient stops
         'gradient-start': '#0B0F1A',
         'gradient-end': '#1E293B',

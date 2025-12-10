@@ -229,8 +229,8 @@ const NotesPage = () => {
                                 key={id}
                                 onClick={() => setFilter(id)}
                                 className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition-all text-xs sm:text-sm ${filter === id
-                                        ? 'bg-gradient-to-r from-highlight to-pink-500 text-white shadow-md shadow-highlight/30'
-                                        : 'bg-bg-card text-text-secondary border border-border-subtle hover:bg-bg-card-alt hover:text-text-primary'
+                                    ? 'bg-gradient-to-r from-highlight to-pink-500 text-white shadow-md shadow-highlight/30'
+                                    : 'bg-bg-card text-text-secondary border border-border-subtle hover:bg-bg-card-alt hover:text-text-primary'
                                     }`}
                             >
                                 <Icon size={16} className="sm:w-[18px] sm:h-[18px]" />
@@ -272,8 +272,8 @@ const NotesPage = () => {
                                 >
                                     {/* Card Header */}
                                     <div className={`p-3 sm:p-4 ${note.type === 'pdf'
-                                            ? 'bg-gradient-to-r from-primary to-secondary'
-                                            : 'bg-gradient-to-r from-highlight to-pink-500'
+                                        ? 'bg-gradient-to-r from-primary to-secondary'
+                                        : 'bg-gradient-to-r from-highlight to-pink-500'
                                         }`}>
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-center gap-2 text-white">
@@ -342,8 +342,8 @@ const NotesPage = () => {
                                                 <button
                                                     onClick={() => handleLikeNote(note._id)}
                                                     className={`flex items-center gap-1 transition-colors ${isLikedByUser(note)
-                                                            ? 'text-pink-500'
-                                                            : 'text-text-muted hover:text-pink-500'
+                                                        ? 'text-pink-500'
+                                                        : 'text-text-muted hover:text-pink-500'
                                                         }`}
                                                 >
                                                     <Heart
@@ -418,8 +418,8 @@ const NotesPage = () => {
                                             type="button"
                                             onClick={() => setFormData({ ...formData, type: 'pdf' })}
                                             className={`flex items-center justify-center gap-2 p-3 sm:p-4 rounded-lg border-2 transition-all ${formData.type === 'pdf'
-                                                    ? 'border-primary bg-primary/20 text-primary'
-                                                    : 'border-border-subtle hover:border-border bg-bg-body text-text-secondary'
+                                                ? 'border-primary bg-primary/20 text-primary'
+                                                : 'border-border-subtle hover:border-border bg-bg-body text-text-secondary'
                                                 }`}
                                         >
                                             <FileText size={20} className="sm:w-6 sm:h-6" />
@@ -430,8 +430,8 @@ const NotesPage = () => {
                                             type="button"
                                             onClick={() => setFormData({ ...formData, type: 'youtube' })}
                                             className={`flex items-center justify-center gap-2 p-3 sm:p-4 rounded-lg border-2 transition-all ${formData.type === 'youtube'
-                                                    ? 'border-highlight bg-highlight/20 text-highlight'
-                                                    : 'border-border-subtle hover:border-border bg-bg-body text-text-secondary'
+                                                ? 'border-highlight bg-highlight/20 text-highlight'
+                                                : 'border-border-subtle hover:border-border bg-bg-body text-text-secondary'
                                                 }`}
                                         >
                                             <Youtube size={20} className="sm:w-6 sm:h-6" />

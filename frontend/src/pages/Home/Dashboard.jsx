@@ -112,7 +112,7 @@ export const Dashboard = () => {
     return () => clearTimeout(delayDebounce);
   }, [searchTerm, cards]);
 
- return (
+  return (
     <div className="min-h-screen bg-bg-body">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 font-[Urbanist]">
         {/* Enhanced Header */}
@@ -122,12 +122,12 @@ export const Dashboard = () => {
             <div className="space-y-2">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                 <div className="flex items-center gap-2">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-highlight to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-highlight/50">
-                  <Bot className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-                </div>
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary">
-                  Interview AI
-                </h1>
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-highlight to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-highlight/50">
+                    <Bot className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary">
+                    Interview AI
+                  </h1>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs sm:text-sm">

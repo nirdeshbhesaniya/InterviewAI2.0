@@ -70,7 +70,7 @@ const Login = ({ onSwitch, onForgotPassword }) => {
             {showPass ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
         </div>
-        
+
         {/* Forgot Password Link */}
         <div className="flex justify-end">
           <button
@@ -87,11 +87,10 @@ const Login = ({ onSwitch, onForgotPassword }) => {
           type="submit"
           whileTap={{ scale: 0.97 }}
           disabled={loading}
-          className={`w-full py-2 rounded-md transition font-semibold tracking-wide shadow-md ${
-            loading
+          className={`w-full py-2 rounded-md transition font-semibold tracking-wide shadow-md ${loading
               ? 'bg-text-muted/50 text-text-secondary cursor-not-allowed'
               : 'bg-gradient-to-r from-highlight to-pink-500 hover:shadow-lg hover:shadow-highlight/50 text-white'
-          }`}
+            }`}
         >
           {loading ? 'Logging in...' : 'LOGIN'}
         </motion.button>
