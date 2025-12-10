@@ -5,33 +5,85 @@ dotenv.config();
 /**
  * Modern Email Service for InterviewPrep AI
  * Uses Nodemailer with responsive email templates matching AI Tech Dark Gradient theme
+ * 
+ * Production-ready with:
+ * - Connection timeout handling
+ * - Multiple port fallbacks (587, 465, 25)
+ * - Detailed error logging
+ * - Retry mechanism
  */
 
-// Create reusable transporter
-const createTransporter = () => {
-  // Support multiple email providers
-  const emailConfig = {
-    service: process.env.EMAIL_SERVICE || 'gmail', // gmail, outlook, etc.
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  };
+// Email configuration with production optimizations
+const getEmailConfig = (portOverride = null) => {
+  const usePort = portOverride || parseInt(process.env.SMTP_PORT || '587');
 
-  // Allow custom SMTP configuration
+  // Custom SMTP configuration (for Render, AWS, etc.)
   if (process.env.SMTP_HOST) {
-    return nodemailer.createTransport({
+    return {
       host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT || 587,
-      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+      port: usePort,
+      secure: usePort === 465, // true for 465, false for other ports
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-      }
-    });
+      },
+      tls: {
+        rejectUnauthorized: process.env.NODE_ENV === 'production' ? false : true,
+        ciphers: 'SSLv3'
+      },
+      connectionTimeout: 10000, // 10 seconds
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
+      debug: process.env.EMAIL_DEBUG === 'true',
+      logger: process.env.EMAIL_DEBUG === 'true'
+    };
   }
 
-  return nodemailer.createTransport(emailConfig);
+  // Gmail service configuration (optimized)
+  const service = process.env.EMAIL_SERVICE || 'gmail';
+
+  return {
+    service: service,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    },
+    tls: {
+      rejectUnauthorized: false
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
+    debug: process.env.EMAIL_DEBUG === 'true',
+    logger: process.env.EMAIL_DEBUG === 'true'
+  };
+};
+
+// Create transporter with retry logic
+const createTransporter = async (retryPorts = [587, 465, 25]) => {
+  const config = getEmailConfig(retryPorts[0]);
+
+  try {
+    const transporter = nodemailer.createTransport(config);
+
+    // Verify connection
+    await transporter.verify();
+    console.log(`✅ Email transporter ready on port ${config.port || config.service}`);
+
+    return transporter;
+  } catch (error) {
+    console.error(`❌ Failed to connect on port ${retryPorts[0]}:`, error.message);
+
+    // Retry with next port if available
+    if (retryPorts.length > 1) {
+      console.log(`🔄 Retrying with port ${retryPorts[1]}...`);
+      return createTransporter(retryPorts.slice(1));
+    }
+
+    // All ports failed, return unverified transporter
+    console.warn('⚠️ Creating transporter without verification (may fail on send)');
+    return nodemailer.createTransport(config);
+  }
 };
 
 /**
@@ -305,7 +357,8 @@ exports.sendOTPEmail = async (email, otp) => {
       throw new Error('Email credentials not configured. Please set EMAIL_USER and EMAIL_PASS environment variables.');
     }
 
-    const transporter = createTransporter();
+    console.log(`📧 Sending OTP email to ${email}...`);
+    const transporter = await createTransporter();
     const htmlContent = getEmailTemplate(getOTPEmailContent(otp), {
       title: 'Password Reset - InterviewPrep AI'
     });
@@ -332,10 +385,22 @@ exports.sendOTPEmail = async (email, otp) => {
 
   } catch (error) {
     console.error('❌ Failed to send OTP email:', error);
+
+    // Provide detailed error info for debugging
+    const errorDetails = {
+      message: error.message,
+      code: error.code,
+      command: error.command,
+      response: error.response
+    };
+
+    console.error('Error details:', JSON.stringify(errorDetails, null, 2));
+
     return {
       success: false,
       error: error.message,
-      details: error.toString()
+      code: error.code,
+      details: errorDetails
     };
   }
 };
@@ -349,7 +414,8 @@ exports.sendNotificationEmail = async (userEmail, title, message, action, action
       throw new Error('Email credentials not configured.');
     }
 
-    const transporter = createTransporter();
+    console.log(`📧 Sending notification email to ${userEmail}...`);
+    const transporter = await createTransporter();
     const htmlContent = getEmailTemplate(
       getNotificationEmailContent(title, message, action, actionUrl),
       { title: `${title} - InterviewPrep AI` }
@@ -376,9 +442,11 @@ exports.sendNotificationEmail = async (userEmail, title, message, action, action
 
   } catch (error) {
     console.error('❌ Failed to send notification email:', error);
+    console.error('Error code:', error.code);
     return {
       success: false,
-      error: error.message
+      error: error.message,
+      code: error.code
     };
   }
 };
@@ -633,7 +701,8 @@ exports.sendSupportEmailToTeam = async (name, email, subject, category, priority
       throw new Error('Email credentials not configured.');
     }
 
-    const transporter = createTransporter();
+    console.log(`📧 Sending support email to team...`);
+    const transporter = await createTransporter();
     const htmlContent = getEmailTemplate(
       getSupportEmailToTeam(name, email, subject, category, priority, message),
       { title: 'New Support Request - InterviewPrep AI', headerGradient: false }
@@ -661,9 +730,11 @@ exports.sendSupportEmailToTeam = async (name, email, subject, category, priority
 
   } catch (error) {
     console.error('❌ Failed to send support email to team:', error);
+    console.error('Error code:', error.code);
     return {
       success: false,
-      error: error.message
+      error: error.message,
+      code: error.code
     };
   }
 };
@@ -677,7 +748,8 @@ exports.sendSupportAutoReply = async (name, email, subject, category, priority, 
       throw new Error('Email credentials not configured.');
     }
 
-    const transporter = createTransporter();
+    console.log(`📧 Sending auto-reply to ${email}...`);
+    const transporter = await createTransporter();
     const htmlContent = getEmailTemplate(
       getSupportAutoReply(name, subject, category, priority, aiResponse, userMessage),
       { title: 'Support Request Received - InterviewPrep AI' }
@@ -704,9 +776,11 @@ exports.sendSupportAutoReply = async (name, email, subject, category, priority, 
 
   } catch (error) {
     console.error('❌ Failed to send auto-reply:', error);
+    console.error('Error code:', error.code);
     return {
       success: false,
-      error: error.message
+      error: error.message,
+      code: error.code
     };
   }
 };
@@ -721,7 +795,8 @@ exports.sendSupportAutoReply = async (name, email, subject, category, priority, 
  */
 exports.sendCustomEmail = async (to, subject, htmlContent, textContent = '', options = {}) => {
   try {
-    const transporter = createTransporter();
+    console.log(`📧 Sending custom email to ${to}...`);
+    const transporter = await createTransporter();
 
     const mailOptions = {
       from: options.from || process.env.EMAIL_USER,
@@ -739,13 +814,22 @@ exports.sendCustomEmail = async (to, subject, htmlContent, textContent = '', opt
       messageId: info.messageId
     };
   } catch (error) {
-    console.error('Error sending custom email:', error);
+    console.error('❌ Error sending custom email:', error);
+    console.error('Error code:', error.code);
     return {
       success: false,
-      error: error.message
+      error: error.message,
+      code: error.code
     };
   }
 };
+
+// Get service information
+exports.getServiceInfo = () => ({
+  service: 'Nodemailer',
+  isProduction: process.env.NODE_ENV === 'production',
+  configured: !!(process.env.EMAIL_USER && process.env.EMAIL_PASS)
+});
 
 // Export email template helpers for advanced use cases
 exports.getEmailTemplate = getEmailTemplate;
