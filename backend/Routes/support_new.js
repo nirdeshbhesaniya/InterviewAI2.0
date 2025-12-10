@@ -1,18 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const nodemailer = require('nodemailer');
+const { sendSupportEmailToTeam, sendSupportAutoReply } = require('../utils/emailService');
 const { chatWithAI } = require('../utils/gemini');
-
-// Create email transporter
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
-};
 
 // Generate AI auto-reply using Gemini
 async function generateAutoReplyMessage(supportRequest) {
@@ -80,98 +69,31 @@ router.post('/contact', async (req, res) => {
 
     console.log('Processing support request from:', email);
 
-    // Create email transporter
-    const transporter = createTransporter();
-
     // Generate AI auto-reply message
     console.log('Generating AI auto-reply...');
     const aiAutoReply = await generateAutoReplyMessage({ name, category, subject, message, priority });
     console.log('AI auto-reply generated successfully');
 
-    // Email to support team
-    const supportEmailOptions = {
-      from: process.env.EMAIL_USER,
-      to: process.env.SUPPORT_TEAM_EMAIL || process.env.EMAIL_USER,
-      subject: `[${category.toUpperCase()}] [${priority.toUpperCase()}] ${subject}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333; border-bottom: 2px solid #f97316; padding-bottom: 10px;">
-            New Support Request - Interview AI
-          </h2>
-          
-          <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="margin-top: 0; color: #555;">Contact Information</h3>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Category:</strong> ${category}</p>
-            <p><strong>Priority:</strong> ${priority}</p>
-          </div>
-          
-          <div style="margin: 20px 0;">
-            <h3 style="color: #555;">Subject</h3>
-            <p style="background: #fff; padding: 15px; border-left: 4px solid #f97316; margin: 0;">
-              ${subject}
-            </p>
-          </div>
-          
-          <div style="margin: 20px 0;">
-            <h3 style="color: #555;">Message</h3>
-            <div style="background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
-              ${message.replace(/\n/g, '<br>')}
-            </div>
-          </div>
-          
-          <div style="margin-top: 30px; padding: 15px; background: #e8f4fd; border-radius: 8px;">
-            <p style="margin: 0; font-size: 12px; color: #666;">
-              This message was sent from the Interview AI support form on ${new Date().toLocaleString()}.
-              An AI-generated auto-reply has been sent to the customer.
-            </p>
-          </div>
-        </div>
-      `
-    };
-
-    // Auto-reply email to user with AI response
-    const autoReplyOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: `${subject} - Interview AI Support`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #f97316, #dc2626, #db2777); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">Interview AI Support</h1>
-          </div>
-          
-          <div style="background: #fff; padding: 30px; border-radius: 0 0 8px 8px; border: 1px solid #ddd;">
-            <div style="color: #333; line-height: 1.6; white-space: pre-line;">
-              ${aiAutoReply}
-            </div>
-            
-            <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #f97316;">
-              <h4 style="margin-top: 0; color: #333;">Your Request Details:</h4>
-              <p style="margin: 5px 0;"><strong>Subject:</strong> ${subject}</p>
-              <p style="margin: 5px 0;"><strong>Category:</strong> ${category}</p>
-              <p style="margin: 5px 0;"><strong>Priority:</strong> ${priority}</p>
-              <p style="margin: 5px 0;"><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
-            </div>
-          </div>
-          
-          <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
-            <p>This response was generated with AI assistance. Our support team will follow up if needed.</p>
-          </div>
-        </div>
-      `
-    };
-
+    // Send email to support team using new email service
     console.log('Sending email to support team...');
-    // Send email to support team
-    await transporter.sendMail(supportEmailOptions);
+    const supportEmailResult = await sendSupportEmailToTeam(name, email, subject, category, priority, message);
+
+    if (!supportEmailResult.success) {
+      console.error('Failed to send support email:', supportEmailResult.error);
+      throw new Error('Failed to send email to support team');
+    }
     console.log('Support email sent successfully');
 
+    // Send AI auto-reply to user using new email service
     console.log('Sending AI auto-reply to user...');
-    // Send AI auto-reply to user
-    await transporter.sendMail(autoReplyOptions);
-    console.log('AI auto-reply sent successfully');
+    const autoReplyResult = await sendSupportAutoReply(name, email, subject, category, priority, aiAutoReply, message);
+
+    if (!autoReplyResult.success) {
+      console.error('Failed to send auto-reply:', autoReplyResult.error);
+      // Don't throw error here - support email was sent, auto-reply is nice-to-have
+    } else {
+      console.log('AI auto-reply sent successfully');
+    }
 
     res.json({
       success: true,

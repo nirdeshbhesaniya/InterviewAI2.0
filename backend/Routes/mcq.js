@@ -1,18 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const nodemailer = require('nodemailer');
 const { chatWithAI } = require('../utils/gemini');
-
-// Create email transporter
-const createTransporter = () => {
-    return nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        }
-    });
-};
+const { sendCustomEmail, getEmailTemplate } = require('../utils/emailService');
 
 // Generate MCQ questions using Gemini AI with uniqueness factors
 async function generateMCQQuestions(topic, difficulty = 'medium', numberOfQuestions = 30) {
@@ -299,88 +288,91 @@ function getGrade(score) {
 // Send results via email
 async function sendResultsEmail(userInfo, results, topic) {
     const { name, email } = userInfo;
-    const transporter = createTransporter();
 
-    const emailHTML = `
-    <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-      <div style="background: linear-gradient(135deg, #f97316, #dc2626, #db2777); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-        <h1 style="color: white; margin: 0; font-size: 28px;">Interview AI - MCQ Test Results</h1>
-      </div>
-      
-      <div style="background: #fff; padding: 30px; border-radius: 0 0 8px 8px; border: 1px solid #ddd;">
-        <h2 style="color: #333; margin-top: 0;">Hello ${name}!</h2>
-        
-        <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin: 20px 0; border-left: 5px solid #f97316;">
-          <h3 style="color: #333; margin-top: 0;">Test Summary</h3>
-          <p><strong>Topic:</strong> ${topic}</p>
-          <p><strong>Total Questions:</strong> ${results.totalQuestions}</p>
-          <p><strong>Correct Answers:</strong> ${results.correctAnswers}</p>
-          <p><strong>Score:</strong> ${results.score}%</p>
-          <p><strong>Grade:</strong> ${results.grade}</p>
-          <p><strong>Time Taken:</strong> ${Math.floor(results.timeSpent / 60)} minutes ${results.timeSpent % 60} seconds</p>
-          <p><strong>Test Date:</strong> ${new Date(results.timestamp).toLocaleString()}</p>
-        </div>
-        
-        <div style="background: #e8f4fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h3 style="color: #1e40af; margin-top: 0;">AI Feedback</h3>
-          <p style="line-height: 1.6; color: #555; white-space: pre-line;">${results.aiFeedback}</p>
-        </div>
-        
-        <div style="margin: 30px 0;">
-          <h3 style="color: #333;">Detailed Results</h3>
-          ${results.detailedResults.map((result, index) => {
-        // Function to format text with basic code highlighting for email
-        const formatForEmail = (text) => {
-            return text
-                .replace(/```(\w+)?\n([\s\S]*?)```/g, '<div style="background: #f8f9fa; border-left: 4px solid #007bff; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 14px; overflow-x: auto; border-radius: 4px;"><pre style="margin: 0; white-space: pre-wrap;">$2</pre></div>')
-                .replace(/`([^`]+)`/g, '<code style="background: #f1f3f4; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 13px;">$1</code>')
-                .replace(/\n/g, '<br>');
-        };
-
-        return `
-            <div style="border: 1px solid #ddd; margin: 15px 0; padding: 20px; border-radius: 8px; ${result.isCorrect ? 'background: #f0f9f0; border-color: #4ade80;' : 'background: #fef2f2; border-color: #f87171;'}">
-              <div style="margin-bottom: 15px;">
-                <p style="margin: 0 0 10px 0; font-weight: bold; font-size: 16px;">Q${result.questionNumber}: </p>
-                <div style="margin: 10px 0; line-height: 1.6;">${formatForEmail(result.question)}</div>
-              </div>
-              
-              <div style="background: white; padding: 15px; border-radius: 6px; margin: 10px 0;">
-                <p style="margin: 0 0 8px 0;"><strong style="color: #666;">Your Answer:</strong></p>
-                <div style="margin: 5px 0; padding: 8px; background: #f8f9fa; border-radius: 4px;">${formatForEmail(result.userAnswer)}</div>
-                
-                <p style="margin: 15px 0 8px 0;"><strong style="color: #666;">Correct Answer:</strong></p>
-                <div style="margin: 5px 0; padding: 8px; background: #e8f5e8; border-radius: 4px;">${formatForEmail(result.correctAnswer)}</div>
-              </div>
-              
-              <p style="margin: 15px 0 10px 0; font-weight: bold; color: ${result.isCorrect ? '#16a34a' : '#dc2626'}; font-size: 14px;">
-                <strong>Status:</strong> ${result.isCorrect ? '✅ Correct' : '❌ Incorrect'}
-              </p>
-              
-              ${result.explanation ? `
-                <div style="margin: 15px 0 0 0; padding: 12px; background: #f0f7ff; border-left: 4px solid #2563eb; border-radius: 4px;">
-                  <p style="margin: 0 0 5px 0; font-weight: bold; color: #1e40af;">Explanation:</p>
-                  <div style="color: #374151; line-height: 1.6;">${formatForEmail(result.explanation)}</div>
-                </div>
-              ` : ''}
-            </div>`;
-    }).join('')}
-        </div>
-        
-        <div style="text-align: center; margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
-          <p style="margin: 0; color: #555;">Want to improve your skills? Visit <strong>Interview AI</strong> for more practice tests and interview preparation resources!</p>
-        </div>
-      </div>
-    </div>
-  `;
-
-    const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: `Your MCQ Test Results - ${results.score}% Score`,
-        html: emailHTML
+    // Helper function to format text with code highlighting
+    const formatForEmail = (text) => {
+        return text
+            .replace(/```(\w+)?\n([\s\S]*?)```/g, '<div style="background: #1F2937; border-left: 4px solid #6366F1; padding: 15px; margin: 12px 0; font-family: \'Courier New\', monospace; font-size: 13px; overflow-x: auto; border-radius: 6px;"><pre style="margin: 0; white-space: pre-wrap; color: #E5E7EB;">$2</pre></div>')
+            .replace(/`([^`]+)`/g, '<code style="background: #1F2937; color: #22D3EE; padding: 3px 6px; border-radius: 4px; font-family: \'Courier New\', monospace; font-size: 13px;">$1</code>')
+            .replace(/\n/g, '<br>');
     };
 
-    await transporter.sendMail(mailOptions);
+    // Build detailed results HTML
+    const detailedResultsHTML = results.detailedResults.map((result, index) => `
+        <div style="border: 1px solid ${result.isCorrect ? '#16a34a' : '#dc2626'}; margin: 20px 0; padding: 20px; border-radius: 8px; background: ${result.isCorrect ? '#0f2419' : '#2d0f0f'};">
+            <div style="margin-bottom: 15px;">
+                <p style="margin: 0 0 12px 0; font-weight: bold; font-size: 16px; color: #F9FAFB;">Q${result.questionNumber}</p>
+                <div style="margin: 10px 0; line-height: 1.8; color: #E5E7EB;">${formatForEmail(result.question)}</div>
+            </div>
+            
+            <div style="background: #111827; padding: 15px; border-radius: 6px; margin: 15px 0; border: 1px solid #1F2937;">
+                <p style="margin: 0 0 10px 0; font-weight: 600; color: #9CA3AF;">Your Answer:</p>
+                <div style="margin: 5px 0; padding: 10px; background: #1F2937; border-radius: 4px; color: #F9FAFB; border-left: 3px solid #6366F1;">${formatForEmail(result.userAnswer)}</div>
+                
+                <p style="margin: 20px 0 10px 0; font-weight: 600; color: #9CA3AF;">Correct Answer:</p>
+                <div style="margin: 5px 0; padding: 10px; background: #1F2937; border-radius: 4px; color: #F9FAFB; border-left: 3px solid #22D3EE;">${formatForEmail(result.correctAnswer)}</div>
+            </div>
+            
+            <p style="margin: 15px 0 10px 0; font-weight: bold; color: ${result.isCorrect ? '#4ade80' : '#f87171'}; font-size: 15px;">
+                ${result.isCorrect ? '✅ Correct' : '❌ Incorrect'}
+            </p>
+            
+            ${result.explanation ? `
+                <div style="margin: 15px 0 0 0; padding: 15px; background: #1F2937; border-left: 4px solid #6366F1; border-radius: 6px;">
+                    <p style="margin: 0 0 8px 0; font-weight: 600; color: #22D3EE;">💡 Explanation:</p>
+                    <div style="color: #E5E7EB; line-height: 1.8;">${formatForEmail(result.explanation)}</div>
+                </div>
+            ` : ''}
+        </div>
+    `).join('');
+
+    // Main content
+    const emailContent = `
+        <div style="padding: 20px;">
+            <h2 style="color: #F9FAFB; margin-top: 0; font-size: 24px;">Hello ${name}! 👋</h2>
+            
+            <div style="background: linear-gradient(135deg, #1F2937 0%, #111827 100%); padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 5px solid #6366F1;">
+                <h3 style="color: #22D3EE; margin-top: 0; font-size: 20px;">📊 Test Summary</h3>
+                <table style="width: 100%; color: #E5E7EB; border-spacing: 0;">
+                    <tr><td style="padding: 8px 0;"><strong style="color: #9CA3AF;">Topic:</strong></td><td style="padding: 8px 0;">${topic}</td></tr>
+                    <tr><td style="padding: 8px 0;"><strong style="color: #9CA3AF;">Total Questions:</strong></td><td style="padding: 8px 0;">${results.totalQuestions}</td></tr>
+                    <tr><td style="padding: 8px 0;"><strong style="color: #9CA3AF;">Correct Answers:</strong></td><td style="padding: 8px 0;">${results.correctAnswers}</td></tr>
+                    <tr><td style="padding: 8px 0;"><strong style="color: #9CA3AF;">Score:</strong></td><td style="padding: 8px 0; font-size: 20px; font-weight: bold; color: ${results.score >= 70 ? '#4ade80' : results.score >= 50 ? '#fbbf24' : '#f87171'};">${results.score}%</td></tr>
+                    <tr><td style="padding: 8px 0;"><strong style="color: #9CA3AF;">Grade:</strong></td><td style="padding: 8px 0; font-weight: bold; color: #22D3EE;">${results.grade}</td></tr>
+                    <tr><td style="padding: 8px 0;"><strong style="color: #9CA3AF;">Time Taken:</strong></td><td style="padding: 8px 0;">${Math.floor(results.timeSpent / 60)}m ${results.timeSpent % 60}s</td></tr>
+                    <tr><td style="padding: 8px 0;"><strong style="color: #9CA3AF;">Test Date:</strong></td><td style="padding: 8px 0;">${new Date(results.timestamp).toLocaleString()}</td></tr>
+                </table>
+            </div>
+            
+            <div style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); padding: 20px; border-radius: 8px; margin: 25px 0;">
+                <h3 style="color: #FFFFFF; margin-top: 0; font-size: 18px;">🤖 AI Feedback</h3>
+                <p style="line-height: 1.8; color: #E0E7FF; white-space: pre-line; margin: 0;">${results.aiFeedback}</p>
+            </div>
+            
+            <div style="margin: 30px 0;">
+                <h3 style="color: #F9FAFB; font-size: 22px; margin-bottom: 20px;">📝 Detailed Results</h3>
+                ${detailedResultsHTML}
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; padding: 25px; background: linear-gradient(135deg, #1F2937 0%, #111827 100%); border-radius: 8px; border: 1px solid #374151;">
+                <p style="margin: 0 0 15px 0; color: #E5E7EB; font-size: 16px;">🚀 Want to improve your skills?</p>
+                <p style="margin: 0; color: #9CA3AF;">Visit <strong style="background: linear-gradient(135deg, #22D3EE, #6366F1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">InterviewPrep AI</strong> for more practice tests!</p>
+            </div>
+        </div>
+    `;
+
+    // Use the new email service with custom template
+    const fullEmailHTML = getEmailTemplate(emailContent, {
+        preheader: `Your MCQ Test Results - ${results.score}% Score`,
+        title: `📊 MCQ Test Results - ${results.score}%`
+    });
+
+    await sendCustomEmail(
+        email,
+        `🎯 Your MCQ Test Results - ${results.score}% Score on ${topic}`,
+        fullEmailHTML,
+        `MCQ Test Results\n\nTopic: ${topic}\nScore: ${results.score}%\nGrade: ${results.grade}\nCorrect: ${results.correctAnswers}/${results.totalQuestions}`
+    );
 }
 
 // Generate MCQ test with enhanced uniqueness

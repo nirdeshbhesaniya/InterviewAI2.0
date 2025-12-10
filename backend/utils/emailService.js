@@ -1,145 +1,337 @@
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
 dotenv.config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+/**
+ * Modern Email Service for InterviewPrep AI
+ * Uses Nodemailer with responsive email templates matching AI Tech Dark Gradient theme
+ */
 
+// Create reusable transporter
+const createTransporter = () => {
+  // Support multiple email providers
+  const emailConfig = {
+    service: process.env.EMAIL_SERVICE || 'gmail', // gmail, outlook, etc.
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  };
+
+  // Allow custom SMTP configuration
+  if (process.env.SMTP_HOST) {
+    return nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT || 587,
+      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+  }
+
+  return nodemailer.createTransport(emailConfig);
+};
+
+/**
+ * Base Email Template - Responsive and matches AI Tech Dark Gradient theme
+ */
+const getEmailTemplate = (content, options = {}) => {
+  const { title = 'InterviewPrep AI', headerGradient = true } = options;
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>${title}</title>
+  <!--[if mso]>
+  <style type="text/css">
+    body, table, td {font-family: Arial, Helvetica, sans-serif !important;}
+  </style>
+  <![endif]-->
+</head>
+<body style="margin: 0; padding: 0; background-color: #0B0F1A; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  
+  <!-- Email Container -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #0B0F1A; padding: 20px 0;">
+    <tr>
+      <td align="center">
+        
+        <!-- Main Content Card -->
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #111827; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);">
+          
+          ${headerGradient ? `
+          <!-- Header with Gradient -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #6366F1 0%, #22D3EE 50%, #F97316 100%); padding: 40px 30px; text-align: center;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center">
+                    <!-- Logo/Icon -->
+                    <div style="display: inline-block; background: rgba(255,255,255,0.15); padding: 16px; border-radius: 50%; margin-bottom: 16px; backdrop-filter: blur(10px);">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7V12C2 17.5 5.8 22.7 12 24C18.2 22.7 22 17.5 22 12V7L12 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="12" r="3" stroke="white" stroke-width="2"/>
+                      </svg>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center">
+                    <h1 style="color: #F9FAFB; margin: 0; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                      InterviewPrep AI
+                    </h1>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          ` : ''}
+          
+          <!-- Content Area -->
+          <tr>
+            <td style="padding: 40px 30px; color: #E5E7EB;">
+              ${content}
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #0B0F1A; padding: 30px; text-align: center; border-top: 1px solid #1F2937;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center">
+                    <p style="color: #9CA3AF; margin: 0 0 12px 0; font-size: 14px;">
+                      This email was sent by <strong style="color: #E5E7EB;">InterviewPrep AI</strong>
+                    </p>
+                    <p style="color: #6B7280; margin: 0 0 16px 0; font-size: 12px;">
+                      Your AI-powered interview preparation platform
+                    </p>
+                    
+                    <!-- Social Links / Quick Actions -->
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 16px auto 0;">
+                      <tr>
+                        <td style="padding: 0 8px;">
+                          <a href="${process.env.APP_URL || 'http://localhost:5173'}/settings" style="color: #6366F1; text-decoration: none; font-size: 13px; font-weight: 500;">⚙️ Settings</a>
+                        </td>
+                        <td style="padding: 0 8px; color: #374151;">•</td>
+                        <td style="padding: 0 8px;">
+                          <a href="${process.env.APP_URL || 'http://localhost:5173'}/contact-support" style="color: #6366F1; text-decoration: none; font-size: 13px; font-weight: 500;">💬 Support</a>
+                        </td>
+                        <td style="padding: 0 8px; color: #374151;">•</td>
+                        <td style="padding: 0 8px;">
+                          <a href="${process.env.APP_URL || 'http://localhost:5173'}" style="color: #6366F1; text-decoration: none; font-size: 13px; font-weight: 500;">🏠 Dashboard</a>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <p style="color: #6B7280; margin: 20px 0 0 0; font-size: 11px;">
+                      © ${new Date().getFullYear()} InterviewPrep AI. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+        </table>
+        
+        <!-- Spacer for mobile -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td height="20"></td>
+          </tr>
+        </table>
+        
+      </td>
+    </tr>
+  </table>
+  
+</body>
+</html>
+  `.trim();
+};
+
+/**
+ * OTP Email Template
+ */
+const getOTPEmailContent = (otp) => {
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center">
+          <h2 style="color: #F9FAFB; margin: 0 0 16px 0; font-size: 24px; font-weight: 600;">
+            🔐 Password Reset Request
+          </h2>
+          <p style="color: #9CA3AF; margin: 0 0 32px 0; font-size: 16px; line-height: 1.6;">
+            Use the verification code below to reset your password securely
+          </p>
+        </td>
+      </tr>
+      
+      <!-- OTP Box -->
+      <tr>
+        <td align="center">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(145deg, #1F2933, #111827); border: 2px dashed #374151; border-radius: 12px; margin: 24px 0;">
+            <tr>
+              <td style="padding: 32px 48px; text-align: center;">
+                <p style="color: #9CA3AF; margin: 0 0 12px 0; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px;">
+                  Verification Code
+                </p>
+                <div style="background: linear-gradient(135deg, #6366F1 0%, #22D3EE 50%, #F97316 100%); padding: 20px 32px; border-radius: 8px; display: inline-block;">
+                  <p style="color: #F9FAFB; margin: 0; font-size: 36px; font-weight: 900; letter-spacing: 8px; font-family: 'Courier New', monospace; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                    ${otp}
+                  </p>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      
+      <!-- Warning Notice -->
+      <tr>
+        <td>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(249, 115, 22, 0.1)); border-left: 4px solid #F97316; border-radius: 8px; margin: 24px 0;">
+            <tr>
+              <td style="padding: 20px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td width="32" valign="top">
+                      <span style="font-size: 24px;">⚠️</span>
+                    </td>
+                    <td style="padding-left: 12px;">
+                      <h4 style="color: #FACC15; margin: 0 0 8px 0; font-size: 15px; font-weight: 600;">
+                        Important Security Notice
+                      </h4>
+                      <p style="color: #E5E7EB; margin: 0; font-size: 14px; line-height: 1.6;">
+                        This verification code <strong>expires in 10 minutes</strong>. Never share this code with anyone. If you didn't request this reset, please ignore this email and secure your account.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      
+      <!-- Help Section -->
+      <tr>
+        <td align="center" style="padding-top: 32px; border-top: 1px solid #1F2937; margin-top: 32px;">
+          <p style="color: #9CA3AF; margin: 0 0 16px 0; font-size: 14px;">
+            Need help? Our support team is here for you
+          </p>
+          <a href="mailto:${process.env.SUPPORT_EMAIL || process.env.EMAIL_USER}" style="display: inline-block; background: linear-gradient(135deg, #6366F1, #22D3EE); color: #F9FAFB; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">
+            📧 Contact Support
+          </a>
+        </td>
+      </tr>
+    </table>
+  `;
+};
+
+/**
+ * Notification Email Template
+ */
+const getNotificationEmailContent = (title, message, action, actionUrl) => {
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center">
+          <div style="display: inline-block; background: linear-gradient(135deg, #6366F1, #22D3EE); padding: 16px; border-radius: 50%; margin-bottom: 20px;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h2 style="color: #F9FAFB; margin: 0 0 16px 0; font-size: 24px; font-weight: 600;">
+            ${title}
+          </h2>
+        </td>
+      </tr>
+      
+      <!-- Message Content -->
+      <tr>
+        <td>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #1F2933; border-radius: 12px; border: 1px solid #374151; margin: 24px 0;">
+            <tr>
+              <td style="padding: 28px;">
+                <p style="color: #E5E7EB; margin: 0; font-size: 15px; line-height: 1.8; white-space: pre-line;">
+                  ${message}
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      
+      ${action && actionUrl ? `
+      <!-- Action Button -->
+      <tr>
+        <td align="center" style="padding: 24px 0;">
+          <a href="${actionUrl}" style="display: inline-block; background: linear-gradient(135deg, #F97316, #FB7185); color: #F9FAFB; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; box-shadow: 0 12px 30px rgba(249, 115, 22, 0.35); transition: all 0.3s;">
+            ${action} →
+          </a>
+        </td>
+      </tr>
+      ` : ''}
+      
+      <!-- Settings Link -->
+      <tr>
+        <td align="center" style="padding-top: 32px; border-top: 1px solid #1F2937;">
+          <p style="color: #9CA3AF; margin: 0 0 12px 0; font-size: 13px;">
+            Manage your notification preferences
+          </p>
+          <a href="${process.env.APP_URL || 'http://localhost:5173'}/settings" style="color: #6366F1; text-decoration: none; font-weight: 500; font-size: 14px;">
+            ⚙️ Notification Settings
+          </a>
+        </td>
+      </tr>
+    </table>
+  `;
+};
+
+/**
+ * Send OTP Email
+ */
 exports.sendOTPEmail = async (email, otp) => {
   try {
-    const response = await resend.emails.send({
-      from: process.env.EMAIL_SENDER || 'onboarding@resend.dev',
-      to: email,
-      subject: 'Your OTP for Password Reset',
-      html: `
-        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
-          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden;">
-            
-            <!-- Header with gradient -->
-            <div style="background: linear-gradient(135deg, #f97316, #dc2626, #db2777); padding: 40px 30px; text-align: center; position: relative;">
-              <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="white" opacity="0.1"/><circle cx="80" cy="40" r="1" fill="white" opacity="0.1"/><circle cx="40" cy="80" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>'); opacity: 0.3;"></div>
-              
-              <div style="position: relative; z-index: 2;">
-                <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 15px; border-radius: 50%; margin-bottom: 20px; backdrop-filter: blur(10px);">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M9 12L11 14L15 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </div>
-                <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                  🔐 Password Reset
-                </h1>
-                <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px; font-weight: 300;">
-                  InterviewPrep AI Security
-                </p>
-              </div>
-            </div>
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      throw new Error('Email credentials not configured. Please set EMAIL_USER and EMAIL_PASS environment variables.');
+    }
 
-            <!-- Main content -->
-            <div style="padding: 40px 30px;">
-              <div style="text-align: center; margin-bottom: 30px;">
-                <h2 style="color: #1f2937; margin: 0 0 15px 0; font-size: 24px; font-weight: 600;">
-                  Your Security Code
-                </h2>
-                <p style="color: #6b7280; margin: 0; font-size: 16px; line-height: 1.5;">
-                  Use the verification code below to reset your password securely
-                </p>
-              </div>
-
-              <!-- OTP Container -->
-              <div style="background: linear-gradient(145deg, #f8fafc, #e2e8f0); border: 2px dashed #d1d5db; border-radius: 16px; padding: 30px; margin: 30px 0; text-align: center; position: relative; overflow: hidden;">
-                <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(249,115,22,0.1) 0%, transparent 70%); animation: pulse 3s ease-in-out infinite;"></div>
-                
-                <div style="position: relative; z-index: 2;">
-                  <p style="color: #374151; margin: 0 0 15px 0; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px;">
-                    Verification Code
-                  </p>
-                  <div style="background: linear-gradient(135deg, #f97316, #dc2626); padding: 20px; border-radius: 12px; display: inline-block; box-shadow: 0 10px 25px rgba(249,115,22,0.3); transform: perspective(1000px) rotateX(5deg);">
-                    <h1 style="color: white; margin: 0; font-size: 42px; font-weight: 900; letter-spacing: 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); font-family: 'Courier New', monospace;">
-                      ${otp}
-                    </h1>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Important notice -->
-              <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 4px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 25px 0;">
-                <div style="display: flex; align-items: flex-start; gap: 12px;">
-                  <div style="flex-shrink: 0; margin-top: 2px;">
-                    ⚠️
-                  </div>
-                  <div>
-                    <h4 style="color: #92400e; margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">
-                      Important Security Notice
-                    </h4>
-                    <p style="color: #78350f; margin: 0; font-size: 14px; line-height: 1.5;">
-                      This verification code expires in <strong>10 minutes</strong>. Never share this code with anyone. If you didn't request this reset, please ignore this email.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Additional help -->
-              <div style="text-align: center; margin-top: 30px; padding-top: 25px; border-top: 1px solid #e5e7eb;">
-                <p style="color: #6b7280; margin: 0 0 15px 0; font-size: 14px;">
-                  Need help? Contact our support team
-                </p>
-                <div style="display: inline-flex; gap: 15px;">
-                  <a href="mailto:support@interviewprepai.com" style="color: #f97316; text-decoration: none; font-weight: 500; font-size: 14px;">
-                    📧 Email Support
-                  </a>
-                  <span style="color: #d1d5db;">•</span>
-                  <a href="#" style="color: #f97316; text-decoration: none; font-weight: 500; font-size: 14px;">
-                    💬 Live Chat
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <!-- Footer -->
-            <div style="background: #f9fafb; padding: 25px 30px; text-align: center; border-top: 1px solid #e5e7eb;">
-              <p style="color: #6b7280; margin: 0 0 10px 0; font-size: 13px;">
-                This email was sent by <strong>InterviewPrep AI</strong>
-              </p>
-              <p style="color: #9ca3af; margin: 0; font-size: 12px;">
-                © 2025 InterviewPrep AI. All rights reserved.
-              </p>
-            </div>
-          </div>
-
-          <!-- Floating elements for visual appeal -->
-          <div style="position: absolute; top: 10%; left: 10%; width: 20px; height: 20px; background: rgba(255,255,255,0.1); border-radius: 50%; animation: float 6s ease-in-out infinite;"></div>
-          <div style="position: absolute; top: 20%; right: 10%; width: 15px; height: 15px; background: rgba(255,255,255,0.1); border-radius: 50%; animation: float 4s ease-in-out infinite reverse;"></div>
-          <div style="position: absolute; bottom: 20%; left: 20%; width: 25px; height: 25px; background: rgba(255,255,255,0.1); border-radius: 50%; animation: float 5s ease-in-out infinite;"></div>
-        </div>
-
-        <style>
-          @keyframes pulse {
-            0%, 100% { opacity: 0.6; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(1.05); }
-          }
-          
-          @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-          }
-        </style>
-      `,
-      text: `Your OTP is: ${otp}`,
+    const transporter = createTransporter();
+    const htmlContent = getEmailTemplate(getOTPEmailContent(otp), {
+      title: 'Password Reset - InterviewPrep AI'
     });
 
-    if (response?.data?.id) {
-      console.log('✅ OTP Email sent via Resend:', response.data.id);
-      return { success: true, messageId: response.data.id };
-    } else {
-      console.error('⚠️ Unexpected response from Resend:', response);
-      return {
-        success: false,
-        error: 'Failed to send email',
-        details: response
-      };
-    }
+    const mailOptions = {
+      from: {
+        name: 'InterviewPrep AI',
+        address: process.env.EMAIL_USER
+      },
+      to: email,
+      subject: '🔐 Password Reset - Your OTP Code',
+      html: htmlContent,
+      text: `Your OTP for password reset is: ${otp}\n\nThis code expires in 10 minutes.\n\nIf you didn't request this, please ignore this email.\n\n- InterviewPrep AI Team`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+
+    console.log('✅ OTP Email sent successfully:', info.messageId);
+    return {
+      success: true,
+      messageId: info.messageId,
+      response: info.response
+    };
+
   } catch (error) {
-    console.error('❌ Resend email error:', error);
+    console.error('❌ Failed to send OTP email:', error);
     return {
       success: false,
       error: error.message,
@@ -148,81 +340,414 @@ exports.sendOTPEmail = async (email, otp) => {
   }
 };
 
+/**
+ * Send Notification Email
+ */
 exports.sendNotificationEmail = async (userEmail, title, message, action, actionUrl) => {
   try {
-    const response = await resend.emails.send({
-      from: process.env.EMAIL_SENDER || 'onboarding@resend.dev',
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      throw new Error('Email credentials not configured.');
+    }
+
+    const transporter = createTransporter();
+    const htmlContent = getEmailTemplate(
+      getNotificationEmailContent(title, message, action, actionUrl),
+      { title: `${title} - InterviewPrep AI` }
+    );
+
+    const mailOptions = {
+      from: {
+        name: 'InterviewPrep AI',
+        address: process.env.EMAIL_USER
+      },
       to: userEmail,
       subject: `🔔 ${title} - InterviewPrep AI`,
-      html: `
-        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
-          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden;">
-            
-            <!-- Header -->
-            <div style="background: linear-gradient(135deg, #f97316, #dc2626, #db2777); padding: 40px 30px; text-align: center;">
-              <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 15px; border-radius: 50%; margin-bottom: 20px; backdrop-filter: blur(10px);">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </div>
-              <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                🔔 ${title}
-              </h1>
-              <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px; font-weight: 300;">
-                InterviewPrep AI Notification
-              </p>
-            </div>
+      html: htmlContent,
+      text: `${title}\n\n${message}${action && actionUrl ? `\n\n${action}: ${actionUrl}` : ''}\n\n- InterviewPrep AI Team`
+    };
 
-            <!-- Main content -->
-            <div style="padding: 40px 30px;">
-              <div style="background: linear-gradient(145deg, #f8fafc, #e2e8f0); border-radius: 16px; padding: 30px; margin: 20px 0;">
-                <p style="color: #374151; margin: 0; font-size: 16px; line-height: 1.8;">
-                  ${message}
-                </p>
-              </div>
+    const info = await transporter.sendMail(mailOptions);
 
-              ${action && actionUrl ? `
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${actionUrl}" style="display: inline-block; background: linear-gradient(135deg, #f97316, #dc2626); color: white; padding: 15px 40px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 16px; box-shadow: 0 10px 25px rgba(249,115,22,0.3); transition: transform 0.2s;">
-                  ${action}
-                </a>
-              </div>
-              ` : ''}
+    console.log('✅ Notification email sent successfully:', info.messageId);
+    return {
+      success: true,
+      messageId: info.messageId
+    };
 
-              <div style="text-align: center; margin-top: 30px; padding-top: 25px; border-top: 1px solid #e5e7eb;">
-                <p style="color: #6b7280; margin: 0 0 15px 0; font-size: 14px;">
-                  Manage your notification preferences
-                </p>
-                <a href="${process.env.APP_URL || 'http://localhost:5173'}/settings" style="color: #f97316; text-decoration: none; font-weight: 500; font-size: 14px;">
-                  ⚙️ Settings
-                </a>
-              </div>
-            </div>
-
-            <!-- Footer -->
-            <div style="background: #f9fafb; padding: 25px 30px; text-align: center; border-top: 1px solid #e5e7eb;">
-              <p style="color: #6b7280; margin: 0 0 10px 0; font-size: 13px;">
-                This email was sent by <strong>InterviewPrep AI</strong>
-              </p>
-              <p style="color: #9ca3af; margin: 0; font-size: 12px;">
-                © 2025 InterviewPrep AI. All rights reserved.
-              </p>
-            </div>
-          </div>
-        </div>
-      `,
-      text: `${title}\n\n${message}${action ? `\n\n${action}: ${actionUrl}` : ''}`,
-    });
-
-    if (response?.data?.id) {
-      console.log('✅ Notification Email sent via Resend:', response.data.id);
-      return { success: true, messageId: response.data.id };
-    } else {
-      return { success: false, error: 'Failed to send email' };
-    }
   } catch (error) {
-    console.error('❌ Notification email error:', error);
-    return { success: false, error: error.message };
+    console.error('❌ Failed to send notification email:', error);
+    return {
+      success: false,
+      error: error.message
+    };
   }
 };
+
+/**
+ * Support Request Email Templates
+ */
+const getSupportEmailToTeam = (name, email, subject, category, priority, message) => {
+  const priorityColors = {
+    urgent: '#EF4444',
+    high: '#F97316',
+    normal: '#22D3EE',
+    low: '#9CA3AF'
+  };
+
+  const priorityColor = priorityColors[priority] || priorityColors.normal;
+
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td>
+          <h2 style="color: #F9FAFB; margin: 0 0 24px 0; font-size: 22px; font-weight: 600; border-bottom: 2px solid #F97316; padding-bottom: 12px;">
+            🎫 New Support Request
+          </h2>
+        </td>
+      </tr>
+      
+      <!-- Priority Badge -->
+      <tr>
+        <td style="padding-bottom: 20px;">
+          <span style="display: inline-block; background: ${priorityColor}; color: #F9FAFB; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+            ${priority} Priority
+          </span>
+          <span style="display: inline-block; background: #1F2933; color: #22D3EE; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; margin-left: 8px;">
+            ${category}
+          </span>
+        </td>
+      </tr>
+      
+      <!-- Contact Info -->
+      <tr>
+        <td>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #1F2933; border-radius: 12px; border: 1px solid #374151; margin: 16px 0;">
+            <tr>
+              <td style="padding: 24px;">
+                <h3 style="color: #22D3EE; margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">
+                  📋 Contact Information
+                </h3>
+                <table role="presentation" width="100%" cellpadding="8" cellspacing="0" border="0">
+                  <tr>
+                    <td width="120" style="color: #9CA3AF; font-size: 14px;"><strong>Name:</strong></td>
+                    <td style="color: #E5E7EB; font-size: 14px;">${name}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #9CA3AF; font-size: 14px;"><strong>Email:</strong></td>
+                    <td style="color: #E5E7EB; font-size: 14px;"><a href="mailto:${email}" style="color: #6366F1; text-decoration: none;">${email}</a></td>
+                  </tr>
+                  <tr>
+                    <td style="color: #9CA3AF; font-size: 14px;"><strong>Time:</strong></td>
+                    <td style="color: #E5E7EB; font-size: 14px;">${new Date().toLocaleString()}</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      
+      <!-- Subject -->
+      <tr>
+        <td style="padding: 16px 0;">
+          <h3 style="color: #22D3EE; margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">
+            📌 Subject
+          </h3>
+          <div style="background: #111827; padding: 16px; border-left: 4px solid #F97316; border-radius: 6px;">
+            <p style="color: #F9FAFB; margin: 0; font-size: 15px; font-weight: 500;">
+              ${subject}
+            </p>
+          </div>
+        </td>
+      </tr>
+      
+      <!-- Message -->
+      <tr>
+        <td style="padding: 16px 0;">
+          <h3 style="color: #22D3EE; margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">
+            💬 Message
+          </h3>
+          <div style="background: #111827; padding: 24px; border-radius: 8px; border: 1px solid #374151;">
+            <p style="color: #E5E7EB; margin: 0; font-size: 14px; line-height: 1.8; white-space: pre-line;">
+              ${message}
+            </p>
+          </div>
+        </td>
+      </tr>
+      
+      <!-- Footer Note -->
+      <tr>
+        <td style="padding-top: 24px; border-top: 1px solid #1F2937; margin-top: 24px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(34, 211, 238, 0.1)); border-radius: 8px;">
+            <tr>
+              <td style="padding: 16px;">
+                <p style="color: #9CA3AF; margin: 0; font-size: 13px;">
+                  ℹ️ An AI-powered auto-reply has been sent to the customer. Please review and follow up if additional support is needed.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  `;
+};
+
+const getSupportAutoReply = (name, subject, category, priority, aiResponse, userMessage) => {
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td>
+          <h2 style="color: #F9FAFB; margin: 0 0 16px 0; font-size: 24px; font-weight: 600;">
+            Hello ${name}! 👋
+          </h2>
+          <p style="color: #9CA3AF; margin: 0 0 32px 0; font-size: 15px; line-height: 1.6;">
+            Thank you for contacting InterviewPrep AI support. We've received your message and our AI assistant has prepared an initial response for you.
+          </p>
+        </td>
+      </tr>
+      
+      <!-- AI Response -->
+      <tr>
+        <td>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(145deg, #1F2933, #111827); border: 1px solid #374151; border-radius: 12px; margin: 20px 0;">
+            <tr>
+              <td style="padding: 28px;">
+                <div style="margin-bottom: 20px;">
+                  <span style="display: inline-block; background: linear-gradient(135deg, #6366F1, #22D3EE); color: #F9FAFB; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                    🤖 AI Assistant Response
+                  </span>
+                </div>
+                <div style="color: #E5E7EB; font-size: 15px; line-height: 1.8; white-space: pre-line;">
+                  ${aiResponse}
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      
+      <!-- Request Summary -->
+      <tr>
+        <td style="padding-top: 24px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #0B0F1A; border: 1px solid #1F2937; border-radius: 8px;">
+            <tr>
+              <td style="padding: 20px;">
+                <h4 style="color: #22D3EE; margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">
+                  📝 Your Request Summary
+                </h4>
+                <table role="presentation" width="100%" cellpadding="6" cellspacing="0" border="0">
+                  <tr>
+                    <td width="100" style="color: #9CA3AF; font-size: 13px;">Subject:</td>
+                    <td style="color: #E5E7EB; font-size: 13px;">${subject}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #9CA3AF; font-size: 13px;">Category:</td>
+                    <td style="color: #E5E7EB; font-size: 13px;">${category}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #9CA3AF; font-size: 13px;">Priority:</td>
+                    <td style="color: #E5E7EB; font-size: 13px;">${priority}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #9CA3AF; font-size: 13px;">Submitted:</td>
+                    <td style="color: #E5E7EB; font-size: 13px;">${new Date().toLocaleString()}</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      
+      <!-- Human Follow-up Notice -->
+      <tr>
+        <td style="padding-top: 24px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(34, 211, 238, 0.1), rgba(99, 102, 241, 0.1)); border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.3);">
+            <tr>
+              <td style="padding: 20px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td width="32" valign="top">
+                      <span style="font-size: 24px;">🧑‍💼</span>
+                    </td>
+                    <td style="padding-left: 12px;">
+                      <h4 style="color: #22D3EE; margin: 0 0 8px 0; font-size: 15px; font-weight: 600;">
+                        Human Support Team Review
+                      </h4>
+                      <p style="color: #E5E7EB; margin: 0; font-size: 13px; line-height: 1.6;">
+                        ${priority === 'urgent' ? 'Our team will review your urgent request and respond within <strong>4 hours</strong>.' :
+      priority === 'high' ? 'Our team will review your high-priority request and respond within <strong>8 hours</strong>.' :
+        'Our team will review your request and typically respond within <strong>24 hours</strong> during business days.'}
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      
+      <!-- Quick Actions -->
+      <tr>
+        <td align="center" style="padding-top: 32px; border-top: 1px solid #1F2937; margin-top: 32px;">
+          <p style="color: #9CA3AF; margin: 0 0 16px 0; font-size: 14px;">
+            Need more help? Explore our resources
+          </p>
+          <table role="presentation" cellpadding="8" cellspacing="0" border="0" style="margin: 0 auto;">
+            <tr>
+              <td>
+                <a href="${process.env.APP_URL || 'http://localhost:5173'}/contact-support" style="display: inline-block; background: #1F2933; color: #22D3EE; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 13px; border: 1px solid #374151;">
+                  📚 FAQ & Docs
+                </a>
+              </td>
+              <td>
+                <a href="${process.env.APP_URL || 'http://localhost:5173'}" style="display: inline-block; background: linear-gradient(135deg, #6366F1, #22D3EE); color: #F9FAFB; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 13px;">
+                  🏠 Dashboard
+                </a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      
+      <!-- Note -->
+      <tr>
+        <td align="center" style="padding-top: 24px;">
+          <p style="color: #6B7280; margin: 0; font-size: 12px; font-style: italic;">
+            💡 This initial response was generated by our AI assistant. Our human support team will follow up if needed.
+          </p>
+        </td>
+      </tr>
+    </table>
+  `;
+};
+
+/**
+ * Send Support Request to Team
+ */
+exports.sendSupportEmailToTeam = async (name, email, subject, category, priority, message) => {
+  try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      throw new Error('Email credentials not configured.');
+    }
+
+    const transporter = createTransporter();
+    const htmlContent = getEmailTemplate(
+      getSupportEmailToTeam(name, email, subject, category, priority, message),
+      { title: 'New Support Request - InterviewPrep AI', headerGradient: false }
+    );
+
+    const mailOptions = {
+      from: {
+        name: 'InterviewPrep AI Support System',
+        address: process.env.EMAIL_USER
+      },
+      to: process.env.SUPPORT_TEAM_EMAIL || process.env.EMAIL_USER,
+      replyTo: email,
+      subject: `🎫 [${category.toUpperCase()}] [${priority.toUpperCase()}] ${subject}`,
+      html: htmlContent,
+      text: `New Support Request\n\nFrom: ${name} (${email})\nCategory: ${category}\nPriority: ${priority}\nSubject: ${subject}\n\nMessage:\n${message}\n\nSubmitted: ${new Date().toLocaleString()}`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+
+    console.log('✅ Support email sent to team:', info.messageId);
+    return {
+      success: true,
+      messageId: info.messageId
+    };
+
+  } catch (error) {
+    console.error('❌ Failed to send support email to team:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+
+/**
+ * Send Auto-Reply to Support Requester
+ */
+exports.sendSupportAutoReply = async (name, email, subject, category, priority, aiResponse, userMessage) => {
+  try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      throw new Error('Email credentials not configured.');
+    }
+
+    const transporter = createTransporter();
+    const htmlContent = getEmailTemplate(
+      getSupportAutoReply(name, subject, category, priority, aiResponse, userMessage),
+      { title: 'Support Request Received - InterviewPrep AI' }
+    );
+
+    const mailOptions = {
+      from: {
+        name: 'InterviewPrep AI Support',
+        address: process.env.EMAIL_USER
+      },
+      to: email,
+      subject: `Re: ${subject} - InterviewPrep AI Support`,
+      html: htmlContent,
+      text: `Hello ${name},\n\nThank you for contacting InterviewPrep AI support.\n\nAI Assistant Response:\n${aiResponse}\n\nYour Request Details:\n- Subject: ${subject}\n- Category: ${category}\n- Priority: ${priority}\n- Submitted: ${new Date().toLocaleString()}\n\nOur support team will review your request and follow up if needed.\n\n- InterviewPrep AI Support Team`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+
+    console.log('✅ Auto-reply sent to user:', info.messageId);
+    return {
+      success: true,
+      messageId: info.messageId
+    };
+
+  } catch (error) {
+    console.error('❌ Failed to send auto-reply:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+
+/**
+ * Send a custom email with HTML content
+ * @param {string} to - Recipient email address
+ * @param {string} subject - Email subject
+ * @param {string} htmlContent - HTML content (can be full template or just inner content)
+ * @param {string} textContent - Plain text version
+ * @param {object} options - Additional options (from, replyTo, etc.)
+ */
+exports.sendCustomEmail = async (to, subject, htmlContent, textContent = '', options = {}) => {
+  try {
+    const transporter = createTransporter();
+
+    const mailOptions = {
+      from: options.from || process.env.EMAIL_USER,
+      to,
+      subject,
+      html: htmlContent,
+      text: textContent || subject,
+      ...options // Allow additional options like replyTo, cc, bcc
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+
+    return {
+      success: true,
+      messageId: info.messageId
+    };
+  } catch (error) {
+    console.error('Error sending custom email:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+
+// Export email template helpers for advanced use cases
+exports.getEmailTemplate = getEmailTemplate;
+exports.getOTPEmailContent = getOTPEmailContent;
+exports.getNotificationEmailContent = getNotificationEmailContent;
