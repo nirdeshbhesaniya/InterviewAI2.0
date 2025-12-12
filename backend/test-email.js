@@ -92,7 +92,7 @@ async function testSupportEmails() {
         'high',
         `Hello John,
 
-Thank you for contacting InterviewPrep AI support! I understand you're experiencing issues with the code editor showing compilation errors.
+Thank you for contacting Interview AI support! I understand you're experiencing issues with the code editor showing compilation errors.
 
 Here are some quick troubleshooting steps:
 
@@ -111,7 +111,7 @@ If the issue persists, please don't hesitate to reply to this email with:
 We appreciate your patience and are committed to resolving this quickly!
 
 Best regards,
-The InterviewPrep AI Support Team`,
+The Interview AI Support Team`,
         'I\'m having trouble accessing the code editor...'
     );
 

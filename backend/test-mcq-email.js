@@ -161,7 +161,7 @@ Recommendation: Focus on asynchronous JavaScript and practice more code challeng
                 
                 <div style="text-align: center; margin-top: 40px; padding: 25px; background: linear-gradient(135deg, #1F2937 0%, #111827 100%); border-radius: 8px; border: 1px solid #374151;">
                     <p style="margin: 0 0 15px 0; color: #E5E7EB; font-size: 16px;">🚀 Want to improve your skills?</p>
-                    <p style="margin: 0; color: #9CA3AF;">Visit <strong style="background: linear-gradient(135deg, #22D3EE, #6366F1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">InterviewPrep AI</strong> for more practice tests!</p>
+                    <p style="margin: 0; color: #9CA3AF;">Visit <strong style="background: linear-gradient(135deg, #22D3EE, #6366F1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Interview AI</strong> for more practice tests!</p>
                 </div>
             </div>
         `;

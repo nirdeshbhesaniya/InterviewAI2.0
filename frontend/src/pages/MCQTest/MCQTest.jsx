@@ -1,18 +1,22 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { UserContext } from '../../context/UserContext';
+import { useTestMode } from '../../context/TestModeContext';
 import { API } from '../../utils/apiPaths';
 import axiosInstance from '../../utils/axiosInstance';
 import toast from 'react-hot-toast';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
-import { Clock, CheckCircle, XCircle, Award, Mail, Brain, Timer, BookOpen, Settings, ChevronLeft, ChevronRight, Code, Copy } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, Award, Mail, Brain, Timer, BookOpen, Settings, ChevronLeft, ChevronRight, Code, Copy, History, AlertTriangle } from 'lucide-react';
 
 const MCQTest = () => {
     const { user } = useContext(UserContext);
+    const { setIsTestActive } = useTestMode();
+    const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState('setup'); // setup, test, results
     const [formData, setFormData] = useState({
         topic: '',
@@ -23,12 +27,16 @@ const MCQTest = () => {
     const [questions, setQuestions] = useState([]);
     const [questionsWithAnswers, setQuestionsWithAnswers] = useState([]); // Store questions with correct answers for evaluation
     const [answers, setAnswers] = useState({});
+    const [markedForReview, setMarkedForReview] = useState({});
+    const [visitedQuestions, setVisitedQuestions] = useState({});
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [timeLeft, setTimeLeft] = useState(1800); // Default 30 minutes
     const [testStartTime, setTestStartTime] = useState(null);
     const [testEndTime, setTestEndTime] = useState(null);
     const [results, setResults] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [showDetailedResults, setShowDetailedResults] = useState(false);
+    const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
     // Strict practice rules
     const [rules] = useState([
         'No back navigation once test begins',
@@ -38,12 +46,84 @@ const MCQTest = () => {
         'Results include score, accuracy and time spent'
     ]);
     const [hasAttempted, setHasAttempted] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [fullscreenWarnings, setFullscreenWarnings] = useState(0);
+    const [tabSwitchWarnings, setTabSwitchWarnings] = useState(0);
     const [availableTopics] = useState([
         'JavaScript', 'React', 'Node.js', 'Python', 'Java', 'C++', 'Database',
         'System Design', 'Data Structures', 'Algorithms', 'Machine Learning',
         'DevOps', 'Cloud Computing', 'Cybersecurity', 'Frontend Development',
         'Backend Development'
     ]);
+
+    // Submit test function - defined before useEffect hooks that reference it
+    const handleSubmitTest = useCallback(async () => {
+        setLoading(true);
+        const endTime = new Date();
+        setTestEndTime(endTime);
+
+        // Calculate actual time spent in seconds
+        const actualTimeSpent = testStartTime ? Math.floor((endTime - testStartTime) / 1000) : (formData.numberOfQuestions * 120) - timeLeft;
+
+        // Exit fullscreen
+        try {
+            if (document.fullscreenElement) {
+                await document.exitFullscreen();
+                setIsFullscreen(false);
+            }
+        } catch (err) {
+            console.log('Exit fullscreen failed:', err);
+        }
+
+        try {
+            const submissionData = {
+                topic: formData.topic,
+                answers: answers,
+                questions: questionsWithAnswers, // Include questions with correct answers for evaluation
+                userInfo: {
+                    name: user?.name || user?.email?.split('@')[0] || 'User',
+                    email: user?.email
+                },
+                numberOfQuestions: formData.numberOfQuestions,
+                experience: formData.experience,
+                specialization: formData.specialization,
+                timeSpent: actualTimeSpent,
+                // Include security warnings
+                securityWarnings: {
+                    fullscreenExits: fullscreenWarnings,
+                    tabSwitches: tabSwitchWarnings
+                }
+            };
+
+            const response = await axiosInstance.post(API.MCQ.SUBMIT, submissionData);
+
+            if (response.data.success) {
+                setResults({
+                    ...response.data.data.results,
+                    timeSpent: actualTimeSpent,
+                    securityWarnings: {
+                        fullscreenExits: fullscreenWarnings,
+                        tabSwitches: tabSwitchWarnings
+                    }
+                });
+                setCurrentStep('results');
+
+                // Show warning if there were security violations
+                if (fullscreenWarnings > 0 || tabSwitchWarnings > 0) {
+                    toast.error(`⚠️ Test completed with ${fullscreenWarnings} fullscreen exit(s) and ${tabSwitchWarnings} tab switch(es). Results may be affected.`, {
+                        duration: 6000
+                    });
+                } else {
+                    toast.success('Test submitted successfully! Results sent to your email.');
+                }
+            }
+        } catch (error) {
+            console.error('Error submitting test:', error);
+            toast.error(error.response?.data?.message || 'Failed to submit test');
+        } finally {
+            setLoading(false);
+        }
+    }, [answers, testStartTime, formData, timeLeft, user, questionsWithAnswers, fullscreenWarnings, tabSwitchWarnings, setCurrentStep, setResults, setTestEndTime, setIsFullscreen, setLoading]);
 
     // Enhanced components for markdown rendering with better code support
     const components = {
@@ -215,7 +295,58 @@ const MCQTest = () => {
             }, 1000);
             return () => clearInterval(timer);
         }
-    }, [currentStep, timeLeft]);
+    }, [currentStep, timeLeft, handleSubmitTest]);
+
+    // Fullscreen management and hide header/footer when test starts
+    useEffect(() => {
+        // Update test mode context to hide header/footer
+        setIsTestActive(currentStep === 'test');
+
+        // Listen for fullscreen changes and prevent manual exit
+        const handleFullscreenChange = () => {
+            const isCurrentlyFullscreen = !!document.fullscreenElement;
+            setIsFullscreen(isCurrentlyFullscreen);
+
+            // If user manually exits fullscreen during test, show warning
+            if (currentStep === 'test' && !isCurrentlyFullscreen && isFullscreen) {
+                setFullscreenWarnings(prev => {
+                    const newCount = prev + 1;
+                    const totalWarnings = newCount + tabSwitchWarnings;
+
+                    toast.error(`⚠️ You exited fullscreen. Test may be invalid! (Warning ${totalWarnings}/3)`, {
+                        duration: 5000,
+                        icon: '🚨',
+                    });
+
+                    // Auto-submit if 3 warnings reached
+                    if (totalWarnings >= 3) {
+                        toast.error('🚨 Test auto-submitted due to 3 security violations!', {
+                            duration: 6000,
+                        });
+                        setTimeout(() => {
+                            handleSubmitTest();
+                        }, 1000);
+                    }
+
+                    return newCount;
+                });
+            }
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            // Restore header/footer when leaving test
+            setIsTestActive(false);
+        };
+    }, [currentStep, setIsTestActive, isFullscreen, tabSwitchWarnings, handleSubmitTest]);
+
+    // Track visited questions
+    useEffect(() => {
+        if (currentStep === 'test' && questions.length > 0) {
+            setVisitedQuestions(prev => ({ ...prev, [currentQuestion]: true }));
+        }
+    }, [currentQuestion, currentStep, questions.length]);
 
     // Prevent accidental page refresh/close during test
     useEffect(() => {
@@ -229,10 +360,129 @@ const MCQTest = () => {
         return () => window.removeEventListener('beforeunload', beforeUnload);
     }, [currentStep]);
 
+    // Strict exam mode: Disable right-click and keyboard shortcuts
+    useEffect(() => {
+        if (currentStep !== 'test') return;
+
+        // Prevent right-click context menu
+        const preventContextMenu = (e) => {
+            e.preventDefault();
+            toast.error('Right-click is disabled during the test!', { duration: 2000 });
+        };
+
+        // Prevent keyboard shortcuts (except allowed ones)
+        const preventKeyboardShortcuts = (e) => {
+            // Block Ctrl, Cmd, Alt combinations (except Ctrl+C for copy in test)
+            if (e.ctrlKey || e.metaKey || e.altKey) {
+                // Allow Ctrl+C and Ctrl+V for copying code/text
+                if (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'v' || e.key === 'V')) {
+                    return; // Allow copy/paste
+                }
+                e.preventDefault();
+                toast.error('Keyboard shortcuts are disabled during the test!', { duration: 2000 });
+            }
+
+            // Allow F11 and Escape for fullscreen control
+            // Removed restriction to allow users to toggle fullscreen manually
+
+            // Prevent F12 (Developer tools)
+            if (e.key === 'F12') {
+                e.preventDefault();
+                toast.error('Developer tools are disabled during the test!', { duration: 2000 });
+            }
+        };
+
+        window.addEventListener('contextmenu', preventContextMenu);
+        window.addEventListener('keydown', preventKeyboardShortcuts);
+
+        return () => {
+            window.removeEventListener('contextmenu', preventContextMenu);
+            window.removeEventListener('keydown', preventKeyboardShortcuts);
+        };
+    }, [currentStep]);
+
+    // Detect tab switching and show warning
+    useEffect(() => {
+        if (currentStep !== 'test') return;
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                setTabSwitchWarnings(prev => {
+                    const newCount = prev + 1;
+                    const totalWarnings = newCount + fullscreenWarnings;
+
+                    toast.error(`⚠️ Tab switch detected! This may invalidate your test. (Warning ${totalWarnings}/3)`, {
+                        duration: 5000,
+                        icon: '👀',
+                    });
+
+                    // Auto-submit if 3 warnings reached
+                    if (totalWarnings >= 3) {
+                        toast.error('🚨 Test auto-submitted due to 3 security violations!', {
+                            duration: 6000,
+                        });
+                        setTimeout(() => {
+                            handleSubmitTest();
+                        }, 1000);
+                    }
+
+                    return newCount;
+                });
+            }
+        };
+
+        const handleBlur = () => {
+            setTabSwitchWarnings(prev => {
+                const newCount = prev + 1;
+                const totalWarnings = newCount + fullscreenWarnings;
+
+                toast.error(`⚠️ You switched away from the test window! (Warning ${totalWarnings}/3)`, {
+                    duration: 4000,
+                    icon: '⚡',
+                });
+
+                // Auto-submit if 3 warnings reached
+                if (totalWarnings >= 3) {
+                    toast.error('🚨 Test auto-submitted due to 3 security violations!', {
+                        duration: 6000,
+                    });
+                    setTimeout(() => {
+                        handleSubmitTest();
+                    }, 1000);
+                }
+
+                return newCount;
+            });
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('blur', handleBlur);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('blur', handleBlur);
+        };
+    }, [currentStep, fullscreenWarnings, handleSubmitTest]);
+
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    // Enter fullscreen - must be called from user gesture
+    const enterFullscreen = async () => {
+        try {
+            if (document.documentElement.requestFullscreen) {
+                await document.documentElement.requestFullscreen();
+                setIsFullscreen(true);
+                toast.success('Fullscreen mode activated', { duration: 2000 });
+            }
+        } catch (err) {
+            console.log('Fullscreen request failed:', err);
+            // Fallback: just hide header/footer without browser fullscreen
+            toast.info('Press F11 for fullscreen mode', { duration: 3000 });
+        }
     };
 
     const handleStartTest = async () => {
@@ -264,6 +514,11 @@ const MCQTest = () => {
                 setTestStartTime(new Date()); // Set test start time
                 setHasAttempted(true);
                 toast.success(`Test started! You have ${Math.ceil(formData.numberOfQuestions * 2)} minutes to complete.`);
+
+                // Enter fullscreen after test starts (user just clicked button)
+                setTimeout(() => {
+                    enterFullscreen();
+                }, 100);
             }
         } catch (error) {
             console.error('Error generating test:', error);
@@ -280,51 +535,20 @@ const MCQTest = () => {
         }));
     };
 
-    const handleSubmitTest = useCallback(async () => {
+    const handleMarkForReview = () => {
+        setMarkedForReview(prev => ({
+            ...prev,
+            [currentQuestion]: !prev[currentQuestion]
+        }));
+    };
+
+    const confirmSubmit = () => {
         if (Object.keys(answers).length === 0) {
             toast.error('Please answer at least one question before submitting');
             return;
         }
-
-        setLoading(true);
-        const endTime = new Date();
-        setTestEndTime(endTime);
-
-        // Calculate actual time spent in seconds
-        const actualTimeSpent = testStartTime ? Math.floor((endTime - testStartTime) / 1000) : (formData.numberOfQuestions * 120) - timeLeft;
-
-        try {
-            const submissionData = {
-                topic: formData.topic,
-                answers: answers,
-                questions: questionsWithAnswers, // Include questions with correct answers for evaluation
-                userInfo: {
-                    name: user?.name || user?.email?.split('@')[0] || 'User',
-                    email: user?.email
-                },
-                numberOfQuestions: formData.numberOfQuestions,
-                experience: formData.experience,
-                specialization: formData.specialization,
-                timeSpent: actualTimeSpent
-            };
-
-            const response = await axiosInstance.post(API.MCQ.SUBMIT, submissionData);
-
-            if (response.data.success) {
-                setResults({
-                    ...response.data.data.results,
-                    timeSpent: actualTimeSpent
-                });
-                setCurrentStep('results');
-                toast.success('Test submitted successfully! Results sent to your email.');
-            }
-        } catch (error) {
-            console.error('Error submitting test:', error);
-            toast.error(error.response?.data?.message || 'Failed to submit test');
-        } finally {
-            setLoading(false);
-        }
-    }, [answers, testStartTime, formData, timeLeft, user, questionsWithAnswers]);
+        setShowSubmitConfirmation(true);
+    };
 
     const renderSetupForm = () => (
         <motion.div
@@ -434,306 +658,484 @@ const MCQTest = () => {
                         </div>
                     </div>
 
-                    <Button
-                        onClick={handleStartTest}
-                        disabled={loading || !formData.topic.trim()}
-                        className="w-full bg-gradient-to-r from-secondary to-primary hover:shadow-lg hover:shadow-primary/50 text-white py-3 font-medium transition-all"
-                    >
-                        {loading ? (
-                            <div className="flex items-center space-x-2">
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                <span>Generating Questions...</span>
-                            </div>
-                        ) : (
-                            'Start MCQ Test'
-                        )}
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <Button
+                            onClick={handleStartTest}
+                            disabled={loading || !formData.topic.trim()}
+                            className="flex-1 bg-gradient-to-r from-secondary to-primary hover:shadow-lg hover:shadow-primary/50 text-white py-3 font-medium transition-all"
+                        >
+                            {loading ? (
+                                <div className="flex items-center space-x-2">
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    <span>Generating Questions...</span>
+                                </div>
+                            ) : (
+                                'Start MCQ Test'
+                            )}
+                        </Button>
+                        <Button
+                            onClick={() => navigate('/mcq-test/history')}
+                            className="flex-1 sm:flex-none bg-bg-elevated hover:bg-bg-elevated-alt text-text-primary border border-border-subtle px-6 py-3 font-medium transition-all flex items-center justify-center gap-2"
+                        >
+                            <History className="w-5 h-5" />
+                            View History
+                        </Button>
+                    </div>
                 </div>
             </Card>
         </motion.div>
     );
 
     const renderTest = () => (
-        <div className="w-full max-w-4xl mx-auto pb-32 sm:pb-6">
-            {/* Header with timer and progress */}
-            <Card className="p-4 mb-6 bg-bg-card border border-border-subtle shadow-md sticky top-0 z-30">
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-2">
-                            <Clock className="w-5 h-5 text-secondary" />
-                            <span className={`font-mono text-lg font-bold ${timeLeft < 300 ? 'text-red-500' : 'text-secondary'}`}>
-                                {formatTime(timeLeft)}
-                            </span>
+        <div className="w-full pb-32 sm:pb-6">
+            {/* Mobile/Tablet View - Original Stacked Layout */}
+            <div className="lg:hidden max-w-4xl mx-auto">
+                {/* Header with timer and progress */}
+                <Card className="p-4 mb-6 bg-bg-card border border-border-subtle shadow-md sticky top-0 z-30">
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-2">
+                                <Clock className="w-5 h-5 text-secondary" />
+                                <span className={`font-mono text-lg font-bold ${timeLeft < 300 ? 'text-red-500' : 'text-secondary'}`}>
+                                    {formatTime(timeLeft)}
+                                </span>
+                            </div>
+                            <div className="text-sm text-text-muted">
+                                Question {currentQuestion + 1} of {questions.length}
+                            </div>
                         </div>
-                        <div className="text-sm text-text-muted">
-                            Question {currentQuestion + 1} of {questions.length}
-                        </div>
+                        {/* Security Warnings Indicator */}
+                        {(fullscreenWarnings > 0 || tabSwitchWarnings > 0) && (
+                            <div className="flex items-center gap-2 text-xs text-danger">
+                                <span className="animate-pulse">⚠️</span>
+                                <span>{fullscreenWarnings + tabSwitchWarnings} warnings</span>
+                            </div>
+                        )}
                     </div>
+                </Card>
 
-                    <div className="flex items-center space-x-2">
-                        {/* <span className="text-sm text-text-muted">Progress:</span>
-                        <div className="w-32 bg-bg-body rounded-full h-2 border border-border-subtle">
-                            <div
-                                className="bg-gradient-to-r from-secondary to-primary h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
-                            />
-                        </div> */}
-                    </div>
-                </div>
-            </Card>
-
-            {/* Question Card */}
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={currentQuestion}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <Card className="w-full p-4 sm:p-6 lg:p-8 mb-6 bg-bg-card shadow-xl border border-border-subtle">
-                        <div className="mb-6">
-                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-4">
-                                <div className="flex-1">
-                                    <div className="flex flex-wrap items-center gap-2 mb-4">
-                                        <span className="px-2 sm:px-3 py-1 bg-gradient-to-r from-secondary to-primary text-white rounded-full text-xs sm:text-sm font-medium shadow-md whitespace-nowrap">
-                                            Q {currentQuestion + 1}/{questions.length}
-                                        </span>
-                                        <div className="flex items-center gap-1 text-xs sm:text-sm text-text-muted">
-                                            <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                                            <span className="whitespace-nowrap">{formatTime(timeLeft)}</span>
-                                        </div>
-                                        {containsCode(questions[currentQuestion]?.question) && (
-                                            <span className="hidden sm:flex px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-medium items-center gap-1 border border-green-500/30">
-                                                <Code className="w-3 h-3" />
-                                                Code
+                {/* Question Card */}
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={currentQuestion}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <Card className="w-full p-4 sm:p-6 mb-6 bg-bg-card shadow-xl border border-border-subtle">
+                            <div className="mb-6">
+                                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-4">
+                                    <div className="flex-1">
+                                        <div className="flex flex-wrap items-center gap-2 mb-4">
+                                            <span className="px-2 sm:px-3 py-1 bg-gradient-to-r from-secondary to-primary text-white rounded-full text-xs sm:text-sm font-medium shadow-md whitespace-nowrap">
+                                                Q {currentQuestion + 1}/{questions.length}
                                             </span>
-                                        )}
+                                            <div className="flex items-center gap-1 text-xs sm:text-sm text-text-muted">
+                                                <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                <span className="whitespace-nowrap">{formatTime(timeLeft)}</span>
+                                            </div>
+                                            {containsCode(questions[currentQuestion]?.question) && (
+                                                <span className="hidden sm:flex px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-medium items-center gap-1 border border-green-500/30">
+                                                    <Code className="w-3 h-3" />
+                                                    Code
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Enhanced Question Content Container */}
+                                        <div className="bg-bg-body rounded-xl p-4 border border-border-subtle shadow-sm">
+                                            <div className="prose prose-base dark:prose-invert max-w-none markdown-content [&_pre]:!bg-transparent [&_code]:!bg-transparent text-text-primary">
+                                                <ReactMarkdown components={components}>
+                                                    {questions[currentQuestion]?.question}
+                                                </ReactMarkdown>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    {/* Enhanced Question Content Container */}
-                                    <div className="bg-bg-body rounded-xl p-4 lg:p-6 border border-border-subtle shadow-sm">
-                                        <div className="prose prose-base dark:prose-invert max-w-none markdown-content [&_pre]:!bg-transparent [&_code]:!bg-transparent text-text-primary">
+                                    {/* Mobile-friendly progress indicator */}
+                                    <div className="w-full sm:w-auto">
+                                        <div className="flex items-center justify-between text-xs text-text-muted mb-2">
+                                            <span>Progress</span>
+                                            <span>{Math.round(((currentQuestion + 1) / questions.length) * 100)}%</span>
+                                        </div>
+                                        <div className="w-full sm:w-32 bg-bg-body rounded-full h-2 border border-border-subtle">
+                                            <div
+                                                className="bg-gradient-to-r from-secondary to-primary h-2 rounded-full transition-all duration-500 ease-out"
+                                                style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-3">
+                                    {questions[currentQuestion]?.options?.map((option, optionIndex) => (
+                                        <motion.label
+                                            key={optionIndex}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.2, delay: optionIndex * 0.05 }}
+                                            className={`group flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md ${answers[currentQuestion] === optionIndex
+                                                ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
+                                                : 'border-border-subtle hover:border-primary/50 hover:bg-bg-card-alt'
+                                                }`}
+                                        >
+                                            <input
+                                                type="radio"
+                                                name={`question-${currentQuestion}`}
+                                                value={optionIndex}
+                                                checked={answers[currentQuestion] === optionIndex}
+                                                onChange={() => handleAnswerSelect(currentQuestion, optionIndex)}
+                                                className="sr-only"
+                                            />
+                                            <div className={`flex-shrink-0 w-5 h-5 border-2 rounded-full mr-4 mt-1 flex items-center justify-center transition-all duration-200 ${answers[currentQuestion] === optionIndex
+                                                ? 'border-primary bg-primary shadow-md'
+                                                : 'border-border-subtle group-hover:border-primary'
+                                                }`}>
+                                                {answers[currentQuestion] === optionIndex && (
+                                                    <motion.div
+                                                        initial={{ scale: 0 }}
+                                                        animate={{ scale: 1 }}
+                                                        className="w-2 h-2 bg-white rounded-full"
+                                                    />
+                                                )}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className="text-xs sm:text-sm font-medium text-text-muted flex items-center gap-1">
+                                                        {String.fromCharCode(65 + optionIndex)}.
+                                                        {containsCode(option) && (
+                                                            <span className="hidden sm:inline-flex px-1.5 py-0.5 bg-secondary/20 text-secondary rounded text-[10px] items-center gap-1 border border-secondary/30">
+                                                                <Code className="w-2.5 h-2.5" />
+                                                                Code
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                </div>
+
+                                                {/* Enhanced Option Content */}
+                                                <div className={`prose prose-sm dark:prose-invert max-w-none text-text-primary ${containsCode(option)
+                                                    ? 'bg-bg-body rounded-lg p-3 border border-border-subtle'
+                                                    : ''
+                                                    }`}>
+                                                    <ReactMarkdown components={components}>
+                                                        {option}
+                                                    </ReactMarkdown>
+                                                </div>
+                                            </div>
+                                        </motion.label>
+                                    ))}
+                                </div>
+                            </div>
+                        </Card>
+
+                        {/* Mobile Question Navigator */}
+                        <Card className="p-4 sm:p-5 mb-6 bg-bg-card shadow-xl border border-border-subtle">
+                            <h3 className="text-base sm:text-lg font-bold text-text-primary mb-4">Question Navigator</h3>
+
+                            {/* Question Grid */}
+                            <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 mb-5">
+                                {questions.map((_, index) => {
+                                    const isAnswered = answers[index] !== undefined;
+                                    const isCurrent = index === currentQuestion;
+                                    const isMarked = markedForReview[index];
+                                    const isVisited = visitedQuestions[index];
+
+                                    let bgColor = 'bg-text-disabled'; // Not Visited
+                                    if (isCurrent) {
+                                        bgColor = 'bg-primary'; // Current
+                                    } else if (isMarked) {
+                                        bgColor = 'bg-purple-600'; // Marked for review
+                                    } else if (isAnswered) {
+                                        bgColor = 'bg-success'; // Answered
+                                    } else if (isVisited) {
+                                        bgColor = 'bg-accent-warm'; // Visited but not answered
+                                    }
+
+                                    return (
+                                        <button
+                                            key={index}
+                                            onClick={() => setCurrentQuestion(index)}
+                                            className={`${bgColor} text-white font-bold rounded h-10 sm:h-11 flex items-center justify-center text-sm sm:text-base transition-all active:scale-95 shadow`}
+                                        >
+                                            {index + 1}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Legend */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-text-disabled text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
+                                        {questions.filter((_, i) => !visitedQuestions[i]).length}
+                                    </div>
+                                    <span className="text-xs sm:text-sm text-text-secondary">Not Visited</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
+                                        {Object.keys(markedForReview).filter(k => markedForReview[k]).length}
+                                    </div>
+                                    <span className="text-xs sm:text-sm text-text-secondary">Marked</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-accent-warm text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
+                                        {Object.keys(visitedQuestions).length - Object.keys(answers).length}
+                                    </div>
+                                    <span className="text-xs sm:text-sm text-text-secondary">Not Answered</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-success text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
+                                        {Object.keys(answers).filter(k => !markedForReview[k]).length}
+                                    </div>
+                                    <span className="text-xs sm:text-sm text-text-secondary">Answered</span>
+                                </div>
+                            </div>
+                        </Card>
+                    </motion.div>
+                </AnimatePresence>
+            </div>
+
+            {/* Desktop View - Professional Layout */}
+            <div className="hidden lg:block h-screen overflow-hidden bg-bg-body">
+                {/* Top Navigation Bar */}
+                <div className="bg-gradient-to-r from-primary via-secondary to-accent-warm text-white px-8 py-3 flex items-center justify-between shadow-lg">
+                    <div className="flex items-center gap-4">
+                        <h1 className="text-xl font-bold tracking-wide">{formData.topic.toUpperCase()}</h1>
+                        {/* Security Warnings Badge */}
+                        {(fullscreenWarnings > 0 || tabSwitchWarnings > 0) && (
+                            <div className="flex items-center gap-2 px-3 py-1 bg-red-500/90 rounded-full text-xs font-semibold animate-pulse">
+                                <span>⚠️</span>
+                                <span>{fullscreenWarnings + tabSwitchWarnings} Security Warnings</span>
+                            </div>
+                        )}
+                    </div>
+                    <div className="text-right text-sm">
+                        <div>Username : <span className="font-semibold">{user?.email?.split('@')[0] || 'Guest'}</span></div>
+                        <div>Subject : <span className="font-semibold">{formData.topic}</span></div>
+                    </div>
+                </div>
+
+                {/* Main Content Area */}
+                <div className="grid grid-cols-[1fr_380px] h-[calc(100vh-140px)]">
+                    {/* Left Side - Question and Options */}
+                    <div className="bg-bg-elevated overflow-y-auto custom-scrollbar">
+                        <div className="p-6">
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={currentQuestion}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    {/* Question Header */}
+                                    <div className="bg-bg-card border border-border-subtle rounded p-3 mb-4 shadow-sm">
+                                        <div className="flex items-center justify-between">
+                                            <div className="text-sm text-text-secondary">Question: <span className="font-bold text-text-primary">{currentQuestion + 1}</span></div>
+                                            <div className="text-sm text-text-secondary">Marks: <span className="font-bold text-text-primary">1</span></div>
+                                        </div>
+                                    </div>
+
+                                    {/* Question Content */}
+                                    <div className="bg-bg-card border border-border-subtle rounded p-5 mb-5 shadow-sm">
+                                        <div className="prose prose-base max-w-none text-text-primary dark:prose-invert">
                                             <ReactMarkdown components={components}>
                                                 {questions[currentQuestion]?.question}
                                             </ReactMarkdown>
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Mobile-friendly progress indicator */}
-                                <div className="w-full sm:w-auto">
-                                    <div className="flex items-center justify-between text-xs text-text-muted mb-2">
-                                        <span>Progress</span>
-                                        <span>{Math.round(((currentQuestion + 1) / questions.length) * 100)}%</span>
-                                    </div>
-                                    <div className="w-full sm:w-32 bg-bg-body rounded-full h-2 border border-border-subtle">
-                                        <div
-                                            className="bg-gradient-to-r from-secondary to-primary h-2 rounded-full transition-all duration-500 ease-out"
-                                            style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-3">
-                                {questions[currentQuestion]?.options?.map((option, optionIndex) => (
-                                    <motion.label
-                                        key={optionIndex}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.2, delay: optionIndex * 0.05 }}
-                                        className={`group flex items-start p-4 lg:p-5 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md ${answers[currentQuestion] === optionIndex
-                                            ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
-                                            : 'border-border-subtle hover:border-primary/50 hover:bg-bg-card-alt'
-                                            }`}
-                                    >
-                                        <input
-                                            type="radio"
-                                            name={`question-${currentQuestion}`}
-                                            value={optionIndex}
-                                            checked={answers[currentQuestion] === optionIndex}
-                                            onChange={() => handleAnswerSelect(currentQuestion, optionIndex)}
-                                            className="sr-only"
-                                        />
-                                        <div className={`flex-shrink-0 w-5 h-5 border-2 rounded-full mr-4 mt-1 flex items-center justify-center transition-all duration-200 ${answers[currentQuestion] === optionIndex
-                                            ? 'border-primary bg-primary shadow-md'
-                                            : 'border-border-subtle group-hover:border-primary'
-                                            }`}>
-                                            {answers[currentQuestion] === optionIndex && (
-                                                <motion.div
-                                                    initial={{ scale: 0 }}
-                                                    animate={{ scale: 1 }}
-                                                    className="w-2 h-2 bg-white rounded-full"
+                                    {/* Options */}
+                                    <div className="space-y-3">
+                                        {questions[currentQuestion]?.options?.map((option, optionIndex) => (
+                                            <motion.label
+                                                key={optionIndex}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: optionIndex * 0.05 }}
+                                                className={`flex items-start gap-3 bg-bg-card border rounded p-4 cursor-pointer transition-all shadow-sm hover:shadow-md hover:border-primary/50 ${answers[currentQuestion] === optionIndex
+                                                    ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
+                                                    : 'border-border-subtle'
+                                                    }`}
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name={`question-${currentQuestion}`}
+                                                    checked={answers[currentQuestion] === optionIndex}
+                                                    onChange={() => handleAnswerSelect(currentQuestion, optionIndex)}
+                                                    className="mt-1 w-4 h-4 accent-primary"
                                                 />
-                                            )}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="text-xs sm:text-sm font-medium text-text-muted flex items-center gap-1">
-                                                    {String.fromCharCode(65 + optionIndex)}.
-                                                    {containsCode(option) && (
-                                                        <span className="hidden sm:inline-flex px-1.5 py-0.5 bg-secondary/20 text-secondary rounded text-[10px] items-center gap-1 border border-secondary/30">
-                                                            <Code className="w-2.5 h-2.5" />
-                                                            Code
+                                                <div className="flex-1">
+                                                    <div className="mb-1">
+                                                        <span className="font-bold text-text-primary text-base">
+                                                            {String.fromCharCode(65 + optionIndex)}.
                                                         </span>
-                                                    )}
-                                                </span>
-                                            </div>
+                                                    </div>
+                                                    <div className="prose prose-sm max-w-none text-text-secondary dark:prose-invert">
+                                                        <ReactMarkdown components={components}>
+                                                            {option}
+                                                        </ReactMarkdown>
+                                                    </div>
+                                                </div>
+                                            </motion.label>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            </AnimatePresence>
+                        </div>
+                    </div>
 
-                                            {/* Enhanced Option Content */}
-                                            <div className={`prose prose-sm dark:prose-invert max-w-none text-text-primary ${containsCode(option)
-                                                ? 'bg-bg-body rounded-lg p-3 border border-border-subtle'
-                                                : ''
-                                                }`}>
-                                                <ReactMarkdown components={components}>
-                                                    {option}
-                                                </ReactMarkdown>
-                                            </div>
-                                        </div>
-                                    </motion.label>
-                                ))}
+                    {/* Right Side - Timer, Navigator, and Legend */}
+                    <div className="bg-bg-card border-l-2 border-border-subtle overflow-y-auto custom-scrollbar">
+                        <div className="p-5">
+                            {/* Timer Card */}
+                            <div className="bg-bg-elevated border border-border-subtle rounded p-4 mb-5 text-center shadow-sm">
+                                <div className="text-xs text-text-muted mb-2 font-medium">Remaining Time:</div>
+                                <div className={`text-3xl font-bold font-mono tracking-wider ${timeLeft < 300 ? 'text-danger' : 'text-text-primary'
+                                    }`}>
+                                    {Math.floor(timeLeft / 3600).toString().padStart(2, '0')} : {Math.floor((timeLeft % 3600) / 60).toString().padStart(2, '0')} : {(timeLeft % 60).toString().padStart(2, '0')}
+                                </div>
+                            </div>
+
+                            {/* Quiz Title */}
+                            <div className="text-center mb-5">
+                                <h2 className="text-lg font-bold text-text-primary">{formData.topic.toUpperCase()}</h2>
+                            </div>
+
+                            {/* Question Navigator */}
+                            <div className="mb-5">
+                                <div className="grid grid-cols-5 gap-2">
+                                    {questions.map((_, index) => {
+                                        const isAnswered = answers[index] !== undefined;
+                                        const isCurrent = index === currentQuestion;
+                                        const isMarked = markedForReview[index];
+                                        const isVisited = visitedQuestions[index];
+
+                                        let bgColor = 'bg-text-disabled'; // Not Visited
+                                        if (isCurrent) {
+                                            bgColor = 'bg-primary'; // Current
+                                        } else if (isMarked) {
+                                            bgColor = 'bg-purple-600'; // Marked for review
+                                        } else if (isAnswered) {
+                                            bgColor = 'bg-success'; // Answered
+                                        } else if (isVisited) {
+                                            bgColor = 'bg-accent-warm'; // Visited but not answered
+                                        }
+
+                                        return (
+                                            <button
+                                                key={index}
+                                                onClick={() => setCurrentQuestion(index)}
+                                                className={`${bgColor} text-white font-bold rounded h-11 flex items-center justify-center text-base transition-all hover:opacity-90 shadow`}
+                                            >
+                                                {index + 1}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Legend */}
+                            <div className="space-y-2.5">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-9 h-9 rounded-full bg-text-disabled text-white flex items-center justify-center font-bold text-xs shadow">
+                                        {questions.filter((_, i) => !visitedQuestions[i]).length}
+                                    </div>
+                                    <span className="text-sm text-text-secondary">Not Visited</span>
+                                </div>
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-9 h-9 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs shadow">
+                                        {Object.keys(markedForReview).filter(k => markedForReview[k]).length}
+                                    </div>
+                                    <span className="text-sm text-text-secondary">Marked For Review</span>
+                                </div>
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-9 h-9 rounded-full bg-accent-warm text-white flex items-center justify-center font-bold text-xs shadow">
+                                        {Object.keys(visitedQuestions).length - Object.keys(answers).length}
+                                    </div>
+                                    <span className="text-sm text-text-secondary">Not Answered</span>
+                                </div>
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-9 h-9 rounded-full bg-success text-white flex items-center justify-center font-bold text-xs shadow">
+                                        {Object.keys(answers).filter(k => !markedForReview[k]).length}
+                                    </div>
+                                    <span className="text-sm text-text-secondary">Answered</span>
+                                </div>
                             </div>
                         </div>
-                    </Card>
-                </motion.div>
-            </AnimatePresence>
-
-            {/* Enhanced Navigation */}
-            <div className="space-y-4">
-                {/* Question Grid - Mobile Responsive */}
-                <div className="w-full bg-bg-card rounded-lg p-4 border border-border-subtle shadow-md">
-                    <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-medium text-text-primary">Question Navigator</h4>
-                        <span className="text-xs text-text-muted">
-                            {Object.keys(answers).length}/{questions.length} answered
-                        </span>
-                    </div>
-                    {/* Mobile: horizontal scroll, Desktop: grid */}
-                    <div className="block sm:hidden overflow-x-auto scrollbar-hide">
-                        <div className="inline-flex gap-2 min-w-full pr-2">
-                            {questions.map((_, index) => (
-                                <motion.button
-                                    key={index}
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={() => setCurrentQuestion(index)}
-                                    className={`w-10 h-10 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center ${index === currentQuestion
-                                        ? 'bg-gradient-to-r from-secondary to-primary text-white shadow-lg shadow-primary/50'
-                                        : answers[index] !== undefined
-                                            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                                            : 'bg-bg-body text-text-muted hover:bg-bg-card-alt border border-border-subtle'
-                                        }`}
-                                >
-                                    {answers[index] !== undefined && index !== currentQuestion && (
-                                        <CheckCircle className="w-4 h-4" />
-                                    )}
-                                    {index === currentQuestion && (
-                                        <span>{index + 1}</span>
-                                    )}
-                                    {answers[index] === undefined && index !== currentQuestion && (
-                                        <span>{index + 1}</span>
-                                    )}
-                                </motion.button>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="hidden sm:grid grid-cols-8 md:grid-cols-10 xl:grid-cols-12 gap-2">
-                        {questions.map((_, index) => (
-                            <motion.button
-                                key={index}
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => setCurrentQuestion(index)}
-                                className={`w-10 h-10 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center ${index === currentQuestion
-                                    ? 'bg-gradient-to-r from-secondary to-primary text-white shadow-lg shadow-primary/50'
-                                    : answers[index] !== undefined
-                                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                                        : 'bg-bg-body text-text-muted hover:bg-bg-card-alt border border-border-subtle'
-                                    }`}
-                            >
-                                {answers[index] !== undefined && index !== currentQuestion && (
-                                    <CheckCircle className="w-4 h-4" />
-                                )}
-                                {index === currentQuestion && (
-                                    <span>{index + 1}</span>
-                                )}
-                                {answers[index] === undefined && index !== currentQuestion && (
-                                    <span>{index + 1}</span>
-                                )}
-                            </motion.button>
-                        ))}
                     </div>
                 </div>
 
-                {/* Navigation Controls */}
-                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                {/* Bottom Navigation Bar */}
+                <div className="h-[60px] bg-bg-card border-t-2 border-border-subtle px-8 flex items-center justify-between shadow-lg">
                     <Button
-                        variant="outline"
-                        onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
-                        disabled={currentQuestion === 0}
-                        className="w-full sm:w-auto flex items-center gap-2"
+                        onClick={() => setCurrentQuestion(0)}
+                        className="bg-primary hover:bg-primary-hover text-white px-6 py-2.5 rounded font-medium flex items-center gap-2 shadow transition-colors"
                     >
                         <ChevronLeft className="w-4 h-4" />
-                        Previous
+                        Back
                     </Button>
 
-                    <div className="flex items-center gap-4">
-                        <div className="text-center">
-                            <div className="text-sm text-text-muted">Answered</div>
-                            <div className="text-lg font-bold text-text-primary">
-                                {Object.keys(answers).length}/{questions.length}
-                            </div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-sm text-text-muted">Time Left</div>
-                            <div className={`text-lg font-bold ${timeLeft < 300 ? 'text-red-500' : 'text-text-primary'}`}>
-                                {formatTime(timeLeft)}
-                            </div>
-                        </div>
-                    </div>
-
-                    {currentQuestion === questions.length - 1 ? (
+                    <div className="flex items-center gap-3">
                         <Button
-                            onClick={handleSubmitTest}
-                            disabled={loading}
-                            className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-emerald-500 hover:shadow-lg hover:shadow-green-500/50 text-white flex items-center gap-2 transition-all"
+                            onClick={handleMarkForReview}
+                            className={`${markedForReview[currentQuestion] ? 'bg-purple-600 hover:bg-purple-700' : 'bg-secondary hover:bg-secondary-hover'} text-white px-5 py-2.5 rounded font-medium shadow flex items-center gap-2 transition-colors`}
                         >
-                            {loading ? (
-                                <>
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    Submitting...
-                                </>
-                            ) : (
-                                <>
-                                    Submit Test
-                                    <CheckCircle className="w-4 h-4" />
-                                </>
-                            )}
+                            {markedForReview[currentQuestion] ? '✓ Marked' : 'Mark For Review'} ⚑
                         </Button>
-                    ) : (
                         <Button
                             onClick={() => setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1))}
                             disabled={currentQuestion === questions.length - 1}
-                            className="w-full sm:w-auto flex items-center gap-2"
+                            className="bg-primary hover:bg-primary-hover text-white px-6 py-2.5 rounded font-medium flex items-center gap-2 shadow disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             Next
                             <ChevronRight className="w-4 h-4" />
                         </Button>
-                    )}
+                    </div>
+
+                    <Button
+                        onClick={confirmSubmit}
+                        disabled={loading}
+                        className="bg-success hover:bg-green-700 text-white px-6 py-2.5 rounded font-medium flex items-center gap-2 shadow transition-colors"
+                    >
+                        {loading ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                Submitting
+                            </>
+                        ) : (
+                            <>
+                                ✓ Submit Quiz
+                            </>
+                        )}
+                    </Button>
+                </div>
+            </div>
+
+            {/* Enhanced Navigation - Mobile Only */}
+            <div className="lg:hidden space-y-4">
+                {/* Mark for Review Button - Above mobile sticky bar */}
+                <div className="sm:hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-40">
+                    <button
+                        onClick={handleMarkForReview}
+                        className={`${markedForReview[currentQuestion] ? 'bg-purple-600' : 'bg-secondary'} text-white px-5 py-2.5 rounded-full font-medium shadow-lg flex items-center gap-2 transition-all active:scale-95`}
+                    >
+                        {markedForReview[currentQuestion] ? '✓ Marked' : 'Mark For Review'} ⚑
+                    </button>
                 </div>
 
                 {/* Mobile sticky action bar - Fully Responsive */}
                 <div className="sm:hidden">
-                    <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#111827]">
+                    <div className="fixed bottom-0 left-0 right-0 z-40 bg-bg-card">
                         <div className="mx-4 mb-[env(safe-area-inset-bottom,16px)] rounded-t-3xl flex items-center justify-between gap-3 px-4 py-3 shadow-[0_-10px_30px_rgba(0,0,0,0.45)]">
                             {/* Prev Button */}
                             <button
                                 onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
                                 disabled={currentQuestion === 0}
                                 className={`flex-1 flex items-center justify-center gap-2 rounded-2xl py-2.5 font-semibold text-sm transition-all ${currentQuestion === 0
-                                        ? 'bg-[#1F2933] text-[#9CA3AF] opacity-50 cursor-not-allowed'
-                                        : 'bg-[#1F2933] text-[#E5E7EB] active:scale-95'
+                                    ? 'bg-bg-elevated-alt text-text-muted opacity-50 cursor-not-allowed'
+                                    : 'bg-bg-elevated-alt text-text-secondary active:scale-95'
                                     }`}
                             >
                                 <ChevronLeft className="w-4 h-4" />
@@ -741,7 +1143,7 @@ const MCQTest = () => {
                             </button>
 
                             {/* Time Chip */}
-                            <div className="px-3 py-1 rounded-full bg-[#0B0F1A] text-xs text-[#9CA3AF] flex items-center justify-center whitespace-nowrap">
+                            <div className="px-3 py-1 rounded-full bg-bg-body text-xs text-text-muted flex items-center justify-center whitespace-nowrap">
                                 <Clock className="w-3 h-3 mr-1" />
                                 {formatTime(timeLeft)}
                             </div>
@@ -749,12 +1151,9 @@ const MCQTest = () => {
                             {/* Next/Submit Button */}
                             {currentQuestion === questions.length - 1 ? (
                                 <button
-                                    onClick={handleSubmitTest}
+                                    onClick={confirmSubmit}
                                     disabled={loading}
-                                    className="flex-1 flex items-center justify-center gap-2 rounded-2xl py-2.5 font-semibold text-sm text-white transition-all active:scale-95"
-                                    style={{
-                                        background: 'linear-gradient(135deg, #10B981, #059669)'
-                                    }}
+                                    className="flex-1 flex items-center justify-center gap-2 rounded-2xl py-2.5 font-semibold text-sm text-white transition-all active:scale-95 bg-gradient-to-r from-success to-green-600"
                                 >
                                     {loading ? (
                                         <>
@@ -772,10 +1171,7 @@ const MCQTest = () => {
                                 <button
                                     onClick={() => setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1))}
                                     disabled={currentQuestion === questions.length - 1}
-                                    className="flex-1 flex items-center justify-center gap-2 rounded-2xl py-2.5 font-semibold text-sm text-white transition-all active:scale-95"
-                                    style={{
-                                        background: 'linear-gradient(135deg, #F97316, #FB7185)'
-                                    }}
+                                    className="flex-1 flex items-center justify-center gap-2 rounded-2xl py-2.5 font-semibold text-sm text-white transition-all active:scale-95 bg-gradient-primary-button"
                                 >
                                     Next
                                     <ChevronRight className="w-4 h-4" />
@@ -788,116 +1184,528 @@ const MCQTest = () => {
         </div>
     );
 
-    const renderResults = () => (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-4xl mx-auto"
-        >
-            <Card className="p-8 text-center bg-gradient-to-br from-bg-card to-bg-body border border-border-subtle shadow-xl">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mb-6 shadow-lg shadow-green-500/30">
-                    <Award className="w-10 h-10 text-white" />
-                </div>
+    const renderResults = () => {
+        const getPerformanceLevel = (score) => {
+            if (score >= 90) return { level: 'Excellent', color: 'text-success', bgColor: 'bg-success/10', borderColor: 'border-success' };
+            if (score >= 75) return { level: 'Good', color: 'text-secondary', bgColor: 'bg-secondary/10', borderColor: 'border-secondary' };
+            if (score >= 60) return { level: 'Average', color: 'text-warning', bgColor: 'bg-warning/10', borderColor: 'border-warning' };
+            return { level: 'Needs Improvement', color: 'text-danger', bgColor: 'bg-danger/10', borderColor: 'border-danger' };
+        };
 
-                <h2 className="text-3xl font-bold text-text-primary mb-4">
-                    Test Completed!
-                </h2>
+        const performance = results ? getPerformanceLevel(results.score) : null;
 
-                {results && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div className="bg-bg-body rounded-lg p-6 shadow-md border border-border-subtle">
-                            <div className="flex items-center justify-center w-12 h-12 bg-secondary/20 rounded-full mx-auto mb-3">
-                                <CheckCircle className="w-6 h-6 text-secondary" />
-                            </div>
-                            <h3 className="text-lg font-semibold text-text-primary mb-1">Score</h3>
-                            <p className="text-3xl font-bold text-secondary">
-                                {results.score}%
-                            </p>
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="max-w-7xl mx-auto space-y-6"
+            >
+                {/* Summary Card */}
+                <Card className="p-6 sm:p-8 bg-gradient-to-br from-bg-card to-bg-elevated border border-border-subtle shadow-xl">
+                    <div className="text-center mb-8">
+                        <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-success to-secondary rounded-full mb-4 shadow-lg shadow-success/30">
+                            <Award className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                         </div>
-
-                        <div className="bg-white dark:bg-gray-700 rounded-lg p-6 shadow-md">
-                            <div className="flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full mx-auto mb-3">
-                                <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        <h2 className="text-2xl sm:text-3xl font-bold text-text-primary mb-2">
+                            Test Completed!
+                        </h2>
+                        {performance && (
+                            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${performance.bgColor} ${performance.borderColor} border mt-2`}>
+                                <span className={`text-sm sm:text-base font-semibold ${performance.color}`}>
+                                    Performance: {performance.level}
+                                </span>
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Correct</h3>
-                            <p className="text-3xl font-bold text-green-600 dark:text-green-400">
-                                {results.correctAnswers}/{results.totalQuestions}
-                            </p>
+                        )}
+                    </div>
+
+                    {/* Stats Grid */}
+                    {results && (
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+                            <div className="bg-bg-body rounded-xl p-4 sm:p-6 shadow-md border border-border-subtle hover:border-secondary transition-colors">
+                                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-secondary/20 rounded-full mx-auto mb-3">
+                                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-secondary" />
+                                </div>
+                                <h3 className="text-xs sm:text-sm font-medium text-text-muted mb-1 text-center">Score</h3>
+                                <p className="text-2xl sm:text-3xl font-bold text-secondary text-center">
+                                    {results.score}%
+                                </p>
+                            </div>
+
+                            <div className="bg-bg-body rounded-xl p-4 sm:p-6 shadow-md border border-border-subtle hover:border-success transition-colors">
+                                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-success/20 rounded-full mx-auto mb-3">
+                                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
+                                </div>
+                                <h3 className="text-xs sm:text-sm font-medium text-text-muted mb-1 text-center">Correct</h3>
+                                <p className="text-2xl sm:text-3xl font-bold text-success text-center">
+                                    {results.correctAnswers}/{results.totalQuestions}
+                                </p>
+                            </div>
+
+                            <div className="bg-bg-body rounded-xl p-4 sm:p-6 shadow-md border border-border-subtle hover:border-danger transition-colors">
+                                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-danger/20 rounded-full mx-auto mb-3">
+                                    <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-danger" />
+                                </div>
+                                <h3 className="text-xs sm:text-sm font-medium text-text-muted mb-1 text-center">Wrong</h3>
+                                <p className="text-2xl sm:text-3xl font-bold text-danger text-center">
+                                    {results.totalQuestions - results.correctAnswers}
+                                </p>
+                            </div>
+
+                            <div className="bg-bg-body rounded-xl p-4 sm:p-6 shadow-md border border-border-subtle hover:border-primary transition-colors">
+                                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-primary/20 rounded-full mx-auto mb-3">
+                                    <Timer className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                                </div>
+                                <h3 className="text-xs sm:text-sm font-medium text-text-muted mb-1 text-center">Time</h3>
+                                <p className="text-2xl sm:text-3xl font-bold text-primary text-center">
+                                    {formatTime(results.timeSpent || 0)}
+                                </p>
+                            </div>
                         </div>
+                    )}
 
-                        <div className="bg-white dark:bg-gray-700 rounded-lg p-6 shadow-md">
-                            <div className="flex items-center justify-center w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full mx-auto mb-3">
-                                <Timer className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                    {/* Security Warnings */}
+                    {(fullscreenWarnings > 0 || tabSwitchWarnings > 0) && (
+                        <div className="bg-danger/10 rounded-xl p-4 sm:p-6 mb-6 border border-danger/30">
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="text-xl sm:text-2xl">⚠️</span>
+                                <h3 className="text-base sm:text-lg font-semibold text-danger">
+                                    Security Warnings Detected
+                                </h3>
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Time</h3>
-                            <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                                {formatTime(results.timeSpent || 0)}
-                            </p>
+                            <div className="text-sm sm:text-base text-text-secondary space-y-1">
+                                {fullscreenWarnings > 0 && (
+                                    <p>• Fullscreen exits: <span className="font-bold text-danger">{fullscreenWarnings}</span></p>
+                                )}
+                                {tabSwitchWarnings > 0 && (
+                                    <p>• Tab/window switches: <span className="font-bold text-danger">{tabSwitchWarnings}</span></p>
+                                )}
+                                <p className="text-xs sm:text-sm text-text-muted mt-2">
+                                    These violations have been recorded and may affect the validity of your test results.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* AI Disclaimer */}
+                    <div className="bg-gradient-to-r from-warning/10 to-accent-warm/10 border border-warning/30 rounded-xl p-4 sm:p-5 mb-6 shadow-md">
+                        <div className="flex items-start gap-3">
+                            <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+                            <div className="flex-1">
+                                <h4 className="text-sm sm:text-base font-semibold text-warning mb-1">AI-Generated Results Disclaimer</h4>
+                                <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+                                    The answers and explanations are verified by AI and may occasionally contain mistakes.
+                                    If you're not satisfied with the AI's answer, we recommend verifying it yourself through additional resources.
+                                </p>
+                            </div>
                         </div>
                     </div>
+
+                    {/* View Detailed Results Button */}
+                    <div className="text-center mb-6">
+                        <Button
+                            onClick={() => setShowDetailedResults(!showDetailedResults)}
+                            className="bg-gradient-to-r from-primary to-secondary hover:from-primary-hover hover:to-secondary-hover text-white px-6 py-3 rounded-lg font-medium shadow-lg transition-all"
+                        >
+                            {showDetailedResults ? '📊 Hide' : '📋 View'} Detailed Results & Solutions
+                        </Button>
+                    </div>
+
+                    {/* Email Notification */}
+                    <div className="bg-primary/10 rounded-xl p-4 sm:p-6 mb-6 border border-primary/30">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                            <h3 className="text-sm sm:text-base font-semibold text-text-primary">
+                                Detailed Report Sent
+                            </h3>
+                        </div>
+                        <p className="text-xs sm:text-sm text-text-secondary">
+                            A comprehensive report with question-wise analysis, explanations, and improvement suggestions has been sent to your email.
+                        </p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+                        <Button
+                            onClick={() => {
+                                setCurrentStep('setup');
+                                setQuestions([]);
+                                setAnswers({});
+                                setMarkedForReview({});
+                                setVisitedQuestions({});
+                                setCurrentQuestion(0);
+                                setResults(null);
+                                setShowDetailedResults(false);
+                                setFullscreenWarnings(0);
+                                setTabSwitchWarnings(0);
+                                setFormData({ topic: '', experience: 'beginner', specialization: '', numberOfQuestions: 30 });
+                            }}
+                            className="bg-bg-elevated hover:bg-bg-elevated-alt text-text-primary border border-border-subtle px-6 py-3 rounded-lg font-medium transition-all"
+                        >
+                            🔄 Take Another Test
+                        </Button>
+                        <Button
+                            onClick={() => window.location.href = '/dashboard'}
+                            className="bg-gradient-to-r from-secondary to-primary hover:from-secondary-hover hover:to-primary-hover text-white px-6 py-3 rounded-lg font-medium shadow-lg transition-all"
+                        >
+                            🏠 Back to Dashboard
+                        </Button>
+                    </div>
+                </Card>
+
+                {/* Detailed Results Section */}
+                {showDetailedResults && questionsWithAnswers && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-4"
+                    >
+                        <Card className="p-4 sm:p-6 bg-bg-card border border-border-subtle">
+                            <h3 className="text-xl sm:text-2xl font-bold text-text-primary mb-4 flex items-center gap-2">
+                                <Brain className="w-6 h-6 text-secondary" />
+                                Question-wise Analysis
+                            </h3>
+
+                            {/* AI Disclaimer for detailed results */}
+                            <div className="bg-gradient-to-r from-warning/10 to-accent-warm/10 border border-warning/30 rounded-xl p-4 mb-6">
+                                <div className="flex items-start gap-3">
+                                    <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+                                    <div className="flex-1">
+                                        <h4 className="text-sm font-semibold text-warning mb-1">AI-Generated Content</h4>
+                                        <p className="text-xs text-text-secondary leading-relaxed">
+                                            Answers and explanations are verified by AI and may occasionally contain mistakes.
+                                            Please verify independently if you have concerns.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                {questionsWithAnswers.map((q, index) => {
+                                    const userAnswer = answers[index];
+                                    const isCorrect = userAnswer === q.correctAnswer;
+                                    const wasAttempted = userAnswer !== undefined;
+
+                                    return (
+                                        <motion.div
+                                            key={index}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: index * 0.05 }}
+                                            className={`rounded-xl border-2 overflow-hidden ${isCorrect ? 'border-success bg-success/5' :
+                                                wasAttempted ? 'border-danger bg-danger/5' : 'border-warning bg-warning/5'
+                                                }`}
+                                        >
+                                            {/* Question Header */}
+                                            <div className={`px-4 sm:px-6 py-3 flex items-center justify-between ${isCorrect ? 'bg-success/10' :
+                                                wasAttempted ? 'bg-danger/10' : 'bg-warning/10'
+                                                }`}>
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-white ${isCorrect ? 'bg-success' :
+                                                        wasAttempted ? 'bg-danger' : 'bg-warning'
+                                                        }`}>
+                                                        {index + 1}
+                                                    </span>
+                                                    <span className={`text-sm sm:text-base font-semibold ${isCorrect ? 'text-success' :
+                                                        wasAttempted ? 'text-danger' : 'text-warning'
+                                                        }`}>
+                                                        {isCorrect ? '✓ Correct' : wasAttempted ? '✗ Wrong' : '⊘ Not Attempted'}
+                                                    </span>
+                                                </div>
+                                                {markedForReview[index] && (
+                                                    <span className="text-xs sm:text-sm px-2 py-1 bg-purple-600/20 text-purple-400 rounded-full border border-purple-600/30">
+                                                        ⚑ Marked
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Question Content */}
+                                            <div className="p-4 sm:p-6 space-y-4">
+                                                <div className="bg-bg-elevated rounded-lg p-4 border border-border-subtle">
+                                                    <h4 className="text-xs sm:text-sm font-medium text-text-muted mb-2">Question:</h4>
+                                                    <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-text-primary">
+                                                        <ReactMarkdown components={components}>
+                                                            {q.question}
+                                                        </ReactMarkdown>
+                                                    </div>
+                                                </div>
+
+                                                {/* Options */}
+                                                <div className="space-y-2">
+                                                    {q.options.map((option, optIndex) => {
+                                                        const isUserAnswer = userAnswer === optIndex;
+                                                        const isCorrectAnswer = q.correctAnswer === optIndex;
+
+                                                        return (
+                                                            <div
+                                                                key={optIndex}
+                                                                className={`p-3 sm:p-4 rounded-lg border-2 ${isCorrectAnswer ? 'border-success bg-success/10' :
+                                                                    isUserAnswer ? 'border-danger bg-danger/10' :
+                                                                        'border-border-subtle bg-bg-elevated'
+                                                                    }`}
+                                                            >
+                                                                <div className="flex items-start gap-3">
+                                                                    <span className={`flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm ${isCorrectAnswer ? 'bg-success text-white' :
+                                                                        isUserAnswer ? 'bg-danger text-white' :
+                                                                            'bg-bg-body text-text-muted border border-border-subtle'
+                                                                        }`}>
+                                                                        {String.fromCharCode(65 + optIndex)}
+                                                                    </span>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="prose prose-sm dark:prose-invert max-w-none text-text-secondary">
+                                                                            <ReactMarkdown components={components}>
+                                                                                {option}
+                                                                            </ReactMarkdown>
+                                                                        </div>
+                                                                        {isCorrectAnswer && (
+                                                                            <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-success mt-1">
+                                                                                <CheckCircle className="w-4 h-4" />
+                                                                                Correct Answer
+                                                                            </span>
+                                                                        )}
+                                                                        {isUserAnswer && !isCorrectAnswer && (
+                                                                            <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-danger mt-1">
+                                                                                <XCircle className="w-4 h-4" />
+                                                                                Your Answer
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+
+                                                {/* Explanation */}
+                                                {q.explanation && (
+                                                    <div className="bg-primary/10 rounded-lg p-4 border border-primary/30">
+                                                        <h4 className="text-sm sm:text-base font-semibold text-primary mb-2 flex items-center gap-2">
+                                                            <Brain className="w-4 h-4" />
+                                                            Explanation
+                                                        </h4>
+                                                        <div className="prose prose-sm dark:prose-invert max-w-none text-text-secondary">
+                                                            <ReactMarkdown components={components}>
+                                                                {q.explanation}
+                                                            </ReactMarkdown>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
+                        </Card>
+
+                        {/* Recommendations Section */}
+                        {results && (
+                            <Card className="p-4 sm:p-6 bg-gradient-to-br from-bg-card to-bg-elevated border border-border-subtle">
+                                <h3 className="text-xl sm:text-2xl font-bold text-text-primary mb-4 flex items-center gap-2">
+                                    <Settings className="w-6 h-6 text-accent-warm" />
+                                    Personalized Recommendations
+                                </h3>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Strengths */}
+                                    {results.score >= 60 && (
+                                        <div className="bg-success/10 rounded-xl p-4 border border-success/30">
+                                            <h4 className="text-base sm:text-lg font-semibold text-success mb-3 flex items-center gap-2">
+                                                <CheckCircle className="w-5 h-5" />
+                                                Strengths
+                                            </h4>
+                                            <ul className="space-y-2 text-sm sm:text-base text-text-secondary">
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-success mt-1">•</span>
+                                                    <span>Good understanding of {formData.topic} fundamentals</span>
+                                                </li>
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-success mt-1">•</span>
+                                                    <span>Completed test within time limit</span>
+                                                </li>
+                                                {results.score >= 80 && (
+                                                    <li className="flex items-start gap-2">
+                                                        <span className="text-success mt-1">•</span>
+                                                        <span>Strong performance indicates readiness for advanced topics</span>
+                                                    </li>
+                                                )}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    {/* Areas for Improvement */}
+                                    <div className="bg-accent-warm/10 rounded-xl p-4 border border-accent-warm/30">
+                                        <h4 className="text-base sm:text-lg font-semibold text-accent-warm mb-3 flex items-center gap-2">
+                                            <Brain className="w-5 h-5" />
+                                            Focus Areas
+                                        </h4>
+                                        <ul className="space-y-2 text-sm sm:text-base text-text-secondary">
+                                            {results.score < 60 && (
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-accent-warm mt-1">•</span>
+                                                    <span>Review core concepts of {formData.topic}</span>
+                                                </li>
+                                            )}
+                                            {results.totalQuestions - results.correctAnswers > 0 && (
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-accent-warm mt-1">•</span>
+                                                    <span>Study the explanations for {results.totalQuestions - results.correctAnswers} incorrect answers</span>
+                                                </li>
+                                            )}
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-accent-warm mt-1">•</span>
+                                                <span>Practice more {formData.experience} level questions</span>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-accent-warm mt-1">•</span>
+                                                <span>Review marked questions to clarify doubts</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    {/* Next Steps */}
+                                    <div className="bg-secondary/10 rounded-xl p-4 border border-secondary/30">
+                                        <h4 className="text-base sm:text-lg font-semibold text-secondary mb-3 flex items-center gap-2">
+                                            <ChevronRight className="w-5 h-5" />
+                                            Next Steps
+                                        </h4>
+                                        <ul className="space-y-2 text-sm sm:text-base text-text-secondary">
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-secondary mt-1">•</span>
+                                                <span>Take another test on {formData.topic} to track improvement</span>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-secondary mt-1">•</span>
+                                                <span>Explore interview preparation for practical scenarios</span>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-secondary mt-1">•</span>
+                                                <span>Join coding practice sessions for hands-on experience</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    {/* Study Resources */}
+                                    <div className="bg-primary/10 rounded-xl p-4 border border-primary/30">
+                                        <h4 className="text-base sm:text-lg font-semibold text-primary mb-3 flex items-center gap-2">
+                                            <BookOpen className="w-5 h-5" />
+                                            Study Tips
+                                        </h4>
+                                        <ul className="space-y-2 text-sm sm:text-base text-text-secondary">
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-primary mt-1">•</span>
+                                                <span>Use our notes feature to save important concepts</span>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-primary mt-1">•</span>
+                                                <span>Practice coding problems related to {formData.topic}</span>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-primary mt-1">•</span>
+                                                <span>Schedule regular test sessions to build consistency</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </Card>
+                        )}
+                    </motion.div>
                 )}
+            </motion.div>
+        );
+    };
 
-                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 mb-8">
-                    <div className="flex items-center justify-center space-x-2 mb-3">
-                        <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
-                            Detailed Results Sent
-                        </h3>
-                    </div>
-                    <p className="text-blue-700 dark:text-blue-300">
-                        A comprehensive report with question-wise analysis, explanations, and improvement suggestions
-                        has been sent to your email address.
-                    </p>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button
-                        onClick={() => {
-                            setCurrentStep('setup');
-                            setQuestions([]);
-                            setAnswers({});
-                            setCurrentQuestion(0);
-                            setResults(null);
-                            setFormData({ topic: '', experience: 'beginner', specialization: '', numberOfQuestions: 30 });
-                        }}
-                        variant="outline"
-                        className="px-8"
-                    >
-                        Take Another Test
-                    </Button>
-                    <Button
-                        onClick={() => window.location.href = '/dashboard'}
-                        className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8"
-                    >
-                        Back to Dashboard
-                    </Button>
-                </div>
-            </Card>
-        </motion.div>
-    );
+    // During test on desktop, render fullscreen layout without container
+    if (currentStep === 'test' && window.innerWidth >= 1024) {
+        return renderTest();
+    }
 
     return (
-        <div className="min-h-screen w-full overflow-x-hidden bg-[#0B0F1A]">
-            <div className="container mx-auto px-4 pb-4 pt-8">
-                {/* Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center mb-8"
-                >
-                    <h1 className="text-4xl md:text-5xl font-bold text-text-primary mb-4">
-                        MCQ Test Platform
-                    </h1>
-                    <p className="text-xl text-text-secondary max-w-2xl mx-auto">
-                        Challenge yourself with AI-generated multiple choice questions tailored to your expertise level
-                    </p>
-                </motion.div>
-
+        <div className="min-h-screen w-full overflow-x-hidden bg-bg-body">
+            <div className="container mx-auto px-4 pb-4 pt-4">
                 {/* Content based on current step */}
                 {currentStep === 'setup' && renderSetupForm()}
                 {currentStep === 'test' && renderTest()}
                 {currentStep === 'results' && renderResults()}
             </div>
+
+            {/* Submit Confirmation Modal */}
+            {showSubmitConfirmation && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-gradient-to-br from-[#1a2332] to-[#141b28] rounded-2xl shadow-2xl border border-primary/30 w-full max-w-md p-6"
+                    >
+                        <div className="flex items-start gap-4 mb-4">
+                            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                                <AlertTriangle className="w-6 h-6 text-primary" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-xl font-bold text-white mb-2">Submit Test?</h3>
+                                <div className="text-gray-400 text-sm space-y-2">
+                                    <p>Are you sure you want to submit your test?</p>
+                                    <div className="bg-white/5 rounded-lg p-3 border border-white/10 mt-3">
+                                        <div className="flex items-center justify-between text-sm mb-2">
+                                            <span className="text-gray-400">Answered:</span>
+                                            <span className="text-white font-semibold">{Object.keys(answers).length} / {questions.length}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between text-sm mb-2">
+                                            <span className="text-gray-400">Unanswered:</span>
+                                            <span className="text-yellow-400 font-semibold">{questions.length - Object.keys(answers).length}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="text-gray-400">Time Remaining:</span>
+                                            <span className={`font-semibold ${timeLeft < 300 ? 'text-red-400' : 'text-primary'}`}>{formatTime(timeLeft)}</span>
+                                        </div>
+                                    </div>
+                                    {(fullscreenWarnings > 0 || tabSwitchWarnings > 0) && (
+                                        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mt-3">
+                                            <p className="text-yellow-400 text-xs font-semibold flex items-center gap-2">
+                                                <AlertTriangle className="w-4 h-4" />
+                                                Security Warnings: {fullscreenWarnings + tabSwitchWarnings}
+                                            </p>
+                                        </div>
+                                    )}
+                                    <p className="text-red-400 text-xs mt-3">
+                                        Once submitted, you cannot change your answers.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 mt-6">
+                            <Button
+                                onClick={() => setShowSubmitConfirmation(false)}
+                                variant="outline"
+                                className="flex-1 bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                                disabled={loading}
+                            >
+                                Continue Test
+                            </Button>
+                            <Button
+                                onClick={() => {
+                                    setShowSubmitConfirmation(false);
+                                    handleSubmitTest();
+                                }}
+                                className="flex-1 bg-gradient-to-r from-success to-green-600 hover:opacity-90 text-white"
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        Submitting...
+                                    </div>
+                                ) : (
+                                    <>
+                                        <CheckCircle className="w-4 h-4 mr-2" />
+                                        Submit Test
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 };

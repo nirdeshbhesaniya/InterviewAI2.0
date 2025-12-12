@@ -29,18 +29,18 @@ exports.sendOTPEmail = async (email, otp) => {
         console.log(`📧 Sending OTP email to ${email} via SendGrid...`);
 
         const htmlContent = getEmailTemplate(getOTPEmailContent(otp), {
-            title: 'Password Reset - InterviewPrep AI'
+            title: 'Password Reset - Interview AI'
         });
 
         const msg = {
             to: email,
             from: {
                 email: process.env.EMAIL_USER,
-                name: 'InterviewPrep AI'
+                name: 'Interview AI'
             },
             subject: '🔐 Password Reset - Your OTP Code',
             html: htmlContent,
-            text: `Your OTP for password reset is: ${otp}\n\nThis code expires in 10 minutes.\n\nIf you didn't request this, please ignore this email.\n\n- InterviewPrep AI Team`
+            text: `Your OTP for password reset is: ${otp}\n\nThis code expires in 10 minutes.\n\nIf you didn't request this, please ignore this email.\n\n- Interview AI Team`
         };
 
         const result = await sgMail.send(msg);
@@ -78,18 +78,18 @@ exports.sendNotificationEmail = async (userEmail, title, message, action, action
 
         const htmlContent = getEmailTemplate(
             getNotificationEmailContent(title, message, action, actionUrl),
-            { title: `${title} - InterviewPrep AI` }
+            { title: `${title} - Interview AI` }
         );
 
         const msg = {
             to: userEmail,
             from: {
                 email: process.env.EMAIL_USER,
-                name: 'InterviewPrep AI'
+                name: 'Interview AI'
             },
-            subject: `🔔 ${title} - InterviewPrep AI`,
+            subject: `🔔 ${title} - Interview AI`,
             html: htmlContent,
-            text: `${title}\n\n${message}${action && actionUrl ? `\n\n${action}: ${actionUrl}` : ''}\n\n- InterviewPrep AI Team`
+            text: `${title}\n\n${message}${action && actionUrl ? `\n\n${action}: ${actionUrl}` : ''}\n\n- Interview AI Team`
         };
 
         const result = await sgMail.send(msg);
@@ -127,14 +127,14 @@ exports.sendSupportEmailToTeam = async (name, email, subject, category, priority
 
         const htmlContent = getEmailTemplate(
             getSupportEmailToTeam(name, email, subject, category, priority, message),
-            { title: 'New Support Request - InterviewPrep AI', headerGradient: false }
+            { title: 'New Support Request - Interview AI', headerGradient: false }
         );
 
         const msg = {
             to: process.env.SUPPORT_TEAM_EMAIL || process.env.EMAIL_USER,
             from: {
                 email: process.env.EMAIL_USER,
-                name: 'InterviewPrep AI Support System'
+                name: 'Interview AI Support System'
             },
             replyTo: email,
             subject: `🎫 [${category.toUpperCase()}] [${priority.toUpperCase()}] ${subject}`,
@@ -177,18 +177,18 @@ exports.sendSupportAutoReply = async (name, email, subject, category, priority, 
 
         const htmlContent = getEmailTemplate(
             getSupportAutoReply(name, subject, category, priority, aiResponse, userMessage),
-            { title: 'Support Request Received - InterviewPrep AI' }
+            { title: 'Support Request Received - Interview AI' }
         );
 
         const msg = {
             to: email,
             from: {
                 email: process.env.EMAIL_USER,
-                name: 'InterviewPrep AI Support'
+                name: 'Interview AI Support'
             },
-            subject: `Re: ${subject} - InterviewPrep AI Support`,
+            subject: `Re: ${subject} - Interview AI Support`,
             html: htmlContent,
-            text: `Hello ${name},\n\nThank you for contacting InterviewPrep AI support.\n\nAI Assistant Response:\n${aiResponse}\n\nYour Request Details:\n- Subject: ${subject}\n- Category: ${category}\n- Priority: ${priority}\n- Submitted: ${new Date().toLocaleString()}\n\nOur support team will review your request and follow up if needed.\n\n- InterviewPrep AI Support Team`
+            text: `Hello ${name},\n\nThank you for contacting Interview AI support.\n\nAI Assistant Response:\n${aiResponse}\n\nYour Request Details:\n- Subject: ${subject}\n- Category: ${category}\n- Priority: ${priority}\n- Submitted: ${new Date().toLocaleString()}\n\nOur support team will review your request and follow up if needed.\n\n- Interview AI Support Team`
         };
 
         const result = await sgMail.send(msg);
@@ -228,7 +228,7 @@ exports.sendCustomEmail = async (to, subject, htmlContent, textContent = '', opt
             to: to,
             from: options.from || {
                 email: process.env.EMAIL_USER,
-                name: 'InterviewPrep AI'
+                name: 'Interview AI'
             },
             subject: subject,
             html: htmlContent,

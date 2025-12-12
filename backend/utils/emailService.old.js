@@ -29,7 +29,7 @@ exports.sendOTPEmail = async (email, otp) => {
                   🔐 Password Reset
                 </h1>
                 <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px; font-weight: 300;">
-                  InterviewPrep AI Security
+                  Interview AI Security
                 </p>
               </div>
             </div>
@@ -98,10 +98,10 @@ exports.sendOTPEmail = async (email, otp) => {
             <!-- Footer -->
             <div style="background: #f9fafb; padding: 25px 30px; text-align: center; border-top: 1px solid #e5e7eb;">
               <p style="color: #6b7280; margin: 0 0 10px 0; font-size: 13px;">
-                This email was sent by <strong>InterviewPrep AI</strong>
+                This email was sent by <strong>Interview AI</strong>
               </p>
               <p style="color: #9ca3af; margin: 0; font-size: 12px;">
-                © 2025 InterviewPrep AI. All rights reserved.
+                © 2025 Interview AI. All rights reserved.
               </p>
             </div>
           </div>
@@ -153,7 +153,7 @@ exports.sendNotificationEmail = async (userEmail, title, message, action, action
     const response = await resend.emails.send({
       from: process.env.EMAIL_SENDER || 'onboarding@resend.dev',
       to: userEmail,
-      subject: `🔔 ${title} - InterviewPrep AI`,
+      subject: `🔔 ${title} - Interview AI`,
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
           <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden;">
@@ -170,7 +170,7 @@ exports.sendNotificationEmail = async (userEmail, title, message, action, action
                 🔔 ${title}
               </h1>
               <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px; font-weight: 300;">
-                InterviewPrep AI Notification
+                Interview AI Notification
               </p>
             </div>
 
@@ -203,10 +203,10 @@ exports.sendNotificationEmail = async (userEmail, title, message, action, action
             <!-- Footer -->
             <div style="background: #f9fafb; padding: 25px 30px; text-align: center; border-top: 1px solid #e5e7eb;">
               <p style="color: #6b7280; margin: 0 0 10px 0; font-size: 13px;">
-                This email was sent by <strong>InterviewPrep AI</strong>
+                This email was sent by <strong>Interview AI</strong>
               </p>
               <p style="color: #9ca3af; margin: 0; font-size: 12px;">
-                © 2025 InterviewPrep AI. All rights reserved.
+                © 2025 Interview AI. All rights reserved.
               </p>
             </div>
           </div>

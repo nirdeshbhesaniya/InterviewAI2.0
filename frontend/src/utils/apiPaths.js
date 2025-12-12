@@ -40,7 +40,10 @@ export const API = {
   MCQ: {
     GENERATE: `${API_BASE_URL}/mcq/generate`,
     SUBMIT: `${API_BASE_URL}/mcq/submit`,
-    TOPICS: `${API_BASE_URL}/mcq/topics`
+    TOPICS: `${API_BASE_URL}/mcq/topics`,
+    HISTORY: `${API_BASE_URL}/mcq/history`,
+    GET_TEST: (testId) => `${API_BASE_URL}/mcq/test/${testId}`,
+    DELETE_TEST: (testId) => `${API_BASE_URL}/mcq/test/${testId}`
   },
   NOTIFICATIONS: {
     GET_ALL: (userId) => `${API_BASE_URL}/notifications/${userId}`,

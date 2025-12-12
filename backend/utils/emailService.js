@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 /**
- * Modern Email Service for InterviewPrep AI
+ * Modern Email Service for Interview AI
  * Uses Nodemailer with responsive email templates matching AI Tech Dark Gradient theme
  * 
  * Production-ready with:
@@ -90,7 +90,7 @@ const createTransporter = async (retryPorts = [587, 465, 25]) => {
  * Base Email Template - Responsive and matches AI Tech Dark Gradient theme
  */
 const getEmailTemplate = (content, options = {}) => {
-  const { title = 'InterviewPrep AI', headerGradient = true } = options;
+  const { title = 'Interview AI', headerGradient = true } = options;
 
   return `
 <!DOCTYPE html>
@@ -135,7 +135,7 @@ const getEmailTemplate = (content, options = {}) => {
                 <tr>
                   <td align="center">
                     <h1 style="color: #F9FAFB; margin: 0; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                      InterviewPrep AI
+                      Interview AI
                     </h1>
                   </td>
                 </tr>
@@ -158,7 +158,7 @@ const getEmailTemplate = (content, options = {}) => {
                 <tr>
                   <td align="center">
                     <p style="color: #9CA3AF; margin: 0 0 12px 0; font-size: 14px;">
-                      This email was sent by <strong style="color: #E5E7EB;">InterviewPrep AI</strong>
+                      This email was sent by <strong style="color: #E5E7EB;">Interview AI</strong>
                     </p>
                     <p style="color: #6B7280; margin: 0 0 16px 0; font-size: 12px;">
                       Your AI-powered interview preparation platform
@@ -182,7 +182,7 @@ const getEmailTemplate = (content, options = {}) => {
                     </table>
                     
                     <p style="color: #6B7280; margin: 20px 0 0 0; font-size: 11px;">
-                      © ${new Date().getFullYear()} InterviewPrep AI. All rights reserved.
+                      © ${new Date().getFullYear()} Interview AI. All rights reserved.
                     </p>
                   </td>
                 </tr>
@@ -360,18 +360,18 @@ exports.sendOTPEmail = async (email, otp) => {
     console.log(`📧 Sending OTP email to ${email}...`);
     const transporter = await createTransporter();
     const htmlContent = getEmailTemplate(getOTPEmailContent(otp), {
-      title: 'Password Reset - InterviewPrep AI'
+      title: 'Password Reset - Interview AI'
     });
 
     const mailOptions = {
       from: {
-        name: 'InterviewPrep AI',
+        name: 'Interview AI',
         address: process.env.EMAIL_USER
       },
       to: email,
       subject: '🔐 Password Reset - Your OTP Code',
       html: htmlContent,
-      text: `Your OTP for password reset is: ${otp}\n\nThis code expires in 10 minutes.\n\nIf you didn't request this, please ignore this email.\n\n- InterviewPrep AI Team`
+      text: `Your OTP for password reset is: ${otp}\n\nThis code expires in 10 minutes.\n\nIf you didn't request this, please ignore this email.\n\n- Interview AI Team`
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -418,18 +418,18 @@ exports.sendNotificationEmail = async (userEmail, title, message, action, action
     const transporter = await createTransporter();
     const htmlContent = getEmailTemplate(
       getNotificationEmailContent(title, message, action, actionUrl),
-      { title: `${title} - InterviewPrep AI` }
+      { title: `${title} - Interview AI` }
     );
 
     const mailOptions = {
       from: {
-        name: 'InterviewPrep AI',
+        name: 'Interview AI',
         address: process.env.EMAIL_USER
       },
       to: userEmail,
-      subject: `🔔 ${title} - InterviewPrep AI`,
+      subject: `🔔 ${title} - Interview AI`,
       html: htmlContent,
-      text: `${title}\n\n${message}${action && actionUrl ? `\n\n${action}: ${actionUrl}` : ''}\n\n- InterviewPrep AI Team`
+      text: `${title}\n\n${message}${action && actionUrl ? `\n\n${action}: ${actionUrl}` : ''}\n\n- Interview AI Team`
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -570,7 +570,7 @@ const getSupportAutoReply = (name, subject, category, priority, aiResponse, user
             Hello ${name}! 👋
           </h2>
           <p style="color: #9CA3AF; margin: 0 0 32px 0; font-size: 15px; line-height: 1.6;">
-            Thank you for contacting InterviewPrep AI support. We've received your message and our AI assistant has prepared an initial response for you.
+            Thank you for contacting Interview AI support. We've received your message and our AI assistant has prepared an initial response for you.
           </p>
         </td>
       </tr>
@@ -705,12 +705,12 @@ exports.sendSupportEmailToTeam = async (name, email, subject, category, priority
     const transporter = await createTransporter();
     const htmlContent = getEmailTemplate(
       getSupportEmailToTeam(name, email, subject, category, priority, message),
-      { title: 'New Support Request - InterviewPrep AI', headerGradient: false }
+      { title: 'New Support Request - Interview AI', headerGradient: false }
     );
 
     const mailOptions = {
       from: {
-        name: 'InterviewPrep AI Support System',
+        name: 'Interview AI Support System',
         address: process.env.EMAIL_USER
       },
       to: process.env.SUPPORT_TEAM_EMAIL || process.env.EMAIL_USER,
@@ -752,18 +752,18 @@ exports.sendSupportAutoReply = async (name, email, subject, category, priority, 
     const transporter = await createTransporter();
     const htmlContent = getEmailTemplate(
       getSupportAutoReply(name, subject, category, priority, aiResponse, userMessage),
-      { title: 'Support Request Received - InterviewPrep AI' }
+      { title: 'Support Request Received - Interview AI' }
     );
 
     const mailOptions = {
       from: {
-        name: 'InterviewPrep AI Support',
+        name: 'Interview AI Support',
         address: process.env.EMAIL_USER
       },
       to: email,
-      subject: `Re: ${subject} - InterviewPrep AI Support`,
+      subject: `Re: ${subject} - Interview AI Support`,
       html: htmlContent,
-      text: `Hello ${name},\n\nThank you for contacting InterviewPrep AI support.\n\nAI Assistant Response:\n${aiResponse}\n\nYour Request Details:\n- Subject: ${subject}\n- Category: ${category}\n- Priority: ${priority}\n- Submitted: ${new Date().toLocaleString()}\n\nOur support team will review your request and follow up if needed.\n\n- InterviewPrep AI Support Team`
+      text: `Hello ${name},\n\nThank you for contacting Interview AI support.\n\nAI Assistant Response:\n${aiResponse}\n\nYour Request Details:\n- Subject: ${subject}\n- Category: ${category}\n- Priority: ${priority}\n- Submitted: ${new Date().toLocaleString()}\n\nOur support team will review your request and follow up if needed.\n\n- Interview AI Support Team`
     };
 
     const info = await transporter.sendMail(mailOptions);

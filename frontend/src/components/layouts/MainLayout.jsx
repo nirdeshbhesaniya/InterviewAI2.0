@@ -1,17 +1,20 @@
 // src/layouts/MainLayout.jsx
-import React from 'react';
+// MainLayout.jsx
 import Header from '../../pages/InterviewPrep/components/Header';
 import { Outlet } from 'react-router-dom';
 import Footer from '../../pages/InterviewPrep/components/Footer';
+import { useTestMode } from '../../context/TestModeContext';
 
 const MainLayout = () => {
+  const { isTestActive } = useTestMode();
+
   return (
     <>
-      <Header />
+      {!isTestActive && <Header />}
       <main>
         <Outlet />
       </main>
-      <Footer/>
+      {!isTestActive && <Footer />}
     </>
   );
 };

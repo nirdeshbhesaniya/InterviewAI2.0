@@ -18,7 +18,7 @@ Click **"Create New Sender"** or **"Verify Single Sender"**
 
 ### Step 3: Fill in the Form
 ```
-From Name:           InterviewPrep AI
+From Name:           Interview AI
 From Email Address:  nirdeshbhesaniya@gmail.com  ← MUST MATCH .env EMAIL_USER
 Reply To:            nirdeshbhesaniya@gmail.com
 Company Address:     (Enter any address)

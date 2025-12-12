@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { chatWithAI } = require('../utils/gemini');
 const { sendCustomEmail, getEmailTemplate } = require('../utils/emailService');
+const MCQTest = require('../Models/MCQTest');
+const User = require('../Models/User');
 
 // Generate MCQ questions using Gemini AI with uniqueness factors
 async function generateMCQQuestions(topic, difficulty = 'medium', numberOfQuestions = 30) {
@@ -356,7 +358,7 @@ async function sendResultsEmail(userInfo, results, topic) {
             
             <div style="text-align: center; margin-top: 40px; padding: 25px; background: linear-gradient(135deg, #1F2937 0%, #111827 100%); border-radius: 8px; border: 1px solid #374151;">
                 <p style="margin: 0 0 15px 0; color: #E5E7EB; font-size: 16px;">🚀 Want to improve your skills?</p>
-                <p style="margin: 0; color: #9CA3AF;">Visit <strong style="background: linear-gradient(135deg, #22D3EE, #6366F1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">InterviewPrep AI</strong> for more practice tests!</p>
+                <p style="margin: 0; color: #9CA3AF;">Visit <strong style="background: linear-gradient(135deg, #22D3EE, #6366F1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Interview AI</strong> for more practice tests!</p>
             </div>
         </div>
     `;
@@ -437,7 +439,17 @@ router.post('/generate', async (req, res) => {
 // Submit MCQ test answers
 router.post('/submit', async (req, res) => {
     try {
-        const { topic, answers, userInfo, numberOfQuestions = 30, timeSpent = 0, questions } = req.body;
+        const {
+            topic,
+            answers,
+            userInfo,
+            numberOfQuestions = 30,
+            timeSpent = 0,
+            questions,
+            experience = 'beginner',
+            specialization = '',
+            securityWarnings = {}
+        } = req.body;
 
         if (!topic || !answers || !userInfo || !userInfo.name || !userInfo.email) {
             return res.status(400).json({
@@ -461,6 +473,70 @@ router.post('/submit', async (req, res) => {
 
         // Evaluate answers
         const results = await evaluateAnswers(questionsWithAnswers, answers, userInfo, timeSpent);
+
+        // Determine test status based on security warnings
+        let testStatus = 'completed';
+        const totalWarnings = (securityWarnings.fullscreenExits || 0) + (securityWarnings.tabSwitches || 0);
+        if (totalWarnings >= 3) {
+            testStatus = 'auto-submitted';
+        } else if (timeSpent >= numberOfQuestions * 120) {
+            testStatus = 'timeout';
+        }
+
+        // Fetch user by email to get userId
+        let userId = null;
+        try {
+            const user = await User.findOne({ email: userInfo.email });
+            if (user) {
+                userId = user._id;
+            } else {
+                console.error(`User not found for email: ${userInfo.email}`);
+                return res.status(400).json({
+                    success: false,
+                    message: 'User not found. Please login again.'
+                });
+            }
+        } catch (userError) {
+            console.error('Error fetching user:', userError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error validating user. Please try again.'
+            });
+        }
+
+        // Save test results to database
+        try {
+            const mcqTest = new MCQTest({
+                userId: userId,
+                userEmail: userInfo.email,
+                topic,
+                experience,
+                specialization,
+                totalQuestions: results.totalQuestions,
+                correctAnswers: results.correctAnswers,
+                score: results.score,
+                timeSpent: results.timeSpent,
+                userAnswers: answers,
+                questionsWithAnswers: questionsWithAnswers.map(q => ({
+                    question: q.question,
+                    options: q.options,
+                    correctAnswer: q.correctAnswer,
+                    explanation: q.explanation
+                })),
+                securityWarnings: {
+                    fullscreenExits: securityWarnings.fullscreenExits || 0,
+                    tabSwitches: securityWarnings.tabSwitches || 0
+                },
+                testStatus,
+                completedAt: new Date()
+            });
+
+            await mcqTest.save();
+            console.log(`Test results saved to database: ${mcqTest._id}`);
+        } catch (dbError) {
+            console.error('Error saving test to database:', dbError);
+            // Continue even if database save fails
+        }
 
         // Send results email
         try {
@@ -519,6 +595,190 @@ router.get('/topics', (req, res) => {
         success: true,
         data: { topics }
     });
+});
+
+// Get user's test history
+router.get('/history', async (req, res) => {
+    try {
+        const userEmail = req.headers['user-email'] || req.query.email;
+
+        if (!userEmail) {
+            return res.status(400).json({
+                success: false,
+                message: 'User email is required'
+            });
+        }
+
+        // Fetch all tests for the user, sorted by most recent first
+        const tests = await MCQTest.find({ userEmail })
+            .select('-questionsWithAnswers -userAnswers') // Exclude detailed data for list view
+            .sort({ createdAt: -1 })
+            .limit(50) // Limit to last 50 tests
+            .lean();
+
+        res.json({
+            success: true,
+            data: {
+                history: tests,
+                totalTests: tests.length
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching test history:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch test history'
+        });
+    }
+});
+
+// Get detailed test results by ID
+router.get('/test/:testId', async (req, res) => {
+    try {
+        const { testId } = req.params;
+        const userEmail = req.headers['user-email'] || req.query.email;
+
+        if (!userEmail) {
+            return res.status(400).json({
+                success: false,
+                message: 'User email is required'
+            });
+        }
+
+        // Fetch specific test with all details
+        const test = await MCQTest.findOne({
+            _id: testId,
+            userEmail // Ensure user can only access their own tests
+        }).lean();
+
+        if (!test) {
+            return res.status(404).json({
+                success: false,
+                message: 'Test not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: test
+        });
+
+    } catch (error) {
+        console.error('Error fetching test details:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch test details'
+        });
+    }
+});
+
+// Get test statistics for user
+router.get('/stats', async (req, res) => {
+    try {
+        const userEmail = req.headers['user-email'] || req.query.email;
+
+        if (!userEmail) {
+            return res.status(400).json({
+                success: false,
+                message: 'User email is required'
+            });
+        }
+
+        const stats = await MCQTest.aggregate([
+            { $match: { userEmail } },
+            {
+                $group: {
+                    _id: null,
+                    totalTests: { $sum: 1 },
+                    averageScore: { $avg: '$score' },
+                    highestScore: { $max: '$score' },
+                    lowestScore: { $min: '$score' },
+                    totalTimeSpent: { $sum: '$timeSpent' },
+                    totalQuestions: { $sum: '$totalQuestions' },
+                    totalCorrect: { $sum: '$correctAnswers' }
+                }
+            }
+        ]);
+
+        // Get topic-wise performance
+        const topicStats = await MCQTest.aggregate([
+            { $match: { userEmail } },
+            {
+                $group: {
+                    _id: '$topic',
+                    tests: { $sum: 1 },
+                    averageScore: { $avg: '$score' },
+                    bestScore: { $max: '$score' }
+                }
+            },
+            { $sort: { tests: -1 } },
+            { $limit: 10 }
+        ]);
+
+        res.json({
+            success: true,
+            data: {
+                overall: stats[0] || {
+                    totalTests: 0,
+                    averageScore: 0,
+                    highestScore: 0,
+                    lowestScore: 0,
+                    totalTimeSpent: 0,
+                    totalQuestions: 0,
+                    totalCorrect: 0
+                },
+                byTopic: topicStats
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching test statistics:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch statistics'
+        });
+    }
+});
+
+// Delete test by ID
+router.delete('/test/:testId', async (req, res) => {
+    try {
+        const { testId } = req.params;
+        const userEmail = req.headers['user-email'] || req.query.email;
+
+        if (!userEmail) {
+            return res.status(400).json({
+                success: false,
+                message: 'User email is required'
+            });
+        }
+
+        // Find and delete the test, ensuring user can only delete their own tests
+        const deletedTest = await MCQTest.findOneAndDelete({
+            _id: testId,
+            userEmail // Ensure user can only delete their own tests
+        });
+
+        if (!deletedTest) {
+            return res.status(404).json({
+                success: false,
+                message: 'Test not found or you do not have permission to delete it'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Test deleted successfully'
+        });
+
+    } catch (error) {
+        console.error('Error deleting test:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to delete test'
+        });
+    }
 });
 
 module.exports = router;
