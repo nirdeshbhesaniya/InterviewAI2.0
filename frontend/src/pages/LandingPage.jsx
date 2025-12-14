@@ -133,26 +133,26 @@ const LandingPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg-body">
+      <div className="min-h-screen flex items-center justify-center bg-[rgb(var(--bg-body))]">
         <div className="flex flex-col items-center gap-6">
           <div className="flex space-x-3">
-            <div className="w-5 h-5 rounded-full bg-primary animate-ping [animation-delay:-0.30s]"></div>
-            <div className="w-5 h-5 rounded-full bg-secondary animate-ping [animation-delay:-0.35s]"></div>
-            <div className="w-5 h-5 rounded-full bg-highlight animate-ping"></div>
+            <div className="w-5 h-5 rounded-full bg-[rgb(var(--accent))] animate-ping [animation-delay:-0.30s]"></div>
+            <div className="w-5 h-5 rounded-full bg-[rgb(var(--accent-hover))] animate-ping [animation-delay:-0.35s]"></div>
+            <div className="w-5 h-5 rounded-full bg-[rgb(var(--accent))] animate-ping"></div>
           </div>
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 animate-pulse">
-              <Bot className="w-7 h-7 text-primary drop-shadow-md" />
-              <h1 className="text-xl md:text-2xl font-bold text-text-primary tracking-wide">
+              <Bot className="w-7 h-7 text-[rgb(var(--accent))] drop-shadow-md" />
+              <h1 className="text-xl md:text-2xl font-bold text-[rgb(var(--text-primary))] tracking-wide">
                 Interview AI
               </h1>
             </div>
-            <p className="text-sm md:text-base text-text-secondary mt-2 animate-fade-in-slow">
+            <p className="text-sm md:text-base text-[rgb(var(--text-secondary))] mt-2 animate-fade-in-slow">
               Setting up your landing page, hold tight...
             </p>
           </div>
-          <div className="w-48 h-2 bg-bg-card-alt rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-highlight to-pink-500 animate-loading-bar rounded-full"></div>
+          <div className="w-48 h-2 bg-[rgb(var(--bg-card-alt))] rounded-full overflow-hidden">
+            <div className="h-full bg-[rgb(var(--accent))] animate-loading-bar rounded-full"></div>
           </div>
         </div>
       </div>
@@ -168,7 +168,7 @@ const LandingPage = () => {
       <HeroSection />
 
       {/* MCQ Test Highlight Section */}
-      <section className="px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-br from-primary via-indigo-600 to-secondary relative overflow-hidden">
+      <section className="px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-br from-[rgb(var(--accent))] via-[#4F46E5] to-[rgb(var(--accent-hover))] relative overflow-hidden">
         <div className="max-w-6xl mx-auto relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -248,7 +248,7 @@ const LandingPage = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => user ? navigate('/mcq-test') : openModal()}
-                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-highlight to-pink-500 text-white rounded-full font-bold text-lg hover:shadow-button-hover transition-all duration-300 shadow-button-primary"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-white hover:bg-white/90 text-[rgb(var(--accent))] rounded-full font-bold text-lg hover:shadow-lg transition-all duration-300 shadow-md"
               >
                 <BrainCircuit className="w-6 h-6" />
                 <span>Start MCQ Test</span>
@@ -272,7 +272,7 @@ const LandingPage = () => {
 
 
       {/* Enhanced Features Section */}
-      <section className="px-4 sm:px-6 lg:px-8 py-20 bg-bg-body-alt">
+      <section className="px-4 sm:px-6 lg:px-8 py-20 bg-[rgb(var(--bg-body-alt))]">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -281,10 +281,10 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-text-primary mb-6">
-              App <span className="text-text-primary">Features</span>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[rgb(var(--text-primary))] mb-6">
+              App <span className="text-[rgb(var(--text-primary))]">Features</span>
             </h2>
-            <p className="text-lg sm:text-xl text-text-secondary max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-[rgb(var(--text-secondary))] max-w-3xl mx-auto">
               Discover powerful tools designed to accelerate your interview preparation journey
             </p>
           </motion.div>
@@ -301,36 +301,36 @@ const LandingPage = () => {
                   y: -10,
                   transition: { duration: 0.3 }
                 }}
-                className="group relative bg-bg-card p-8 rounded-2xl border border-border-subtle shadow-lg hover:shadow-2xl hover:bg-bg-card-alt transition-all duration-500 overflow-hidden"
+                className="group relative bg-[rgb(var(--bg-card))] p-8 rounded-2xl border border-[rgb(var(--border))] shadow-lg hover:shadow-2xl hover:bg-[rgb(var(--bg-card-alt))] transition-all duration-500 overflow-hidden"
               >
                 {/* Background Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--accent))]/5 via-transparent to-[rgb(var(--accent-hover))]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                 {/* Feature Number Badge */}
                 <div className="relative z-10 mb-6">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-highlight to-pink-500 text-white rounded-xl font-bold text-lg shadow-button-primary">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-[rgb(var(--accent))] text-white rounded-xl font-bold text-lg shadow-md">
                     {feature.id}
                   </div>
                 </div>
 
                 {/* Content */}
                 <div className="relative z-10">
-                  <h3 className="text-xl sm:text-2xl font-bold text-text-primary mb-4 group-hover:text-highlight transition-colors duration-300">
+                  <h3 className="text-xl sm:text-2xl font-bold text-[rgb(var(--text-primary))] mb-4 group-hover:text-[rgb(var(--accent))] transition-colors duration-300">
                     {feature.title}
                   </h3>
-                  <p className="text-text-secondary leading-relaxed mb-6">
+                  <p className="text-[rgb(var(--text-secondary))] leading-relaxed mb-6">
                     {feature.description}
                   </p>
 
                   {/* Learn More Link */}
-                  <div className="flex items-center text-primary font-medium opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-[-10px] group-hover:translate-x-0">
+                  <div className="flex items-center text-[rgb(var(--accent))] font-medium opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-[-10px] group-hover:translate-x-0">
                     <span className="text-sm">Learn more</span>
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
 
                 {/* Decorative Element */}
-                <div className="absolute top-4 right-4 w-20 h-20 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute top-4 right-4 w-20 h-20 bg-gradient-to-br from-[rgb(var(--accent))]/10 to-[rgb(var(--accent-hover))]/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </motion.div>
             ))}
           </div>
@@ -347,7 +347,7 @@ const LandingPage = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleGetStarted}
-              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-highlight to-pink-500 text-white rounded-full font-semibold hover:shadow-button-hover transition-all duration-300 shadow-button-primary"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300 shadow-md"
             >
               <span>Start Your Journey</span>
               <ArrowRight className="w-5 h-5" />
@@ -357,7 +357,7 @@ const LandingPage = () => {
       </section>
 
       {/* Enhanced Testimonials Section */}
-      <section className="py-20 bg-bg-body">
+      <section className="py-20 bg-[rgb(var(--bg-body))]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -366,10 +366,10 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-text-primary mb-6">
-              What <span className="text-text-primary">Users Say</span>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[rgb(var(--text-primary))] mb-6">
+              What <span className="text-[rgb(var(--text-primary))]">Users Say</span>
             </h2>
-            <p className="text-lg sm:text-xl text-text-secondary max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-[rgb(var(--text-secondary))] max-w-3xl mx-auto">
               Join thousands of developers who have transformed their interview skills
             </p>
 
@@ -377,13 +377,13 @@ const LandingPage = () => {
             <div className="flex items-center justify-center gap-4 mt-8">
               <div className="flex items-center gap-1">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-6 h-6 text-highlight fill-current" />
+                  <Star key={i} className="w-6 h-6 text-[rgb(var(--accent))] fill-current" />
                 ))}
               </div>
-              <div className="text-text-secondary">
-                <span className="font-bold text-2xl text-text-primary">4.9</span> out of 5
+              <div className="text-[rgb(var(--text-secondary))]">
+                <span className="font-bold text-2xl text-[rgb(var(--text-primary))]">4.9</span> out of 5
               </div>
-              <div className="hidden sm:block text-text-muted">
+              <div className="hidden sm:block text-[rgb(var(--text-muted))]">
                 Based on 1,000+ reviews
               </div>
             </div>
@@ -399,28 +399,28 @@ const LandingPage = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.15 }}
                 whileHover={{ y: -10, transition: { duration: 0.3 } }}
-                className="group relative bg-bg-card rounded-2xl shadow-lg hover:shadow-2xl hover:bg-bg-card-alt transition-all duration-500 p-8 border border-border-subtle overflow-hidden"
+                className="group relative bg-[rgb(var(--bg-card))] rounded-2xl shadow-lg hover:shadow-2xl hover:bg-[rgb(var(--bg-card-alt))] transition-all duration-500 p-8 border border-[rgb(var(--border))] overflow-hidden"
               >
                 {/* Background Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--accent))]/5 to-[rgb(var(--accent-hover))]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                 {/* Quote Icon */}
                 <div className="relative z-10 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-highlight to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-button-primary">
+                  <div className="w-12 h-12 bg-[rgb(var(--accent))] rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-md">
                     "
                   </div>
                 </div>
 
                 {/* Testimonial Content */}
                 <div className="relative z-10">
-                  <p className="text-text-secondary text-lg leading-relaxed mb-6 italic">
+                  <p className="text-[rgb(var(--text-secondary))] text-lg leading-relaxed mb-6 italic">
                     "{item.feedback}"
                   </p>
 
                   {/* Rating */}
                   <div className="flex items-center gap-1 mb-4">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 text-highlight fill-current" />
+                      <Star key={i} className="w-4 h-4 text-[rgb(var(--accent))] fill-current" />
                     ))}
                   </div>
 
@@ -429,16 +429,16 @@ const LandingPage = () => {
                     <div className="relative">
                       <img
                         src={item.avatar}
-                        className="w-14 h-14 rounded-full object-cover border-2 border-primary"
+                        className="w-14 h-14 rounded-full object-cover border-2 border-[rgb(var(--accent))]"
                         alt={item.name}
                       />
-                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-secondary rounded-full border-2 border-bg-card flex items-center justify-center">
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[rgb(var(--accent))] rounded-full border-2 border-[rgb(var(--bg-card))] flex items-center justify-center">
                         <CheckCircle className="w-3 h-3 text-white" />
                       </div>
                     </div>
                     <div>
-                      <h4 className="font-bold text-text-primary text-lg">{item.name}</h4>
-                      <p className="text-primary font-medium">{item.role}</p>
+                      <h4 className="font-bold text-[rgb(var(--text-primary))] text-lg">{item.name}</h4>
+                      <p className="text-[rgb(var(--accent))] font-medium">{item.role}</p>
                     </div>
                   </div>
                 </div>

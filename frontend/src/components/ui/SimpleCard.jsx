@@ -5,7 +5,7 @@ const Card = ({
     className = '',
     ...props
 }) => {
-    const baseClasses = 'bg-bg-card rounded-xl border border-border-subtle shadow-sm hover:bg-bg-card-alt transition-all';
+    const baseClasses = 'bg-[rgb(var(--bg-card))] rounded-xl border border-[rgb(var(--border-subtle))] shadow-sm hover:bg-[rgb(var(--bg-card-alt))] transition-all';
     const classes = `${baseClasses} ${className}`;
 
     return (
@@ -20,7 +20,7 @@ const CardHeader = ({
     className = '',
     ...props
 }) => {
-    const classes = `px-6 py-4 border-b border-border-subtle ${className}`;
+    const classes = `px-6 py-4 border-b border-[rgb(var(--border-subtle))] ${className}`;
 
     return (
         <div className={classes} {...props}>
@@ -48,7 +48,7 @@ const CardFooter = ({
     className = '',
     ...props
 }) => {
-    const classes = `px-6 py-4 border-t border-border-subtle ${className}`;
+    const classes = `px-6 py-4 border-t border-[rgb(var(--border-subtle))] ${className}`;
 
     return (
         <div className={classes} {...props}>

@@ -5,6 +5,10 @@ const { sendCustomEmail, getEmailTemplate } = require('../utils/emailService');
 const MCQTest = require('../Models/MCQTest');
 const User = require('../Models/User');
 
+// Track recent submissions to prevent duplicates (userId -> timestamp)
+const recentSubmissions = new Map();
+const SUBMISSION_COOLDOWN = 5000; // 5 seconds cooldown
+
 // Generate MCQ questions using Gemini AI with uniqueness factors
 async function generateMCQQuestions(topic, difficulty = 'medium', numberOfQuestions = 30) {
     // Add randomization factors to ensure unique questions every time
@@ -502,6 +506,29 @@ router.post('/submit', async (req, res) => {
                 success: false,
                 message: 'Error validating user. Please try again.'
             });
+        }
+
+        // Check for duplicate submission (within cooldown period)
+        const userIdStr = userId.toString();
+        const now = Date.now();
+        const lastSubmission = recentSubmissions.get(userIdStr);
+
+        if (lastSubmission && (now - lastSubmission) < SUBMISSION_COOLDOWN) {
+            console.log(`⚠️ Duplicate submission blocked for user: ${userInfo.email} (within ${SUBMISSION_COOLDOWN}ms)`);
+            return res.status(429).json({
+                success: false,
+                message: 'Please wait a moment before submitting again.'
+            });
+        }
+
+        // Mark this submission
+        recentSubmissions.set(userIdStr, now);
+
+        // Clean up old entries (older than 1 minute)
+        for (const [key, timestamp] of recentSubmissions.entries()) {
+            if (now - timestamp > 60000) {
+                recentSubmissions.delete(key);
+            }
         }
 
         // Save test results to database

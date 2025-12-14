@@ -3,7 +3,7 @@ const User = require('../Models/User');
 const cloudinary = require('../utils/cloudinary');
 // const fs = require('fs'); // to delete local files if needed
 const streamifier = require('streamifier');
-const { sendOTPEmail } = require('../utils/emailService');
+const { sendOTPEmail, sendWelcomeEmail } = require('../utils/emailService');
 const crypto = require('crypto');
 
 exports.registerUser = async (req, res) => {
@@ -49,6 +49,12 @@ exports.registerUser = async (req, res) => {
 
     await newUser.save();
 
+    // Send welcome email (don't wait for it to complete)
+    sendWelcomeEmail(email, fullName).catch(error => {
+      console.error('Failed to send welcome email:', error);
+      // Don't fail registration if email fails
+    });
+
     res.status(201).json({
       message: 'User registered successfully',
       userId: newUser._id,
@@ -58,7 +64,7 @@ exports.registerUser = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
-// const jwt = require('jsonwebtoken'); // Optional
+const jwt = require('jsonwebtoken');
 
 exports.loginUser = async (req, res) => {
   try {
@@ -72,18 +78,75 @@ exports.loginUser = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
 
-    // Optional: Generate JWT token
-    // const token = jwt.sign({ id: user._id }, 'secretKey', { expiresIn: '1h' });
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id, email: user.email, name: user.fullName },
+      process.env.JWT_SECRET || 'your-secret-key-change-this-in-production',
+      { expiresIn: '7d' }
+    );
+
+    // Extract device info from headers
+    const userAgent = req.headers['user-agent'] || 'Unknown';
+    const ip = req.ip || req.connection.remoteAddress;
+
+    // Parse user agent to get device info
+    const getDeviceInfo = (ua) => {
+      let browser = 'Unknown Browser';
+      let os = 'Unknown OS';
+
+      if (ua.includes('Chrome')) browser = 'Chrome';
+      else if (ua.includes('Firefox')) browser = 'Firefox';
+      else if (ua.includes('Safari')) browser = 'Safari';
+      else if (ua.includes('Edge')) browser = 'Edge';
+
+      if (ua.includes('Windows')) os = 'Windows';
+      else if (ua.includes('Mac')) os = 'macOS';
+      else if (ua.includes('Linux')) os = 'Linux';
+      else if (ua.includes('Android')) os = 'Android';
+      else if (ua.includes('iOS')) os = 'iOS';
+
+      return { browser, os };
+    };
+
+    const { browser, os } = getDeviceInfo(userAgent);
+
+    // Create session
+    const newSession = {
+      token: token,
+      device: `${browser} on ${os}`,
+      browser,
+      os,
+      ip,
+      location: 'Location unavailable', // You can integrate IP geolocation API
+      createdAt: new Date(),
+      lastActive: new Date()
+    };
+
+    // Add session to user (keep last 5 sessions)
+    if (!user.sessions) user.sessions = [];
+    user.sessions.push(newSession);
+    if (user.sessions.length > 5) {
+      user.sessions = user.sessions.slice(-5);
+    }
+
+    await user.save();
 
     res.status(200).json({
       message: 'Login successful',
       user: {
+        userId: user._id,
         id: user._id,
         fullName: user.fullName,
         email: user.email,
         photo: user.photo,
+        bio: user.bio,
+        location: user.location,
+        website: user.website,
+        linkedin: user.linkedin,
+        github: user.github,
+        token: token
       },
-      // token
+      token
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -119,16 +182,16 @@ exports.forgotPassword = async (req, res) => {
     // Send OTP email
     // console.log('Sending OTP email to:', email);
     const emailResult = await sendOTPEmail(email, otp);
-    
+
     if (!emailResult.success) {
       console.error('Email sending failed:', emailResult);
       // Update user to clear OTP since email failed
       user.otp = undefined;
       user.otpExpires = undefined;
       await user.save();
-      
-      return res.status(500).json({ 
-        message: 'Failed to send OTP email', 
+
+      return res.status(500).json({
+        message: 'Failed to send OTP email',
         error: emailResult.error,
         details: emailResult.details || 'No additional details available'
       });
@@ -148,10 +211,10 @@ exports.verifyOTP = async (req, res) => {
     const { email, otp } = req.body;
 
     // Find user by email
-    const user = await User.findOne({ 
-      email, 
-      otp, 
-      otpExpires: { $gt: Date.now() } 
+    const user = await User.findOne({
+      email,
+      otp,
+      otpExpires: { $gt: Date.now() }
     });
 
     if (!user) {
@@ -167,9 +230,9 @@ exports.verifyOTP = async (req, res) => {
     user.resetPasswordExpires = resetExpires;
     await user.save();
 
-    res.status(200).json({ 
-      message: 'OTP verified successfully', 
-      resetToken 
+    res.status(200).json({
+      message: 'OTP verified successfully',
+      resetToken
     });
   } catch (err) {
     console.error('OTP verification error:', err);
@@ -183,7 +246,7 @@ exports.resetPassword = async (req, res) => {
     const { resetToken, newPassword } = req.body;
 
     // Find user by reset token
-    const user = await User.findOne({ 
+    const user = await User.findOne({
       resetPasswordToken: resetToken,
       resetPasswordExpires: { $gt: Date.now() }
     });

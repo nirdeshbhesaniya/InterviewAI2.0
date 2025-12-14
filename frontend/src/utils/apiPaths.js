@@ -1,6 +1,5 @@
 // src/utils/apiPaths.js
-export const API_BASE_URL = 'https://interviewai2-0sever.onrender.com/api';
-// export const API_BASE_URL = 'http://localhost:5000/api';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
 export const API = {
   REGISTER: `${API_BASE_URL}/auth/register`,
@@ -13,7 +12,12 @@ export const API = {
     UPDATE: `${API_BASE_URL}/profile/update`,
     UPLOAD_PHOTO: `${API_BASE_URL}/profile/upload-photo`,
     CHANGE_PASSWORD: `${API_BASE_URL}/profile/change-password`,
-    DELETE_ACCOUNT: `${API_BASE_URL}/profile/delete-account`
+    DELETE_ACCOUNT: `${API_BASE_URL}/profile/delete-account`,
+    GET_PREFERENCES: `${API_BASE_URL}/profile/preferences`,
+    UPDATE_PREFERENCES: `${API_BASE_URL}/profile/preferences`,
+    GET_SECURITY: `${API_BASE_URL}/profile/security`,
+    REVOKE_SESSION: `${API_BASE_URL}/profile/revoke-session`,
+    TOGGLE_2FA: `${API_BASE_URL}/profile/toggle-2fa`
   },
   INTERVIEW: {
     GET_ALL: `${API_BASE_URL}/interview`,
@@ -66,5 +70,15 @@ export const API = {
     LIKE: (id) => `${API_BASE_URL}/notes/${id}/like`,
     VIEW: (id) => `${API_BASE_URL}/notes/${id}/view`,
     GET_USER_NOTES: (userId) => `${API_BASE_URL}/notes/user/${userId}`
+  },
+  RESOURCES: {
+    GET_ALL: `${API_BASE_URL}/resources`,
+    GET_ONE: (id) => `${API_BASE_URL}/resources/${id}`,
+    CREATE: `${API_BASE_URL}/resources`,
+    UPDATE: (id) => `${API_BASE_URL}/resources/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/resources/${id}`,
+    DOWNLOAD: (id) => `${API_BASE_URL}/resources/${id}/download`,
+    LIKE: (id) => `${API_BASE_URL}/resources/${id}/like`,
+    MY_UPLOADS: `${API_BASE_URL}/resources/user/my-uploads`
   }
 };

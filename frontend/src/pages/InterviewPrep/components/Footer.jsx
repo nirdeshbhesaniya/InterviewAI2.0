@@ -27,16 +27,16 @@ const socialLinks = [
 
 const Footer = () => {
   return (
-    <footer className="bg-bg-card border-t border-border-subtle">
+    <footer className="bg-[rgb(var(--bg-card))] border-t border-[rgb(var(--border))]">
       <div className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center justify-between gap-6">
         {/* Logo & Brand */}
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/20 rounded-full">
-            <Bot className="text-primary" />
+          <div className="p-2 bg-[rgb(var(--accent))]/10 rounded-full">
+            <Bot className="text-[rgb(var(--accent))]" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-text-primary">Interview <span className="text-secondary">AI</span></h1>
-            <p className="text-sm text-text-muted">Smart Interview Prep</p>
+            <h1 className="text-xl font-bold text-[rgb(var(--text-primary))]">Interview <span className="text-[rgb(var(--accent))]">AI</span></h1>
+            <p className="text-sm text-[rgb(var(--text-muted))]">Smart Interview Prep</p>
           </div>
         </div>
 
@@ -49,10 +49,10 @@ const Footer = () => {
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.2, rotate: 5 }}
-              className="text-primary hover:text-secondary transition-colors"
+              className="text-[rgb(var(--accent))] hover:text-[rgb(var(--accent-hover))] transition-colors"
               title={item.label}
             >
-              <div className="p-2 bg-bg-card-alt rounded-full shadow hover:shadow-md border border-border-subtle">
+              <div className="p-2 bg-[rgb(var(--bg-card-alt))] rounded-full shadow hover:shadow-md border border-[rgb(var(--border))]">
                 {item.icon}
               </div>
             </motion.a>
@@ -60,7 +60,7 @@ const Footer = () => {
         </div>
       </div>
 
-      <div className="text-center py-6 text-sm text-text-muted border-t border-border-subtle">
+      <div className="text-center py-6 text-sm text-[rgb(var(--text-muted))] border-t border-[rgb(var(--border))]">
         © {new Date().getFullYear()} Interview AI. All rights reserved.
       </div>
     </footer>

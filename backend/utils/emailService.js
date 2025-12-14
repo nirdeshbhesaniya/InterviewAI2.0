@@ -349,6 +349,187 @@ const getNotificationEmailContent = (title, message, action, actionUrl) => {
 };
 
 /**
+ * Welcome Email for New Users
+ */
+const getWelcomeEmailContent = (fullName) => {
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <!-- Hero Section -->
+      <tr>
+        <td align="center">
+          <div style="display: inline-block; background: linear-gradient(135deg, #6366F1, #22D3EE); padding: 20px; border-radius: 50%; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="7" r="4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h2 style="color: #F9FAFB; margin: 0 0 12px 0; font-size: 32px; font-weight: 700;">
+            Welcome to Interview AI! 🎉
+          </h2>
+          <p style="color: #9CA3AF; margin: 0 0 32px 0; font-size: 18px; line-height: 1.6;">
+            Hi ${fullName}, we're excited to have you on board!
+          </p>
+        </td>
+      </tr>
+      
+      <!-- Welcome Message -->
+      <tr>
+        <td>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(145deg, #1F2933, #111827); border-radius: 16px; border: 1px solid #374151; margin: 24px 0;">
+            <tr>
+              <td style="padding: 32px;">
+                <p style="color: #E5E7EB; margin: 0 0 20px 0; font-size: 16px; line-height: 1.8;">
+                  You've just joined thousands of developers preparing for their dream careers with AI-powered interview preparation tools.
+                </p>
+                <p style="color: #E5E7EB; margin: 0; font-size: 16px; line-height: 1.8;">
+                  Get ready to ace your interviews with personalized practice sessions, real-time feedback, and comprehensive learning resources!
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      
+      <!-- Features Grid -->
+      <tr>
+        <td>
+          <h3 style="color: #F9FAFB; margin: 32px 0 20px 0; font-size: 20px; font-weight: 600; text-align: center;">
+            What you can do with Interview AI:
+          </h3>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td width="50%" style="padding: 8px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(34, 211, 238, 0.1)); border: 1px solid #374151; border-radius: 12px; height: 100%;">
+                  <tr>
+                    <td style="padding: 20px;">
+                      <span style="font-size: 32px;">💬</span>
+                      <h4 style="color: #22D3EE; margin: 12px 0 8px 0; font-size: 16px; font-weight: 600;">
+                        AI Interview Practice
+                      </h4>
+                      <p style="color: #9CA3AF; margin: 0; font-size: 14px; line-height: 1.6;">
+                        Practice with AI-powered mock interviews tailored to your role
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+              <td width="50%" style="padding: 8px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(251, 113, 133, 0.1)); border: 1px solid #374151; border-radius: 12px; height: 100%;">
+                  <tr>
+                    <td style="padding: 20px;">
+                      <span style="font-size: 32px;">📝</span>
+                      <h4 style="color: #F97316; margin: 12px 0 8px 0; font-size: 16px; font-weight: 600;">
+                        MCQ Tests
+                      </h4>
+                      <p style="color: #9CA3AF; margin: 0; font-size: 14px; line-height: 1.6;">
+                        Test your knowledge with topic-specific multiple choice questions
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td width="50%" style="padding: 8px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(234, 179, 8, 0.1)); border: 1px solid #374151; border-radius: 12px; height: 100%;">
+                  <tr>
+                    <td style="padding: 20px;">
+                      <span style="font-size: 32px;">💻</span>
+                      <h4 style="color: #22C55E; margin: 12px 0 8px 0; font-size: 16px; font-weight: 600;">
+                        Code Execution
+                      </h4>
+                      <p style="color: #9CA3AF; margin: 0; font-size: 14px; line-height: 1.6;">
+                        Write and execute code in multiple programming languages
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+              <td width="50%" style="padding: 8px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1)); border: 1px solid #374151; border-radius: 12px; height: 100%;">
+                  <tr>
+                    <td style="padding: 20px;">
+                      <span style="font-size: 32px;">📚</span>
+                      <h4 style="color: #A855F7; margin: 12px 0 8px 0; font-size: 16px; font-weight: 600;">
+                        Learning Resources
+                      </h4>
+                      <p style="color: #9CA3AF; margin: 0; font-size: 14px; line-height: 1.6;">
+                        Access curated study materials and community resources
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      
+      <!-- Call to Action -->
+      <tr>
+        <td align="center" style="padding: 40px 0 24px 0;">
+          <a href="${process.env.APP_URL || 'http://localhost:5173'}/dashboard" style="display: inline-block; background: linear-gradient(135deg, #6366F1, #22D3EE); color: #F9FAFB; padding: 16px 48px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4); transition: all 0.3s;">
+            🚀 Start Your Journey
+          </a>
+        </td>
+      </tr>
+      
+      <!-- Tips Section -->
+      <tr>
+        <td>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(249, 115, 22, 0.1)); border-left: 4px solid #F59E0B; border-radius: 8px; margin: 24px 0;">
+            <tr>
+              <td style="padding: 24px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td width="40" valign="top">
+                      <span style="font-size: 28px;">💡</span>
+                    </td>
+                    <td style="padding-left: 12px;">
+                      <h4 style="color: #FACC15; margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">
+                        Pro Tips to Get Started:
+                      </h4>
+                      <ul style="color: #E5E7EB; margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.8;">
+                        <li style="margin-bottom: 8px;">Complete your profile to personalize your experience</li>
+                        <li style="margin-bottom: 8px;">Start with a practice interview to gauge your current level</li>
+                        <li style="margin-bottom: 8px;">Take MCQ tests regularly to reinforce your knowledge</li>
+                        <li>Join our community and share resources with fellow learners</li>
+                      </ul>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      
+      <!-- Support Section -->
+      <tr>
+        <td align="center" style="padding-top: 32px; border-top: 1px solid #1F2937; margin-top: 32px;">
+          <p style="color: #9CA3AF; margin: 0 0 16px 0; font-size: 14px;">
+            Questions? We're here to help! 🤝
+          </p>
+          <a href="mailto:${process.env.SUPPORT_EMAIL || process.env.EMAIL_USER}" style="display: inline-block; background: transparent; border: 2px solid #6366F1; color: #6366F1; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+            📧 Contact Support
+          </a>
+        </td>
+      </tr>
+      
+      <!-- Footer Message -->
+      <tr>
+        <td align="center" style="padding-top: 32px;">
+          <p style="color: #6B7280; margin: 0; font-size: 13px; line-height: 1.6;">
+            We're thrilled to be part of your interview preparation journey.<br>
+            Let's make your next interview your best one yet! 💪
+          </p>
+        </td>
+      </tr>
+    </table>
+  `;
+};
+
+/**
  * Send OTP Email
  */
 exports.sendOTPEmail = async (email, otp) => {
@@ -834,4 +1015,42 @@ exports.getServiceInfo = () => ({
 // Export email template helpers for advanced use cases
 exports.getEmailTemplate = getEmailTemplate;
 exports.getOTPEmailContent = getOTPEmailContent;
-exports.getNotificationEmailContent = getNotificationEmailContent;
+exports.getNotificationEmailContent = getNotificationEmailContent; exports.getWelcomeEmailContent = getWelcomeEmailContent;
+
+/**
+ * Send Welcome Email to New Users
+ */
+exports.sendWelcomeEmail = async (email, fullName) => {
+  try {
+    console.log(`📧 Sending welcome email to ${email}...`);
+    const transporter = await createTransporter();
+
+    const htmlContent = getEmailTemplate(getWelcomeEmailContent(fullName), {
+      title: 'Welcome to Interview AI'
+    });
+
+    const mailOptions = {
+      from: `"Interview AI" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: '🎉 Welcome to Interview AI - Let\'s Ace Your Interviews!',
+      html: htmlContent,
+      text: `Welcome to Interview AI, ${fullName}! We're excited to have you on board. Start your interview preparation journey today with AI-powered practice sessions, MCQ tests, code execution, and learning resources. Visit ${process.env.APP_URL || 'http://localhost:5173'}/dashboard to get started.`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Welcome email sent successfully to ${email}`);
+
+    return {
+      success: true,
+      messageId: info.messageId
+    };
+  } catch (error) {
+    console.error('❌ Error sending welcome email:', error);
+    console.error('Error code:', error.code);
+    return {
+      success: false,
+      error: error.message,
+      code: error.code
+    };
+  }
+};

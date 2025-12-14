@@ -102,14 +102,14 @@ const ChatbotWindow = () => {
                 }}
                 exit={{ opacity: 0, scale: 0.8, y: 50 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="fixed bottom-6 right-6 bg-bg-card border border-border-subtle rounded-xl shadow-card z-40 flex flex-col overflow-hidden"
+                className="fixed bottom-6 right-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] rounded-xl shadow-card z-40 flex flex-col overflow-hidden"
                 style={{
                     maxHeight: '80vh',
                     minHeight: isMinimized ? '60px' : '400px'
                 }}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-secondary to-primary text-white">
+                <div className="flex items-center justify-between p-4 bg-[rgb(var(--accent))] text-white">
                     <div className="flex items-center space-x-3">
                         <Icon3D size="sm" color="secondary" animated={false}>
                             <Bot size={16} />
@@ -146,10 +146,10 @@ const ChatbotWindow = () => {
                 {!isMinimized && (
                     <>
                         {/* Messages Area */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-bg-body">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[rgb(var(--bg-body))]">
                             {messages.length === 1 && (
                                 <div className="space-y-3">
-                                    <div className="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">
+                                    <div className="text-center text-sm text-[rgb(var(--text-muted))] mb-4">
                                         <Sparkles className="inline-block w-4 h-4 mr-1" />
                                         Quick start questions:
                                     </div>
@@ -163,7 +163,7 @@ const ChatbotWindow = () => {
                                                 whileHover={{ scale: 1.02 }}
                                                 whileTap={{ scale: 0.98 }}
                                                 onClick={() => handleSendMessage(question)}
-                                                className="p-3 text-left text-sm bg-bg-card border border-border-subtle rounded-lg hover:border-primary transition-colors text-text-secondary"
+                                                className="p-3 text-left text-sm bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] rounded-lg hover:border-[rgb(var(--accent))] transition-colors text-[rgb(var(--text-secondary))]"
                                             >
                                                 {question}
                                             </motion.button>
@@ -182,12 +182,12 @@ const ChatbotWindow = () => {
                                     <div className={`max-w-[85%] ${message.isBot ? 'order-2' : 'order-1'}`}>
                                         <div
                                             className={`rounded-lg p-3 ${message.isBot
-                                                ? 'bg-bg-card border border-border-subtle text-text-primary'
-                                                : 'bg-gradient-to-r from-secondary to-primary text-white'
-                                                } ${message.isError ? 'border-red-300 bg-red-50 dark:bg-red-900/20' : ''}`}
+                                                ? 'bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))]'
+                                                : 'bg-[rgb(var(--accent))] text-white'
+                                                } ${message.isError ? 'border-red-300 bg-red-50' : ''}`}
                                         >
                                             {message.isBot ? (
-                                                <div className="prose prose-sm dark:prose-invert max-w-none">
+                                                <div className="prose prose-sm max-w-none">
                                                     <ReactMarkdown
                                                         remarkPlugins={[remarkGfm]}
                                                         components={{
@@ -227,7 +227,7 @@ const ChatbotWindow = () => {
                                                         whileHover={{ scale: 1.1 }}
                                                         whileTap={{ scale: 0.9 }}
                                                         onClick={() => copyToClipboard(message.text, message.id)}
-                                                        className="p-1 rounded-md hover:bg-bg-elevated-alt transition-colors"
+                                                        className="p-1 rounded-md hover:bg-[rgb(var(--bg-elevated-alt))] transition-colors"
                                                     >
                                                         {copiedMessageId === message.id ? (
                                                             <Check size={14} className="text-green-500" />
@@ -262,7 +262,7 @@ const ChatbotWindow = () => {
                                         <Icon3D size="sm" color="secondary" animated={false}>
                                             <Bot size={16} />
                                         </Icon3D>
-                                        <div className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3">
+                                        <div className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] rounded-lg p-3">
                                             <div className="flex space-x-2">
                                                 <motion.div
                                                     animate={{ scale: [1, 1.2, 1] }}
@@ -289,7 +289,7 @@ const ChatbotWindow = () => {
                         </div>
 
                         {/* Input Area */}
-                        <div className="p-4 bg-bg-card border-t border-border-subtle">
+                        <div className="p-4 bg-[rgb(var(--bg-card))] border-t border-[rgb(var(--border-subtle))]">
                             <div className="flex space-x-2">
                                 <div className="flex-1 relative">
                                     <textarea
@@ -298,7 +298,7 @@ const ChatbotWindow = () => {
                                         onChange={(e) => setInputMessage(e.target.value)}
                                         onKeyPress={handleKeyPress}
                                         placeholder="Ask me anything about interviews..."
-                                        className="w-full p-3 border border-border-subtle rounded-lg bg-bg-body text-text-primary resize-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                                        className="w-full p-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] resize-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-colors placeholder:text-[rgb(var(--text-muted))]"
                                         rows="1"
                                         style={{ minHeight: '44px', maxHeight: '120px' }}
                                         disabled={isLoading}
@@ -310,7 +310,7 @@ const ChatbotWindow = () => {
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => handleSendMessage()}
                                     disabled={!inputMessage.trim() || isLoading}
-                                    className="px-4 py-3 bg-gradient-to-r from-secondary to-primary text-white rounded-lg hover:from-primary hover:to-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
+                                    className="px-4 py-3 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
                                 >
                                     <Send size={18} />
                                 </motion.button>

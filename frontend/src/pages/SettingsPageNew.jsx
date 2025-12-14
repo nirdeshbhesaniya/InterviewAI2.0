@@ -12,6 +12,7 @@ import {
     Save,
     Loader2
 } from 'lucide-react';
+import { Loader } from '../components/ui/Loader';
 import axios from '../utils/axiosInstance';
 import { API } from '../utils/apiPaths';
 import toast from 'react-hot-toast';
@@ -94,45 +95,41 @@ const SettingsPageNew = () => {
     };
 
     if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-bg-body">
-                <Loader2 className="w-8 h-8 animate-spin text-highlight" />
-            </div>
-        );
+        return <Loader fullScreen size="lg" text="Loading settings..." />;
     }
 
     return (
-        <div className="min-h-screen bg-bg-body py-8">
+        <div className="min-h-screen bg-[rgb(var(--bg-body))] py-8">
             <div className="max-w-4xl mx-auto px-4">
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-8">
                     <button
                         onClick={() => navigate(-1)}
-                        className="p-2 hover:bg-bg-card-alt rounded-lg transition-colors"
+                        className="p-2 hover:bg-[rgb(var(--bg-body-alt))] rounded-lg transition-colors"
                     >
-                        <ArrowLeft className="w-5 h-5 text-text-muted" />
+                        <ArrowLeft className="w-5 h-5 text-[rgb(var(--text-muted))]" />
                     </button>
                     <div>
-                        <h1 className="text-3xl font-bold text-text-primary">Settings</h1>
-                        <p className="text-text-secondary">Manage your preferences</p>
+                        <h1 className="text-3xl font-bold text-[rgb(var(--text-primary))]">Settings</h1>
+                        <p className="text-[rgb(var(--text-secondary))]">Manage your preferences</p>
                     </div>
                 </div>
 
                 {/* Notification Settings */}
-                <div className="bg-bg-card rounded-xl shadow-lg border border-border-subtle p-6 mb-6">
+                <div className="bg-[rgb(var(--bg-card))] rounded-xl shadow-lg border border-[rgb(var(--border-subtle))] p-6 mb-6">
                     <div className="flex items-center gap-3 mb-6">
-                        <Bell className="w-6 h-6 text-highlight" />
-                        <h2 className="text-xl font-bold text-text-primary">Notifications</h2>
+                        <Bell className="w-6 h-6 text-[rgb(var(--accent))]" />
+                        <h2 className="text-xl font-bold text-[rgb(var(--text-primary))]">Notifications</h2>
                     </div>
 
                     <div className="space-y-4">
                         {Object.entries(settings.notifications).map(([key, value]) => (
-                            <div key={key} className="flex items-center justify-between py-3 border-b border-border-subtle last:border-0">
+                            <div key={key} className="flex items-center justify-between py-3 border-b border-[rgb(var(--border-subtle))] last:border-0">
                                 <div>
-                                    <p className="font-medium text-text-primary capitalize">
+                                    <p className="font-medium text-[rgb(var(--text-primary))] capitalize">
                                         {key.replace(/([A-Z])/g, ' $1').trim()}
                                     </p>
-                                    <p className="text-sm text-text-muted">
+                                    <p className="text-sm text-[rgb(var(--text-muted))]">
                                         Receive notifications via {key === 'email' ? 'email' : 'push'}
                                     </p>
                                 </div>
@@ -143,7 +140,7 @@ const SettingsPageNew = () => {
                                         onChange={(e) => handleSettingChange('notifications', key, e.target.checked)}
                                         className="sr-only peer"
                                     />
-                                    <div className="w-11 h-6 bg-bg-body peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-highlight/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-highlight peer-checked:to-secondary"></div>
+                                    <div className="w-11 h-6 bg-[rgb(var(--bg-body))] peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[rgb(var(--accent))]/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[rgb(var(--accent))]"></div>
                                 </label>
                             </div>
                         ))}
@@ -151,21 +148,21 @@ const SettingsPageNew = () => {
                 </div>
 
                 {/* Privacy Settings */}
-                <div className="bg-bg-card rounded-xl shadow-lg border border-border-subtle p-6 mb-6">
+                <div className="bg-[rgb(var(--bg-card))] rounded-xl shadow-lg border border-[rgb(var(--border-subtle))] p-6 mb-6">
                     <div className="flex items-center gap-3 mb-6">
-                        <Shield className="w-6 h-6 text-secondary" />
-                        <h2 className="text-xl font-bold text-text-primary">Privacy</h2>
+                        <Shield className="w-6 h-6 text-[rgb(var(--accent))]" />
+                        <h2 className="text-xl font-bold text-[rgb(var(--text-primary))]">Privacy</h2>
                     </div>
 
                     <div className="space-y-6">
                         <div>
-                            <label className="block text-sm font-medium text-text-primary mb-2">
+                            <label className="block text-sm font-medium text-[rgb(var(--text-primary))] mb-2">
                                 Profile Visibility
                             </label>
                             <select
                                 value={settings.privacy.profileVisibility}
                                 onChange={(e) => handleSettingChange('privacy', 'profileVisibility', e.target.value)}
-                                className="w-full px-4 py-2 border border-border-subtle rounded-lg bg-bg-body text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent"
+                                className="w-full px-4 py-2 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
                             >
                                 <option value="public">Public</option>
                                 <option value="private">Private</option>
@@ -175,8 +172,8 @@ const SettingsPageNew = () => {
 
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="font-medium text-text-primary">Show Email</p>
-                                <p className="text-sm text-text-muted">Display email on your profile</p>
+                                <p className="font-medium text-[rgb(var(--text-primary))]">Show Email</p>
+                                <p className="text-sm text-[rgb(var(--text-muted))]">Display email on your profile</p>
                             </div>
                             <label className="relative inline-flex items-center cursor-pointer">
                                 <input
@@ -185,14 +182,14 @@ const SettingsPageNew = () => {
                                     onChange={(e) => handleSettingChange('privacy', 'showEmail', e.target.checked)}
                                     className="sr-only peer"
                                 />
-                                <div className="w-11 h-6 bg-bg-body peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-highlight/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-highlight peer-checked:to-secondary"></div>
+                                <div className="w-11 h-6 bg-[rgb(var(--bg-body))] peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[rgb(var(--accent))]/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[rgb(var(--accent))]"></div>
                             </label>
                         </div>
 
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="font-medium text-text-primary">Show Stats</p>
-                                <p className="text-sm text-text-muted">Display your statistics publicly</p>
+                                <p className="font-medium text-[rgb(var(--text-primary))]">Show Stats</p>
+                                <p className="text-sm text-[rgb(var(--text-muted))]">Display your statistics publicly</p>
                             </div>
                             <label className="relative inline-flex items-center cursor-pointer">
                                 <input
@@ -201,32 +198,32 @@ const SettingsPageNew = () => {
                                     onChange={(e) => handleSettingChange('privacy', 'showStats', e.target.checked)}
                                     className="sr-only peer"
                                 />
-                                <div className="w-11 h-6 bg-bg-body peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-highlight/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-highlight peer-checked:to-secondary"></div>
+                                <div className="w-11 h-6 bg-[rgb(var(--bg-body))] peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[rgb(var(--accent))]/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[rgb(var(--accent))]"></div>
                             </label>
                         </div>
                     </div>
                 </div>
 
                 {/* Appearance Settings */}
-                <div className="bg-bg-card rounded-xl shadow-lg border border-border-subtle p-6 mb-6">
+                <div className="bg-[rgb(var(--bg-card))] rounded-xl shadow-lg border border-[rgb(var(--border-subtle))] p-6 mb-6">
                     <div className="flex items-center gap-3 mb-6">
                         {settings.appearance.theme === 'dark' ? (
-                            <Moon className="w-6 h-6 text-primary" />
+                            <Moon className="w-6 h-6 text-[rgb(var(--accent))]" />
                         ) : (
-                            <Sun className="w-6 h-6 text-highlight" />
+                            <Sun className="w-6 h-6 text-[rgb(var(--accent))]" />
                         )}
-                        <h2 className="text-xl font-bold text-text-primary">Appearance</h2>
+                        <h2 className="text-xl font-bold text-[rgb(var(--text-primary))]">Appearance</h2>
                     </div>
 
                     <div className="space-y-6">
                         <div>
-                            <label className="block text-sm font-medium text-text-primary mb-2">
+                            <label className="block text-sm font-medium text-[rgb(var(--text-primary))] mb-2">
                                 Theme
                             </label>
                             <select
                                 value={settings.appearance.theme}
                                 onChange={(e) => handleSettingChange('appearance', 'theme', e.target.value)}
-                                className="w-full px-4 py-2 border border-border-subtle rounded-lg bg-bg-body text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent"
+                                className="w-full px-4 py-2 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
                             >
                                 <option value="light">Light</option>
                                 <option value="dark">Dark</option>
@@ -235,13 +232,13 @@ const SettingsPageNew = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-text-primary mb-2">
+                            <label className="block text-sm font-medium text-[rgb(var(--text-primary))] mb-2">
                                 Language
                             </label>
                             <select
                                 value={settings.appearance.language}
                                 onChange={(e) => handleSettingChange('appearance', 'language', e.target.value)}
-                                className="w-full px-4 py-2 border border-border-subtle rounded-lg bg-bg-body text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent"
+                                className="w-full px-4 py-2 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
                             >
                                 <option value="en">English</option>
                                 <option value="es">Spanish</option>
@@ -257,7 +254,7 @@ const SettingsPageNew = () => {
                     <button
                         onClick={handleSaveAll}
                         disabled={saving}
-                        className="px-6 py-3 bg-gradient-to-r from-highlight to-pink-500 hover:from-highlight/90 hover:to-pink-600 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-lg font-medium shadow-lg shadow-highlight/30 transition-all duration-200 flex items-center gap-2"
+                        className="px-6 py-3 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium shadow-lg transition-all duration-200 flex items-center gap-2"
                     >
                         {saving ? (
                             <>

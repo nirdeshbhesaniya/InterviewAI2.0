@@ -10,7 +10,7 @@ function Card({
     <div
       data-slot="card"
       className={cn(
-        "bg-bg-card text-text-primary flex flex-col gap-6 rounded-xl border border-border-subtle py-6 shadow-sm hover:bg-bg-card-alt transition-all",
+        "bg-[rgb(var(--bg-card))] text-[rgb(var(--text-primary))] flex flex-col gap-6 rounded-xl border border-[rgb(var(--border))] py-6 shadow-sm hover:bg-[rgb(var(--bg-card-alt))] transition-all",
         className
       )}
       {...props} />
@@ -39,7 +39,7 @@ function CardTitle({
   return (
     <div
       data-slot="card-title"
-      className={cn("leading-none font-semibold text-text-primary", className)}
+      className={cn("leading-none font-semibold text-[rgb(var(--text-primary))]", className)}
       {...props} />
   );
 }
@@ -51,7 +51,7 @@ function CardDescription({
   return (
     <div
       data-slot="card-description"
-      className={cn("text-text-muted text-sm", className)}
+      className={cn("text-[rgb(var(--text-muted))] text-sm", className)}
       {...props} />
   );
 }

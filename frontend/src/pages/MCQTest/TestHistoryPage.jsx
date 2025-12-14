@@ -11,9 +11,10 @@ import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import {
     Clock, CheckCircle, XCircle, Award, Calendar, Target,
-    TrendingUp, BookOpen, ArrowLeft, Eye, Loader2, Trophy,
+    TrendingUp, BookOpen, ArrowLeft, Eye, Trophy,
     Brain, Timer, BarChart3, Trash2, AlertTriangle, Copy
 } from 'lucide-react';
+import { Loader, ButtonLoader } from '../../components/ui/Loader';
 
 const TestHistoryPage = () => {
     const navigate = useNavigate();
@@ -95,13 +96,13 @@ const TestHistoryPage = () => {
             return <div className="overflow-x-auto rounded-lg">{children}</div>;
         },
         p({ children }) {
-            return <p className="mb-2 md:mb-3 last:mb-0 leading-relaxed text-gray-300 text-xs md:text-sm">{children}</p>;
+            return <p className="mb-2 md:mb-3 last:mb-0 leading-relaxed text-[rgb(var(--text-secondary))] text-xs md:text-sm">{children}</p>;
         },
         ul({ children }) {
-            return <ul className="list-disc list-inside mb-3 md:mb-4 space-y-1.5 md:space-y-2 text-gray-300 pl-2 text-xs md:text-sm">{children}</ul>;
+            return <ul className="list-disc list-inside mb-3 md:mb-4 space-y-1.5 md:space-y-2 text-[rgb(var(--text-secondary))] pl-2 text-xs md:text-sm">{children}</ul>;
         },
         ol({ children }) {
-            return <ol className="list-decimal list-inside mb-3 md:mb-4 space-y-1.5 md:space-y-2 text-gray-300 pl-2 text-xs md:text-sm">{children}</ol>;
+            return <ol className="list-decimal list-inside mb-3 md:mb-4 space-y-1.5 md:space-y-2 text-[rgb(var(--text-secondary))] pl-2 text-xs md:text-sm">{children}</ol>;
         },
         li({ children }) {
             return <li className="leading-relaxed">{children}</li>;
@@ -109,17 +110,17 @@ const TestHistoryPage = () => {
         blockquote({ children }) {
             return (
                 <blockquote className="border-l-4 border-blue-500 pl-3 md:pl-4 py-2 md:py-3 my-3 md:my-4 bg-blue-500/10 rounded-r-lg">
-                    <div className="text-gray-300 italic text-xs md:text-sm">
+                    <div className="text-[rgb(var(--text-secondary))] italic text-xs md:text-sm">
                         {children}
                     </div>
                 </blockquote>
             );
         },
         strong({ children }) {
-            return <strong className="font-semibold text-white">{children}</strong>;
+            return <strong className="font-semibold text-[rgb(var(--text-primary))]">{children}</strong>;
         },
         em({ children }) {
-            return <em className="italic text-gray-400">{children}</em>;
+            return <em className="italic text-[rgb(var(--text-muted))]">{children}</em>;
         }
     };
 
@@ -222,7 +223,7 @@ const TestHistoryPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#0B0F1A] via-[#151B2B] to-[#0B0F1A] py-8 px-4">
+        <div className="min-h-screen bg-[rgb(var(--bg-body))] py-8 px-4">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <motion.div
@@ -234,17 +235,17 @@ const TestHistoryPage = () => {
                         <Button
                             onClick={() => navigate('/mcq-test')}
                             variant="outline"
-                            className="bg-white/5 border-white/10 hover:bg-white/10 text-white w-fit"
+                            className="bg-[rgb(var(--bg-card))] border-[rgb(var(--border-subtle))] hover:bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-primary))] w-fit"
                         >
                             <ArrowLeft className="w-4 h-4 mr-2" />
                             Back to Test
                         </Button>
                         <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2 md:gap-3">
-                                <Trophy className="w-6 h-6 md:w-8 md:h-8 text-yellow-400" />
+                            <h1 className="text-2xl md:text-3xl font-bold text-[rgb(var(--text-primary))] flex items-center gap-2 md:gap-3">
+                                <Trophy className="w-6 h-6 md:w-8 md:h-8 text-yellow-500" />
                                 Test History
                             </h1>
-                            <p className="text-sm md:text-base text-gray-400 mt-1">View your past test performance and progress</p>
+                            <p className="text-sm md:text-base text-[rgb(var(--text-secondary))] mt-1">View your past test performance and progress</p>
                         </div>
                     </div>
                 </motion.div>
@@ -252,8 +253,7 @@ const TestHistoryPage = () => {
                 {/* Loading State */}
                 {loadingHistory && !viewingDetails && (
                     <div className="flex items-center justify-center py-20">
-                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                        <span className="ml-3 text-gray-400">Loading history...</span>
+                        <Loader size="lg" text="Loading test history..." />
                     </div>
                 )}
 
@@ -266,12 +266,12 @@ const TestHistoryPage = () => {
                                 animate={{ opacity: 1 }}
                                 className="text-center py-20"
                             >
-                                <BookOpen className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                                <h3 className="text-xl font-semibold text-gray-400 mb-2">No Test History</h3>
-                                <p className="text-gray-500 mb-6">You haven't taken any tests yet</p>
+                                <BookOpen className="w-16 h-16 text-[rgb(var(--text-muted))] mx-auto mb-4" />
+                                <h3 className="text-xl font-semibold text-[rgb(var(--text-secondary))] mb-2">No Test History</h3>
+                                <p className="text-[rgb(var(--text-muted))] mb-6">You haven't taken any tests yet</p>
                                 <Button
                                     onClick={() => navigate('/mcq-test')}
-                                    className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                                    className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))]"
                                 >
                                     Take Your First Test
                                 </Button>
@@ -289,7 +289,7 @@ const TestHistoryPage = () => {
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: index * 0.05 }}
                                         >
-                                            <Card className="bg-gradient-to-br from-[#1a2332] to-[#141b28] border border-white/10 hover:border-primary/50 transition-all duration-300 group relative">
+                                            <Card className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/50 transition-all duration-300 group relative">
                                                 {/* Delete Button */}
                                                 <button
                                                     onClick={(e) => {
@@ -307,12 +307,12 @@ const TestHistoryPage = () => {
                                                         {/* Left Section */}
                                                         <div className="flex-1">
                                                             <div className="flex items-start gap-4">
-                                                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
+                                                                <div className="w-12 h-12 rounded-xl bg-[rgb(var(--accent))] flex items-center justify-center flex-shrink-0">
                                                                     <Brain className="w-6 h-6 text-white" />
                                                                 </div>
                                                                 <div className="flex-1 min-w-0">
                                                                     <div className="flex items-center gap-3 flex-wrap mb-2">
-                                                                        <h3 className="text-lg font-semibold text-white group-hover:text-primary transition-colors">
+                                                                        <h3 className="text-lg font-semibold text-[rgb(var(--text-primary))] group-hover:text-[rgb(var(--accent))] transition-colors">
                                                                             {test.topic}
                                                                         </h3>
                                                                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${performance.bg} ${performance.color}`}>
@@ -322,7 +322,7 @@ const TestHistoryPage = () => {
                                                                             {status.label}
                                                                         </span>
                                                                     </div>
-                                                                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
+                                                                    <div className="flex flex-wrap items-center gap-4 text-sm text-[rgb(var(--text-muted))]">
                                                                         <div className="flex items-center gap-1">
                                                                             <Calendar className="w-4 h-4" />
                                                                             {formatDate(test.completedAt || test.createdAt)}
@@ -346,35 +346,35 @@ const TestHistoryPage = () => {
                                                         <div className="w-full lg:w-auto">
                                                             <div className="grid grid-cols-4 gap-3 md:gap-4 lg:flex lg:gap-6">
                                                                 <div className="text-center">
-                                                                    <div className="text-lg md:text-2xl font-bold text-white mb-1">
+                                                                    <div className="text-lg md:text-2xl font-bold text-[rgb(var(--text-primary))] mb-1">
                                                                         {test.score.toFixed(1)}%
                                                                     </div>
-                                                                    <div className="text-xs text-gray-400">Score</div>
+                                                                    <div className="text-xs text-[rgb(var(--text-muted))]">Score</div>
                                                                 </div>
                                                                 <div className="text-center">
                                                                     <div className="text-lg md:text-2xl font-bold text-green-400 mb-1">
                                                                         {test.correctAnswers}
                                                                     </div>
-                                                                    <div className="text-xs text-gray-400">Correct</div>
+                                                                    <div className="text-xs text-[rgb(var(--text-muted))]">Correct</div>
                                                                 </div>
                                                                 <div className="text-center">
                                                                     <div className="text-lg md:text-2xl font-bold text-red-400 mb-1">
                                                                         {test.totalQuestions - test.correctAnswers}
                                                                     </div>
-                                                                    <div className="text-xs text-gray-400">Wrong</div>
+                                                                    <div className="text-xs text-[rgb(var(--text-muted))]">Wrong</div>
                                                                 </div>
                                                                 <div className="text-center">
                                                                     <div className="text-lg md:text-2xl font-bold text-blue-400 mb-1 flex items-center justify-center gap-1">
                                                                         <Timer className="w-4 h-4 md:w-5 md:h-5" />
                                                                         <span className="text-sm md:text-2xl">{Math.floor(test.timeSpent / 60)}m</span>
                                                                     </div>
-                                                                    <div className="text-xs text-gray-400">Time</div>
+                                                                    <div className="text-xs text-[rgb(var(--text-muted))]">Time</div>
                                                                 </div>
                                                             </div>
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
-                                                                className="hidden lg:flex bg-white/5 border-white/10 hover:bg-primary/20 hover:border-primary text-white mt-0 lg:mt-0"
+                                                                className="hidden lg:flex bg-[rgb(var(--bg-card))] border-[rgb(var(--border-subtle))] hover:bg-[rgb(var(--bg-body-alt))] hover:border-[rgb(var(--accent))] text-[rgb(var(--text-primary))] mt-0 lg:mt-0"
                                                             >
                                                                 <Eye className="w-4 h-4 mr-2" />
                                                                 View Details
@@ -389,12 +389,12 @@ const TestHistoryPage = () => {
                                                                 <span className="text-yellow-400 font-medium">Security Warnings:</span>
                                                                 <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                                                                     {test.securityWarnings.fullscreenExits > 0 && (
-                                                                        <span className="text-gray-400">
+                                                                        <span className="text-[rgb(var(--text-muted))]">
                                                                             {test.securityWarnings.fullscreenExits} fullscreen exit(s)
                                                                         </span>
                                                                     )}
                                                                     {test.securityWarnings.tabSwitches > 0 && (
-                                                                        <span className="text-gray-400">
+                                                                        <span className="text-[rgb(var(--text-muted))]">
                                                                             {test.securityWarnings.tabSwitches} tab switch(es)
                                                                         </span>
                                                                     )}
@@ -425,7 +425,7 @@ const TestHistoryPage = () => {
                                     setSelectedHistoryTest(null);
                                 }}
                                 variant="outline"
-                                className="bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                                className="bg-[rgb(var(--bg-card))] border-[rgb(var(--border-subtle))] hover:bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-primary))]"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 Back to History
@@ -441,15 +441,15 @@ const TestHistoryPage = () => {
                         </div>
 
                         {/* Test Header */}
-                        <Card className="bg-gradient-to-br from-[#1a2332] to-[#141b28] border border-white/10 mb-6">
+                        <Card className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] mb-6">
                             <div className="p-4 md:p-6 lg:p-8">
                                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-0 mb-6">
                                     <div className="flex-1">
-                                        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-white mb-2">{selectedHistoryTest.topic}</h2>
-                                        <p className="text-sm md:text-base text-gray-400">Completed on {formatDate(selectedHistoryTest.completedAt || selectedHistoryTest.createdAt)}</p>
+                                        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-[rgb(var(--text-primary))] mb-2">{selectedHistoryTest.topic}</h2>
+                                        <p className="text-sm md:text-base text-[rgb(var(--text-secondary))]">Completed on {formatDate(selectedHistoryTest.completedAt || selectedHistoryTest.createdAt)}</p>
                                     </div>
                                     <div className="flex items-center gap-3 md:flex-col md:items-end">
-                                        <div className="text-3xl md:text-4xl font-bold text-white">
+                                        <div className="text-3xl md:text-4xl font-bold text-[rgb(var(--text-primary))]">
                                             {selectedHistoryTest.score.toFixed(1)}%
                                         </div>
                                         <span className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium ${getPerformanceLevel(selectedHistoryTest.score).bg} ${getPerformanceLevel(selectedHistoryTest.score).color}`}>
@@ -460,35 +460,35 @@ const TestHistoryPage = () => {
 
                                 {/* Stats Grid */}
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                                    <div className="bg-white/5 rounded-lg p-3 md:p-4 border border-white/10">
+                                    <div className="bg-[rgb(var(--bg-card))] rounded-lg p-3 md:p-4 border border-[rgb(var(--border-subtle))]">
                                         <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
-                                            <Award className="w-4 h-4 md:w-5 md:h-5 text-primary" />
-                                            <span className="text-gray-400 text-xs md:text-sm">Score</span>
+                                            <Award className="w-4 h-4 md:w-5 md:h-5 text-[rgb(var(--accent))]" />
+                                            <span className="text-[rgb(var(--text-muted))] text-xs md:text-sm">Score</span>
                                         </div>
-                                        <div className="text-lg md:text-2xl font-bold text-white">{selectedHistoryTest.score.toFixed(1)}%</div>
+                                        <div className="text-lg md:text-2xl font-bold text-[rgb(var(--text-primary))]">{selectedHistoryTest.score.toFixed(1)}%</div>
                                     </div>
-                                    <div className="bg-white/5 rounded-lg p-3 md:p-4 border border-white/10">
+                                    <div className="bg-[rgb(var(--bg-card))] rounded-lg p-3 md:p-4 border border-[rgb(var(--border-subtle))]">
                                         <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
-                                            <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-400" />
-                                            <span className="text-gray-400 text-xs md:text-sm">Correct</span>
+                                            <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
+                                            <span className="text-[rgb(var(--text-muted))] text-xs md:text-sm">Correct</span>
                                         </div>
-                                        <div className="text-lg md:text-2xl font-bold text-green-400">{selectedHistoryTest.correctAnswers}</div>
+                                        <div className="text-lg md:text-2xl font-bold text-green-600">{selectedHistoryTest.correctAnswers}</div>
                                     </div>
-                                    <div className="bg-white/5 rounded-lg p-3 md:p-4 border border-white/10">
+                                    <div className="bg-[rgb(var(--bg-card))] rounded-lg p-3 md:p-4 border border-[rgb(var(--border-subtle))]">
                                         <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
-                                            <XCircle className="w-4 h-4 md:w-5 md:h-5 text-red-400" />
-                                            <span className="text-gray-400 text-xs md:text-sm">Wrong</span>
+                                            <XCircle className="w-4 h-4 md:w-5 md:h-5 text-red-500" />
+                                            <span className="text-[rgb(var(--text-muted))] text-xs md:text-sm">Wrong</span>
                                         </div>
-                                        <div className="text-lg md:text-2xl font-bold text-red-400">
+                                        <div className="text-lg md:text-2xl font-bold text-red-600">
                                             {selectedHistoryTest.totalQuestions - selectedHistoryTest.correctAnswers}
                                         </div>
                                     </div>
-                                    <div className="bg-white/5 rounded-lg p-3 md:p-4 border border-white/10">
+                                    <div className="bg-[rgb(var(--bg-card))] rounded-lg p-3 md:p-4 border border-[rgb(var(--border-subtle))]">
                                         <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
-                                            <Clock className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
-                                            <span className="text-gray-400 text-xs md:text-sm">Time Spent</span>
+                                            <Clock className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />
+                                            <span className="text-[rgb(var(--text-muted))] text-xs md:text-sm">Time Spent</span>
                                         </div>
-                                        <div className="text-lg md:text-2xl font-bold text-blue-400">{formatDuration(selectedHistoryTest.timeSpent)}</div>
+                                        <div className="text-lg md:text-2xl font-bold text-blue-600">{formatDuration(selectedHistoryTest.timeSpent)}</div>
                                     </div>
                                 </div>
                             </div>
@@ -500,7 +500,7 @@ const TestHistoryPage = () => {
                                 <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                                 <div className="flex-1">
                                     <h4 className="text-sm md:text-base font-semibold text-yellow-400 mb-1">AI-Generated Results Disclaimer</h4>
-                                    <p className="text-xs md:text-sm text-gray-300 leading-relaxed">
+                                    <p className="text-xs md:text-sm text-[rgb(var(--text-secondary))] leading-relaxed">
                                         The answers and explanations are verified by AI and may occasionally contain mistakes.
                                         If you're not satisfied with the AI's answer, we recommend verifying it yourself through additional resources.
                                     </p>
@@ -515,14 +515,14 @@ const TestHistoryPage = () => {
                                 const isCorrect = userAnswer === q.correctAnswer;
 
                                 return (
-                                    <Card key={idx} className="bg-gradient-to-br from-[#1a2332] to-[#141b28] border border-white/10">
+                                    <Card key={idx} className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">
                                         <div className="p-4 md:p-6">
                                             <div className="flex items-start gap-3 md:gap-4 mb-4">
                                                 <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${isCorrect ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
                                                     {isCorrect ? <CheckCircle className="w-5 h-5 md:w-6 md:h-6" /> : <XCircle className="w-5 h-5 md:w-6 md:h-6" />}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <h4 className="text-sm md:text-base text-white font-medium mb-3">
+                                                    <h4 className="text-sm md:text-base text-[rgb(var(--text-primary))] font-medium mb-3">
                                                         Question {idx + 1}
                                                     </h4>
                                                     <div className="mb-3 md:mb-4 prose prose-sm prose-invert max-w-none">
@@ -539,10 +539,10 @@ const TestHistoryPage = () => {
                                                                 <div
                                                                     key={optIdx}
                                                                     className={`p-2.5 md:p-3 rounded-lg border ${isCorrectAnswer
-                                                                            ? 'bg-green-500/10 border-green-500/50 text-green-400'
-                                                                            : isUserAnswer
-                                                                                ? 'bg-red-500/10 border-red-500/50 text-red-400'
-                                                                                : 'bg-white/5 border-white/10 text-gray-400'
+                                                                        ? 'bg-green-500/10 border-green-500/50 text-green-400'
+                                                                        : isUserAnswer
+                                                                            ? 'bg-red-500/10 border-red-500/50 text-red-400'
+                                                                            : 'bg-[rgb(var(--bg-body-alt))] border-[rgb(var(--border-subtle))] text-[rgb(var(--text-secondary))]]'
                                                                         }`}
                                                                 >
                                                                     <div className="flex items-start md:items-center gap-2">
@@ -587,22 +587,22 @@ const TestHistoryPage = () => {
 
             {/* Delete Confirmation Modal */}
             {deleteConfirmation.show && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-gradient-to-br from-[#1a2332] to-[#141b28] rounded-2xl shadow-2xl border border-red-500/30 w-full max-w-md p-6"
+                        className="bg-[rgb(var(--bg-card))] rounded-2xl shadow-2xl border border-red-500/30 w-full max-w-md p-6"
                     >
                         <div className="flex items-start gap-4 mb-4">
                             <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
                                 <AlertTriangle className="w-6 h-6 text-red-400" />
                             </div>
                             <div className="flex-1">
-                                <h3 className="text-xl font-bold text-white mb-2">Delete Test History?</h3>
-                                <p className="text-gray-400 text-sm mb-1">
+                                <h3 className="text-xl font-bold text-[rgb(var(--text-primary))] mb-2">Delete Test History?</h3>
+                                <p className="text-[rgb(var(--text-secondary))] text-sm mb-1">
                                     Are you sure you want to delete the test:
                                 </p>
-                                <p className="text-white font-semibold">"{deleteConfirmation.testTopic}"</p>
+                                <p className="text-[rgb(var(--text-primary))] font-semibold">"{deleteConfirmation.testTopic}"</p>
                                 <p className="text-red-400 text-sm mt-2">
                                     This action cannot be undone.
                                 </p>
@@ -613,7 +613,7 @@ const TestHistoryPage = () => {
                             <Button
                                 onClick={() => setDeleteConfirmation({ show: false, testId: null, testTopic: '' })}
                                 variant="outline"
-                                className="flex-1 bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                                className="flex-1 bg-[rgb(var(--bg-card))] border-[rgb(var(--border-subtle))] hover:bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-primary))]"
                                 disabled={loadingHistory}
                             >
                                 Cancel
@@ -624,10 +624,7 @@ const TestHistoryPage = () => {
                                 disabled={loadingHistory}
                             >
                                 {loadingHistory ? (
-                                    <div className="flex items-center gap-2">
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        Deleting...
-                                    </div>
+                                    <ButtonLoader text="Deleting..." />
                                 ) : (
                                     <>
                                         <Trash2 className="w-4 h-4 mr-2" />

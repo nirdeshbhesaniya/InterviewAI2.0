@@ -23,12 +23,12 @@
 
   html {
     font-family: var(--font-display);
-    background-color: #0B0F1A;
+    background-color: rgb(var(--bg-body));
   }
 
   body {
-    background-color: #0B0F1A;
-    color: #9CA3AF;
+    background-color: rgb(var(--bg-body));
+    color: rgb(var(--text-secondary));
     overflow-x: hidden;
   }
 
@@ -84,17 +84,17 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: #1F2937;
+    background: rgb(var(--bg-body-alt));
     border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #F97316, #FB7185);
+    background: linear-gradient(135deg, rgb(var(--accent)), rgb(var(--accent-hover)));
     border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #ea580c, #f472b6);
+    background: linear-gradient(135deg, rgb(var(--accent-hover)), rgb(var(--accent)));
   }
 }
 
@@ -103,7 +103,7 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(100, 100, 100, 0.4);
+  background-color: rgba(var(--text-muted), 0.4);
   border-radius: 10px;
 }
 
@@ -135,10 +135,10 @@
   }
 
   .shadow-button-primary {
-    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);
+    box-shadow: 0 8px 24px rgba(var(--accent), 0.25);
   }
   .hover\:shadow-button-hover:hover {
-    box-shadow: 0 10px 28px rgba(99, 102, 241, 0.5);
+    box-shadow: 0 10px 28px rgba(var(--accent), 0.35);
   }
 
   @keyframes text-shine {
@@ -185,18 +185,22 @@
   }
 
   .input-box {
-    @apply w-full flex justify-between gap-3 text-sm bg-card rounded px-4 py-3 mb-4 mt-3 border border-border outline-none focus-within:border-primary;
-    color: var(--muted-foreground);
+    @apply w-full flex justify-between gap-3 text-sm bg-[rgb(var(--bg-card))] rounded px-4 py-3 mb-4 mt-3 border border-[rgb(var(--border))] outline-none;
+    color: rgb(var(--text-secondary));
+  }
+  
+  .input-box:focus-within {
+    border-color: rgb(var(--accent));
   }
 
   .btn-primary {
-    @apply w-full flex items-center justify-center gap-3 text-sm font-medium text-foreground bg-gradient-to-r from-accent to-pink-500 p-[10px] rounded-xl my-1 hover:scale-[1.02] cursor-pointer transition-all;
-    box-shadow: 0 12px 30px rgba(249, 115, 22, 0.35);
+    @apply w-full flex items-center justify-center gap-3 text-sm font-medium text-white bg-[rgb(var(--accent))] p-[10px] rounded-xl my-1 hover:bg-[rgb(var(--accent-hover))] cursor-pointer transition-all;
+    box-shadow: 0 8px 20px rgba(var(--accent), 0.25);
   }
 
   .btn-small {
-    @apply flex items-center justify-center gap-3 bg-gradient-to-r from-accent to-pink-500 text-sm font-semibold text-white px-7 py-2 rounded-full hover:scale-[1.02] transition-all cursor-pointer;
-    box-shadow: 0 12px 30px rgba(249, 115, 22, 0.35);
+    @apply flex items-center justify-center gap-3 bg-[rgb(var(--accent))] text-sm font-semibold text-white px-7 py-2 rounded-full hover:bg-[rgb(var(--accent-hover))] transition-all cursor-pointer;
+    box-shadow: 0 8px 20px rgba(var(--accent), 0.25);
   }
 }
 
@@ -239,72 +243,54 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: #0B0F1A;
-  --foreground: #FFFFFF;
-  --card: #111827;
-  --card-foreground: #FFFFFF;
-  --popover: #111827;
-  --popover-foreground: #FFFFFF;
-  --primary: #6366F1;
-  --primary-foreground: #FFFFFF;
-  --secondary: #22D3EE;
-  --secondary-foreground: #FFFFFF;
-  --muted: #1F2933;
-  --muted-foreground: #6B7280;
-  --accent: #F97316;
-  --accent-foreground: #FFFFFF;
-  --destructive: #F97373;
-  --border: #1F2937;
-  --input: #1F2933;
-  --ring: #6366F1;
-  --chart-1: #6366F1;
-  --chart-2: #22D3EE;
-  --chart-3: #F97316;
-  --chart-4: #FB7185;
-  --chart-5: #A78BFA;
-  --sidebar: #111827;
-  --sidebar-foreground: #FFFFFF;
-  --sidebar-primary: #6366F1;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #1F2933;
-  --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border: #1F2937;
-  --sidebar-ring: #6366F1;
-}
-
-.dark {
-  --background: #0B0F1A;
-  --foreground: #FFFFFF;
-  --card: #111827;
-  --card-foreground: #FFFFFF;
-  --popover: #111827;
-  --popover-foreground: #FFFFFF;
-  --primary: #6366F1;
-  --primary-foreground: #FFFFFF;
-  --secondary: #22D3EE;
-  --secondary-foreground: #3a3a3aff;
-  --muted: #1F2933;
-  --muted-foreground: #6B7280;
-  --accent: #F97316;
-  --accent-foreground: #FFFFFF;
-  --destructive: #F97373;
-  --border: #1F2937;
-  --input: #1F2933;
-  --ring: #6366F1;
-  --chart-1: #6366F1;
-  --chart-2: #22D3EE;
-  --chart-3: #F97316;
-  --chart-4: #FB7185;
-  --chart-5: #A78BFA;
-  --sidebar: #111827;
-  --sidebar-foreground: #FFFFFF;
-  --sidebar-primary: #6366F1;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #1F2933;
-  --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border: #1F2937;
-  --sidebar-ring: #6366F1;
+  /* Radius */
+  --radius: 0.75rem;
+  
+  /* Backgrounds - Soft and comfortable for reading */
+  --bg-body: 248 250 252;              /* soft off-white page background */
+  --bg-body-alt: 241 245 249;          /* subtle section separation */
+  --bg-elevated: 255 255 255;          /* cards, modals */
+  --bg-elevated-alt: 248 250 252;      /* hover / secondary cards */
+  --bg-card: 255 255 255;
+  --bg-card-alt: 248 250 252;
+  
+  /* Text - High readability hierarchy */
+  --text-primary: 15 23 42;            /* headings, titles */
+  --text-secondary: 51 65 85;          /* paragraphs */
+  --text-muted: 100 116 139;           /* hints, meta info */
+  --text-disabled: 148 163 184;
+  
+  /* Borders - Subtle and soft */
+  --border: 226 232 240;               /* default borders */
+  --border-subtle: 226 232 240;
+  --border-strong: 203 213 225;
+  
+  /* Accent - Modern blue for actions */
+  --accent: 59 130 246;                /* primary actions */
+  --accent-hover: 37 99 235;
+  --accent-foreground: 255 255 255;
+  
+  /* Gradients */
+  --gradient-start: 255 255 255;
+  --gradient-end: 241 245 249;
+  
+  /* Legacy mappings for shadcn components */
+  --background: 248 250 252;
+  --foreground: 15 23 42;
+  --card: 255 255 255;
+  --card-foreground: 15 23 42;
+  --popover: 255 255 255;
+  --popover-foreground: 15 23 42;
+  --primary: 59 130 246;
+  --primary-foreground: 255 255 255;
+  --secondary: 241 245 249;
+  --secondary-foreground: 15 23 42;
+  --muted: 241 245 249;
+  --muted-foreground: 100 116 139;
+  --destructive: 239 68 68;
+  --border: 226 232 240;
+  --input: 226 232 240;
+  --ring: 59 130 246;
 }
 
 @layer base {
@@ -325,14 +311,16 @@
   margin-left: 1rem;
 }
 .markdown-body pre {
-  background: #1e1e1e;
-  color: #ffffff;
+  background: rgb(var(--bg-body-alt));
+  color: rgb(var(--text-primary));
   padding: 1rem;
   border-radius: 0.5rem;
   overflow-x: auto;
+  border: 1px solid rgb(var(--border));
 }
 .markdown-body code {
-  background: #f5f5f5;
+  background: rgb(var(--bg-body-alt));
+  color: rgb(var(--text-primary));
   padding: 0.2rem 0.4rem;
   border-radius: 0.3rem;
 }
@@ -406,13 +394,13 @@
 }
 
 .glass-effect {
-  background: rgba(17, 24, 39, 0.8);
+  background: rgba(var(--bg-elevated), 0.95);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(var(--border), 0.3);
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, #F97316, #FB7185);
+  background: linear-gradient(135deg, rgb(var(--accent)), rgb(var(--accent-hover)));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -443,41 +431,27 @@
 }
 
 .markdown-content pre::-webkit-scrollbar-thumb {
-  background-color: rgba(156, 163, 175, 0.5);
+  background-color: rgba(var(--text-muted), 0.5);
   border-radius: 4px;
 }
 
 .markdown-content pre::-webkit-scrollbar-track {
-  background: rgba(107, 114, 128, 0.1);
+  background: rgba(var(--border), 0.3);
   border-radius: 4px;
-}
-
-/* Dark mode adjustments */
-.dark .markdown-content pre::-webkit-scrollbar-thumb {
-  background-color: rgba(156, 163, 175, 0.7);
-}
-
-.dark .markdown-content pre::-webkit-scrollbar-track {
-  background: rgba(55, 65, 81, 0.3);
 }
 
 /* MCQ specific styling */
 .mcq-option-code {
-  background: rgba(99, 102, 241, 0.08) !important;
-  border: 1px solid rgba(99, 102, 241, 0.2) !important;
+  background: rgba(var(--accent), 0.05) !important;
+  border: 1px solid rgba(var(--accent), 0.2) !important;
   border-radius: 0.5rem !important;
   padding: 0.75rem !important;
-}
-
-.dark .mcq-option-code {
-  background: rgba(99, 102, 241, 0.12) !important;
-  border: 1px solid rgba(99, 102, 241, 0.3) !important;
 }
 
 /* Custom scrollbar for MCQ desktop layout */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #6366F1 #1F2937;
+  scrollbar-color: rgb(var(--accent)) rgb(var(--bg-body-alt));
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -486,18 +460,18 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #1F2937;
+  background: rgb(var(--bg-body-alt));
   border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #22D3EE, #6366F1);
+  background: linear-gradient(135deg, rgb(var(--accent)), rgb(var(--accent-hover)));
   border-radius: 4px;
   transition: background 0.3s ease;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #0EA5E9, #4F46E5);
+  background: linear-gradient(135deg, rgb(var(--accent-hover)), rgb(var(--accent)));
 }
 
 /* Hide scrollbar but keep functionality */

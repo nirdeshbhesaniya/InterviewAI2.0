@@ -12,15 +12,15 @@ const Button = ({
     const getVariantClasses = () => {
         switch (variant) {
             case 'outline':
-                return 'border border-border-subtle bg-transparent text-text-secondary hover:bg-bg-card-alt hover:text-text-primary';
+                return 'border border-[rgb(var(--border-subtle))] bg-transparent text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-card-alt))] hover:text-[rgb(var(--text-primary))]';
             case 'ghost':
-                return 'bg-transparent text-text-secondary hover:bg-bg-card-alt hover:text-text-primary';
+                return 'bg-transparent text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-card-alt))] hover:text-[rgb(var(--text-primary))]';
             case 'destructive':
                 return 'bg-danger text-white hover:bg-red-600';
             case 'secondary':
-                return 'bg-primary text-white hover:bg-indigo-500';
+                return 'bg-[rgb(var(--accent))] text-white hover:bg-[rgb(var(--accent-hover))]';
             default:
-                return 'bg-gradient-to-r from-highlight to-pink-500 text-white hover:shadow-button-hover hover:scale-[1.02] shadow-button-primary';
+                return 'bg-[rgb(var(--accent))] text-white hover:bg-[rgb(var(--accent-hover))] hover:scale-[1.02] shadow-md hover:shadow-lg';
         }
     };
 
@@ -35,7 +35,7 @@ const Button = ({
         }
     };
 
-    const baseClasses = 'inline-flex items-center justify-center font-medium transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-bg-body disabled:opacity-50 disabled:cursor-not-allowed';
+    const baseClasses = 'inline-flex items-center justify-center font-medium transition-all focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]/50 focus:ring-offset-2 focus:ring-offset-[rgb(var(--bg-body))] disabled:opacity-50 disabled:cursor-not-allowed';
 
     const classes = `${baseClasses} ${getVariantClasses()} ${getSizeClasses()} ${className}`;
 

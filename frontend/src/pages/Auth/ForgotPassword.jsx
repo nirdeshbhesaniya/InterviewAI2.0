@@ -73,11 +73,11 @@ const ForgotPassword = ({ onNavigate }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -30 }}
       transition={{ duration: 0.3 }}
-      className="w-full max-w-md mx-auto bg-bg-card rounded-xl shadow-xl shadow-primary/10 p-6 space-y-6 border border-border-subtle"
+      className="w-full max-w-md mx-auto bg-[rgb(var(--bg-card))] rounded-xl shadow-lg p-6 space-y-6 border border-[rgb(var(--border))]"
     >
       <div className="text-center space-y-1">
-        <h2 className="text-2xl font-bold text-text-primary">Reset Password</h2>
-        <p className="text-sm text-text-muted">
+        <h2 className="text-2xl font-bold text-[rgb(var(--text-primary))]">Reset Password</h2>
+        <p className="text-sm text-[rgb(var(--text-muted))]">
           {step === 1 && 'Enter your email to receive a verification code'}
           {step === 2 && 'Enter the 6-digit OTP sent to your email'}
           {step === 3 && 'Create a new password'}
@@ -87,29 +87,29 @@ const ForgotPassword = ({ onNavigate }) => {
       {step === 1 && (
         <form onSubmit={handleSendOTP} className="space-y-4">
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))]" size={18} />
             <input
               type="email"
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-border-subtle bg-bg-body py-2 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg-body-alt))] py-2 pl-10 pr-4 text-sm text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
               required
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-gradient-to-r from-highlight to-pink-500 hover:shadow-lg hover:shadow-highlight/50 text-white py-2 font-semibold transition disabled:opacity-60 shadow-md"
+            className="w-full rounded-lg bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] hover:shadow-lg text-white py-2 font-semibold transition disabled:opacity-60 shadow-md"
           >
             {loading ? 'Sending OTP...' : 'Send OTP'}
           </button>
-          <p className="text-center text-sm text-text-secondary">
+          <p className="text-center text-sm text-[rgb(var(--text-secondary))]">
             Remember your password?{' '}
             <button
               type="button"
               onClick={() => onNavigate('login')}
-              className="text-highlight hover:text-pink-500 transition-colors"
+              className="text-[rgb(var(--accent))] hover:text-[rgb(var(--accent-hover))] transition-colors"
             >
               Login here
             </button>
@@ -125,20 +125,20 @@ const ForgotPassword = ({ onNavigate }) => {
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
             maxLength={6}
-            className="w-full rounded-lg border border-border-subtle bg-bg-body py-2 px-4 text-center text-lg tracking-widest text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            className="w-full rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg-body-alt))] py-2 px-4 text-center text-lg tracking-widest text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
             required
           />
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-gradient-to-r from-highlight to-pink-500 hover:shadow-lg hover:shadow-highlight/50 text-white py-2 font-semibold transition disabled:opacity-60 shadow-md"
+            className="w-full rounded-lg bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] hover:shadow-lg text-white py-2 font-semibold transition disabled:opacity-60 shadow-md"
           >
             {loading ? 'Verifying...' : 'Verify OTP'}
           </button>
           <button
             type="button"
             onClick={() => setStep(1)}
-            className="flex items-center justify-center gap-1 text-sm text-text-muted hover:text-highlight transition-colors w-full"
+            className="flex items-center justify-center gap-1 text-sm text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] transition-colors w-full"
           >
             <ArrowLeft size={16} /> Back to Email
           </button>
@@ -153,13 +153,13 @@ const ForgotPassword = ({ onNavigate }) => {
               placeholder="New Password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full rounded-lg border border-border-subtle bg-bg-body py-2 px-4 text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg-body-alt))] py-2 px-4 text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
               required
             />
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-highlight"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))]"
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -170,13 +170,13 @@ const ForgotPassword = ({ onNavigate }) => {
               placeholder="Confirm Password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full rounded-lg border border-border-subtle bg-bg-body py-2 px-4 text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg-body-alt))] py-2 px-4 text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
               required
             />
             <button
               type="button"
               onClick={() => setShowConfirm((prev) => !prev)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-highlight"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))]"
             >
               {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -184,14 +184,14 @@ const ForgotPassword = ({ onNavigate }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-gradient-to-r from-highlight to-pink-500 hover:shadow-lg hover:shadow-highlight/50 text-white py-2 font-semibold transition disabled:opacity-60 shadow-md"
+            className="w-full rounded-lg bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] hover:shadow-lg text-white py-2 font-semibold transition disabled:opacity-60 shadow-md"
           >
             {loading ? 'Resetting...' : 'Reset Password'}
           </button>
           <button
             type="button"
             onClick={() => setStep(2)}
-            className="flex items-center justify-center gap-1 text-sm text-text-muted hover:text-highlight transition-colors w-full"
+            className="flex items-center justify-center gap-1 text-sm text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] transition-colors w-full"
           >
             <ArrowLeft size={16} /> Back to OTP
           </button>

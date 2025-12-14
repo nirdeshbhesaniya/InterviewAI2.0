@@ -45,7 +45,7 @@ const HeroSection = () => {
         </video>
 
         {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-bg-body to-secondary/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--accent))]/20 via-[rgb(var(--bg-body))] to-[rgb(var(--accent))]/20"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20"></div>
 
         {/* Animated Grid Pattern */}
@@ -56,7 +56,7 @@ const HeroSection = () => {
       <div className="absolute inset-0 z-0 hidden md:block">
         {/* Top Left Orb */}
         <motion.div
-          className="absolute top-20 left-10 w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-primary/30 to-indigo-500/20 rounded-full blur-xl"
+          className="absolute top-20 left-10 w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-[rgb(var(--accent))]/30 to-indigo-500/20 rounded-full blur-xl"
           animate={{
             x: [0, 40, 0],
             y: [0, -30, 0],
@@ -68,7 +68,7 @@ const HeroSection = () => {
 
         {/* Bottom Right Orb */}
         <motion.div
-          className="absolute bottom-40 right-20 w-32 h-32 lg:w-40 lg:h-40 bg-gradient-to-br from-secondary/30 to-cyan-500/20 rounded-full blur-xl"
+          className="absolute bottom-40 right-20 w-32 h-32 lg:w-40 lg:h-40 bg-gradient-to-br from-[rgb(var(--accent))]/30 to-cyan-500/20 rounded-full blur-xl"
           animate={{
             x: [0, -50, 0],
             y: [0, 40, 0],
@@ -80,7 +80,7 @@ const HeroSection = () => {
 
         {/* Center Accent */}
         <motion.div
-          className="absolute top-1/2 left-1/4 w-16 h-16 bg-gradient-to-br from-highlight/20 to-pink-500/15 rounded-full blur-lg"
+          className="absolute top-1/2 left-1/4 w-16 h-16 bg-gradient-to-br from-[rgb(var(--accent))]/20 to-pink-500/15 rounded-full blur-lg"
           animate={{
             scale: [1, 1.5, 1],
             opacity: [0.3, 0.6, 0.3]
@@ -101,12 +101,12 @@ const HeroSection = () => {
           className="flex justify-center mb-6 sm:mb-8 lg:mb-10"
         >
           <div className="group relative">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-highlight to-pink-500 rounded-full blur opacity-60 group-hover:opacity-80 transition duration-300"></div>
-            <span className="relative inline-flex items-center gap-2 sm:gap-3 px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 text-xs sm:text-sm lg:text-base font-semibold text-white bg-bg-card/80 backdrop-blur-xl rounded-full border border-border-subtle hover:border-primary/40 transition-all duration-300">
-              <BrainCircuit className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-primary animate-pulse" />
-              <span className="hidden sm:inline">AI-Powered Interview Assistant</span>
+            <div className="absolute -inset-0.5 bg-[rgb(var(--accent))] rounded-full blur opacity-60 group-hover:opacity-80 transition duration-300"></div>
+            <span className="relative inline-flex items-center gap-2 sm:gap-3 px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 text-xs sm:text-sm lg:text-base font-semibold text-white bg-[rgb(var(--bg-card))]/80 backdrop-blur-xl rounded-full border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/40 transition-all duration-300">
+              <BrainCircuit className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[rgb(var(--accent))] animate-pulse" />
+              <span className="hidden sm:inline text-black">AI-Powered Interview Assistant</span>
               <span className="sm:hidden">AI Interview Assistant</span>
-              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-highlight animate-spin" style={{ animationDuration: '3s' }} />
+              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-[rgb(var(--accent))] animate-spin" style={{ animationDuration: '3s' }} />
             </span>
           </div>
         </motion.div>
@@ -155,9 +155,9 @@ const HeroSection = () => {
             </div>
 
             {/* Verification Badge */}
-            <div className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary/20 backdrop-blur-sm rounded-full border border-secondary/30">
-              <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-secondary" />
-              <span className="text-secondary/90 text-xs sm:text-sm lg:text-base font-medium">Verified Platform</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-[rgb(var(--accent))]/20 backdrop-blur-sm rounded-full border border-[rgb(var(--accent))]/30">
+              <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-[rgb(var(--accent))]" />
+              <span className="text-[rgb(var(--accent))]/90 text-xs sm:text-sm lg:text-base font-medium">Verified Platform</span>
             </div>
           </motion.div>
         </motion.div>
@@ -170,15 +170,15 @@ const HeroSection = () => {
           className="text-center space-y-6 sm:space-y-8 mb-12 sm:mb-16 lg:mb-20"
         >
           <p className="text-lg sm:text-xl lg:text-2xl xl:text-3xl text-white/90 leading-relaxed max-w-4xl mx-auto font-light">
-            Get <span className="font-semibold text-highlight">role-specific questions</span>, expand answers when needed, and dive deeper into concepts with our <span className="font-semibold text-secondary">intelligent AI assistant</span>.
+            Get <span className="font-semibold text-[rgb(var(--accent))]">role-specific questions</span>, expand answers when needed, and dive deeper into concepts with our <span className="font-semibold text-[rgb(var(--accent))]">intelligent AI assistant</span>.
           </p>
 
           {/* Enhanced Feature Highlights */}
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4 lg:gap-6">
             {[
-              { icon: CheckCircle, text: "Personalized Questions", shortText: "Personalized", color: "text-secondary" },
-              { icon: Zap, text: "Instant Feedback", shortText: "Instant", color: "text-highlight" },
-              { icon: Trophy, text: "Track Progress", shortText: "Progress", color: "text-primary" },
+              { icon: CheckCircle, text: "Personalized Questions", shortText: "Personalized", color: "text-[rgb(var(--accent))]" },
+              { icon: Zap, text: "Instant Feedback", shortText: "Instant", color: "text-[rgb(var(--accent))]" },
+              { icon: Trophy, text: "Track Progress", shortText: "Progress", color: "text-[rgb(var(--accent))]" },
               { icon: Target, text: "Role-Specific", shortText: "Targeted", color: "text-pink-400" }
             ].map((feature, index) => (
               <motion.div
@@ -216,8 +216,8 @@ const HeroSection = () => {
             className="group relative w-full sm:w-auto min-w-[200px] lg:min-w-[240px] overflow-hidden"
             onClick={handleGetStarted}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-highlight to-pink-600 rounded-full blur-lg opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
-            <div className="relative px-6 py-4 sm:px-8 sm:py-5 lg:px-10 lg:py-6 bg-gradient-to-r from-highlight to-pink-500 text-white rounded-full font-semibold text-base sm:text-lg lg:text-xl hover:shadow-button-hover transition-all duration-300 shadow-button-primary">
+            <div className="absolute inset-0 bg-[rgb(var(--accent))] rounded-full blur-lg opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
+            <div className="relative px-6 py-4 sm:px-8 sm:py-5 lg:px-10 lg:py-6 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-full font-semibold text-base sm:text-lg lg:text-xl hover:shadow-button-hover transition-all duration-300 shadow-button-primary">
               <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
               <div className="relative flex items-center justify-center gap-3">
                 <Play className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
@@ -234,8 +234,8 @@ const HeroSection = () => {
             className="group relative w-full sm:w-auto min-w-[200px] lg:min-w-[240px] overflow-hidden"
             onClick={handleGoCodebase}
           >
-            <div className="absolute inset-0 bg-primary/10 rounded-full blur-lg opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
-            <div className="relative px-6 py-4 sm:px-8 sm:py-5 lg:px-10 lg:py-6 bg-bg-card/50 text-white border-2 border-border-subtle rounded-full font-semibold text-base sm:text-lg lg:text-xl hover:bg-bg-card-alt hover:border-primary/50 backdrop-blur-xl transition-all duration-300 shadow-2xl">
+            <div className="absolute inset-0 bg-[rgb(var(--accent))]/10 rounded-full blur-lg opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
+            <div className="relative px-6 py-4 sm:px-8 sm:py-5 lg:px-10 lg:py-6 bg-[rgb(var(--bg-card))]/50 text-white border-2 border-[rgb(var(--border-subtle))] rounded-full font-semibold text-base sm:text-lg lg:text-xl hover:bg-[rgb(var(--bg-body-alt))] hover:border-[rgb(var(--accent))]/50 backdrop-blur-xl transition-all duration-300 shadow-2xl">
               <div className="flex items-center justify-center gap-3">
                 <FileCode className="w-5 h-5 sm:w-6 sm:h-6 group-hover:rotate-12 transition-transform duration-300" />
                 <span>Explore Codebase</span>
@@ -252,9 +252,9 @@ const HeroSection = () => {
           className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 max-w-5xl mx-auto"
         >
           {[
-            { number: "10K+", label: "Active Users", icon: Users, color: "from-primary to-indigo-600" },
-            { number: "50K+", label: "Questions Solved", icon: FileCode, color: "from-secondary to-cyan-600" },
-            { number: "95%", label: "Success Rate", icon: Trophy, color: "from-highlight to-pink-600" },
+            { number: "10K+", label: "Active Users", icon: Users, color: "from-[rgb(var(--accent))] to-indigo-600" },
+            { number: "50K+", label: "Questions Solved", icon: FileCode, color: "from-[rgb(var(--accent))] to-cyan-600" },
+            { number: "95%", label: "Success Rate", icon: Trophy, color: "from-[rgb(var(--accent))] to-pink-600" },
             { number: "24/7", label: "AI Support", icon: Bot, color: "from-purple-500 to-purple-700" }
           ].map((stat, index) => (
             <motion.div

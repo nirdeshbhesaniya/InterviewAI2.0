@@ -5,21 +5,21 @@ import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-body aria-invalid:ring-danger/20 aria-invalid:border-danger",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--accent))]/50 focus-visible:ring-offset-2 aria-invalid:ring-red-500/20 aria-invalid:border-red-500",
   {
     variants: {
       variant: {
         default:
-          "bg-gradient-to-r from-highlight to-pink-500 text-white shadow-button-primary hover:shadow-button-hover hover:scale-[1.02]",
+          "bg-[rgb(var(--accent))] text-white shadow-md hover:bg-[rgb(var(--accent-hover))] hover:shadow-lg hover:scale-[1.02]",
         destructive:
-          "bg-danger text-white shadow-xs hover:bg-danger/90 focus-visible:ring-danger/20",
+          "bg-red-500 text-white shadow-xs hover:bg-red-600",
         outline:
-          "border border-border-subtle bg-transparent shadow-xs hover:bg-bg-card-alt hover:text-text-primary text-text-secondary",
+          "border border-[rgb(var(--border))] bg-transparent shadow-xs hover:bg-[rgb(var(--bg-elevated-alt))] hover:text-[rgb(var(--text-primary))] text-[rgb(var(--text-secondary))]",
         secondary:
-          "bg-primary text-white shadow-xs hover:bg-indigo-500",
+          "bg-[rgb(var(--bg-elevated-alt))] text-[rgb(var(--text-primary))] shadow-xs hover:bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))]",
         ghost:
-          "hover:bg-bg-card-alt hover:text-text-primary text-text-secondary",
-        link: "text-primary underline-offset-4 hover:underline",
+          "hover:bg-[rgb(var(--bg-elevated-alt))] hover:text-[rgb(var(--text-primary))] text-[rgb(var(--text-secondary))]",
+        link: "text-[rgb(var(--accent))] underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

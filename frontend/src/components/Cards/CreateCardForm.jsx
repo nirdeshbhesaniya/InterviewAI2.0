@@ -3,7 +3,8 @@ import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, X, Sparkles, Target, Tag, User, Clock, Mail, FileText } from 'lucide-react';
+import { X, Sparkles, Target, Tag, User, Clock, Mail, FileText } from 'lucide-react';
+import { ButtonLoader } from '../ui/Loader';
 
 const CreateCardModal = ({ onClose, onCreated }) => {
   const [form, setForm] = useState({
@@ -45,14 +46,14 @@ const CreateCardModal = ({ onClose, onCreated }) => {
         transition={{ duration: 0.2 }}
       >
         <motion.div
-          className="bg-white dark:bg-gray-900 rounded-2xl lg:rounded-3xl w-full max-w-xs sm:max-w-md lg:max-w-lg xl:max-w-xl 2xl:max-w-2xl max-h-[98vh] sm:max-h-[95vh] lg:max-h-[90vh] shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col"
+          className="bg-[rgb(var(--bg-card))] rounded-2xl lg:rounded-3xl w-full max-w-xs sm:max-w-md lg:max-w-lg xl:max-w-xl 2xl:max-w-2xl max-h-[98vh] sm:max-h-[95vh] lg:max-h-[90vh] shadow-2xl border border-[rgb(var(--border-subtle))] overflow-hidden flex flex-col"
           initial={{ scale: 0.95, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
         >
           {/* Header - Optimized for all screen sizes */}
-          <div className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 px-3 py-3 sm:px-4 sm:py-4 lg:px-6 lg:py-5 text-white relative overflow-hidden flex-shrink-0">
+          <div className="bg-[rgb(var(--accent))] px-3 py-3 sm:px-4 sm:py-4 lg:px-6 lg:py-5 text-white relative overflow-hidden flex-shrink-0">
             <div className="absolute inset-0 bg-black/10"></div>
             <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-white/10 rounded-full transform translate-x-8 sm:translate-x-12 lg:translate-x-16 -translate-y-8 sm:-translate-y-12 lg:-translate-y-16"></div>
             <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-white/5 rounded-full transform -translate-x-6 sm:-translate-x-10 lg:-translate-x-12 translate-y-6 sm:translate-y-10 lg:translate-y-12"></div>
@@ -64,7 +65,7 @@ const CreateCardModal = ({ onClose, onCreated }) => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <h2 className="text-sm sm:text-lg lg:text-xl font-bold truncate leading-tight">Create Interview Session</h2>
-                  <p className="text-orange-100 text-xs sm:text-sm lg:text-sm truncate opacity-90">AI-powered preparation journey</p>
+                  <p className="text-white/80 text-xs sm:text-sm lg:text-sm truncate opacity-90">AI-powered preparation journey</p>
                 </div>
               </div>
 
@@ -82,11 +83,11 @@ const CreateCardModal = ({ onClose, onCreated }) => {
           {/* Form Container - Scrollable */}
           <div className="flex-1 overflow-y-auto overscroll-contain">
             <form onSubmit={handleSubmit} className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-5">
-              
+
               {/* Title Input */}
               <div className="space-y-1.5 sm:space-y-2">
-                <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
-                  <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-500 flex-shrink-0" />
+                <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-[rgb(var(--text-primary))]">
+                  <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[rgb(var(--accent))] flex-shrink-0" />
                   <span>Interview Title</span>
                 </label>
                 <input
@@ -96,14 +97,14 @@ const CreateCardModal = ({ onClose, onCreated }) => {
                   value={form.title}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 sm:px-3 sm:py-2.5 lg:px-4 lg:py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all placeholder-gray-400 dark:placeholder-gray-500 text-sm sm:text-base"
+                  className="w-full px-3 py-2 sm:px-3 sm:py-2.5 lg:px-4 lg:py-3 border border-[rgb(var(--border))] rounded-xl bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-all placeholder:text-[rgb(var(--text-muted))] text-sm sm:text-base"
                 />
               </div>
 
               {/* Tags Input */}
               <div className="space-y-1.5 sm:space-y-2">
-                <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
-                  <Tag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-500 flex-shrink-0" />
+                <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-[rgb(var(--text-primary))]">
+                  <Tag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[rgb(var(--accent))] flex-shrink-0" />
                   <span>Skills & Technologies</span>
                 </label>
                 <input
@@ -113,18 +114,18 @@ const CreateCardModal = ({ onClose, onCreated }) => {
                   value={form.tag}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 sm:px-3 sm:py-2.5 lg:px-4 lg:py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all placeholder-gray-400 dark:placeholder-gray-500 text-sm sm:text-base"
+                  className="w-full px-3 py-2 sm:px-3 sm:py-2.5 lg:px-4 lg:py-3 border border-[rgb(var(--border))] rounded-xl bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-all placeholder:text-[rgb(var(--text-muted))] text-sm sm:text-base"
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400">Separate multiple tags with commas</p>
+                <p className="text-xs text-[rgb(var(--text-muted))]">Separate multiple tags with commas</p>
               </div>
 
               {/* Grid for smaller inputs - Responsive columns */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
-                
+
                 {/* Initials */}
                 <div className="space-y-1.5 sm:space-y-2">
-                  <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
-                    <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-500 flex-shrink-0" />
+                  <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-[rgb(var(--text-primary))]">
+                    <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[rgb(var(--accent))] flex-shrink-0" />
                     <span>Initials</span>
                   </label>
                   <input
@@ -135,14 +136,14 @@ const CreateCardModal = ({ onClose, onCreated }) => {
                     onChange={handleChange}
                     required
                     maxLength={3}
-                    className="w-full px-3 py-2 sm:px-3 sm:py-2.5 lg:px-4 lg:py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all placeholder-gray-400 dark:placeholder-gray-500 text-center font-bold uppercase text-sm sm:text-base"
+                    className="w-full px-3 py-2 sm:px-3 sm:py-2.5 lg:px-4 lg:py-3 border border-[rgb(var(--border))] rounded-xl bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-all placeholder:text-[rgb(var(--text-muted))] text-center font-bold uppercase text-sm sm:text-base"
                   />
                 </div>
 
                 {/* Experience */}
                 <div className="space-y-1.5 sm:space-y-2">
-                  <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
-                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-500 flex-shrink-0" />
+                  <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-[rgb(var(--text-primary))]">
+                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[rgb(var(--accent))] flex-shrink-0" />
                     <span>Experience</span>
                   </label>
                   <input
@@ -152,15 +153,15 @@ const CreateCardModal = ({ onClose, onCreated }) => {
                     value={form.experience}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 py-2 sm:px-3 sm:py-2.5 lg:px-4 lg:py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all placeholder-gray-400 dark:placeholder-gray-500 text-sm sm:text-base"
+                    className="w-full px-3 py-2 sm:px-3 sm:py-2.5 lg:px-4 lg:py-3 border border-[rgb(var(--border))] rounded-xl bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-all placeholder:text-[rgb(var(--text-muted))] text-sm sm:text-base"
                   />
                 </div>
               </div>
 
               {/* Email Input */}
               <div className="space-y-1.5 sm:space-y-2">
-                <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
-                  <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-500 flex-shrink-0" />
+                <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-[rgb(var(--text-primary))]">
+                  <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[rgb(var(--accent))] flex-shrink-0" />
                   <span>Creator Email</span>
                 </label>
                 <input
@@ -170,14 +171,14 @@ const CreateCardModal = ({ onClose, onCreated }) => {
                   value={form.creatorEmail}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 sm:px-3 sm:py-2.5 lg:px-4 lg:py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all placeholder-gray-400 dark:placeholder-gray-500 text-sm sm:text-base"
+                  className="w-full px-3 py-2 sm:px-3 sm:py-2.5 lg:px-4 lg:py-3 border border-[rgb(var(--border))] rounded-xl bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-all placeholder:text-[rgb(var(--text-muted))] text-sm sm:text-base"
                 />
               </div>
 
               {/* Description */}
               <div className="space-y-1.5 sm:space-y-2">
-                <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
-                  <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-500 flex-shrink-0" />
+                <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-[rgb(var(--text-primary))]">
+                  <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[rgb(var(--accent))] flex-shrink-0" />
                   <span>Description</span>
                 </label>
                 <textarea
@@ -187,7 +188,7 @@ const CreateCardModal = ({ onClose, onCreated }) => {
                   onChange={handleChange}
                   required
                   rows={3}
-                  className="w-full px-3 py-2 sm:px-3 sm:py-2.5 lg:px-4 lg:py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all placeholder-gray-400 dark:placeholder-gray-500 resize-none text-sm sm:text-base"
+                  className="w-full px-3 py-2 sm:px-3 sm:py-2.5 lg:px-4 lg:py-3 border border-[rgb(var(--border))] rounded-xl bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-all placeholder:text-[rgb(var(--text-muted))] resize-none text-sm sm:text-base"
                 />
               </div>
 
@@ -197,17 +198,13 @@ const CreateCardModal = ({ onClose, onCreated }) => {
                 whileHover={{ scale: loading ? 1 : 1.02 }}
                 whileTap={{ scale: loading ? 1 : 0.98 }}
                 disabled={loading}
-                className={`w-full flex items-center justify-center gap-2 sm:gap-3 py-2.5 sm:py-3 lg:py-3.5 rounded-xl font-semibold transition-all shadow-lg text-sm sm:text-base ${
-                  loading
-                    ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed text-gray-500 dark:text-gray-400'
-                    : 'bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white hover:from-orange-600 hover:via-red-600 hover:to-pink-600 hover:shadow-xl active:shadow-md'
-                }`}
+                className={`w-full flex items-center justify-center gap-2 sm:gap-3 py-2.5 sm:py-3 lg:py-3.5 rounded-xl font-semibold transition-all shadow-lg text-sm sm:text-base ${loading
+                    ? 'bg-[rgb(var(--bg-elevated))] cursor-not-allowed text-[rgb(var(--text-muted))]'
+                    : 'bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white hover:shadow-xl active:shadow-md'
+                  }`}
               >
                 {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                    <span>Creating Session...</span>
-                  </>
+                  <ButtonLoader text="Creating Session..." />
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />

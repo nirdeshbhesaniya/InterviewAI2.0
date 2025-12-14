@@ -177,23 +177,23 @@ const NotesPage = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-bg-body pb-6">
+        <div className="min-h-screen bg-[rgb(var(--bg-body))] pb-6">
             {/* Header */}
-            <div className="bg-bg-card border-b border-border-subtle sticky top-0 z-40">
+            <div className="bg-[rgb(var(--bg-card))] border-b border-[rgb(var(--border-subtle))] sticky top-0 z-40">
                 <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary">
+                            <h1 className="text-2xl sm:text-3xl font-extrabold text-[rgb(var(--text-primary))]">
                                 Shared Notes
                             </h1>
-                            <p className="text-sm sm:text-base text-text-secondary mt-1">
+                            <p className="text-sm sm:text-base text-[rgb(var(--text-secondary))] mt-1">
                                 Share and discover study materials from the community
                             </p>
                         </div>
 
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-highlight to-pink-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-highlight/50 hover:scale-105 transition-all duration-200"
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-[rgb(var(--accent))]/30 hover:scale-105 transition-all duration-200"
                         >
                             <Plus size={20} />
                             <span>Add Note</span>
@@ -203,20 +203,20 @@ const NotesPage = () => {
                     {/* Search and Filters */}
                     <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
                         <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={20} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))]" size={20} />
                             <input
                                 type="text"
                                 placeholder="Search notes..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                                className="w-full pl-10 pr-4 py-2 sm:py-2.5 border border-border-subtle rounded-lg bg-bg-body text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base"
+                                className="w-full pl-10 pr-4 py-2 sm:py-2.5 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent text-sm sm:text-base"
                             />
                         </div>
 
                         <button
                             onClick={handleSearch}
-                            className="w-full sm:w-auto px-6 py-2 sm:py-2.5 bg-gradient-to-r from-secondary to-primary text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-primary/50 transition-all text-sm sm:text-base"
+                            className="w-full sm:w-auto px-6 py-2 sm:py-2.5 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-[rgb(var(--accent))]/30 transition-all text-sm sm:text-base"
                         >
                             Search
                         </button>
@@ -229,8 +229,8 @@ const NotesPage = () => {
                                 key={id}
                                 onClick={() => setFilter(id)}
                                 className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition-all text-xs sm:text-sm ${filter === id
-                                    ? 'bg-gradient-to-r from-highlight to-pink-500 text-white shadow-md shadow-highlight/30'
-                                    : 'bg-bg-card text-text-secondary border border-border-subtle hover:bg-bg-card-alt hover:text-text-primary'
+                                    ? 'bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white shadow-md shadow-[rgb(var(--accent))]/30'
+                                    : 'bg-[rgb(var(--bg-card))] text-[rgb(var(--text-secondary))] border border-[rgb(var(--border-subtle))] hover:bg-[rgb(var(--bg-body-alt))] hover:text-[rgb(var(--text-primary))]'
                                     }`}
                             >
                                 <Icon size={16} className="sm:w-[18px] sm:h-[18px]" />
@@ -245,15 +245,15 @@ const NotesPage = () => {
             <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8">
                 {loading ? (
                     <div className="flex justify-center items-center py-20">
-                        <div className="animate-spin rounded-full h-12 w-12 border-4 border-highlight border-t-transparent"></div>
+                        <div className="animate-spin rounded-full h-12 w-12 border-4 border-[rgb(var(--accent))] border-t-transparent"></div>
                     </div>
                 ) : notes.length === 0 ? (
                     <div className="text-center py-12 sm:py-20 px-4">
-                        <FileText size={48} className="sm:w-16 sm:h-16 mx-auto text-text-muted/30 mb-4" />
-                        <h3 className="text-lg sm:text-xl font-bold text-text-secondary mb-2">
+                        <FileText size={48} className="sm:w-16 sm:h-16 mx-auto text-[rgb(var(--text-muted))]/30 mb-4" />
+                        <h3 className="text-lg sm:text-xl font-bold text-[rgb(var(--text-secondary))] mb-2">
                             No notes found
                         </h3>
-                        <p className="text-sm sm:text-base text-text-muted">
+                        <p className="text-sm sm:text-base text-[rgb(var(--text-muted))]">
                             {filter === 'my-notes'
                                 ? 'You haven\'t added any notes yet. Click "Add Note" to get started!'
                                 : 'Be the first to share a note with the community!'}
@@ -268,7 +268,7 @@ const NotesPage = () => {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -20 }}
-                                    className="bg-bg-card rounded-xl shadow-lg hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 overflow-hidden border border-border-subtle"
+                                    className="bg-[rgb(var(--bg-card))] rounded-xl shadow-lg hover:shadow-xl hover:shadow-[rgb(var(--accent))]/10 transition-all duration-300 overflow-hidden border border-[rgb(var(--border-subtle))]"
                                 >
                                     {/* Card Header */}
                                     <div className={`p-3 sm:p-4 ${note.type === 'pdf'
@@ -300,12 +300,12 @@ const NotesPage = () => {
 
                                     {/* Card Body */}
                                     <div className="p-4 sm:p-5">
-                                        <h3 className="text-lg sm:text-xl font-bold text-text-primary mb-2 line-clamp-2">
+                                        <h3 className="text-lg sm:text-xl font-bold text-[rgb(var(--text-primary))] mb-2 line-clamp-2">
                                             {note.title}
                                         </h3>
 
                                         {note.description && (
-                                            <p className="text-text-secondary text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-3">
+                                            <p className="text-[rgb(var(--text-secondary))] text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-3">
                                                 {note.description}
                                             </p>
                                         )}
@@ -316,7 +316,7 @@ const NotesPage = () => {
                                                 {note.tags.map((tag, index) => (
                                                     <span
                                                         key={index}
-                                                        className="px-2 py-0.5 sm:py-1 bg-highlight/20 text-highlight text-xs rounded-full font-semibold"
+                                                        className="px-2 py-0.5 sm:py-1 bg-[rgb(var(--accent))]/20 text-[rgb(var(--accent))] text-xs rounded-full font-semibold"
                                                     >
                                                         #{tag}
                                                     </span>
@@ -325,7 +325,7 @@ const NotesPage = () => {
                                         )}
 
                                         {/* Meta Info */}
-                                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-text-muted mb-3 sm:mb-4">
+                                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-[rgb(var(--text-muted))] mb-3 sm:mb-4">
                                             <div className="flex items-center gap-1">
                                                 <User size={12} className="sm:w-[14px] sm:h-[14px]" />
                                                 <span className="truncate max-w-[120px] sm:max-w-none">{note.userName}</span>
@@ -337,13 +337,13 @@ const NotesPage = () => {
                                         </div>
 
                                         {/* Actions */}
-                                        <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-border-subtle">
+                                        <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-[rgb(var(--border-subtle))]">
                                             <div className="flex items-center gap-3 sm:gap-4">
                                                 <button
                                                     onClick={() => handleLikeNote(note._id)}
                                                     className={`flex items-center gap-1 transition-colors ${isLikedByUser(note)
                                                         ? 'text-pink-500'
-                                                        : 'text-text-muted hover:text-pink-500'
+                                                        : 'text-[rgb(var(--text-muted))] hover:text-pink-500'
                                                         }`}
                                                 >
                                                     <Heart
@@ -356,7 +356,7 @@ const NotesPage = () => {
                                                     </span>
                                                 </button>
 
-                                                <div className="flex items-center gap-1 text-text-muted">
+                                                <div className="flex items-center gap-1 text-[rgb(var(--text-muted))]">
                                                     <Eye size={16} className="sm:w-[18px] sm:h-[18px]" />
                                                     <span className="text-xs sm:text-sm font-semibold">{note.views}</span>
                                                 </div>
@@ -364,7 +364,7 @@ const NotesPage = () => {
 
                                             <button
                                                 onClick={() => openLink(note.link, note._id)}
-                                                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-highlight to-pink-500 text-white rounded-lg font-semibold hover:shadow-md hover:shadow-highlight/50 transition-all text-xs sm:text-sm"
+                                                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg font-semibold hover:shadow-md hover:shadow-[rgb(var(--accent))]/30 transition-all text-xs sm:text-sm"
                                             >
                                                 <span>Open</span>
                                                 <ExternalLink size={14} className="sm:w-4 sm:h-4" />
@@ -392,11 +392,11 @@ const NotesPage = () => {
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-border"
+                            className="bg-[rgb(var(--bg-card))] rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[rgb(var(--border))]"
                             onClick={(e) => e.stopPropagation()}
                         >
                             {/* Modal Header */}
-                            <div className="sticky top-0 bg-gradient-to-r from-highlight via-secondary to-primary p-4 sm:p-6 flex items-center justify-between">
+                            <div className="sticky top-0 bg-[rgb(var(--accent))] p-4 sm:p-6 flex items-center justify-between">
                                 <h2 className="text-xl sm:text-2xl font-extrabold text-white">Add New Note</h2>
                                 <button
                                     onClick={() => setShowAddModal(false)}
@@ -410,7 +410,7 @@ const NotesPage = () => {
                             <form onSubmit={handleAddNote} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                                 {/* Type Selection */}
                                 <div>
-                                    <label className="block text-sm font-bold text-text-primary mb-2">
+                                    <label className="block text-sm font-bold text-[rgb(var(--text-primary))] mb-2">
                                         Note Type *
                                     </label>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -418,8 +418,8 @@ const NotesPage = () => {
                                             type="button"
                                             onClick={() => setFormData({ ...formData, type: 'pdf' })}
                                             className={`flex items-center justify-center gap-2 p-3 sm:p-4 rounded-lg border-2 transition-all ${formData.type === 'pdf'
-                                                ? 'border-primary bg-primary/20 text-primary'
-                                                : 'border-border-subtle hover:border-border bg-bg-body text-text-secondary'
+                                                ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/20 text-[rgb(var(--accent))]'
+                                                : 'border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--border))] bg-[rgb(var(--bg-body))] text-[rgb(var(--text-secondary))]'
                                                 }`}
                                         >
                                             <FileText size={20} className="sm:w-6 sm:h-6" />
@@ -430,8 +430,8 @@ const NotesPage = () => {
                                             type="button"
                                             onClick={() => setFormData({ ...formData, type: 'youtube' })}
                                             className={`flex items-center justify-center gap-2 p-3 sm:p-4 rounded-lg border-2 transition-all ${formData.type === 'youtube'
-                                                ? 'border-highlight bg-highlight/20 text-highlight'
-                                                : 'border-border-subtle hover:border-border bg-bg-body text-text-secondary'
+                                                ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/20 text-[rgb(var(--accent))]'
+                                                : 'border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--border))] bg-[rgb(var(--bg-body))] text-[rgb(var(--text-secondary))]'
                                                 }`}
                                         >
                                             <Youtube size={20} className="sm:w-6 sm:h-6" />
@@ -442,7 +442,7 @@ const NotesPage = () => {
 
                                 {/* Title */}
                                 <div>
-                                    <label className="block text-sm font-bold text-text-primary mb-2">
+                                    <label className="block text-sm font-bold text-[rgb(var(--text-primary))] mb-2">
                                         Title *
                                     </label>
                                     <input
@@ -451,13 +451,13 @@ const NotesPage = () => {
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                         placeholder="Enter a descriptive title"
-                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-border-subtle rounded-lg bg-bg-body text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base"
+                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent text-sm sm:text-base"
                                     />
                                 </div>
 
                                 {/* Link */}
                                 <div>
-                                    <label className="block text-sm font-bold text-text-primary mb-2">
+                                    <label className="block text-sm font-bold text-[rgb(var(--text-primary))] mb-2">
                                         {formData.type === 'pdf' ? 'Google Drive Link *' : 'YouTube Link *'}
                                     </label>
                                     <input
@@ -470,9 +470,9 @@ const NotesPage = () => {
                                                 ? 'https://drive.google.com/...'
                                                 : 'https://www.youtube.com/watch?v=...'
                                         }
-                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-border-subtle rounded-lg bg-bg-body text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base"
+                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent text-sm sm:text-base"
                                     />
-                                    <p className="mt-1 text-xs text-text-muted">
+                                    <p className="mt-1 text-xs text-[rgb(var(--text-muted))]">
                                         {formData.type === 'pdf'
                                             ? 'Make sure the Google Drive file is set to "Anyone with the link can view"'
                                             : 'Paste the full YouTube video URL'}
@@ -481,7 +481,7 @@ const NotesPage = () => {
 
                                 {/* Description */}
                                 <div>
-                                    <label className="block text-sm font-bold text-text-primary mb-2">
+                                    <label className="block text-sm font-bold text-[rgb(var(--text-primary))] mb-2">
                                         Description (Optional)
                                     </label>
                                     <textarea
@@ -489,13 +489,13 @@ const NotesPage = () => {
                                         value={formData.description}
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                         placeholder="Add a brief description of the content..."
-                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-border-subtle rounded-lg bg-bg-body text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm sm:text-base"
+                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent resize-none text-sm sm:text-base"
                                     />
                                 </div>
 
                                 {/* Tags */}
                                 <div>
-                                    <label className="block text-sm font-bold text-text-primary mb-2">
+                                    <label className="block text-sm font-bold text-[rgb(var(--text-primary))] mb-2">
                                         Tags (Optional)
                                     </label>
                                     <input
@@ -503,9 +503,9 @@ const NotesPage = () => {
                                         value={formData.tags}
                                         onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                                         placeholder="javascript, react, tutorial (comma-separated)"
-                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-border-subtle rounded-lg bg-bg-body text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base"
+                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent text-sm sm:text-base"
                                     />
-                                    <p className="mt-1 text-xs text-text-muted">
+                                    <p className="mt-1 text-xs text-[rgb(var(--text-muted))]">
                                         Separate multiple tags with commas
                                     </p>
                                 </div>
@@ -515,13 +515,13 @@ const NotesPage = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowAddModal(false)}
-                                        className="w-full sm:flex-1 px-4 sm:px-6 py-2.5 sm:py-3 border border-border rounded-lg text-text-secondary bg-bg-body hover:bg-bg-body-alt font-semibold transition-colors text-sm sm:text-base"
+                                        className="w-full sm:flex-1 px-4 sm:px-6 py-2.5 sm:py-3 border border-[rgb(var(--border))] rounded-lg text-[rgb(var(--text-secondary))] bg-[rgb(var(--bg-body))] hover:bg-[rgb(var(--bg-body-alt))] font-semibold transition-colors text-sm sm:text-base"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
-                                        className="w-full sm:flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-highlight via-secondary to-primary text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-primary/50 transition-all text-sm sm:text-base"
+                                        className="w-full sm:flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-[rgb(var(--accent))]/30 transition-all text-sm sm:text-base"
                                     >
                                         Add Note
                                     </button>

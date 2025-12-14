@@ -73,12 +73,12 @@ const ContactSupportForm = () => {
     };
 
     return (
-        <div className="bg-bg-card rounded-2xl shadow-card border border-border-subtle p-6 lg:p-8">
+        <div className="bg-[rgb(var(--bg-card))] rounded-2xl shadow-card border border-[rgb(var(--border-subtle))] p-6 lg:p-8">
             <div className="mb-6">
-                <h3 className="text-2xl font-bold text-text-primary mb-2">
+                <h3 className="text-2xl font-bold text-[rgb(var(--text-primary))] mb-2">
                     Contact Support
                 </h3>
-                <p className="text-text-secondary">
+                <p className="text-[rgb(var(--text-secondary))]">
                     Send us a message and we'll respond as soon as possible.
                 </p>
             </div>
@@ -87,7 +87,7 @@ const ContactSupportForm = () => {
                 {/* Name & Email Row */}
                 <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-text-primary mb-2">
+                        <label className="block text-sm font-medium text-[rgb(var(--text-primary))] mb-2">
                             <User className="w-4 h-4 inline mr-1" />
                             Name *
                         </label>
@@ -97,12 +97,12 @@ const ContactSupportForm = () => {
                             value={formData.name}
                             onChange={handleChange}
                             required
-                            className="w-full px-4 py-3 border border-border-subtle rounded-lg bg-bg-body text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                            className="w-full px-4 py-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-colors"
                             placeholder="Your full name"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-text-primary mb-2">
+                        <label className="block text-sm font-medium text-[rgb(var(--text-primary))] mb-2">
                             <Mail className="w-4 h-4 inline mr-1" />
                             Email *
                         </label>
@@ -112,7 +112,7 @@ const ContactSupportForm = () => {
                             value={formData.email}
                             onChange={handleChange}
                             required
-                            className="w-full px-4 py-3 border border-border-subtle rounded-lg bg-bg-body text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                            className="w-full px-4 py-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-colors"
                             placeholder="your.email@example.com"
                         />
                     </div>
@@ -121,14 +121,14 @@ const ContactSupportForm = () => {
                 {/* Category & Priority Row */}
                 <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-text-primary mb-2">
+                        <label className="block text-sm font-medium text-[rgb(var(--text-primary))] mb-2">
                             Category
                         </label>
                         <select
                             name="category"
                             value={formData.category}
                             onChange={handleChange}
-                            className="w-full px-4 py-3 border border-border-subtle rounded-lg bg-bg-body text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                            className="w-full px-4 py-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-colors"
                         >
                             {categories.map((category) => (
                                 <option key={category.value} value={category.value}>
@@ -138,7 +138,7 @@ const ContactSupportForm = () => {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-text-primary mb-2">
+                        <label className="block text-sm font-medium text-[rgb(var(--text-primary))] mb-2">
                             <AlertCircle className="w-4 h-4 inline mr-1" />
                             Priority
                         </label>
@@ -146,7 +146,7 @@ const ContactSupportForm = () => {
                             name="priority"
                             value={formData.priority}
                             onChange={handleChange}
-                            className="w-full px-4 py-3 border border-border-subtle rounded-lg bg-bg-body text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                            className="w-full px-4 py-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-colors"
                         >
                             {priorities.map((priority) => (
                                 <option key={priority.value} value={priority.value}>
@@ -159,7 +159,7 @@ const ContactSupportForm = () => {
 
                 {/* Subject */}
                 <div>
-                    <label className="block text-sm font-medium text-text-primary mb-2">
+                    <label className="block text-sm font-medium text-[rgb(var(--text-primary))] mb-2">
                         <MessageSquare className="w-4 h-4 inline mr-1" />
                         Subject *
                     </label>
@@ -169,14 +169,14 @@ const ContactSupportForm = () => {
                         value={formData.subject}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 border border-border-subtle rounded-lg bg-bg-body text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                        className="w-full px-4 py-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-colors"
                         placeholder="Brief description of your issue"
                     />
                 </div>
 
                 {/* Message */}
                 <div>
-                    <label className="block text-sm font-medium text-text-primary mb-2">
+                    <label className="block text-sm font-medium text-[rgb(var(--text-primary))] mb-2">
                         Message *
                     </label>
                     <textarea
@@ -185,7 +185,7 @@ const ContactSupportForm = () => {
                         onChange={handleChange}
                         required
                         rows={6}
-                        className="w-full px-4 py-3 border border-border-subtle rounded-lg bg-bg-body text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-primary focus:border-transparent transition-colors resize-none"
+                        className="w-full px-4 py-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-colors resize-none"
                         placeholder="Please describe your issue or question in detail..."
                     />
                 </div>
@@ -196,7 +196,7 @@ const ContactSupportForm = () => {
                     disabled={isSubmitting}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-gradient-to-r from-secondary to-primary text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg hover:shadow-primary/40 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                     {isSubmitting ? (
                         <>
@@ -213,11 +213,11 @@ const ContactSupportForm = () => {
             </form>
 
             {/* Response Time Info */}
-            <div className="mt-6 p-4 bg-primary/10 rounded-lg border border-primary/30">
-                <p className="text-sm text-text-secondary">
+            <div className="mt-6 p-4 bg-[rgb(var(--accent))]/10 rounded-lg border border-[rgb(var(--accent))]/30">
+                <p className="text-sm text-[rgb(var(--text-secondary))]">
                     <strong>🤖 Instant AI Response:</strong> You'll receive an immediate AI-powered auto-reply with personalized guidance.
                 </p>
-                <p className="text-sm text-text-secondary mt-2">
+                <p className="text-sm text-[rgb(var(--text-secondary))] mt-2">
                     <strong>👥 Human Follow-up:</strong> Our support team typically responds within 24 hours during business days.
                     For urgent issues, we aim to respond within 4 hours.
                 </p>

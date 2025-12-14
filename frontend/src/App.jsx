@@ -14,6 +14,7 @@ import ProfilePage from './pages/ProfilePage';
 import SettingsPageNew from './pages/SettingsPageNew';
 import NotificationsPageNew from './pages/NotificationsPageNew';
 import NotesPage from './pages/NotesPage';
+import ResourcesPage from './pages/ResourcesPage';
 
 import MainLayout from './components/layouts/MainLayout';
 import ProtectedRoute from './components/layouts/ProtectedRoute';
@@ -111,6 +112,14 @@ const App = () => {
                   element={
                     <ProtectedRoute>
                       <NotesPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/resources"
+                  element={
+                    <ProtectedRoute>
+                      <ResourcesPage />
                     </ProtectedRoute>
                   }
                 />

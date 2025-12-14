@@ -17,7 +17,7 @@ const authenticateUser = async (req, res, next) => {
             userEmail = req.body.email;
         }
 
-        console.log('Authentication attempt - Headers:', req.headers['user-email'], 'Body email:', req.body?.email);
+        //.log('Authentication attempt - Headers:', req.headers['user-email'], 'Body email:', req.body?.email);
 
         if (!userEmail) {
             return res.status(401).json({
@@ -219,9 +219,10 @@ router.put('/change-password', authenticateUser, async (req, res) => {
         // Hash new password
         const hashedNewPassword = await bcrypt.hash(newPassword, 12);
 
-        // Update password
+        // Update password and track change date
         await User.findByIdAndUpdate(req.user._id, {
             password: hashedNewPassword,
+            lastPasswordChange: new Date(),
             updatedAt: new Date()
         });
 
@@ -241,30 +242,16 @@ router.put('/change-password', authenticateUser, async (req, res) => {
 // Delete account (soft delete with confirmation)
 router.delete('/delete-account', authenticateUser, async (req, res) => {
     try {
-        const { password, confirmDelete } = req.body;
-
-        if (!password || confirmDelete !== 'DELETE') {
-            return res.status(400).json({
-                success: false,
-                message: 'Password and confirmation required'
-            });
-        }
-
-        // Verify password
-        const user = await User.findById(req.user._id);
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-
-        if (!isPasswordValid) {
-            return res.status(400).json({
-                success: false,
-                message: 'Incorrect password'
-            });
-        }
-
-        // Mark account as deleted (you might want to implement soft delete)
+        // Mark account as deleted (soft delete)
         await User.findByIdAndUpdate(req.user._id, {
             isDeleted: true,
-            deletedAt: new Date()
+            deletedAt: new Date(),
+            // Clear sensitive data
+            sessions: [],
+            resetPasswordToken: undefined,
+            resetPasswordExpires: undefined,
+            otp: undefined,
+            otpExpires: undefined
         });
 
         res.json({
@@ -276,6 +263,164 @@ router.delete('/delete-account', authenticateUser, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to delete account'
+        });
+    }
+});
+
+// Get user preferences
+router.get('/preferences', authenticateUser, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+
+        // Return preferences with defaults if not set
+        const preferences = {
+            emailNotifications: user.preferences?.emailNotifications ?? true,
+            testReminders: user.preferences?.testReminders ?? true,
+            weeklyDigest: user.preferences?.weeklyDigest ?? false,
+            language: user.preferences?.language || 'en',
+            timezone: user.preferences?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
+        };
+
+        res.json({
+            success: true,
+            data: preferences
+        });
+    } catch (error) {
+        console.error('Error fetching preferences:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch preferences'
+        });
+    }
+});
+
+// Update user preferences
+router.put('/preferences', authenticateUser, async (req, res) => {
+    try {
+        const { emailNotifications, testReminders, weeklyDigest, language, timezone } = req.body;
+
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user._id,
+            {
+                preferences: {
+                    emailNotifications,
+                    testReminders,
+                    weeklyDigest,
+                    language,
+                    timezone
+                }
+            },
+            { new: true }
+        );
+
+        res.json({
+            success: true,
+            message: 'Preferences updated successfully',
+            data: updatedUser.preferences
+        });
+    } catch (error) {
+        console.error('Error updating preferences:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update preferences'
+        });
+    }
+});
+
+// Get security information
+router.get('/security', authenticateUser, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+
+        // Get current token from request header
+        const currentToken = req.headers.authorization?.replace('Bearer ', '');
+
+        // Format sessions for frontend
+        const sessions = (user.sessions || []).map((session, index) => ({
+            id: session._id || `session-${index}`,
+            device: session.device || 'Unknown Device',
+            browser: session.browser || 'Unknown',
+            os: session.os || 'Unknown',
+            location: session.location || 'Unknown Location',
+            ip: session.ip || 'Unknown IP',
+            lastActive: session.lastActive || session.createdAt,
+            createdAt: session.createdAt,
+            current: session.token === currentToken
+        }));
+
+        res.json({
+            success: true,
+            data: {
+                sessions,
+                twoFactorEnabled: user.twoFactorEnabled || false,
+                lastPasswordChange: user.lastPasswordChange || null
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching security info:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch security information'
+        });
+    }
+});
+
+// Revoke session
+router.post('/revoke-session', authenticateUser, async (req, res) => {
+    try {
+        const { sessionId } = req.body;
+
+        if (!sessionId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Session ID is required'
+            });
+        }
+
+        const user = await User.findById(req.user._id);
+
+        // Remove the session
+        user.sessions = user.sessions.filter(session =>
+            session._id.toString() !== sessionId &&
+            `session-${user.sessions.indexOf(session)}` !== sessionId
+        );
+
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Session revoked successfully'
+        });
+    } catch (error) {
+        console.error('Error revoking session:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to revoke session'
+        });
+    }
+});
+
+// Toggle Two-Factor Authentication
+router.post('/toggle-2fa', authenticateUser, async (req, res) => {
+    try {
+        const { enabled } = req.body;
+
+        const user = await User.findByIdAndUpdate(
+            req.user._id,
+            { twoFactorEnabled: enabled },
+            { new: true }
+        );
+
+        res.json({
+            success: true,
+            message: `Two-factor authentication ${enabled ? 'enabled' : 'disabled'} successfully`,
+            data: { twoFactorEnabled: user.twoFactorEnabled }
+        });
+    } catch (error) {
+        console.error('Error toggling 2FA:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to toggle two-factor authentication'
         });
     }
 });

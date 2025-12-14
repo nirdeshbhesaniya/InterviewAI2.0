@@ -53,13 +53,13 @@ const FAQSection = () => {
     };
 
     return (
-        <div className="bg-bg-card rounded-2xl shadow-card border border-border-subtle p-6 lg:p-8">
+        <div className="bg-[rgb(var(--bg-card))] rounded-2xl shadow-card border border-[rgb(var(--border-subtle))] p-6 lg:p-8">
             <div className="mb-6">
-                <h3 className="text-2xl font-bold text-text-primary mb-2 flex items-center gap-2">
-                    <HelpCircle className="w-6 h-6 text-accent" />
+                <h3 className="text-2xl font-bold text-[rgb(var(--text-primary))] mb-2 flex items-center gap-2">
+                    <HelpCircle className="w-6 h-6 text-[rgb(var(--accent))]" />
                     Frequently Asked Questions
                 </h3>
-                <p className="text-text-secondary">
+                <p className="text-[rgb(var(--text-secondary))]">
                     Find quick answers to common questions about Interview AI.
                 </p>
             </div>
@@ -68,19 +68,19 @@ const FAQSection = () => {
                 {faqs.map((faq, index) => (
                     <div
                         key={index}
-                        className="border border-border-subtle rounded-lg overflow-hidden"
+                        className="border border-[rgb(var(--border-subtle))] rounded-lg overflow-hidden"
                     >
                         <button
                             onClick={() => toggleItem(index)}
-                            className="w-full px-4 py-4 text-left bg-bg-elevated-alt hover:bg-bg-card transition-colors flex items-center justify-between gap-3"
+                            className="w-full px-4 py-4 text-left bg-[rgb(var(--bg-elevated-alt))] hover:bg-[rgb(var(--bg-card))] transition-colors flex items-center justify-between gap-3"
                         >
-                            <span className="font-medium text-text-primary text-sm sm:text-base">
+                            <span className="font-medium text-[rgb(var(--text-primary))] text-sm sm:text-base">
                                 {faq.question}
                             </span>
                             {openItems.has(index) ? (
-                                <ChevronUp className="w-5 h-5 text-text-secondary flex-shrink-0" />
+                                <ChevronUp className="w-5 h-5 text-[rgb(var(--text-secondary))] flex-shrink-0" />
                             ) : (
-                                <ChevronDown className="w-5 h-5 text-text-secondary flex-shrink-0" />
+                                <ChevronDown className="w-5 h-5 text-[rgb(var(--text-secondary))] flex-shrink-0" />
                             )}
                         </button>
 
@@ -93,8 +93,8 @@ const FAQSection = () => {
                                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                                     className="overflow-hidden"
                                 >
-                                    <div className="px-4 py-4 bg-bg-card border-t border-border-subtle">
-                                        <p className="text-text-secondary text-sm sm:text-base leading-relaxed">
+                                    <div className="px-4 py-4 bg-[rgb(var(--bg-card))] border-t border-[rgb(var(--border-subtle))]">
+                                        <p className="text-[rgb(var(--text-secondary))] text-sm sm:text-base leading-relaxed">
                                             {faq.answer}
                                         </p>
                                     </div>
@@ -106,10 +106,10 @@ const FAQSection = () => {
             </div>
 
             {/* Contact Prompt */}
-            <div className="mt-8 p-4 bg-accent/10 rounded-lg border border-accent/20">
-                <p className="text-sm text-text-secondary text-center">
+            <div className="mt-8 p-4 bg-[rgb(var(--accent))]/10 rounded-lg border border-[rgb(var(--accent))]/20">
+                <p className="text-sm text-[rgb(var(--text-secondary))] text-center">
                     Can't find what you're looking for?
-                    <span className="font-medium text-accent ml-1">
+                    <span className="font-medium text-[rgb(var(--accent))] ml-1">
                         Use the contact form to get personalized help!
                     </span>
                 </p>

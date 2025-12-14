@@ -53,9 +53,9 @@ import {
     ExternalLink,
     Sparkles,
     Bot,
-    Filter,
-    Loader2
+    Filter
 } from 'lucide-react';
+import { ButtonLoader } from '../../components/ui/Loader';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -99,7 +99,7 @@ const CodeBlock = ({ language = 'javascript', content }) => {
             {/* Copy Button - Always visible on mobile, hover on desktop */}
             <button
                 onClick={handleCopy}
-                className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20 bg-gray-800/90 dark:bg-gray-700/90 hover:bg-gray-900 dark:hover:bg-gray-600 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-lg shadow-lg transition-all duration-200 flex items-center gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-orange-500 backdrop-blur-sm"
+                className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20 bg-gray-800/90 dark:bg-gray-700/90 hover:bg-gray-900 dark:hover:bg-gray-600 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-lg shadow-lg transition-all duration-200 flex items-center gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] backdrop-blur-sm"
                 aria-label="Copy code to clipboard"
             >
                 {copied ? (
@@ -176,7 +176,7 @@ const QuestionCard = ({
 
     const formattedAnswer = useMemo(() => {
         if (!answer?.length) {
-            return <p className="text-sm italic text-gray-500 dark:text-gray-400 py-4">No answer available.</p>;
+            return <p className="text-sm italic text-[rgb(var(--text-muted))] py-4">No answer available.</p>;
         }
 
         return answer.map((part, idx) => {
@@ -192,20 +192,20 @@ const QuestionCard = ({
                     <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
-                            h1: (props) => <h1 className="text-xl sm:text-2xl font-extrabold mt-4 sm:mt-6 mb-3 sm:mb-4 break-words text-gray-900 dark:text-white" {...props} />,
-                            h2: (props) => <h2 className="text-lg sm:text-xl font-bold mt-4 sm:mt-5 mb-2 sm:mb-3 break-words text-gray-800 dark:text-gray-100" {...props} />,
-                            h3: (props) => <h3 className="text-base sm:text-lg font-bold mt-3 sm:mt-4 mb-2 break-words text-gray-800 dark:text-gray-100" {...props} />,
-                            p: (props) => <p className="mb-3 sm:mb-4 leading-relaxed break-words text-gray-700 dark:text-gray-300" {...props} />,
+                            h1: (props) => <h1 className="text-xl sm:text-2xl font-extrabold mt-4 sm:mt-6 mb-3 sm:mb-4 break-words text-[rgb(var(--text-primary))]" {...props} />,
+                            h2: (props) => <h2 className="text-lg sm:text-xl font-bold mt-4 sm:mt-5 mb-2 sm:mb-3 break-words text-[rgb(var(--text-primary))]" {...props} />,
+                            h3: (props) => <h3 className="text-base sm:text-lg font-bold mt-3 sm:mt-4 mb-2 break-words text-[rgb(var(--text-primary))]" {...props} />,
+                            p: (props) => <p className="mb-3 sm:mb-4 leading-relaxed break-words text-[rgb(var(--text-secondary))]" {...props} />,
                             ul: (props) => <ul className="list-disc pl-4 sm:pl-6 mb-3 sm:mb-4 space-y-1.5 sm:space-y-2 break-words" {...props} />,
                             ol: (props) => <ol className="list-decimal pl-4 sm:pl-6 mb-3 sm:mb-4 space-y-1.5 sm:space-y-2 break-words" {...props} />,
-                            li: (props) => <li className="text-gray-700 dark:text-gray-300 leading-relaxed" {...props} />,
-                            strong: (props) => <strong className="font-extrabold text-gray-900 dark:text-white" {...props} />,
-                            em: (props) => <em className="italic text-gray-800 dark:text-gray-200" {...props} />,
+                            li: (props) => <li className="text-[rgb(var(--text-secondary))] leading-relaxed" {...props} />,
+                            strong: (props) => <strong className="font-extrabold text-[rgb(var(--text-primary))]" {...props} />,
+                            em: (props) => <em className="italic text-[rgb(var(--text-primary))]" {...props} />,
                             blockquote: (props) => (
-                                <blockquote className="border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-900/20 pl-3 sm:pl-4 py-2 sm:py-3 my-3 sm:my-4 italic rounded-r-lg break-words font-medium text-gray-800 dark:text-gray-200" {...props} />
+                                <blockquote className="border-l-4 border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10 pl-3 sm:pl-4 py-2 sm:py-3 my-3 sm:my-4 italic rounded-r-lg break-words font-medium text-[rgb(var(--text-secondary))]" {...props} />
                             ),
                             code: (props) => (
-                                <code className="bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-xs sm:text-sm font-mono font-semibold break-all text-orange-600 dark:text-orange-400" {...props} />
+                                <code className="bg-[rgb(var(--bg-card-alt))] px-1.5 py-0.5 rounded text-xs sm:text-sm font-mono font-semibold break-all text-[rgb(var(--accent))]" {...props} />
                             ),
                             a: (props) => <a className="text-blue-600 dark:text-blue-400 hover:underline font-semibold break-all" target="_blank" rel="noopener noreferrer" {...props} />
                         }}
@@ -222,11 +222,11 @@ const QuestionCard = ({
             variants={ANIMATION_VARIANTS.item}
             className="group"
         >
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="bg-[rgb(var(--bg-card))] rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-[rgb(var(--border))] overflow-hidden">
                 {/* Question Header */}
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="w-full px-4 sm:px-5 md:px-6 py-3 sm:py-4 md:py-5 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 hover:from-orange-50 hover:to-orange-100 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-inset"
+                    className="w-full px-4 sm:px-5 md:px-6 py-3 sm:py-4 md:py-5 bg-[rgb(var(--bg-body-alt))] hover:bg-[rgb(var(--bg-card-alt))] transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:ring-inset"
                     aria-expanded={isOpen}
                     aria-controls={`answer-${index}`}
                 >
@@ -234,13 +234,13 @@ const QuestionCard = ({
                         <div className="flex-1 min-w-0">
                             <div className="flex items-start gap-3">
                                 {/* Question Number Badge */}
-                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-red-500 text-white text-sm font-bold shadow-md flex-shrink-0">
+                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[rgb(var(--accent))] text-white text-sm font-bold shadow-md flex-shrink-0">
                                     {index + 1}
                                 </span>
 
                                 {/* Question Text */}
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base md:text-lg leading-relaxed break-words overflow-wrap-anywhere">
+                                    <h3 className="font-semibold text-[rgb(var(--text-primary))] text-sm sm:text-base md:text-lg leading-relaxed break-words overflow-wrap-anywhere">
                                         {question}
                                     </h3>
 
@@ -259,7 +259,7 @@ const QuestionCard = ({
 
                         {/* Expand/Collapse Icon */}
                         <ChevronDown
-                            className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform duration-200 flex-shrink-0 ${isOpen ? 'rotate-180' : ''
+                            className={`w-5 h-5 text-[rgb(var(--text-muted))] transition-transform duration-200 flex-shrink-0 ${isOpen ? 'rotate-180' : ''
                                 }`}
                         />
                     </div>
@@ -276,31 +276,31 @@ const QuestionCard = ({
                             transition={{ duration: 0.3 }}
                             className="overflow-hidden"
                         >
-                            <div className="px-4 sm:px-5 md:px-6 py-4 sm:py-5 border-t border-gray-200 dark:border-gray-700">
+                            <div className="px-4 sm:px-5 md:px-6 py-4 sm:py-5 border-t border-[rgb(var(--border))]">
                                 {/* Answer */}
                                 <div className="mb-4 sm:mb-6 overflow-hidden break-words">
                                     {isEditing ? (
                                         <div className="space-y-3">
-                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                            <label className="block text-sm font-semibold text-[rgb(var(--text-secondary))]">
                                                 Edit Answer:
                                             </label>
                                             <textarea
                                                 value={editedContent}
                                                 onChange={(e) => onEditContentChange(e.target.value)}
-                                                className="w-full min-h-[300px] px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-y font-mono text-sm leading-relaxed"
+                                                className="w-full min-h-[300px] px-4 py-3 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent resize-y font-mono text-sm leading-relaxed"
                                                 placeholder="Enter your answer here..."
                                             />
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => onSaveEdit(index)}
-                                                    className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 shadow-md"
+                                                    className="px-4 py-2 bg-[rgb(var(--success))] hover:bg-[rgb(var(--success-hover))] text-white rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 shadow-md">
                                                 >
                                                     <Check className="w-4 h-4" />
                                                     Save Changes
                                                 </button>
                                                 <button
                                                     onClick={onCancelEdit}
-                                                    className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                                                    className="px-4 py-2 bg-[rgb(var(--bg-card-alt))] hover:bg-[rgb(var(--bg-card-alt))]/80 text-[rgb(var(--text-secondary))] rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2">
                                                 >
                                                     <X className="w-4 h-4" />
                                                     Cancel
@@ -313,13 +313,13 @@ const QuestionCard = ({
                                 </div>
 
                                 {/* Action Buttons */}
-                                <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100 dark:border-gray-700">
+                                <div className="flex flex-wrap gap-2 pt-4 border-t border-[rgb(var(--border-subtle))]">
                                     {/* Star/Unstar */}
                                     <button
                                         onClick={() => onToggleStar(index)}
                                         className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${isStarred
                                             ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-900/50'
-                                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                            : 'bg-[rgb(var(--bg-card-alt))] text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-card-alt))]/80'
                                             }`}
                                         aria-label={isStarred ? 'Unmark as important' : 'Mark as important'}
                                     >
@@ -360,7 +360,7 @@ const QuestionCard = ({
                                     {/* Share */}
                                     <button
                                         onClick={() => onShare(index)}
-                                        className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ml-auto"
+                                        className="px-3 py-2 bg-[rgb(var(--bg-card-alt))] text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-card-alt))]/80 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ml-auto"
                                         aria-label="Share question"
                                     >
                                         <Share2 className="w-4 h-4" />
@@ -656,7 +656,7 @@ const InterviewPrepModern = () => {
     // ==================== LOADING STATE ====================
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 px-4">
+            <div className="min-h-screen flex items-center justify-center bg-[rgb(var(--bg-body))] px-4">
                 <div className="text-center space-y-6">
                     <div className="flex justify-center gap-2">
                         {[0, 1, 2].map(i => (
@@ -668,8 +668,8 @@ const InterviewPrepModern = () => {
                         ))}
                     </div>
                     <div className="flex items-center gap-3">
-                        <Bot className="w-8 h-8 text-orange-600" />
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        <Bot className="w-8 h-8 text-[rgb(var(--accent))]" />
+                        <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))]">
                             Loading Interview Session...
                         </h1>
                     </div>
@@ -684,15 +684,15 @@ const InterviewPrepModern = () => {
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 px-4">
                 <div className="text-center space-y-6 max-w-md">
                     <div className="text-6xl">❌</div>
-                    <h1 className="text-2xl font-bold text-red-600 dark:text-red-400">
+                    <h1 className="text-2xl font-bold text-[rgb(var(--danger))]">
                         Session Not Found
                     </h1>
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <p className="text-[rgb(var(--text-secondary))]">
                         The interview session you're looking for doesn't exist or may have been deleted.
                     </p>
                     <button
                         onClick={() => navigate('/')}
-                        className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors"
+                        className="px-6 py-3 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg font-medium transition-colors"
                     >
                         Go to Dashboard
                     </button>
@@ -706,29 +706,29 @@ const InterviewPrepModern = () => {
         <div className={darkMode ? 'dark' : ''}>
             <Toaster position="top-right" />
 
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <div className="min-h-screen bg-[rgb(var(--bg-body))]">
                 <div className="w-full py-4 sm:py-6">
                     {/* ==================== HEADER SECTION ==================== */}
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
-                        className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-700 rounded-2xl shadow-xl border border-blue-200/50 dark:border-gray-600/50 px-4 sm:px-6 md:px-8 py-4 sm:py-6 lg:py-8 mb-4 sm:mb-6 mx-3 sm:mx-4 md:mx-6 lg:mx-8"
+                        className="bg-[rgb(var(--bg-card))] rounded-2xl shadow-xl border border-[rgb(var(--border))] px-4 sm:px-6 md:px-8 py-4 sm:py-6 lg:py-8 mb-4 sm:mb-6 mx-3 sm:mx-4 md:mx-6 lg:mx-8"
                     >
                         {/* Title and Metadata */}
                         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 mb-6">
                             {/* Left: Title and Description */}
                             <div className="flex-1 space-y-4">
                                 <div className="flex items-start gap-3">
-                                    <Bot className="w-8 h-8 text-orange-600 flex-shrink-0 mt-1" />
+                                    <Bot className="w-8 h-8 text-[rgb(var(--accent))] flex-shrink-0 mt-1" />
                                     <div className="flex-1 min-w-0">
-                                        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white break-words leading-tight">
+                                        <h1 className="text-3xl lg:text-4xl font-bold text-[rgb(var(--text-primary))] break-words leading-tight">
                                             {session.title}
                                         </h1>
                                     </div>
                                 </div>
 
-                                <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed">
+                                <p className="text-base text-[rgb(var(--text-secondary))] leading-relaxed">
                                     {session.desc}
                                 </p>
 
@@ -746,9 +746,9 @@ const InterviewPrepModern = () => {
                             </div>
 
                             {/* Right: Metadata Card */}
-                            <div className="lg:w-64 bg-white/60 dark:bg-gray-800/60 rounded-xl p-4 border border-gray-200/50 dark:border-gray-600/50 backdrop-blur-sm space-y-3">
+                            <div className="lg:w-64 bg-[rgb(var(--bg-card-alt))]/60 rounded-xl p-4 border border-[rgb(var(--border-subtle))]/50 backdrop-blur-sm space-y-3">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    <span className="text-sm font-semibold text-[rgb(var(--text-secondary))]">
                                         Experience:
                                     </span>
                                     <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 text-xs font-medium rounded-md">
@@ -756,12 +756,12 @@ const InterviewPrepModern = () => {
                                     </span>
                                 </div>
 
-                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                <div className="text-sm text-[rgb(var(--text-muted))]">
                                     <span className="font-medium">Created:</span>{' '}
                                     {moment(session.createdAt).format('MMM DD, YYYY')}
                                 </div>
 
-                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                <div className="text-sm text-[rgb(var(--text-muted))]">
                                     <span className="font-medium">Questions:</span>{' '}
                                     {session.qna?.length || 0}
                                 </div>
@@ -769,14 +769,14 @@ const InterviewPrepModern = () => {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex flex-wrap gap-3 pt-6 border-t border-gray-200/50 dark:border-gray-600/50">
+                        <div className="flex flex-wrap gap-3 pt-6 border-t border-[rgb(var(--border-subtle))]/50">
                             {/* Left Side Controls */}
                             <div className="flex flex-wrap gap-2 flex-1">
                                 <button
                                     onClick={() => setImportantOnly(!importantOnly)}
                                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${importantOnly
                                         ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
-                                        : 'bg-white/80 dark:bg-gray-700/80 text-gray-700 dark:text-gray-300'
+                                        : 'bg-[rgb(var(--bg-card-alt))]/80 text-[rgb(var(--text-secondary))]'
                                         }`}
                                     aria-pressed={importantOnly}
                                 >
@@ -786,7 +786,7 @@ const InterviewPrepModern = () => {
 
                                 <button
                                     onClick={() => setExpandedAll(!expandedAll)}
-                                    className="px-4 py-2 bg-white/80 dark:bg-gray-700/80 hover:bg-white dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                                    className="px-4 py-2 bg-[rgb(var(--bg-card-alt))]/80 hover:bg-[rgb(var(--bg-card-alt))] text-[rgb(var(--text-secondary))] rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
                                     aria-label={expandedAll ? 'Collapse all questions' : 'Expand all questions'}
                                 >
                                     {expandedAll ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -795,7 +795,7 @@ const InterviewPrepModern = () => {
 
                                 <button
                                     onClick={() => setDarkMode(!darkMode)}
-                                    className="px-4 py-2 bg-white/80 dark:bg-gray-700/80 hover:bg-white dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                                    className="px-4 py-2 bg-[rgb(var(--bg-card-alt))]/80 hover:bg-[rgb(var(--bg-card-alt))] text-[rgb(var(--text-secondary))] rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
                                     aria-label="Toggle dark mode"
                                 >
                                     {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -816,7 +816,7 @@ const InterviewPrepModern = () => {
 
                                 <button
                                     onClick={handleShareSession}
-                                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-lg text-sm font-medium shadow-lg transition-all duration-200 flex items-center gap-2"
+                                    className="px-4 py-2 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg text-sm font-medium shadow-lg transition-all duration-200 flex items-center gap-2"
                                     aria-label="Share session"
                                 >
                                     <Share2 className="w-4 h-4" />
@@ -831,16 +831,16 @@ const InterviewPrepModern = () => {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.4, delay: 0.2 }}
-                        className="bg-gradient-to-r from-orange-50 via-yellow-50 to-orange-50 dark:from-orange-900/10 dark:via-yellow-900/10 dark:to-orange-900/10 border border-orange-200 dark:border-orange-800/50 rounded-xl px-4 sm:px-5 md:px-6 py-4 sm:py-5 mb-4 sm:mb-6 shadow-md mx-3 sm:mx-4 md:mx-6 lg:mx-8"
+                        className="bg-[rgb(var(--warning-bg))] border border-[rgb(var(--warning-border))] rounded-xl px-4 sm:px-5 md:px-6 py-4 sm:py-5 mb-4 sm:mb-6 shadow-md mx-3 sm:mx-4 md:mx-6 lg:mx-8"
                         role="alert"
                     >
                         <div className="flex gap-4">
-                            <AlertCircle className="w-6 h-6 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+                            <AlertCircle className="w-6 h-6 text-[rgb(var(--warning))] flex-shrink-0" />
                             <div>
-                                <h4 className="font-bold text-orange-800 dark:text-orange-300 mb-1">
+                                <h4 className="font-bold text-[rgb(var(--warning))] mb-1">
                                     AI-Generated Content Disclaimer
                                 </h4>
-                                <p className="text-sm text-gray-700 dark:text-gray-300">
+                                <p className="text-sm text-[rgb(var(--text-secondary))]">
                                     Answers are AI-generated. Please review and verify before using in actual interviews.
                                     Feel free to regenerate or edit as needed.
                                 </p>
@@ -882,7 +882,7 @@ const InterviewPrepModern = () => {
                         {hasMore && (
                             <button
                                 onClick={handleLoadMore}
-                                className="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                                className="px-6 py-3 bg-[rgb(var(--bg-card-alt))] hover:bg-[rgb(var(--bg-card-alt))]/80 text-[rgb(var(--text-primary))] rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2">
                             >
                                 <ChevronDown className="w-5 h-5" />
                                 Load More Questions
@@ -892,13 +892,10 @@ const InterviewPrepModern = () => {
                         <button
                             onClick={handleGenerateMore}
                             disabled={isGenerating}
-                            className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-lg font-medium shadow-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
-                        >
+                            className="px-6 py-3 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:cursor-not-allowed">
+
                             {isGenerating ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                    Generating...
-                                </>
+                                <ButtonLoader text="Generating..." />
                             ) : (
                                 <>
                                     <Sparkles className="w-5 h-5" />
@@ -914,7 +911,7 @@ const InterviewPrepModern = () => {
                         animate={{ scale: 1 }}
                         transition={{ delay: 0.5 }}
                         onClick={handleShareSession}
-                        className="fixed bottom-6 right-6 lg:hidden w-14 h-14 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-full shadow-2xl flex items-center justify-center z-50 focus:outline-none focus:ring-4 focus:ring-orange-300"
+                        className="fixed bottom-6 right-6 lg:hidden w-14 h-14 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-full shadow-2xl flex items-center justify-center z-50 focus:outline-none focus:ring-4 focus:ring-[rgb(var(--accent))]/30"
                         aria-label="Share session"
                     >
                         <Share2 className="w-6 h-6" />

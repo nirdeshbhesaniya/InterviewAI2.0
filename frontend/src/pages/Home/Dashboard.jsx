@@ -16,7 +16,8 @@ import {
   Grid,
   List,
   MoreVertical,
-  Eye
+  Eye,
+  Library
 } from 'lucide-react';
 import CreateCardModal from '../../components/Cards/CreateCardForm';
 import axios from '../../utils/axiosInstance';
@@ -113,7 +114,7 @@ export const Dashboard = () => {
   }, [searchTerm, cards]);
 
   return (
-    <div className="min-h-screen bg-bg-body">
+    <div className="min-h-screen bg-[rgb(var(--bg-body))]">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 font-[Urbanist]">
         {/* Enhanced Header */}
         <div className="mb-6 sm:mb-8">
@@ -122,10 +123,10 @@ export const Dashboard = () => {
             <div className="space-y-2">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-highlight to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-highlight/50">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[rgb(var(--accent))] rounded-xl flex items-center justify-center shadow-md">
                     <Bot className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
                   </div>
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary">
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[rgb(var(--text-primary))]">
                     Interview AI
                   </h1>
                 </div>
@@ -133,12 +134,12 @@ export const Dashboard = () => {
                   <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs sm:text-sm">
                     {cards.length} Sessions
                   </Badge>
-                  <Badge className="bg-secondary/20 text-secondary border-secondary/30 text-xs sm:text-sm sm:hidden">
+                  <Badge className="bg-[rgb(var(--accent))]/20 text-[rgb(var(--accent))] border-[rgb(var(--accent))]/30 text-xs sm:text-sm sm:hidden">
                     {cards.reduce((acc, card) => acc + (card.qna?.length || 0), 0)} Q&A
                   </Badge>
                 </div>
               </div>
-              <p className="text-text-secondary text-sm sm:text-base">
+              <p className="text-[rgb(var(--text-secondary))] text-sm sm:text-base">
                 Manage your AI-powered interview preparation sessions
               </p>
             </div>
@@ -147,25 +148,25 @@ export const Dashboard = () => {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
               {/* Search Bar - Full width on mobile */}
               <div className="relative flex-1 lg:min-w-[300px] lg:max-w-[400px]">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-muted))]" />
                 <Input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search sessions..."
-                  className="pl-10 pr-4 py-2.5 w-full rounded-xl border-border-subtle bg-bg-card/50 backdrop-blur-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm sm:text-base text-text-primary placeholder:text-text-muted"
+                  className="pl-10 pr-4 py-2.5 w-full rounded-xl border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-card))]/50 backdrop-blur-sm focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-all text-sm sm:text-base text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))]"
                 />
               </div>
 
               {/* Action Controls - Better mobile layout */}
-              <div className="flex items-center justify-between sm:justify-end gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between sm:justify-end gap-2">
                 {/* View Mode Toggle - Hidden on small screens */}
-                <div className="hidden sm:flex rounded-lg bg-bg-card p-1 shadow-sm border border-border-subtle">
+                <div className="hidden sm:flex rounded-lg bg-[rgb(var(--bg-card))] p-1 shadow-sm border border-[rgb(var(--border-subtle))]">
                   <button
                     onClick={() => setViewMode('grid')}
                     className={`p-2 rounded-md transition-all ${viewMode === 'grid'
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'text-text-muted hover:text-text-secondary'
+                      ? 'bg-[rgb(var(--accent))] text-white shadow-sm'
+                      : 'text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-secondary))]'
                       }`}
                   >
                     <Grid className="w-4 h-4" />
@@ -173,45 +174,50 @@ export const Dashboard = () => {
                   <button
                     onClick={() => setViewMode('list')}
                     className={`p-2 rounded-md transition-all ${viewMode === 'list'
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'text-text-muted hover:text-text-secondary'
+                      ? 'bg-[rgb(var(--accent))] text-white shadow-sm'
+                      : 'text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-secondary))]'
                       }`}
                   >
                     <List className="w-4 h-4" />
                   </button>
                 </div>
 
-                {/* Quick Filter - Mobile only */}
-                <button className="sm:hidden p-2.5 bg-bg-card border border-border-subtle rounded-xl shadow-sm">
-                  <Filter className="w-4 h-4 text-text-muted" />
-                </button>
+                {/* Mobile: Two-row layout for buttons */}
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  {/* First row on mobile */}
+                  <div className="flex gap-2">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => navigate('/mcq-test')}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-3 py-2.5 sm:px-4 sm:py-2.5 rounded-xl shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transition-all duration-200"
+                    >
+                      <Bot className="w-4 h-4" />
+                      <span className="text-sm sm:text-base font-medium">MCQ Test</span>
+                    </motion.button>
 
-                {/* Add New Button - Responsive */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => navigate('/mcq-test')}
-                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-secondary to-primary text-white px-3 py-2.5 sm:px-4 sm:py-2.5 rounded-xl shadow-lg shadow-secondary/50 hover:shadow-xl hover:shadow-secondary/60 transition-all duration-200 min-w-[80px] sm:min-w-auto"
-                >
-                  <Bot className="w-4 h-4" />
-                  <span className="text-sm sm:text-base font-medium">
-                    <span className="hidden sm:inline">MCQ Test</span>
-                    <span className="sm:hidden">MCQ</span>
-                  </span>
-                </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => navigate('/resources')}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-3 py-2.5 sm:px-4 sm:py-2.5 rounded-xl shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-500/40 transition-all duration-200"
+                    >
+                      <Library className="w-4 h-4" />
+                      <span className="text-sm sm:text-base font-medium">Resources</span>
+                    </motion.button>
+                  </div>
 
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setModalOpen(true)}
-                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-highlight to-pink-500 text-white px-3 py-2.5 sm:px-4 sm:py-2.5 rounded-xl shadow-lg shadow-highlight/50 hover:shadow-xl hover:shadow-highlight/60 transition-all duration-200 min-w-[80px] sm:min-w-auto"
-                >
-                  <PlusCircle className="w-4 h-4" />
-                  <span className="text-sm sm:text-base font-medium">
-                    <span className="hidden sm:inline">New Session</span>
-                    <span className="sm:hidden">New</span>
-                  </span>
-                </motion.button>
+                  {/* Second row on mobile */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setModalOpen(true)}
+                    className="flex items-center justify-center gap-2 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white px-3 py-2.5 sm:px-4 sm:py-2.5 rounded-xl shadow-lg shadow-[rgb(var(--accent))]/30 hover:shadow-xl hover:shadow-[rgb(var(--accent))]/40 transition-all duration-200"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    <span className="text-sm sm:text-base font-medium">New Session</span>
+                  </motion.button>
+                </div>
               </div>
             </div>
           </div>
@@ -258,18 +264,18 @@ export const Dashboard = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
-                className="bg-bg-card/80 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-border-subtle shadow-sm hover:shadow-lg hover:shadow-primary/10 transition-all"
+                className="bg-[rgb(var(--bg-card))]/80 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-[rgb(var(--border-subtle))] shadow-sm hover:shadow-lg hover:shadow-[rgb(var(--accent))]/10 transition-all"
               >
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r ${stat.color} rounded-lg flex items-center justify-center shadow-md flex-shrink-0`}>
                     <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs sm:text-sm text-text-muted truncate">
+                    <p className="text-xs sm:text-sm text-[rgb(var(--text-muted))] truncate">
                       <span className="sm:hidden">{stat.shortLabel}</span>
                       <span className="hidden sm:inline">{stat.label}</span>
                     </p>
-                    <p className="text-lg sm:text-xl font-bold text-text-primary">{stat.value}</p>
+                    <p className="text-lg sm:text-xl font-bold text-[rgb(var(--text-primary))]">{stat.value}</p>
                   </div>
                 </div>
               </motion.div>
@@ -282,15 +288,15 @@ export const Dashboard = () => {
           <div className="min-h-[50vh] sm:min-h-[60vh] flex items-center justify-center px-4">
             <div className="flex flex-col items-center gap-4 sm:gap-6">
               <div className="flex space-x-2 sm:space-x-3">
-                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-highlight animate-ping [animation-delay:-0.30s]"></div>
-                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-primary animate-ping [animation-delay:-0.35s]"></div>
-                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-secondary animate-ping"></div>
+                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-[rgb(var(--accent))] animate-ping [animation-delay:-0.30s]"></div>
+                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-[rgb(var(--accent))] animate-ping [animation-delay:-0.35s]"></div>
+                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-[rgb(var(--accent))] animate-ping"></div>
               </div>
               <div className="flex items-center justify-center gap-2 sm:gap-3 animate-pulse">
-                <Bot className="w-6 h-6 sm:w-8 sm:h-8 text-highlight drop-shadow-md" />
-                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-highlight tracking-wide">Loading Dashboard</h1>
+                <Bot className="w-6 h-6 sm:w-8 sm:h-8 text-[rgb(var(--accent))] drop-shadow-md" />
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-[rgb(var(--accent))] tracking-wide">Loading Dashboard</h1>
               </div>
-              <p className="text-xs sm:text-sm text-text-secondary text-center px-4">Setting up your smart dashboard...</p>
+              <p className="text-xs sm:text-sm text-[rgb(var(--text-secondary))] text-center px-4">Setting up your smart dashboard...</p>
             </div>
           </div>
         ) : filteredCards.length === 0 ? (
@@ -308,10 +314,10 @@ export const Dashboard = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent rounded-full"></div>
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-text-primary mb-2">
+            <h3 className="text-xl sm:text-2xl font-bold text-[rgb(var(--text-primary))] mb-2">
               {searchTerm ? 'No matching sessions found' : 'No interview sessions yet'}
             </h3>
-            <p className="text-text-secondary mb-4 sm:mb-6 max-w-md text-sm sm:text-base">
+            <p className="text-[rgb(var(--text-secondary))] mb-4 sm:mb-6 max-w-md text-sm sm:text-base">
               {searchTerm
                 ? 'Try adjusting your search terms or create a new session'
                 : 'Start your interview preparation journey by creating your first session'
@@ -322,7 +328,7 @@ export const Dashboard = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setModalOpen(true)}
-                className="flex items-center gap-2 bg-gradient-to-r from-highlight to-pink-500 text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-xl shadow-lg shadow-highlight/50 hover:shadow-xl hover:shadow-highlight/60 transition-all duration-200 text-sm sm:text-base"
+                className="flex items-center gap-2 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-xl shadow-lg shadow-[rgb(var(--accent))]/30 hover:shadow-xl hover:shadow-[rgb(var(--accent))]/40 transition-all duration-200 text-sm sm:text-base"
               >
                 <PlusCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                 Create Your First Session
@@ -341,7 +347,7 @@ export const Dashboard = () => {
                   return (
                     <motion.div
                       key={card.sessionId}
-                      className={`group relative bg-gradient-to-br ${gradient} rounded-2xl p-4 sm:p-6 shadow-md hover:shadow-xl hover:shadow-primary/20 border border-border-subtle backdrop-blur-sm transition-all duration-300 cursor-pointer overflow-hidden`}
+                      className={`group relative bg-gradient-to-br ${gradient} rounded-2xl p-4 sm:p-6 shadow-md hover:shadow-xl hover:shadow-[rgb(var(--accent))]/20 border border-[rgb(var(--border-subtle))] backdrop-blur-sm transition-all duration-300 cursor-pointer overflow-hidden`}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
@@ -357,10 +363,10 @@ export const Dashboard = () => {
                       {/* Header - Mobile Optimized */}
                       <div className="relative z-10 flex justify-between items-start mb-3 sm:mb-4">
                         <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-bg-card/90 backdrop-blur-sm text-text-primary font-bold rounded-xl flex items-center justify-center shadow-sm border border-border-subtle text-sm sm:text-base flex-shrink-0">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[rgb(var(--bg-card))]/90 backdrop-blur-sm text-[rgb(var(--text-primary))] font-bold rounded-xl flex items-center justify-center shadow-sm border border-[rgb(var(--border-subtle))] text-sm sm:text-base flex-shrink-0">
                             {card.initials || "??"}
                           </div>
-                          <div className="text-xs sm:text-sm text-text-muted min-w-0">
+                          <div className="text-xs sm:text-sm text-[rgb(var(--text-muted))] min-w-0">
                             <div className="flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
                               <span className="truncate">{new Date(card.updatedAt).toLocaleDateString('en-GB')}</span>
@@ -377,7 +383,7 @@ export const Dashboard = () => {
                               e.stopPropagation();
                               navigate(`/interview-prep/${card.sessionId}`);
                             }}
-                            className="p-1.5 sm:p-2 bg-bg-card rounded-lg shadow-sm border border-border-subtle text-text-primary hover:text-secondary transition-all"
+                            className="p-1.5 sm:p-2 bg-[rgb(var(--bg-card))] rounded-lg shadow-sm border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))] hover:text-[rgb(var(--accent))] transition-all"
                           >
                             <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </motion.button>
@@ -390,7 +396,7 @@ export const Dashboard = () => {
                                 e.stopPropagation();
                                 handleDeleteClick(card.sessionId);
                               }}
-                              className="p-1.5 sm:p-2 bg-bg-card rounded-lg shadow-sm border border-border-subtle text-text-primary hover:text-red-500 transition-all"
+                              className="p-1.5 sm:p-2 bg-[rgb(var(--bg-card))] rounded-lg shadow-sm border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))] hover:text-red-500 transition-all"
                             >
                               <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </motion.button>
@@ -400,10 +406,10 @@ export const Dashboard = () => {
 
                       {/* Content - Mobile Optimized Typography */}
                       <div className="relative z-10">
-                        <h3 className="text-base sm:text-lg font-bold text-text-primary mb-2 line-clamp-2 leading-tight">
+                        <h3 className="text-base sm:text-lg font-bold text-[rgb(var(--text-primary))] mb-2 line-clamp-2 leading-tight">
                           {card.title || "Untitled Session"}
                         </h3>
-                        <p className="text-xs sm:text-sm text-text-secondary mb-3 sm:mb-4 line-clamp-3 leading-relaxed">
+                        <p className="text-xs sm:text-sm text-[rgb(var(--text-secondary))] mb-3 sm:mb-4 line-clamp-3 leading-relaxed">
                           {card.desc || "No description provided."}
                         </p>
 
@@ -429,7 +435,7 @@ export const Dashboard = () => {
                         </div>
 
                         {/* Footer Stats */}
-                        <div className="flex items-center justify-between text-xs text-text-secondary">
+                        <div className="flex items-center justify-between text-xs text-[rgb(var(--text-secondary))]">
                           <div className="flex items-center gap-1">
                             <Target className="w-3 h-3" />
                             <span>Exp: {card.experience || "N/A"}</span>
@@ -442,7 +448,7 @@ export const Dashboard = () => {
                       </div>
 
                       {/* Hover Effect */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-[rgb(var(--accent))]/10 to-[rgb(var(--accent))]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
                     </motion.div>
                   );
                 })}
@@ -456,7 +462,7 @@ export const Dashboard = () => {
                   return (
                     <motion.div
                       key={card.sessionId}
-                      className="group bg-bg-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-md hover:shadow-lg hover:shadow-primary/10 border border-border-subtle transition-all duration-300 cursor-pointer"
+                      className="group bg-[rgb(var(--bg-card))]/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-md hover:shadow-lg hover:shadow-[rgb(var(--accent))]/10 border border-[rgb(var(--border-subtle))] transition-all duration-300 cursor-pointer"
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
@@ -464,13 +470,13 @@ export const Dashboard = () => {
                     >
                       <div className="flex items-start sm:items-center justify-between">
                         <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-highlight to-pink-500 text-white font-bold rounded-xl flex items-center justify-center shadow-md shadow-highlight/30 flex-shrink-0 text-sm sm:text-base">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[rgb(var(--accent))] text-white font-bold rounded-xl flex items-center justify-center shadow-md shadow-[rgb(var(--accent))]/30 flex-shrink-0 text-sm sm:text-base">
                             {card.initials || "??"}
                           </div>
 
                           <div className="flex-1 min-w-0">
                             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-1 sm:mb-1">
-                              <h3 className="text-base sm:text-lg font-semibold text-text-primary truncate">
+                              <h3 className="text-base sm:text-lg font-semibold text-[rgb(var(--text-primary))] truncate">
                                 {card.title || "Untitled Session"}
                               </h3>
                               <div className="flex flex-wrap gap-1">
@@ -488,10 +494,10 @@ export const Dashboard = () => {
                                   ))}
                               </div>
                             </div>
-                            <p className="text-xs sm:text-sm text-text-secondary line-clamp-2 mb-2 sm:mb-2">
+                            <p className="text-xs sm:text-sm text-[rgb(var(--text-secondary))] line-clamp-2 mb-2 sm:mb-2">
                               {card.desc || "No description provided."}
                             </p>
-                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-text-muted">
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-[rgb(var(--text-muted))]">
                               <span className="flex items-center gap-1">
                                 <Target className="w-3 h-3" />
                                 <span className="hidden sm:inline">{card.experience || "N/A"}</span>
@@ -518,7 +524,7 @@ export const Dashboard = () => {
                               e.stopPropagation();
                               navigate(`/interview-prep/${card.sessionId}`);
                             }}
-                            className="p-1.5 sm:p-2 text-text-primary hover:text-secondary hover:bg-secondary/10 rounded-lg transition-all"
+                            className="p-1.5 sm:p-2 text-[rgb(var(--text-primary))] hover:text-[rgb(var(--accent))] hover:bg-[rgb(var(--accent))]/10 rounded-lg transition-all"
                           >
                             <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </motion.button>
@@ -531,7 +537,7 @@ export const Dashboard = () => {
                                 e.stopPropagation();
                                 handleDeleteClick(card.sessionId);
                               }}
-                              className="p-1.5 sm:p-2 text-text-primary hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                              className="p-1.5 sm:p-2 text-[rgb(var(--text-primary))] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
                             >
                               <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </motion.button>
@@ -564,7 +570,7 @@ export const Dashboard = () => {
               exit={{ opacity: 0 }}
             >
               <motion.div
-                className="bg-bg-card rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-border-subtle"
+                className="bg-[rgb(var(--bg-card))] rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-[rgb(var(--border-subtle))]"
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.8, opacity: 0 }}
@@ -575,12 +581,12 @@ export const Dashboard = () => {
                     <Trash2 className="w-6 h-6 text-red-500" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-text-primary">Delete Session</h2>
-                    <p className="text-sm text-text-muted">This action cannot be undone</p>
+                    <h2 className="text-lg font-bold text-[rgb(var(--text-primary))]">Delete Session</h2>
+                    <p className="text-sm text-[rgb(var(--text-muted))]">This action cannot be undone</p>
                   </div>
                 </div>
 
-                <p className="text-text-secondary mb-6 leading-relaxed">
+                <p className="text-[rgb(var(--text-secondary))] mb-6 leading-relaxed">
                   Are you sure you want to delete this interview session? All questions, answers, and progress will be permanently removed.
                 </p>
 
@@ -589,7 +595,7 @@ export const Dashboard = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setConfirmModal(false)}
-                    className="flex-1 px-4 py-2.5 text-text-secondary bg-bg-body hover:bg-bg-card-alt rounded-xl transition-colors font-medium border border-border-subtle"
+                    className="flex-1 px-4 py-2.5 text-[rgb(var(--text-secondary))] bg-[rgb(var(--bg-body))] hover:bg-[rgb(var(--bg-body-alt))] rounded-xl transition-colors font-medium border border-[rgb(var(--border-subtle))]"
                   >
                     Cancel
                   </motion.button>
@@ -612,7 +618,7 @@ export const Dashboard = () => {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={() => setModalOpen(true)}
-          className="fixed bottom-6 right-6 sm:hidden bg-gradient-to-r from-highlight to-pink-500 text-white p-4 rounded-full shadow-lg shadow-highlight/50 hover:shadow-xl hover:shadow-highlight/60 transition-all duration-200 z-40"
+          className="fixed bottom-6 right-6 sm:hidden bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white p-4 rounded-full shadow-lg shadow-[rgb(var(--accent))]/30 hover:shadow-xl hover:shadow-[rgb(var(--accent))]/40 transition-all duration-200 z-40"
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.3, delay: 0.5 }}

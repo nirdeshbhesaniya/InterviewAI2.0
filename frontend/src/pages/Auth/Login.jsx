@@ -33,38 +33,38 @@ const Login = ({ onSwitch, onForgotPassword }) => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto bg-bg-card shadow-xl shadow-primary/10 rounded-2xl p-6 border border-border-subtle">
-      <h2 className="text-2xl font-bold text-center text-highlight mb-1">Welcome Back 👋</h2>
-      <p className="text-sm text-text-muted text-center mb-6">Login with your account below</p>
+    <div className="w-full max-w-md mx-auto bg-[rgb(var(--bg-card))] shadow-lg rounded-2xl p-6 border border-[rgb(var(--border))]">
+      <h2 className="text-2xl font-bold text-center text-[rgb(var(--accent))] mb-1">Welcome Back 👋</h2>
+      <p className="text-sm text-[rgb(var(--text-muted))] text-center mb-6">Login with your account below</p>
 
       <form className="space-y-5" onSubmit={handleLogin}>
         {/* Email Field */}
         <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-5 h-5" />
           <input
             type="email"
             placeholder="Email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-bg-body border border-border-subtle rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
             required
           />
         </div>
 
         {/* Password Field */}
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-5 h-5" />
           <input
             type={showPass ? 'text' : 'password'}
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full pl-10 pr-10 py-2 bg-bg-body border border-border-subtle rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            className="w-full pl-10 pr-10 py-2 bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
             required
           />
           <button
             type="button"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-highlight"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))]"
             onClick={() => setShowPass((prev) => !prev)}
           >
             {showPass ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -76,7 +76,7 @@ const Login = ({ onSwitch, onForgotPassword }) => {
           <button
             type="button"
             onClick={onForgotPassword}
-            className="text-sm text-highlight hover:text-pink-500 transition-colors"
+            className="text-sm text-[rgb(var(--accent))] hover:text-[rgb(var(--accent-hover))] transition-colors"
           >
             Forgot password?
           </button>
@@ -88,19 +88,19 @@ const Login = ({ onSwitch, onForgotPassword }) => {
           whileTap={{ scale: 0.97 }}
           disabled={loading}
           className={`w-full py-2 rounded-md transition font-semibold tracking-wide shadow-md ${loading
-              ? 'bg-text-muted/50 text-text-secondary cursor-not-allowed'
-              : 'bg-gradient-to-r from-highlight to-pink-500 hover:shadow-lg hover:shadow-highlight/50 text-white'
+            ? 'bg-[rgb(var(--text-muted))]/50 text-[rgb(var(--text-secondary))] cursor-not-allowed'
+            : 'bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] hover:shadow-lg text-white'
             }`}
         >
           {loading ? 'Logging in...' : 'LOGIN'}
         </motion.button>
       </form>
 
-      <p className="text-sm text-center mt-4 text-text-secondary">
+      <p className="text-sm text-center mt-4 text-[rgb(var(--text-secondary))]">
         New here?{' '}
         <button
           onClick={onSwitch}
-          className="text-highlight hover:text-pink-500 font-medium transition-colors"
+          className="text-[rgb(var(--accent))] hover:text-[rgb(var(--accent-hover))] font-medium transition-colors"
         >
           Create an account
         </button>

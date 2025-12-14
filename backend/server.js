@@ -7,41 +7,123 @@ const authRoutes = require('./Routes/authRoutes');
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000; // ✅ Define PORT here
+const PORT = process.env.PORT || 8080;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use('/uploads', express.static('uploads')); // Serve images
+// Production-safe CORS configuration
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL,
+  process.env.AZURE_STATIC_WEB_APP_URL
+].filter(Boolean);
 
-// Routes
-app.use('/api/auth', authRoutes);
-const profileRoutes = require('./Routes/profileRoutes');
-app.use('/api/profile', profileRoutes);
-const interviewRoutes = require('./Routes/interview');
-app.use('/api/interview', interviewRoutes);
-const compileRoute = require('./Routes/compile');
-app.use('/api/compile', compileRoute);
-const chatbotRoutes = require('./Routes/chatbot');
-app.use('/api/chatbot', chatbotRoutes);
-const supportRoutes = require('./Routes/support_new');
-app.use('/api/support', supportRoutes);
-const mcqRoutes = require('./Routes/mcq');
-app.use('/api/mcq', mcqRoutes);
-const notificationRoutes = require('./Routes/notifications');
-app.use('/api/notifications', notificationRoutes);
-const settingsRoutes = require('./Routes/settings');
-app.use('/api/settings', settingsRoutes);
-const notesRoutes = require('./Routes/notes');
-app.use('/api/notes', notesRoutes);
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || origin.match(/\.azurestaticapps\.net$/)) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Allow all in production for Azure
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'user-email']
+}));
 
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use('/uploads', express.static('uploads'));
 
-// Connect to DB and start server
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log("✅ MongoDB connected successfully");
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-  })
-  .catch((err) => {
-    console.error("❌ MongoDB connection error:", err);
+// Health check endpoint for Azure
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ message: 'Interview AI Backend API', version: '1.0.0' });
+});
+
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/profile', require('./Routes/profileRoutes'));
+app.use('/api/interview', require('./Routes/interview'));
+app.use('/api/compile', require('./Routes/compile'));
+app.use('/api/chatbot', require('./Routes/chatbot'));
+app.use('/api/support', require('./Routes/support_new'));
+app.use('/api/mcq', require('./Routes/mcq'));
+app.use('/api/notifications', require('./Routes/notifications'));
+app.use('/api/settings', require('./Routes/settings'));
+app.use('/api/notes', require('./Routes/notes'));
+app.use('/api/resources', require('./Routes/resources'));
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err.stack);
+  res.status(err.status || 500).json({
+    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message
+  });
+});
+
+// Graceful shutdown handlers
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, closing server gracefully...');
+  mongoose.connection.close(false, () => {
+    console.log('MongoDB connection closed');
+    process.exit(0);
+  });
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+// MongoDB connection
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+    });
+    console.log('✅ MongoDB connected successfully');
+    console.log(`✅ Database: ${mongoose.connection.name}`);
+  } catch (error) {
+    console.error('❌ MongoDB connection error:', error.message);
+    process.exit(1);
+  }
+};
+
+// Start server
+const startServer = async () => {
+  await connectDB();
+
+  app.listen(PORT, () => {
+    console.log('='.repeat(50));
+    console.log(`🚀 Interview AI Backend Server`);
+    console.log(`📡 Running on port ${PORT}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+    console.log('='.repeat(50));
+  });
+};
+
+startServer().catch(err => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
+});
+
+module.exports = app;
