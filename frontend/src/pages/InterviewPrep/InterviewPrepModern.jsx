@@ -294,14 +294,14 @@ const QuestionCard = ({
                                                 <button
                                                     onClick={() => onSaveEdit(index)}
                                                     className="px-4 py-2 bg-[rgb(var(--success))] hover:bg-[rgb(var(--success-hover))] text-white rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 shadow-md">
-                                                >
+                                                
                                                     <Check className="w-4 h-4" />
                                                     Save Changes
                                                 </button>
                                                 <button
                                                     onClick={onCancelEdit}
                                                     className="px-4 py-2 bg-[rgb(var(--bg-card-alt))] hover:bg-[rgb(var(--bg-card-alt))]/80 text-[rgb(var(--text-secondary))] rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2">
-                                                >
+                                                
                                                     <X className="w-4 h-4" />
                                                     Cancel
                                                 </button>
