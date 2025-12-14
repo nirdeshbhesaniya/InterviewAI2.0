@@ -7,6 +7,7 @@ const axiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
 });
+console.log("API BASE:", import.meta.env.VITE_API_BASE_URL);
 
 // Add a request interceptor to include user email for authentication
 axiosInstance.interceptors.request.use(
