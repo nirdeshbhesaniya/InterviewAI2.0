@@ -9,26 +9,36 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// Production-safe CORS configuration
 const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:3000',
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://white-rock-0f34f2f00.3.azurestaticapps.net",
   process.env.FRONTEND_URL,
   process.env.AZURE_STATIC_WEB_APP_URL
 ].filter(Boolean);
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || origin.match(/\.azurestaticapps\.net$/)) {
-      callback(null, true);
-    } else {
-      callback(null, true); // Allow all in production for Azure
+  origin: (origin, callback) => {
+    // Allow server-to-server & tools like Postman
+    if (!origin) return callback(null, true);
+
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith(".azurestaticapps.net")
+    ) {
+      return callback(null, true);
     }
+
+    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'user-email']
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+// 🔥 THIS LINE IS VERY IMPORTANT
+app.options("*", cors());
+
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
