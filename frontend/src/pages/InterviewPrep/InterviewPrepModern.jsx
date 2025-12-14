@@ -883,7 +883,6 @@ const InterviewPrepModern = () => {
                             <button
                                 onClick={handleLoadMore}
                                 className="px-6 py-3 bg-[rgb(var(--bg-card-alt))] hover:bg-[rgb(var(--bg-card-alt))]/80 text-[rgb(var(--text-primary))] rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2">
-                            >
                                 <ChevronDown className="w-5 h-5" />
                                 Load More Questions
                             </button>
