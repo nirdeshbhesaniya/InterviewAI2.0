@@ -41,20 +41,17 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/uploads', express.static('uploads'));
 
-// Health check endpoint for Azure
-app.get('/api/health', (req, res) => {
+app.get("/", (req, res) => {
   res.status(200).json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
-    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    status: "OK",
+    message: "InterviewAI Backend is running 🚀"
   });
 });
 
-// Root endpoint
-app.get('/', (req, res) => {
-  res.json({ message: 'Interview AI Backend API', version: '1.0.0' });
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ success: true });
 });
+
 
 // API Routes
 app.use('/api/auth', authRoutes);
