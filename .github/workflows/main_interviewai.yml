@@ -1,4 +1,7 @@
-name: Deploy Backend to Azure Web App - interviewai
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy Node.js app to Azure Web App - interviewai
 
 on:
   push:
@@ -7,35 +10,56 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: windows-latest
     permissions:
-      id-token: write
-      contents: read
+      contents: read #This is required for actions/checkout
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Node.js version
+        uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: '22.x'
 
-      - name: Install backend dependencies
-        run: npm install
-        working-directory: backend
+      - name: npm install, build, and test
+        run: |
+          npm install
+          npm run build --if-present
+          npm run test --if-present
+      
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-app
+          path: .
 
-      - name: Azure Login
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: node-app
+      
+      - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_41EE1194BF734212BCC31822E9ED3A95 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_F54238CE930349F8893D57DED095957E }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_B30B367FC5434AE0A89D8CC2E0888D9F }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_E834E7285F504692B4D09EBB7B1B7896 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_BA5004277D6746FA8310DA24EF5FEB33 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_71C6A4311B564675889AA66C05082CDA }}
 
-      - name: Deploy Backend to Azure Web App
+      - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
+        id: deploy-to-webapp
         with:
-          app-name: interviewai
-          slot-name: Production
-          package: backend
+          app-name: 'interviewai'
+          slot-name: 'Production'
+          package: .
+          
