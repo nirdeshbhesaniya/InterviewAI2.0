@@ -15,7 +15,7 @@ dotenv.config();
 
 // Email configuration with production optimizations
 const getEmailConfig = (portOverride = null) => {
-  const usePort = portOverride || parseInt(process.env.SMTP_PORT || '587');
+  const usePort = portOverride || parseInt(process.env.SMTP_PORT || '465'); // Default to 465 for cloud platforms
 
   // Custom SMTP configuration (for Render, AWS, etc.)
   if (process.env.SMTP_HOST) {
@@ -28,48 +28,56 @@ const getEmailConfig = (portOverride = null) => {
         pass: process.env.EMAIL_PASS
       },
       tls: {
-        rejectUnauthorized: process.env.NODE_ENV === 'production' ? false : true,
-        ciphers: 'SSLv3'
+        rejectUnauthorized: false, // Required for Render/cloud platforms
+        minVersion: 'TLSv1.2'
       },
-      connectionTimeout: 10000, // 10 seconds
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
+      connectionTimeout: 20000, // 20 seconds for cloud platforms
+      greetingTimeout: 20000,
+      socketTimeout: 20000,
       debug: process.env.EMAIL_DEBUG === 'true',
       logger: process.env.EMAIL_DEBUG === 'true'
     };
   }
 
-  // Gmail service configuration (optimized)
+  // Gmail service configuration (optimized for cloud platforms)
   const service = process.env.EMAIL_SERVICE || 'gmail';
 
   return {
     service: service,
+    port: usePort, // Explicitly set port for Gmail
+    secure: usePort === 465, // Use SSL for port 465
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS
     },
     tls: {
-      rejectUnauthorized: false
+      rejectUnauthorized: false,
+      minVersion: 'TLSv1.2'
     },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 10000,
+    connectionTimeout: 20000,
+    greetingTimeout: 20000,
+    socketTimeout: 20000,
     debug: process.env.EMAIL_DEBUG === 'true',
     logger: process.env.EMAIL_DEBUG === 'true'
   };
 };
 
-// Create transporter with retry logic
-const createTransporter = async (retryPorts = [587, 465, 25]) => {
+// Create transporter with retry logic - prioritize port 465 for cloud platforms
+const createTransporter = async (retryPorts = [465, 587, 25]) => {
   const config = getEmailConfig(retryPorts[0]);
 
   try {
     const transporter = nodemailer.createTransport(config);
 
-    // Verify connection
-    await transporter.verify();
+    // Verify connection with timeout
+    await Promise.race([
+      transporter.verify(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Verification timeout')), 15000)
+      )
+    ]);
+    
     console.log(`✅ Email transporter ready on port ${config.port || config.service}`);
-
     return transporter;
   } catch (error) {
     console.error(`❌ Failed to connect on port ${retryPorts[0]}:`, error.message);
@@ -80,7 +88,7 @@ const createTransporter = async (retryPorts = [587, 465, 25]) => {
       return createTransporter(retryPorts.slice(1));
     }
 
-    // All ports failed, return unverified transporter
+    // All ports failed, return unverified transporter as last resort
     console.warn('⚠️ Creating transporter without verification (may fail on send)');
     return nodemailer.createTransport(config);
   }
