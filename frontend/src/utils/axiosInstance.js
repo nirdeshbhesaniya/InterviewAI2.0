@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://interviewai-gychepdwf8aebkg8.southeastasia-01.azurewebsites.net/api',
-  // baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: 'https://interviewai2-0sever.onrender.com/api',
+  // baseURL: "http://localhost:8080/api",
   headers: {
     'Content-Type': 'application/json',
   },

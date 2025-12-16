@@ -12,9 +12,8 @@ const PORT = process.env.PORT || 8080;
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
-  "https://white-rock-0f34f2f00.3.azurestaticapps.net",
   process.env.FRONTEND_URL,
-  process.env.AZURE_STATIC_WEB_APP_URL
+  
 ].filter(Boolean);
 
 app.use(cors({
@@ -33,7 +32,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization", "user-email"]
 }));
 
 
