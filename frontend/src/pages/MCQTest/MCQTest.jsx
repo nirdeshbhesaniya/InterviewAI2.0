@@ -28,7 +28,8 @@ const MCQTest = () => {
     });
     const [questions, setQuestions] = useState([]);
     const [questionsWithAnswers, setQuestionsWithAnswers] = useState([]); // Store questions with correct answers for evaluation
-    const [answers, setAnswers] = useState({});
+    const [answers, setAnswers] = useState({}); // Only saved answers after clicking Save & Next
+    const [tempAnswer, setTempAnswer] = useState(null); // Temporary selection for current question
     const [markedForReview, setMarkedForReview] = useState({});
     const [visitedQuestions, setVisitedQuestions] = useState({});
     const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -51,6 +52,7 @@ const MCQTest = () => {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [fullscreenWarnings, setFullscreenWarnings] = useState(0);
     const [tabSwitchWarnings, setTabSwitchWarnings] = useState(0);
+    const [notificationWarnings, setNotificationWarnings] = useState(0);
     const [availableTopics] = useState([
         'JavaScript', 'React', 'Node.js', 'Python', 'Java', 'C++', 'Database',
         'System Design', 'Data Structures', 'Algorithms', 'Machine Learning',
@@ -336,7 +338,7 @@ const MCQTest = () => {
             if (currentStep === 'test' && !isCurrentlyFullscreen && isFullscreen) {
                 setFullscreenWarnings(prev => {
                     const newCount = prev + 1;
-                    const totalWarnings = newCount + tabSwitchWarnings;
+                    const totalWarnings = newCount + tabSwitchWarnings + notificationWarnings;
 
                     toast.error(`⚠️ You exited fullscreen. Test may be invalid! (Warning ${totalWarnings}/3)`, {
                         duration: 5000,
@@ -364,14 +366,21 @@ const MCQTest = () => {
             // Restore header/footer when leaving test
             setIsTestActive(false);
         };
-    }, [currentStep, setIsTestActive, isFullscreen, tabSwitchWarnings, handleSubmitTest]);
+    }, [currentStep, setIsTestActive, isFullscreen, tabSwitchWarnings, notificationWarnings, handleSubmitTest]);
 
-    // Track visited questions
+    // Track visited questions and load saved/temp answer when changing questions
     useEffect(() => {
         if (currentStep === 'test' && questions.length > 0) {
             setVisitedQuestions(prev => ({ ...prev, [currentQuestion]: true }));
+
+            // Load saved answer for the current question into temp state
+            if (answers[currentQuestion] !== undefined) {
+                setTempAnswer(answers[currentQuestion]);
+            } else {
+                setTempAnswer(null);
+            }
         }
-    }, [currentQuestion, currentStep, questions.length]);
+    }, [currentQuestion, currentStep, questions.length, answers]);
 
     // Prevent accidental page refresh/close during test
     useEffect(() => {
@@ -397,7 +406,14 @@ const MCQTest = () => {
 
         // Prevent keyboard shortcuts (except allowed ones)
         const preventKeyboardShortcuts = (e) => {
-            // Block Ctrl, Cmd, Alt combinations (except Ctrl+C for copy in test)
+            // Block Windows/Meta key (prevents Start menu and Windows shortcuts)
+            if (e.key === 'Meta' || e.key === 'OS') {
+                e.preventDefault();
+                toast.error('Windows key is disabled during the test!', { duration: 2000 });
+                return;
+            }
+
+            // Block Ctrl, Cmd, Alt combinations (except allowed ones)
             if (e.ctrlKey || e.metaKey || e.altKey) {
                 // Allow Ctrl+C and Ctrl+V for copying code/text
                 if (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'v' || e.key === 'V')) {
@@ -459,7 +475,7 @@ const MCQTest = () => {
         const handleBlur = () => {
             setTabSwitchWarnings(prev => {
                 const newCount = prev + 1;
-                const totalWarnings = newCount + fullscreenWarnings;
+                const totalWarnings = newCount + fullscreenWarnings + notificationWarnings;
 
                 toast.error(`⚠️ You switched away from the test window! (Warning ${totalWarnings}/3)`, {
                     duration: 4000,
@@ -487,7 +503,70 @@ const MCQTest = () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('blur', handleBlur);
         };
-    }, [currentStep, fullscreenWarnings, handleSubmitTest]);
+    }, [currentStep, fullscreenWarnings, tabSwitchWarnings, notificationWarnings, handleSubmitTest]);
+
+    // Block external notifications during test
+    useEffect(() => {
+        if (currentStep !== 'test') return;
+
+        // Detect notification events and count as warnings
+        const handleNotificationShow = () => {
+            setNotificationWarnings(prev => {
+                const newCount = prev + 1;
+                const totalWarnings = newCount + fullscreenWarnings + tabSwitchWarnings;
+
+                toast.error(`📵 External notification detected! Close messaging apps! (Warning ${totalWarnings}/3)`, {
+                    duration: 4000,
+                    icon: '⚠️',
+                });
+
+                // Auto-submit if 3 warnings reached
+                if (totalWarnings >= 3) {
+                    toast.error('🚨 Test auto-submitted due to 3 security violations!', {
+                        duration: 6000,
+                    });
+                    setTimeout(() => {
+                        handleSubmitTest();
+                    }, 1000);
+                }
+
+                return newCount;
+            });
+        };
+
+        // Monitor for notification permission changes and visibility changes that might indicate notifications
+        const checkNotifications = () => {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                // Show periodic reminder to close notification apps
+                const reminderInterval = setInterval(() => {
+                    if (currentStep === 'test') {
+                        toast('📵 Reminder: Close all messaging apps (WhatsApp, Telegram, etc.)', {
+                            duration: 3000,
+                            icon: '⚠️'
+                        });
+                    }
+                }, 300000); // Remind every 5 minutes
+
+                // Listen for focus changes that might indicate notification interaction
+                const handleFocusLoss = (e) => {
+                    // If focus is lost and document becomes hidden, it might be due to notification
+                    if (document.hidden && e.target !== window) {
+                        handleNotificationShow();
+                    }
+                };
+
+                window.addEventListener('focusout', handleFocusLoss);
+
+                return () => {
+                    clearInterval(reminderInterval);
+                    window.removeEventListener('focusout', handleFocusLoss);
+                };
+            }
+        };
+
+        const cleanup = checkNotifications();
+        return cleanup;
+    }, [currentStep, fullscreenWarnings, tabSwitchWarnings, handleSubmitTest]);
 
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
@@ -506,7 +585,8 @@ const MCQTest = () => {
         } catch (err) {
             console.log('Fullscreen request failed:', err);
             // Fallback: just hide header/footer without browser fullscreen
-            toast.info('Press F11 for fullscreen mode', { duration: 3000 });
+            // Using toast instead of toast.info as info variant is not available
+            toast('Press F11 for fullscreen mode', { duration: 3000 });
         }
     };
 
@@ -540,10 +620,28 @@ const MCQTest = () => {
                 setHasAttempted(true);
                 toast.success(`Test started! You have ${Math.ceil(formData.numberOfQuestions * 2)} minutes to complete.`);
 
-                // Enter fullscreen after test starts (user just clicked button)
-                setTimeout(() => {
-                    enterFullscreen();
-                }, 100);
+                // Request notification permission and warn about external notifications
+                if ('Notification' in window && Notification.permission === 'default') {
+                    try {
+                        const permission = await Notification.requestPermission();
+                        if (permission === 'granted') {
+                            toast('📵 Please close all notification apps (WhatsApp, etc.) during the test', {
+                                duration: 5000,
+                                icon: '⚠️'
+                            });
+                        }
+                    } catch (err) {
+                        console.log('Notification permission request failed:', err);
+                    }
+                } else if (Notification.permission === 'granted') {
+                    toast('📵 Please close all notification apps (WhatsApp, etc.) during the test', {
+                        duration: 5000,
+                        icon: '⚠️'
+                    });
+                }
+
+                // Optional: User can manually enter fullscreen using F11 or a button
+                // Removed automatic fullscreen call to avoid permission errors
             }
         } catch (error) {
             console.error('Error generating test:', error);
@@ -554,10 +652,8 @@ const MCQTest = () => {
     };
 
     const handleAnswerSelect = (questionIndex, selectedOption) => {
-        setAnswers(prev => ({
-            ...prev,
-            [questionIndex]: selectedOption
-        }));
+        // Only set temporary answer, don't save yet
+        setTempAnswer(selectedOption);
     };
 
     const handleMarkForReview = () => {
@@ -565,6 +661,49 @@ const MCQTest = () => {
             ...prev,
             [currentQuestion]: !prev[currentQuestion]
         }));
+    };
+
+    const handleClearAnswer = () => {
+        // Clear saved answer
+        setAnswers(prev => {
+            const newAnswers = { ...prev };
+            delete newAnswers[currentQuestion];
+            return newAnswers;
+        });
+        // Clear temporary selection
+        setTempAnswer(null);
+        toast.success('Answer cleared', { duration: 1500 });
+    };
+
+    const handleSaveAndNext = () => {
+        // Save the temporary answer if one is selected
+        if (tempAnswer !== null) {
+            setAnswers(prev => ({
+                ...prev,
+                [currentQuestion]: tempAnswer
+            }));
+            toast.success('Answer saved', { duration: 1500 });
+        } else if (answers[currentQuestion] === undefined) {
+            toast('No answer selected', { duration: 1500 });
+        }
+
+        // Move to next question if not the last one
+        if (currentQuestion < questions.length - 1) {
+            setCurrentQuestion(prev => prev + 1);
+        }
+    };
+
+    const handleMarkForReviewAndNext = () => {
+        // Mark current question for review
+        setMarkedForReview(prev => ({
+            ...prev,
+            [currentQuestion]: true
+        }));
+        toast('Marked for review', { duration: 1500 });
+        // Move to next question if not the last one
+        if (currentQuestion < questions.length - 1) {
+            setCurrentQuestion(prev => prev + 1);
+        }
     };
 
     const confirmSubmit = () => {
@@ -614,7 +753,7 @@ const MCQTest = () => {
                                     <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mt-3">
                                         <p className="text-yellow-400 text-xs font-semibold flex items-center gap-2">
                                             <AlertTriangle className="w-4 h-4" />
-                                            Security Warnings: {fullscreenWarnings + tabSwitchWarnings}
+                                            Security Warnings: {fullscreenWarnings + tabSwitchWarnings + notificationWarnings}
                                         </p>
                                     </div>
                                 )}
@@ -801,11 +940,11 @@ const MCQTest = () => {
     );
 
     const renderTest = () => (
-        <div className="w-full pb-32 sm:pb-6">
-            {/* Mobile/Tablet View - Original Stacked Layout */}
-            <div className="lg:hidden max-w-4xl mx-auto">
+        <div className="w-full h-screen overflow-hidden">
+            {/* Mobile/Tablet View - Fixed Height Layout */}
+            <div className="lg:hidden h-screen flex flex-col overflow-hidden">
                 {/* Header with timer and progress */}
-                <Card className="p-4 mb-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] shadow-md sticky top-0 z-30">
+                <Card className="p-4 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] shadow-md flex-shrink-0 z-30">
                     <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-4">
                             <div className="flex items-center space-x-2">
@@ -819,275 +958,121 @@ const MCQTest = () => {
                             </div>
                         </div>
                         {/* Security Warnings Indicator */}
-                        {(fullscreenWarnings > 0 || tabSwitchWarnings > 0) && (
+                        {(fullscreenWarnings > 0 || tabSwitchWarnings > 0 || notificationWarnings > 0) && (
                             <div className="flex items-center gap-2 text-xs text-danger">
                                 <span className="animate-pulse">⚠️</span>
-                                <span>{fullscreenWarnings + tabSwitchWarnings} warnings</span>
+                                <span>{fullscreenWarnings + tabSwitchWarnings + notificationWarnings} warnings</span>
                             </div>
                         )}
                     </div>
                 </Card>
 
-                {/* Question Card */}
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={currentQuestion}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <Card className="w-full p-4 sm:p-6 mb-6 bg-[rgb(var(--bg-card))] shadow-xl border border-[rgb(var(--border-subtle))]">
-                            <div className="mb-6">
-                                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-4">
-                                    <div className="flex-1">
-                                        <div className="flex flex-wrap items-center gap-2 mb-4">
-                                            <span className="px-2 sm:px-3 py-1 bg-[rgb(var(--accent))] text-white rounded-full text-xs sm:text-sm font-medium shadow-md whitespace-nowrap">
-                                                Q {currentQuestion + 1}/{questions.length}
-                                            </span>
-                                            <div className="flex items-center gap-1 text-xs sm:text-sm text-[rgb(var(--text-muted))]">
-                                                <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                <span className="whitespace-nowrap">{formatTime(timeLeft)}</span>
-                                            </div>
-                                            {containsCode(questions[currentQuestion]?.question) && (
-                                                <span className="hidden sm:flex px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-medium items-center gap-1 border border-green-500/30">
-                                                    <Code className="w-3 h-3" />
-                                                    Code
+                {/* Scrollable Content Area */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar px-4">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={currentQuestion}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <Card className="w-full p-4 sm:p-6 my-4 bg-[rgb(var(--bg-card))] shadow-xl border border-[rgb(var(--border-subtle))]">
+                                <div className="mb-6">
+                                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-4">
+                                        <div className="flex-1">
+                                            <div className="flex flex-wrap items-center gap-2 mb-4">
+                                                <span className="px-2 sm:px-3 py-1 bg-[rgb(var(--accent))] text-white rounded-full text-xs sm:text-sm font-medium shadow-md whitespace-nowrap">
+                                                    Q {currentQuestion + 1}/{questions.length}
                                                 </span>
-                                            )}
-                                        </div>
-
-                                        {/* Enhanced Question Content Container */}
-                                        <div className="bg-[rgb(var(--bg-body))] rounded-xl p-4 border border-[rgb(var(--border-subtle))] shadow-sm">
-                                            <div className="prose prose-base max-w-none markdown-content [&_pre]:!bg-transparent [&_code]:!bg-transparent text-[rgb(var(--text-primary))]">
-                                                <ReactMarkdown components={components}>
-                                                    {questions[currentQuestion]?.question}
-                                                </ReactMarkdown>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Mobile-friendly progress indicator */}
-                                    <div className="w-full sm:w-auto">
-                                        <div className="flex items-center justify-between text-xs text-[rgb(var(--text-muted))] mb-2">
-                                            <span>Progress</span>
-                                            <span>{Math.round(((currentQuestion + 1) / questions.length) * 100)}%</span>
-                                        </div>
-                                        <div className="w-full sm:w-32 bg-[rgb(var(--bg-body))] rounded-full h-2 border border-[rgb(var(--border-subtle))]">
-                                            <div
-                                                className="bg-[rgb(var(--accent))] h-2 rounded-full transition-all duration-500 ease-out"
-                                                style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 gap-3">
-                                    {questions[currentQuestion]?.options?.map((option, optionIndex) => (
-                                        <motion.label
-                                            key={optionIndex}
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.1, delay: optionIndex * 0.02 }}
-                                            className={`group flex items-start p-5 border-2 rounded-xl cursor-pointer transition-all duration-100 hover:shadow-md ${answers[currentQuestion] === optionIndex
-                                                ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10 shadow-lg shadow-[rgb(var(--accent))]/20'
-                                                : 'border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/50 hover:bg-[rgb(var(--bg-body-alt))]'
-                                                }`}
-                                        >
-                                            <input
-                                                type="radio"
-                                                name={`question-${currentQuestion}`}
-                                                value={optionIndex}
-                                                checked={answers[currentQuestion] === optionIndex}
-                                                onChange={() => handleAnswerSelect(currentQuestion, optionIndex)}
-                                                className="sr-only"
-                                            />
-                                            <div className={`flex-shrink-0 w-5 h-5 border-2 rounded-full mr-4 mt-1 flex items-center justify-center transition-all duration-100 ${answers[currentQuestion] === optionIndex
-                                                ? 'border-primary bg-primary shadow-md'
-                                                : 'border-[rgb(var(--border-subtle))] group-hover:border-primary'
-                                                }`}>
-                                                {answers[currentQuestion] === optionIndex && (
-                                                    <motion.div
-                                                        initial={{ scale: 0 }}
-                                                        animate={{ scale: 1 }}
-                                                        transition={{ duration: 0.1 }}
-                                                        className="w-2 h-2 bg-white rounded-full"
-                                                    />
+                                                <div className="flex items-center gap-1 text-xs sm:text-sm text-[rgb(var(--text-muted))]">
+                                                    <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                    <span className="whitespace-nowrap">{formatTime(timeLeft)}</span>
+                                                </div>
+                                                {containsCode(questions[currentQuestion]?.question) && (
+                                                    <span className="hidden sm:flex px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-medium items-center gap-1 border border-green-500/30">
+                                                        <Code className="w-3 h-3" />
+                                                        Code
+                                                    </span>
                                                 )}
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <span className="text-sm sm:text-base font-semibold text-[rgb(var(--text-muted))] flex items-center gap-1.5">
-                                                        {String.fromCharCode(65 + optionIndex)}.
-                                                        {containsCode(option) && (
-                                                            <span className="hidden sm:inline-flex px-1.5 py-0.5 bg-secondary/20 text-secondary rounded text-[10px] items-center gap-1 border border-secondary/30">
-                                                                <Code className="w-2.5 h-2.5" />
-                                                                Code
-                                                            </span>
-                                                        )}
-                                                    </span>
-                                                </div>
 
-                                                {/* Enhanced Option Content */}
-                                                <div className={`prose prose-base max-w-none text-[rgb(var(--text-primary))] ${containsCode(option)
-                                                    ? 'bg-[#1a1a1a] rounded-lg p-4 border border-white/10'
-                                                    : ''
-                                                    }`}>
+                                            {/* Enhanced Question Content Container */}
+                                            <div className="bg-[rgb(var(--bg-body))] rounded-xl p-4 border border-[rgb(var(--border-subtle))] shadow-sm">
+                                                <div className="prose prose-base max-w-none markdown-content [&_pre]:!bg-transparent [&_code]:!bg-transparent text-[rgb(var(--text-primary))]">
                                                     <ReactMarkdown components={components}>
-                                                        {option}
+                                                        {questions[currentQuestion]?.question}
                                                     </ReactMarkdown>
                                                 </div>
                                             </div>
-                                        </motion.label>
-                                    ))}
-                                </div>
-                            </div>
-                        </Card>
+                                        </div>
 
-                        {/* Mobile Question Navigator */}
-                        <Card className="p-4 sm:p-5 mb-6 bg-[rgb(var(--bg-card))] shadow-xl border border-[rgb(var(--border-subtle))]">
-                            <h3 className="text-base sm:text-lg font-bold text-[rgb(var(--text-primary))] mb-4">Question Navigator</h3>
-
-                            {/* Question Grid */}
-                            <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 mb-5">
-                                {questions.map((_, index) => {
-                                    const isAnswered = answers[index] !== undefined;
-                                    const isCurrent = index === currentQuestion;
-                                    const isMarked = markedForReview[index];
-                                    const isVisited = visitedQuestions[index];
-
-                                    let bgColor = 'bg-[rgb(var(--text-disabled))]'; // Not Visited
-                                    if (isCurrent) {
-                                        bgColor = 'bg-[rgb(var(--accent))]'; // Current
-                                    } else if (isMarked) {
-                                        bgColor = 'bg-purple-600'; // Marked for review
-                                    } else if (isAnswered) {
-                                        bgColor = 'bg-success'; // Answered
-                                    } else if (isVisited) {
-                                        bgColor = 'bg-orange-500'; // Visited but not answered
-                                    }
-
-                                    return (
-                                        <button
-                                            key={index}
-                                            onClick={() => setCurrentQuestion(index)}
-                                            className={`${bgColor} text-white font-bold rounded h-10 sm:h-11 flex items-center justify-center text-sm sm:text-base transition-all active:scale-95 shadow`}
-                                        >
-                                            {index + 1}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Legend */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[rgb(var(--text-disabled))] text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
-                                        {questions.filter((_, i) => !visitedQuestions[i]).length}
-                                    </div>
-                                    <span className="text-xs sm:text-sm text-[rgb(var(--text-secondary))]">Not Visited</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
-                                        {Object.keys(markedForReview).filter(k => markedForReview[k]).length}
-                                    </div>
-                                    <span className="text-xs sm:text-sm text-[rgb(var(--text-secondary))]">Marked</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
-                                        {Object.keys(visitedQuestions).length - Object.keys(answers).length}
-                                    </div>
-                                    <span className="text-xs sm:text-sm text-[rgb(var(--text-secondary))]">Not Answered</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-success text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
-                                        {Object.keys(answers).filter(k => !markedForReview[k]).length}
-                                    </div>
-                                    <span className="text-xs sm:text-sm text-[rgb(var(--text-secondary))]">Answered</span>
-                                </div>
-                            </div>
-                        </Card>
-                    </motion.div>
-                </AnimatePresence>
-            </div>
-
-            {/* Desktop View - Professional Layout */}
-            <div className="hidden lg:block h-screen overflow-hidden bg-[rgb(var(--bg-body))]">
-                {/* Top Navigation Bar */}
-                <div className="bg-[rgb(var(--accent))] text-white px-8 py-3 flex items-center justify-between shadow-lg">
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-xl font-bold tracking-wide">{formData.topic.toUpperCase()}</h1>
-                        {/* Security Warnings Badge */}
-                        {(fullscreenWarnings > 0 || tabSwitchWarnings > 0) && (
-                            <div className="flex items-center gap-2 px-3 py-1 bg-red-500/90 rounded-full text-xs font-semibold animate-pulse">
-                                <span>⚠️</span>
-                                <span>{fullscreenWarnings + tabSwitchWarnings} Security Warnings</span>
-                            </div>
-                        )}
-                    </div>
-                    <div className="text-right text-sm">
-                        <div>Username : <span className="font-semibold">{user?.email?.split('@')[0] || 'Guest'}</span></div>
-                        <div>Subject : <span className="font-semibold">{formData.topic}</span></div>
-                    </div>
-                </div>
-
-                {/* Main Content Area */}
-                <div className="grid grid-cols-[1fr_380px] h-[calc(100vh-140px)]">
-                    {/* Left Side - Question and Options */}
-                    <div className="bg-bg-elevated overflow-y-auto custom-scrollbar">
-                        <div className="p-6">
-                            <AnimatePresence mode="wait">
-                                <motion.div
-                                    key={currentQuestion}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    {/* Question Header */}
-                                    <div className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] rounded p-3 mb-4 shadow-sm">
-                                        <div className="flex items-center justify-between">
-                                            <div className="text-sm text-[rgb(var(--text-secondary))]">Question: <span className="font-bold text-[rgb(var(--text-primary))]">{currentQuestion + 1}</span></div>
-                                            <div className="text-sm text-[rgb(var(--text-secondary))]">Marks: <span className="font-bold text-[rgb(var(--text-primary))]">1</span></div>
+                                        {/* Mobile-friendly progress indicator */}
+                                        <div className="w-full sm:w-auto">
+                                            <div className="flex items-center justify-between text-xs text-[rgb(var(--text-muted))] mb-2">
+                                                <span>Progress</span>
+                                                <span>{Math.round(((currentQuestion + 1) / questions.length) * 100)}%</span>
+                                            </div>
+                                            <div className="w-full sm:w-32 bg-[rgb(var(--bg-body))] rounded-full h-2 border border-[rgb(var(--border-subtle))]">
+                                                <div
+                                                    className="bg-[rgb(var(--accent))] h-2 rounded-full transition-all duration-500 ease-out"
+                                                    style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
-                                    {/* Question Content */}
-                                    <div className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] rounded p-5 mb-5 shadow-sm">
-                                        <div className="prose prose-base max-w-none text-[rgb(var(--text-primary))]">
-                                            <ReactMarkdown components={components}>
-                                                {questions[currentQuestion]?.question}
-                                            </ReactMarkdown>
-                                        </div>
-                                    </div>
-
-                                    {/* Options */}
-                                    <div className="space-y-3">
+                                    <div className="grid grid-cols-1 gap-3">
                                         {questions[currentQuestion]?.options?.map((option, optionIndex) => (
                                             <motion.label
                                                 key={optionIndex}
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: optionIndex * 0.05 }}
-                                                className={`flex items-start gap-3 bg-[rgb(var(--bg-card))] border rounded p-4 cursor-pointer transition-all shadow-sm hover:shadow-md hover:border-primary/50 ${answers[currentQuestion] === optionIndex
-                                                    ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
-                                                    : 'border-[rgb(var(--border-subtle))]'
+                                                transition={{ duration: 0.1, delay: optionIndex * 0.02 }}
+                                                className={`group flex items-start p-5 border-2 rounded-xl cursor-pointer transition-all duration-100 hover:shadow-md ${tempAnswer === optionIndex
+                                                    ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10 shadow-lg shadow-[rgb(var(--accent))]/20'
+                                                    : 'border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/50 hover:bg-[rgb(var(--bg-body-alt))]'
                                                     }`}
                                             >
                                                 <input
                                                     type="radio"
                                                     name={`question-${currentQuestion}`}
-                                                    checked={answers[currentQuestion] === optionIndex}
+                                                    value={optionIndex}
+                                                    checked={tempAnswer === optionIndex}
                                                     onChange={() => handleAnswerSelect(currentQuestion, optionIndex)}
-                                                    className="mt-1 w-4 h-4 accent-primary"
+                                                    className="sr-only"
                                                 />
-                                                <div className="flex-1">
-                                                    <div className="mb-1">
-                                                        <span className="font-bold text-[rgb(var(--text-primary))] text-base">
+                                                <div className={`flex-shrink-0 w-5 h-5 border-2 rounded-full mr-4 mt-1 flex items-center justify-center transition-all duration-100 ${tempAnswer === optionIndex
+                                                    ? 'border-primary bg-primary shadow-md'
+                                                    : 'border-[rgb(var(--border-subtle))] group-hover:border-primary'
+                                                    }`}>
+                                                    {tempAnswer === optionIndex && (
+                                                        <motion.div
+                                                            initial={{ scale: 0 }}
+                                                            animate={{ scale: 1 }}
+                                                            transition={{ duration: 0.1 }}
+                                                            className="w-2 h-2 bg-white rounded-full"
+                                                        />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <span className="text-sm sm:text-base font-semibold text-[rgb(var(--text-muted))] flex items-center gap-1.5">
                                                             {String.fromCharCode(65 + optionIndex)}.
+                                                            {containsCode(option) && (
+                                                                <span className="hidden sm:inline-flex px-1.5 py-0.5 bg-secondary/20 text-secondary rounded text-[10px] items-center gap-1 border border-secondary/30">
+                                                                    <Code className="w-2.5 h-2.5" />
+                                                                    Code
+                                                                </span>
+                                                            )}
                                                         </span>
                                                     </div>
-                                                    <div className="prose prose-sm max-w-none text-[rgb(var(--text-secondary))]">
+
+                                                    {/* Enhanced Option Content */}
+                                                    <div className={`prose prose-base max-w-none text-[rgb(var(--text-primary))] ${containsCode(option)
+                                                        ? 'bg-[#1a1a1a] rounded-lg p-4 border border-white/10'
+                                                        : ''
+                                                        }`}>
                                                         <ReactMarkdown components={components}>
                                                             {option}
                                                         </ReactMarkdown>
@@ -1096,44 +1081,30 @@ const MCQTest = () => {
                                             </motion.label>
                                         ))}
                                     </div>
-                                </motion.div>
-                            </AnimatePresence>
-                        </div>
-                    </div>
-
-                    {/* Right Side - Timer, Navigator, and Legend */}
-                    <div className="bg-[rgb(var(--bg-card))] border-l-2 border-[rgb(var(--border-subtle))] overflow-y-auto custom-scrollbar">
-                        <div className="p-5">
-                            {/* Timer Card */}
-                            <div className="bg-bg-elevated border border-[rgb(var(--border-subtle))] rounded p-4 mb-5 text-center shadow-sm">
-                                <div className="text-xs text-[rgb(var(--text-muted))] mb-2 font-medium">Remaining Time:</div>
-                                <div className={`text-3xl font-bold font-mono tracking-wider ${timeLeft < 300 ? 'text-danger' : 'text-[rgb(var(--text-primary))]'
-                                    }`}>
-                                    {Math.floor(timeLeft / 3600).toString().padStart(2, '0')} : {Math.floor((timeLeft % 3600) / 60).toString().padStart(2, '0')} : {(timeLeft % 60).toString().padStart(2, '0')}
                                 </div>
-                            </div>
+                            </Card>
 
-                            {/* Quiz Title */}
-                            <div className="text-center mb-5">
-                                <h2 className="text-lg font-bold text-[rgb(var(--text-primary))]">{formData.topic.toUpperCase()}</h2>
-                            </div>
+                            {/* Mobile Question Navigator */}
+                            <Card className="p-4 sm:p-5 mb-24 bg-[rgb(var(--bg-card))] shadow-xl border border-[rgb(var(--border-subtle))]">
+                                <h3 className="text-base sm:text-lg font-bold text-[rgb(var(--text-primary))] mb-4">Question Navigator</h3>
 
-                            {/* Question Navigator */}
-                            <div className="mb-5">
-                                <div className="grid grid-cols-5 gap-2">
+                                {/* Question Grid */}
+                                <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 mb-5">
                                     {questions.map((_, index) => {
                                         const isAnswered = answers[index] !== undefined;
                                         const isCurrent = index === currentQuestion;
                                         const isMarked = markedForReview[index];
                                         const isVisited = visitedQuestions[index];
 
-                                        let bgColor = 'bg-[rgb(var(--text-disabled))]'; // Not Visited
+                                        let bgColor = 'bg-gray-500'; // Not Visited
                                         if (isCurrent) {
                                             bgColor = 'bg-[rgb(var(--accent))]'; // Current
+                                        } else if (isAnswered && isMarked) {
+                                            bgColor = 'bg-gradient-to-r from-green-600 to-purple-600'; // Answered & Marked
                                         } else if (isMarked) {
-                                            bgColor = 'bg-purple-600'; // Marked for review
+                                            bgColor = 'bg-purple-600'; // Marked for review only
                                         } else if (isAnswered) {
-                                            bgColor = 'bg-success'; // Answered
+                                            bgColor = 'bg-green-600'; // Answered
                                         } else if (isVisited) {
                                             bgColor = 'bg-orange-500'; // Visited but not answered
                                         }
@@ -1142,96 +1113,73 @@ const MCQTest = () => {
                                             <button
                                                 key={index}
                                                 onClick={() => setCurrentQuestion(index)}
-                                                className={`${bgColor} text-white font-bold rounded h-11 flex items-center justify-center text-base transition-all hover:opacity-90 shadow`}
+                                                className={`${bgColor} text-white font-bold rounded h-10 sm:h-11 flex items-center justify-center text-sm sm:text-base transition-all active:scale-95 shadow`}
                                             >
                                                 {index + 1}
                                             </button>
                                         );
                                     })}
                                 </div>
-                            </div>
 
-                            {/* Legend */}
-                            <div className="space-y-2.5">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-9 h-9 rounded-full bg-[rgb(var(--text-disabled))] text-white flex items-center justify-center font-bold text-xs shadow">
-                                        {questions.filter((_, i) => !visitedQuestions[i]).length}
+                                {/* Legend */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-500 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
+                                            {questions.filter((_, i) => !visitedQuestions[i]).length}
+                                        </div>
+                                        <span className="text-xs sm:text-sm text-[rgb(var(--text-secondary))]">Not Visited</span>
                                     </div>
-                                    <span className="text-sm text-[rgb(var(--text-secondary))]">Not Visited</span>
-                                </div>
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-9 h-9 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs shadow">
-                                        {Object.keys(markedForReview).filter(k => markedForReview[k]).length}
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
+                                            {Object.keys(visitedQuestions).length - Object.keys(answers).length}
+                                        </div>
+                                        <span className="text-xs sm:text-sm text-[rgb(var(--text-secondary))]">Not Answered</span>
                                     </div>
-                                    <span className="text-sm text-[rgb(var(--text-secondary))]">Marked For Review</span>
-                                </div>
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-9 h-9 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-xs shadow">
-                                        {Object.keys(visitedQuestions).length - Object.keys(answers).length}
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
+                                            {Object.keys(answers).filter(k => !markedForReview[k]).length}
+                                        </div>
+                                        <span className="text-xs sm:text-sm text-[rgb(var(--text-secondary))]">Answered</span>
                                     </div>
-                                    <span className="text-sm text-[rgb(var(--text-secondary))]">Not Answered</span>
-                                </div>
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-9 h-9 rounded-full bg-success text-white flex items-center justify-center font-bold text-xs shadow">
-                                        {Object.keys(answers).filter(k => !markedForReview[k]).length}
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
+                                            {Object.keys(markedForReview).filter(k => markedForReview[k] && answers[k] === undefined).length}
+                                        </div>
+                                        <span className="text-xs sm:text-sm text-[rgb(var(--text-secondary))]">Marked for Review</span>
                                     </div>
-                                    <span className="text-sm text-[rgb(var(--text-secondary))]">Answered</span>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-r from-green-600 to-purple-600 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
+                                            {Object.keys(answers).filter(k => markedForReview[k]).length}
+                                        </div>
+                                        <span className="text-xs sm:text-sm text-[rgb(var(--text-secondary))]">Answered & Marked</span>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
+                            </Card>
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+
+                {/* Fixed Bottom Navigation - Mobile */}
+                {/* Save & Next and Clear Buttons - Mobile */}
+                <div className="sm:hidden fixed bottom-20 left-0 right-0 z-40 px-4">
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleSaveAndNext}
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg font-semibold shadow-lg transition-all active:scale-95"
+                        >
+                            SAVE & NEXT
+                        </button>
+                        <button
+                            onClick={handleClearAnswer}
+                            className="flex-1 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 px-4 py-2.5 rounded-lg font-medium shadow-lg transition-all active:scale-95"
+                        >
+                            CLEAR
+                        </button>
                     </div>
                 </div>
 
-                {/* Bottom Navigation Bar */}
-                <div className="h-[60px] bg-[rgb(var(--bg-card))] border-t-2 border-[rgb(var(--border-subtle))] px-8 flex items-center justify-between shadow-lg">
-                    <Button
-                        onClick={() => setCurrentQuestion(0)}
-                        className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white px-6 py-2.5 rounded font-medium flex items-center gap-2 shadow transition-colors"
-                    >
-                        <ChevronLeft className="w-4 h-4" />
-                        Back
-                    </Button>
-
-                    <div className="flex items-center gap-3">
-                        <Button
-                            onClick={handleMarkForReview}
-                            className={`${markedForReview[currentQuestion] ? 'bg-purple-600 hover:bg-purple-700' : 'bg-[rgb(var(--accent))]/80 hover:bg-[rgb(var(--accent))]'} text-white px-5 py-2.5 rounded font-medium shadow flex items-center gap-2 transition-colors`}
-                        >
-                            {markedForReview[currentQuestion] ? '✓ Marked' : 'Mark For Review'} ⚑
-                        </Button>
-                        <Button
-                            onClick={() => setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1))}
-                            disabled={currentQuestion === questions.length - 1}
-                            className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white px-6 py-2.5 rounded font-medium flex items-center gap-2 shadow disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                            Next
-                            <ChevronRight className="w-4 h-4" />
-                        </Button>
-                    </div>
-
-                    <Button
-                        onClick={confirmSubmit}
-                        disabled={loading}
-                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded font-medium flex items-center gap-2 shadow transition-colors"
-                    >
-                        {loading ? (
-                            <>
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                Submitting
-                            </>
-                        ) : (
-                            <>
-                                ✓ Submit Quiz
-                            </>
-                        )}
-                    </Button>
-                </div>
-            </div>
-
-            {/* Enhanced Navigation - Mobile Only */}
-            <div className="lg:hidden space-y-4">
                 {/* Mark for Review Button - Above mobile sticky bar */}
-                <div className="sm:hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-40">
+                <div className="sm:hidden fixed bottom-32 left-1/2 -translate-x-1/2 z-40">
                     <button
                         onClick={handleMarkForReview}
                         className={`${markedForReview[currentQuestion] ? 'bg-purple-600' : 'bg-[rgb(var(--accent))]/80'} text-white px-5 py-2.5 rounded-full font-medium shadow-lg flex items-center gap-2 transition-all active:scale-95`}
@@ -1242,8 +1190,8 @@ const MCQTest = () => {
 
                 {/* Mobile sticky action bar - Fully Responsive */}
                 <div className="sm:hidden">
-                    <div className="fixed bottom-0 left-0 right-0 z-40 bg-[rgb(var(--bg-card))]">
-                        <div className="mx-4 mb-[env(safe-area-inset-bottom,16px)] rounded-t-3xl flex items-center justify-between gap-3 px-4 py-3 shadow-[0_-10px_30px_rgba(0,0,0,0.45)]">
+                    <div className="fixed bottom-0 left-0 right-0 z-40 bg-[rgb(var(--bg-card))] border-t-2 border-[rgb(var(--border-subtle))]">
+                        <div className="flex items-center justify-between gap-3 px-4 py-3">
                             {/* Prev Button */}
                             <button
                                 onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
@@ -1294,6 +1242,261 @@ const MCQTest = () => {
                             )}
                         </div>
                     </div>
+                </div>
+            </div>
+
+            {/* Desktop View - Professional Layout */}
+            <div className="hidden lg:block h-screen overflow-hidden bg-[rgb(var(--bg-body))]">
+                {/* Top Navigation Bar */}
+                <div className="bg-[rgb(var(--accent))] text-white px-8 py-3 flex items-center justify-between shadow-lg">
+                    <div className="flex items-center gap-4">
+                        <h1 className="text-xl font-bold tracking-wide">{formData.topic.toUpperCase()}</h1>
+                        {/* Security Warnings Badge */}
+                        {(fullscreenWarnings > 0 || tabSwitchWarnings > 0 || notificationWarnings > 0) && (
+                            <div className="flex items-center gap-2 px-3 py-1 bg-red-500/90 rounded-full text-xs font-semibold animate-pulse">
+                                <span>⚠️</span>
+                                <span>{fullscreenWarnings + tabSwitchWarnings + notificationWarnings} Security Warnings</span>
+                            </div>
+                        )}
+                    </div>
+                    <div className="text-right text-sm">
+                        <div>Username : <span className="font-semibold">{user?.email?.split('@')[0] || 'Guest'}</span></div>
+                        <div>Subject : <span className="font-semibold">{formData.topic}</span></div>
+                    </div>
+                </div>
+
+                {/* Main Content Area */}
+                <div className="grid grid-cols-[1fr_380px] h-[calc(100vh-140px)]">
+                    {/* Left Side - Question and Options */}
+                    <div className="bg-bg-elevated overflow-y-auto custom-scrollbar">
+                        <div className="p-6">
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={currentQuestion}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    {/* Question Header */}
+                                    <div className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] rounded p-3 mb-4 shadow-sm">
+                                        <div className="flex items-center justify-between">
+                                            <div className="text-sm text-[rgb(var(--text-secondary))]">Question: <span className="font-bold text-[rgb(var(--text-primary))]">{currentQuestion + 1}</span></div>
+                                            <div className="text-sm text-[rgb(var(--text-secondary))]">Marks: <span className="font-bold text-[rgb(var(--text-primary))]">1</span></div>
+                                        </div>
+                                    </div>
+
+                                    {/* Question Content */}
+                                    <div className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] rounded p-5 mb-5 shadow-sm">
+                                        <div className="prose prose-base max-w-none text-[rgb(var(--text-primary))]">
+                                            <ReactMarkdown components={components}>
+                                                {questions[currentQuestion]?.question}
+                                            </ReactMarkdown>
+                                        </div>
+                                    </div>
+
+                                    {/* Options */}
+                                    <div className="space-y-3">
+                                        {questions[currentQuestion]?.options?.map((option, optionIndex) => (
+                                            <motion.label
+                                                key={optionIndex}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: optionIndex * 0.05 }}
+                                                className={`flex items-start gap-3 bg-[rgb(var(--bg-card))] border rounded p-4 cursor-pointer transition-all shadow-sm hover:shadow-md hover:border-primary/50 ${tempAnswer === optionIndex
+                                                    ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
+                                                    : 'border-[rgb(var(--border-subtle))]'
+                                                    }`}
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name={`question-${currentQuestion}`}
+                                                    checked={tempAnswer === optionIndex}
+                                                    onChange={() => handleAnswerSelect(currentQuestion, optionIndex)}
+                                                    className="mt-1 w-4 h-4 accent-primary"
+                                                />
+                                                <div className="flex-1">
+                                                    <div className="mb-1">
+                                                        <span className="font-bold text-[rgb(var(--text-primary))] text-base">
+                                                            {String.fromCharCode(65 + optionIndex)}.
+                                                        </span>
+                                                    </div>
+                                                    <div className="prose prose-sm max-w-none text-[rgb(var(--text-secondary))]">
+                                                        <ReactMarkdown components={components}>
+                                                            {option}
+                                                        </ReactMarkdown>
+                                                    </div>
+                                                </div>
+                                            </motion.label>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            </AnimatePresence>
+                        </div>
+                    </div>
+
+                    {/* Right Side - Timer, Navigator, and Legend */}
+                    <div className="bg-[rgb(var(--bg-card))] border-l-2 border-[rgb(var(--border-subtle))] overflow-y-auto custom-scrollbar">
+                        <div className="p-5">
+                            {/* Timer Card */}
+                            <div className="bg-bg-elevated border border-[rgb(var(--border-subtle))] rounded p-4 mb-5 text-center shadow-sm">
+                                <div className="text-xs text-[rgb(var(--text-muted))] mb-2 font-medium">Remaining Time:</div>
+                                <div className={`text-3xl font-bold font-mono tracking-wider ${timeLeft < 300 ? 'text-danger' : 'text-[rgb(var(--text-primary))]'
+                                    }`}>
+                                    {Math.floor(timeLeft / 3600).toString().padStart(2, '0')} : {Math.floor((timeLeft % 3600) / 60).toString().padStart(2, '0')} : {(timeLeft % 60).toString().padStart(2, '0')}
+                                </div>
+                            </div>
+
+                            {/* Quiz Title */}
+                            <div className="text-center mb-5">
+                                <h2 className="text-lg font-bold text-[rgb(var(--text-primary))]">{formData.topic.toUpperCase()}</h2>
+                            </div>
+
+                            {/* Question Navigator */}
+                            <div className="mb-5">
+                                <div className="grid grid-cols-5 gap-2">
+                                    {questions.map((_, index) => {
+                                        const isAnswered = answers[index] !== undefined;
+                                        const isCurrent = index === currentQuestion;
+                                        const isMarked = markedForReview[index];
+                                        const isVisited = visitedQuestions[index];
+
+                                        let bgColor = 'bg-gray-500'; // Not Visited
+                                        if (isCurrent) {
+                                            bgColor = 'bg-[rgb(var(--accent))]'; // Current
+                                        } else if (isAnswered && isMarked) {
+                                            bgColor = 'bg-gradient-to-r from-green-600 to-purple-600'; // Answered & Marked
+                                        } else if (isMarked) {
+                                            bgColor = 'bg-purple-600'; // Marked for review only
+                                        } else if (isAnswered) {
+                                            bgColor = 'bg-green-600'; // Answered
+                                        } else if (isVisited) {
+                                            bgColor = 'bg-orange-500'; // Visited but not answered
+                                        }
+
+                                        return (
+                                            <button
+                                                key={index}
+                                                onClick={() => setCurrentQuestion(index)}
+                                                className={`${bgColor} text-white font-bold rounded h-11 flex items-center justify-center text-base transition-all hover:opacity-90 shadow`}
+                                            >
+                                                {index + 1}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Legend */}
+                            <div className="space-y-2.5">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-9 h-9 rounded-full bg-gray-500 text-white flex items-center justify-center font-bold text-xs shadow">
+                                        {questions.filter((_, i) => !visitedQuestions[i]).length}
+                                    </div>
+                                    <span className="text-sm text-[rgb(var(--text-secondary))]">Not Visited</span>
+                                </div>
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-9 h-9 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-xs shadow">
+                                        {Object.keys(visitedQuestions).length - Object.keys(answers).length}
+                                    </div>
+                                    <span className="text-sm text-[rgb(var(--text-secondary))]">Not Answered</span>
+                                </div>
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-9 h-9 rounded-full bg-green-600 text-white flex items-center justify-center font-bold text-xs shadow">
+                                        {Object.keys(answers).filter(k => !markedForReview[k]).length}
+                                    </div>
+                                    <span className="text-sm text-[rgb(var(--text-secondary))]">Answered</span>
+                                </div>
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-9 h-9 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs shadow">
+                                        {Object.keys(markedForReview).filter(k => markedForReview[k] && answers[k] === undefined).length}
+                                    </div>
+                                    <span className="text-sm text-[rgb(var(--text-secondary))]">Marked for Review</span>
+                                </div>
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-9 h-9 rounded-full bg-gradient-to-r from-green-600 to-purple-600 text-white flex items-center justify-center font-bold text-xs shadow">
+                                        {Object.keys(answers).filter(k => markedForReview[k]).length}
+                                    </div>
+                                    <span className="text-sm text-[rgb(var(--text-secondary))]">Answered & Marked for Review</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Bottom Navigation Bar */}
+                <div className="h-[60px] bg-[rgb(var(--bg-card))] border-t-2 border-[rgb(var(--border-subtle))] px-8 flex items-center justify-between shadow-lg">
+                    <div className="flex items-center gap-3">
+                        <Button
+                            onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
+                            disabled={currentQuestion === 0}
+                            className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-5 py-2.5 rounded font-medium flex items-center gap-2 shadow transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                            &lt;&lt; BACK
+                        </Button>
+                        <Button
+                            onClick={() => setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1))}
+                            disabled={currentQuestion === questions.length - 1}
+                            className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-5 py-2.5 rounded font-medium flex items-center gap-2 shadow transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            NEXT &gt;&gt;
+                            <ChevronRight className="w-4 h-4" />
+                        </Button>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <Button
+                            onClick={handleSaveAndNext}
+                            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded font-semibold shadow transition-colors"
+                        >
+                            SAVE & NEXT
+                        </Button>
+                        <Button
+                            onClick={handleClearAnswer}
+                            className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-5 py-2.5 rounded font-medium shadow transition-colors"
+                        >
+                            CLEAR
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                // Save temporary answer first if selected
+                                if (tempAnswer !== null) {
+                                    setAnswers(prev => ({
+                                        ...prev,
+                                        [currentQuestion]: tempAnswer
+                                    }));
+                                }
+                                // Then mark for review
+                                handleMarkForReview();
+                                toast.success('Saved and marked for review', { duration: 1500 });
+                            }}
+                            className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded font-semibold shadow transition-colors"
+                        >
+                            SAVE & MARK FOR REVIEW
+                        </Button>
+                        <Button
+                            onClick={handleMarkForReviewAndNext}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded font-semibold shadow transition-colors"
+                        >
+                            MARK FOR REVIEW & NEXT
+                        </Button>
+                    </div>
+
+                    <Button
+                        onClick={confirmSubmit}
+                        disabled={loading}
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded font-semibold shadow transition-colors"
+                    >
+                        {loading ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                Submitting
+                            </>
+                        ) : (
+                            'SUBMIT'
+                        )}
+                    </Button>
                 </div>
             </div>
         </div>
