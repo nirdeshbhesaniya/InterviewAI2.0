@@ -72,11 +72,11 @@ const createTransporter = async (retryPorts = [465, 587, 25]) => {
     // Verify connection with timeout
     await Promise.race([
       transporter.verify(),
-      new Promise((_, reject) => 
+      new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Verification timeout')), 15000)
       )
     ]);
-    
+
     console.log(`✅ Email transporter ready on port ${config.port || config.service}`);
     return transporter;
   } catch (error) {
