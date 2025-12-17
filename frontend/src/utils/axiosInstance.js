@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://interviewai2-0sever.onrender.com/api',
-  // baseURL: "http://localhost:8080/api",
+  // baseURL: 'https://interviewai2-0sever.onrender.com/api',
+  baseURL: "http://localhost:8080/api",
   headers: {
     'Content-Type': 'application/json',
   },

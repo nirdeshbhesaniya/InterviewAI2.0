@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { UserContext } from '../../context/UserContext.jsx';
+import { loginWithEmailPassword } from '../../firebase/auth';
 
 const Login = ({ onSwitch, onForgotPassword }) => {
   const [email, setEmail] = useState('');
@@ -18,15 +19,42 @@ const Login = ({ onSwitch, onForgotPassword }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
+    
     try {
-      const res = await axios.post(API.LOGIN, { email, password });
-      const userData = res.data.user;
+      // Login with Firebase Authentication
+      const result = await loginWithEmailPassword(email, password);
+      
+      // If login successful, user email is verified
+      const userData = {
+        uid: result.user.uid,
+        email: result.user.email,
+        emailVerified: result.user.emailVerified,
+        displayName: result.user.displayName,
+        photoURL: result.user.photoURL
+      };
+      
+      // Optional: Sync with backend or fetch additional user data
+      try {
+        const res = await axios.post(API.LOGIN, { 
+          email, 
+          firebaseUid: result.user.uid 
+        });
+        
+        // Merge backend data with Firebase data
+        Object.assign(userData, res.data.user);
+      } catch (backendError) {
+        console.error('Backend login error:', backendError);
+        // Continue with Firebase data even if backend fails
+      }
+      
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
+      
       toast.success('✅ Login successful!');
       setTimeout(() => navigate('/dashboard'), 1000);
+      
     } catch (err) {
-      toast.error(err?.response?.data?.message || '❌ Login failed');
+      toast.error(err.message || '❌ Login failed');
     } finally {
       setLoading(false);
     }
