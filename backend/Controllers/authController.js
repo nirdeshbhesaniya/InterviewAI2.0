@@ -20,8 +20,8 @@ exports.registerUser = async (req, res) => {
 
     // Validate required fields
     if (!fullName || !email || !password) {
-      return res.status(400).json({ 
-        message: 'Please provide all required fields: fullName, email, and password' 
+      return res.status(400).json({
+        message: 'Please provide all required fields: fullName, email, and password'
       });
     }
 
@@ -42,8 +42,8 @@ exports.registerUser = async (req, res) => {
             uploadedPhotoUrl = result.secure_url;
           } catch (uploadError) {
             console.error('Cloudinary upload error:', uploadError);
-            return res.status(500).json({ 
-              message: 'Failed to upload profile image. Please try again with a different image.' 
+            return res.status(500).json({
+              message: 'Failed to upload profile image. Please try again with a different image.'
             });
           }
         }
@@ -95,8 +95,8 @@ exports.registerUser = async (req, res) => {
         uploadedPhotoUrl = result.secure_url;
       } catch (uploadError) {
         console.error('Cloudinary upload error:', uploadError);
-        return res.status(500).json({ 
-          message: 'Failed to upload profile image. Please try again with a different image.' 
+        return res.status(500).json({
+          message: 'Failed to upload profile image. Please try again with a different image.'
         });
       }
     }
@@ -152,7 +152,7 @@ exports.registerUser = async (req, res) => {
     });
   } catch (err) {
     console.error('Registration Error:', err);
-    
+
     // Handle multer errors
     if (err.name === 'MulterError') {
       if (err.code === 'LIMIT_FILE_SIZE') {
@@ -160,12 +160,12 @@ exports.registerUser = async (req, res) => {
       }
       return res.status(400).json({ message: 'Image upload error: ' + err.message });
     }
-    
+
     // Handle file type errors
     if (err.message && err.message.includes('Only JPEG')) {
       return res.status(400).json({ message: err.message });
     }
-    
+
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };

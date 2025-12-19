@@ -31,7 +31,7 @@ const SignUp = ({ onSwitch }) => {
         e.target.value = ''; // Clear the input
         return;
       }
-      
+
       // Validate file size (5MB)
       const maxSize = 5 * 1024 * 1024; // 5MB in bytes
       if (file.size > maxSize) {
@@ -39,7 +39,7 @@ const SignUp = ({ onSwitch }) => {
         e.target.value = ''; // Clear the input
         return;
       }
-      
+
       setPhotoPreview(URL.createObjectURL(file));
       setPhotoFile(file);
     }
@@ -76,10 +76,10 @@ const SignUp = ({ onSwitch }) => {
       }
     } catch (error) {
       console.error('Registration error:', error);
-      
+
       // Handle specific error messages
       let errorMessage = 'Registration failed';
-      
+
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.message === 'Network Error') {
@@ -87,7 +87,7 @@ const SignUp = ({ onSwitch }) => {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       toast.error('❌ ' + errorMessage);
     } finally {
       setLoading(false);
