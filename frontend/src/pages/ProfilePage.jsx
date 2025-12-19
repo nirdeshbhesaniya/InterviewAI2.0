@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { UserContext } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -35,6 +35,9 @@ const ProfilePage = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showPasswordForm, setShowPasswordForm] = useState(false);
+    
+    // Ref for password section auto-scroll
+    const passwordSectionRef = useRef(null);
 
     // Profile form data
     const [profileData, setProfileData] = useState({
@@ -270,7 +273,14 @@ const ProfilePage = () => {
         }
     };
 
-    const handleChangePassword = async () => {
+    const handleChangePassword = async (e) => {
+        if (e) e.preventDefault();
+        
+        if (!passwordData.currentPassword) {
+            toast.error('Please enter your current password');
+            return;
+        }
+        
         if (passwordData.newPassword !== passwordData.confirmPassword) {
             toast.error('New passwords do not match');
             return;
@@ -360,7 +370,18 @@ const ProfilePage = () => {
                                 {isEditing ? 'Cancel' : 'Edit Profile'}
                             </Button>
                             <Button
-                                onClick={() => setShowPasswordForm(!showPasswordForm)}
+                                onClick={() => {
+                                    setShowPasswordForm(!showPasswordForm);
+                                    if (isEditing) setIsEditing(false); // Close edit mode when opening password form
+                                    
+                                    // Auto-scroll to password section
+                                    setTimeout(() => {
+                                        passwordSectionRef.current?.scrollIntoView({
+                                            behavior: 'smooth',
+                                            block: 'start'
+                                        });
+                                    }, 100);
+                                }}
                                 variant="outline"
                                 size="sm"
                                 className="flex items-center gap-2 border-[rgb(var(--border))] bg-[rgb(var(--bg-body))] hover:bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-primary))]"
@@ -510,7 +531,7 @@ const ProfilePage = () => {
 
             {/* Password Change Form */}
             {showPasswordForm && (
-                <Card className="p-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">
+                <Card ref={passwordSectionRef} className="p-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">
                     <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                         <Lock className="w-5 h-5 text-[rgb(var(--accent))]" />
                         <span className="text-[rgb(var(--text-primary))]">Change Password</span>

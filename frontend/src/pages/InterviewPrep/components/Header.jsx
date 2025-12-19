@@ -21,11 +21,14 @@ import {
   Code
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from '../../../utils/axiosInstance';
+import { API } from '../../../utils/apiPaths';
 
 const Header = ({ onLoginClick }) => {
   const { user, setUser, logout } = useContext(UserContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
@@ -56,6 +59,29 @@ const Header = ({ onLoginClick }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Fetch notification count
+  useEffect(() => {
+    const fetchNotificationCount = async () => {
+      if (!user?.email) return;
+      try {
+        const response = await axios.get(API.NOTIFICATIONS.GET_ALL(user.email), {
+          params: { unreadOnly: true }
+        });
+        if (response.data.success) {
+          setUnreadCount(response.data.unreadCount || 0);
+        }
+      } catch (error) {
+        console.error('Failed to fetch notification count:', error);
+      }
+    };
+
+    fetchNotificationCount();
+    
+    // Refresh count every 30 seconds
+    const interval = setInterval(fetchNotificationCount, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   const formatJoinDate = (dateString) => {
     if (!dateString) return 'Recently joined';
@@ -242,7 +268,10 @@ const Header = ({ onLoginClick }) => {
                       </motion.button>
 
                       <motion.button
-                        onClick={() => navigate('/notifications')}
+                        onClick={() => {
+                          navigate('/notifications');
+                          setShowDropdown(false);
+                        }}
                         className="w-full flex items-center gap-3 px-6 py-3 bg-[rgb(var(--bg-elevated))] hover:bg-[rgb(var(--bg-elevated-alt))] transition-colors group"
                         whileHover={{ x: 4 }}
                       >
@@ -251,7 +280,11 @@ const Header = ({ onLoginClick }) => {
                           <p className="font-medium text-[rgb(var(--text-primary))]">Notifications</p>
                           <p className="text-xs text-[rgb(var(--text-muted))]">Alerts & updates</p>
                         </div>
-                        <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">3</span>
+                        {unreadCount > 0 && (
+                          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full min-w-[1.5rem] text-center">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </span>
+                        )}
                       </motion.button>
 
                       <hr className="my-2 border-[rgb(var(--border))]" />

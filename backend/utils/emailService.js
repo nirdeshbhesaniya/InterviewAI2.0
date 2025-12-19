@@ -296,6 +296,112 @@ const getOTPEmailContent = (otp) => {
 };
 
 /**
+ * Registration OTP Email Template - 4 digits
+ */
+const getRegistrationOTPEmailContent = (otp, fullName) => {
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center">
+          <h2 style="color: #F9FAFB; margin: 0 0 16px 0; font-size: 24px; font-weight: 600;">
+            ✨ Welcome to Interview AI!
+          </h2>
+          <p style="color: #9CA3AF; margin: 0 0 8px 0; font-size: 16px; line-height: 1.6;">
+            Hi ${fullName}, you're almost there!
+          </p>
+          <p style="color: #9CA3AF; margin: 0 0 32px 0; font-size: 16px; line-height: 1.6;">
+            Verify your email address to complete your registration
+          </p>
+        </td>
+      </tr>
+      
+      <!-- OTP Box -->
+      <tr>
+        <td align="center">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(145deg, #1F2933, #111827); border: 2px dashed #374151; border-radius: 12px; margin: 24px 0;">
+            <tr>
+              <td style="padding: 32px 48px; text-align: center;">
+                <p style="color: #9CA3AF; margin: 0 0 12px 0; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px;">
+                  Your Verification Code
+                </p>
+                <div style="background: linear-gradient(135deg, #6366F1 0%, #22D3EE 50%, #F97316 100%); padding: 24px 40px; border-radius: 12px; display: inline-block; box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);">
+                  <p style="color: #F9FAFB; margin: 0; font-size: 48px; font-weight: 900; letter-spacing: 12px; font-family: 'Courier New', monospace; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                    ${otp}
+                  </p>
+                </div>
+                <p style="color: #6B7280; margin: 16px 0 0 0; font-size: 13px;">
+                  Enter this code to verify your email
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      
+      <!-- Info Notice -->
+      <tr>
+        <td>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(34, 211, 238, 0.1)); border-left: 4px solid #22D3EE; border-radius: 8px; margin: 24px 0;">
+            <tr>
+              <td style="padding: 20px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td width="32" valign="top">
+                      <span style="font-size: 24px;">🛡️</span>
+                    </td>
+                    <td style="padding-left: 12px;">
+                      <h4 style="color: #22D3EE; margin: 0 0 8px 0; font-size: 15px; font-weight: 600;">
+                        Quick & Secure
+                      </h4>
+                      <p style="color: #E5E7EB; margin: 0; font-size: 14px; line-height: 1.6;">
+                        This code <strong>expires in 10 minutes</strong>. Keep it confidential and don't share it with anyone. If you didn't create an account, you can safely ignore this email.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      
+      <!-- What's Next Section -->
+      <tr>
+        <td>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(145deg, #1F2933, #111827); border-radius: 12px; border: 1px solid #374151; margin: 24px 0;">
+            <tr>
+              <td style="padding: 24px;">
+                <h3 style="color: #F9FAFB; margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">
+                  🎯 What's Next?
+                </h3>
+                <ul style="color: #E5E7EB; margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.8;">
+                  <li style="margin-bottom: 8px;">Complete your email verification</li>
+                  <li style="margin-bottom: 8px;">Set up your interview preparation profile</li>
+                  <li style="margin-bottom: 8px;">Start practicing with AI-powered mock interviews</li>
+                  <li>Access premium learning resources and MCQ tests</li>
+                </ul>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      
+      <!-- Help Section -->
+      <tr>
+        <td align="center" style="padding-top: 32px; border-top: 1px solid #1F2937; margin-top: 32px;">
+          <p style="color: #9CA3AF; margin: 0 0 16px 0; font-size: 14px;">
+            Having trouble? We're here to help!
+          </p>
+          <a href="mailto:${process.env.SUPPORT_EMAIL || process.env.EMAIL_USER}" style="display: inline-block; background: linear-gradient(135deg, #6366F1, #22D3EE); color: #F9FAFB; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">
+            📧 Contact Support
+          </a>
+        </td>
+      </tr>
+    </table>
+  `;
+};
+
+/**
  * Notification Email Template
  */
 const getNotificationEmailContent = (title, message, action, actionUrl) => {
@@ -315,7 +421,8 @@ const getNotificationEmailContent = (title, message, action, actionUrl) => {
         </td>
       </tr>
       
-      <!-- Message Content -->
+      <!-- Message Content --> 
+      
       <tr>
         <td>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #1F2933; border-radius: 12px; border: 1px solid #374151; margin: 24px 0;">
@@ -1024,6 +1131,64 @@ exports.getServiceInfo = () => ({
 exports.getEmailTemplate = getEmailTemplate;
 exports.getOTPEmailContent = getOTPEmailContent;
 exports.getNotificationEmailContent = getNotificationEmailContent; exports.getWelcomeEmailContent = getWelcomeEmailContent;
+exports.getRegistrationOTPEmailContent = getRegistrationOTPEmailContent;
+
+/**
+ * Send Registration OTP Email - 4 digits
+ */
+exports.sendRegistrationOTPEmail = async (email, otp, fullName) => {
+  try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      throw new Error('Email credentials not configured. Please set EMAIL_USER and EMAIL_PASS environment variables.');
+    }
+
+    console.log(`📧 Sending registration OTP email to ${email}...`);
+    const transporter = await createTransporter();
+    const htmlContent = getEmailTemplate(getRegistrationOTPEmailContent(otp, fullName), {
+      title: 'Verify Your Email - Interview AI'
+    });
+
+    const mailOptions = {
+      from: {
+        name: 'Interview AI',
+        address: process.env.EMAIL_USER
+      },
+      to: email,
+      subject: '✨ Verify Your Email - Welcome to Interview AI',
+      html: htmlContent,
+      text: `Welcome to Interview AI, ${fullName}!\n\nYour verification code is: ${otp}\n\nThis code expires in 10 minutes.\n\nEnter this code to complete your registration and start your interview preparation journey.\n\nIf you didn't create an account, you can safely ignore this email.\n\n- Interview AI Team`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+
+    console.log('✅ Registration OTP Email sent successfully:', info.messageId);
+    return {
+      success: true,
+      messageId: info.messageId,
+      response: info.response
+    };
+
+  } catch (error) {
+    console.error('❌ Failed to send registration OTP email:', error);
+
+    // Provide detailed error info for debugging
+    const errorDetails = {
+      message: error.message,
+      code: error.code,
+      command: error.command,
+      response: error.response
+    };
+
+    console.error('Error details:', JSON.stringify(errorDetails, null, 2));
+
+    return {
+      success: false,
+      error: error.message,
+      code: error.code,
+      details: errorDetails
+    };
+  }
+};
 
 /**
  * Send Welcome Email to New Users

@@ -6,12 +6,15 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { UserContext } from '../../context/UserContext.jsx';
+import VerifyOTP from './VerifyOTP.jsx';
 
 const Login = ({ onSwitch, onForgotPassword }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
   const { setUser } = useContext(UserContext);
   const navigate = useNavigate();
 
@@ -30,12 +33,43 @@ const Login = ({ onSwitch, onForgotPassword }) => {
       toast.success('✅ Login successful!');
       setTimeout(() => navigate('/dashboard'), 1000);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Login failed';
-      toast.error('❌ ' + errorMessage);
+      const errorData = err.response?.data;
+      const errorMessage = errorData?.message || 'Login failed';
+      
+      // Check if email verification is required
+      if (errorData?.requiresVerification) {
+        toast.error('⚠️ ' + errorMessage);
+        setUnverifiedEmail(errorData.email || email);
+        setShowOTPVerification(true);
+      } else {
+        toast.error('❌ ' + errorMessage);
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  const handleVerified = () => {
+    toast.success('🎉 Email verified! Please login now.');
+    setShowOTPVerification(false);
+    setUnverifiedEmail('');
+  };
+
+  const handleBackToLogin = () => {
+    setShowOTPVerification(false);
+    setUnverifiedEmail('');
+  };
+
+  // Show OTP verification if needed
+  if (showOTPVerification) {
+    return (
+      <VerifyOTP 
+        email={unverifiedEmail} 
+        onBack={handleBackToLogin}
+        onVerified={handleVerified}
+      />
+    );
+  }
 
   return (
     <div className="w-full max-w-md mx-auto bg-[rgb(var(--bg-card))] shadow-lg rounded-2xl p-6 border border-[rgb(var(--border))]">

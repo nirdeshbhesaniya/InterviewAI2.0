@@ -6,6 +6,7 @@ import { UserContext } from '../../context/UserContext.jsx';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import { useNavigate } from 'react-router-dom';
+import VerifyOTP from './VerifyOTP.jsx';
 
 const SignUp = ({ onSwitch }) => {
   const { setUser } = useContext(UserContext);
@@ -18,6 +19,7 @@ const SignUp = ({ onSwitch }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -44,13 +46,18 @@ const SignUp = ({ onSwitch }) => {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      const userData = res.data.user;
-      localStorage.setItem('user', JSON.stringify(userData));
-      localStorage.setItem('token', res.data.token);
-      setUser(userData);
-
-      toast.success('✅ Registration successful!');
-      setTimeout(() => navigate('/dashboard'), 1000);
+      if (res.data.requiresVerification) {
+        toast.success('✅ Verification code sent to your email!');
+        setShowOTPVerification(true);
+      } else {
+        // Fallback in case old flow is still used
+        const userData = res.data.user;
+        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('token', res.data.token);
+        setUser(userData);
+        toast.success('✅ Registration successful!');
+        setTimeout(() => navigate('/dashboard'), 1000);
+      }
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Registration failed';
       toast.error('❌ ' + errorMessage);
@@ -58,6 +65,28 @@ const SignUp = ({ onSwitch }) => {
       setLoading(false);
     }
   };
+
+  const handleVerified = () => {
+    toast.success('🎉 Account created successfully! Please login.');
+    setTimeout(() => {
+      onSwitch(); // Switch to login page
+    }, 1500);
+  };
+
+  const handleBackToSignup = () => {
+    setShowOTPVerification(false);
+  };
+
+  // Show OTP verification if needed
+  if (showOTPVerification) {
+    return (
+      <VerifyOTP 
+        email={email} 
+        onBack={handleBackToSignup}
+        onVerified={handleVerified}
+      />
+    );
+  }
 
   return (
     <div className="w-full max-w-md mx-auto bg-[rgb(var(--bg-card))] shadow-lg rounded-2xl p-6 border border-[rgb(var(--border))]">

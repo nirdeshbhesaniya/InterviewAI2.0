@@ -1,10 +1,18 @@
 const bcrypt = require('bcryptjs');
 const User = require('../Models/User');
-const cloudinary = require('../utils/cloudinary');
-// const fs = require('fs'); // to delete local files if needed
-const streamifier = require('streamifier');
-const { sendOTPEmail, sendWelcomeEmail } = require('../utils/emailService');
+const { cloudinary, uploadToCloudinary } = require('../utils/cloudinary');
+const { sendOTPEmail, sendWelcomeEmail, sendRegistrationOTPEmail } = require('../utils/emailService');
 const crypto = require('crypto');
+
+// Generate a 4-digit OTP for registration
+const generateRegistrationOTP = () => {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+};
+
+// Generate a 6-digit OTP for password reset
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
 
 exports.registerUser = async (req, res) => {
   try {
@@ -13,54 +21,210 @@ exports.registerUser = async (req, res) => {
     // Check for existing user
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      // If user exists but not verified, allow re-registration
+      if (!existingUser.isEmailVerified) {
+        // Generate new OTP
+        const otp = generateRegistrationOTP();
+        const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+        // Upload profile image if provided
+        let uploadedPhotoUrl = '';
+        if (req.file) {
+          const result = await uploadToCloudinary(req.file.buffer, { folder: 'user_profiles' });
+          uploadedPhotoUrl = result.secure_url;
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Update temp user data
+        existingUser.tempUserData = {
+          fullName,
+          email,
+          password: hashedPassword,
+          photo: uploadedPhotoUrl
+        };
+        existingUser.emailVerificationOTP = otp;
+        existingUser.emailVerificationOTPExpires = otpExpires;
+        await existingUser.save();
+
+        // Send OTP email
+        const emailResult = await sendRegistrationOTPEmail(email, otp, fullName);
+
+        console.log('📧 Email Result (Existing User):', emailResult);
+
+        if (!emailResult.success) {
+          console.error('Email sending failed:', emailResult);
+          return res.status(500).json({
+            message: 'Failed to send verification email',
+            error: emailResult.error
+          });
+        }
+
+        console.log(`✅ Re-registration OTP sent for ${email}. OTP: ${otp}`);
+
+        return res.status(200).json({
+          message: 'OTP sent to your email. Please verify to complete registration.',
+          email,
+          requiresVerification: true
+        });
+      }
+      
       return res.status(400).json({ message: 'Email already registered' });
     }
 
     // Upload profile image from memory to Cloudinary
     let uploadedPhotoUrl = '';
     if (req.file) {
-      const streamUpload = (fileBuffer) => {
-        return new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream(
-            { folder: 'user_profiles', resource_type: 'image' },
-            (error, result) => {
-              if (result) resolve(result);
-              else reject(error);
-            }
-          );
-          streamifier.createReadStream(fileBuffer).pipe(stream);
-        });
-      };
-
-      const result = await streamUpload(req.file.buffer);
+      const result = await uploadToCloudinary(req.file.buffer, { folder: 'user_profiles' });
       uploadedPhotoUrl = result.secure_url;
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Save user
+    // Generate OTP
+    const otp = generateRegistrationOTP();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Create temporary user with unverified status
     const newUser = new User({
-      fullName,
+      fullName: '', // Will be set after verification
       email,
-      password: hashedPassword,
-      photo: uploadedPhotoUrl,
+      password: '', // Will be set after verification
+      photo: '',
+      isEmailVerified: false,
+      emailVerificationOTP: otp,
+      emailVerificationOTPExpires: otpExpires,
+      tempUserData: {
+        fullName,
+        email,
+        password: hashedPassword,
+        photo: uploadedPhotoUrl
+      }
     });
 
     await newUser.save();
 
-    // Send welcome email (don't wait for it to complete)
-    sendWelcomeEmail(email, fullName).catch(error => {
-      console.error('Failed to send welcome email:', error);
-      // Don't fail registration if email fails
-    });
+    // Send OTP email
+    const emailResult = await sendRegistrationOTPEmail(email, otp, fullName);
 
+    console.log('📧 Email Result:', emailResult);
+
+    if (!emailResult.success) {
+      console.error('Email sending failed:', emailResult);
+      // Delete the temporary user if email fails
+      await User.deleteOne({ _id: newUser._id });
+      
+      return res.status(500).json({
+        message: 'Failed to send verification email',
+        error: emailResult.error
+      });
+    }
+
+    console.log(`✅ Registration successful for ${email}. OTP: ${otp}`);
+    
     res.status(201).json({
-      message: 'User registered successfully',
-      userId: newUser._id,
+      message: 'Verification code sent to your email. Please verify to complete registration.',
+      email,
+      requiresVerification: true
     });
   } catch (err) {
     console.error('Registration Error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+// Verify registration OTP and complete account creation
+exports.verifyRegistrationOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    // Find user by email with valid OTP
+    const user = await User.findOne({
+      email,
+      emailVerificationOTP: otp,
+      emailVerificationOTPExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired verification code' });
+    }
+
+    // Complete user registration with temp data
+    if (!user.tempUserData) {
+      return res.status(400).json({ message: 'Registration data not found. Please try registering again.' });
+    }
+
+    user.fullName = user.tempUserData.fullName;
+    user.password = user.tempUserData.password;
+    user.photo = user.tempUserData.photo;
+    user.isEmailVerified = true;
+    user.emailVerificationOTP = undefined;
+    user.emailVerificationOTPExpires = undefined;
+    user.tempUserData = undefined;
+
+    await user.save();
+
+    // Send welcome email (don't wait for it to complete)
+    sendWelcomeEmail(email, user.fullName).catch(error => {
+      console.error('Failed to send welcome email:', error);
+    });
+
+    res.status(200).json({
+      message: 'Email verified successfully! Your account has been created.',
+      verified: true
+    });
+  } catch (err) {
+    console.error('OTP verification error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+// Resend registration OTP
+exports.resendRegistrationOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Find unverified user
+    const user = await User.findOne({ 
+      email, 
+      isEmailVerified: false 
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found or already verified' });
+    }
+
+    if (!user.tempUserData) {
+      return res.status(400).json({ message: 'Registration data not found. Please try registering again.' });
+    }
+
+    // Generate new OTP
+    const otp = generateRegistrationOTP();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    user.emailVerificationOTP = otp;
+    user.emailVerificationOTPExpires = otpExpires;
+    await user.save();
+
+    // Send OTP email
+    const emailResult = await sendRegistrationOTPEmail(email, otp, user.tempUserData.fullName);
+
+    if (!emailResult.success) {
+      console.error('Email sending failed:', emailResult);
+      return res.status(500).json({
+        message: 'Failed to send verification email',
+        error: emailResult.error
+      });
+    }
+
+    res.status(200).json({ 
+      message: 'New verification code sent to your email',
+      email 
+    });
+  } catch (err) {
+    console.error('Resend OTP error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
@@ -73,6 +237,15 @@ exports.loginUser = async (req, res) => {
     // Check if user exists
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: 'Invalid email or password' });
+
+    // Check if email is verified
+    if (!user.isEmailVerified) {
+      return res.status(403).json({ 
+        message: 'Please verify your email before logging in',
+        requiresVerification: true,
+        email: user.email
+      });
+    }
 
     // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
@@ -151,11 +324,6 @@ exports.loginUser = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
-};
-
-// Generate a 6-digit OTP
-const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
 // Request password reset with OTP

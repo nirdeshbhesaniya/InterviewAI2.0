@@ -9,6 +9,8 @@ console.log("API BASE:", API_BASE_URL);
 export const API = {
   REGISTER: `${API_BASE_URL}/auth/register`,
   LOGIN: `${API_BASE_URL}/auth/login`,
+  VERIFY_REGISTRATION_OTP: `${API_BASE_URL}/auth/verify-registration-otp`,
+  RESEND_REGISTRATION_OTP: `${API_BASE_URL}/auth/resend-registration-otp`,
   FORGOT_PASSWORD: `${API_BASE_URL}/auth/forgot-password`,
   VERIFY_OTP: `${API_BASE_URL}/auth/verify-otp`,
   RESET_PASSWORD: `${API_BASE_URL}/auth/reset-password`,
