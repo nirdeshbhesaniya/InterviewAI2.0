@@ -69,7 +69,7 @@ exports.registerUser = async (req, res) => {
           requiresVerification: true
         });
       }
-      
+
       return res.status(400).json({ message: 'Email already registered' });
     }
 
@@ -115,7 +115,7 @@ exports.registerUser = async (req, res) => {
       console.error('Email sending failed:', emailResult);
       // Delete the temporary user if email fails
       await User.deleteOne({ _id: newUser._id });
-      
+
       return res.status(500).json({
         message: 'Failed to send verification email',
         error: emailResult.error
@@ -123,7 +123,7 @@ exports.registerUser = async (req, res) => {
     }
 
     console.log(`✅ Registration successful for ${email}. OTP: ${otp}`);
-    
+
     res.status(201).json({
       message: 'Verification code sent to your email. Please verify to complete registration.',
       email,
@@ -187,9 +187,9 @@ exports.resendRegistrationOTP = async (req, res) => {
     const { email } = req.body;
 
     // Find unverified user
-    const user = await User.findOne({ 
-      email, 
-      isEmailVerified: false 
+    const user = await User.findOne({
+      email,
+      isEmailVerified: false
     });
 
     if (!user) {
@@ -219,9 +219,9 @@ exports.resendRegistrationOTP = async (req, res) => {
       });
     }
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: 'New verification code sent to your email',
-      email 
+      email
     });
   } catch (err) {
     console.error('Resend OTP error:', err);
@@ -240,7 +240,7 @@ exports.loginUser = async (req, res) => {
 
     // Check if email is verified
     if (!user.isEmailVerified) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         message: 'Please verify your email before logging in',
         requiresVerification: true,
         email: user.email

@@ -80,8 +80,8 @@ const SignUp = ({ onSwitch }) => {
   // Show OTP verification if needed
   if (showOTPVerification) {
     return (
-      <VerifyOTP 
-        email={email} 
+      <VerifyOTP
+        email={email}
         onBack={handleBackToSignup}
         onVerified={handleVerified}
       />

@@ -97,11 +97,11 @@ async function testRegistrationOTP() {
         console.error('Error Details:');
         console.error(`  Type: ${error.name || 'Unknown'}`);
         console.error(`  Message: ${error.message}`);
-        
+
         if (error.code) {
             console.error(`  Code: ${error.code}`);
         }
-        
+
         if (error.command) {
             console.error(`  Command: ${error.command}`);
         }

@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { 
-  registerUser, 
-  verifyRegistrationOTP, 
-  resendRegistrationOTP,
-  loginUser, 
-  forgotPassword, 
-  verifyOTP, 
-  resetPassword 
+const {
+    registerUser,
+    verifyRegistrationOTP,
+    resendRegistrationOTP,
+    loginUser,
+    forgotPassword,
+    verifyOTP,
+    resetPassword
 } = require('../Controllers/authController');
 const upload = require('../middlewares/upload'); // ✅ Use this and remove any redefinition
 

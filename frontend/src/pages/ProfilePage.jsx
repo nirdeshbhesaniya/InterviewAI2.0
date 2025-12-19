@@ -35,7 +35,7 @@ const ProfilePage = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showPasswordForm, setShowPasswordForm] = useState(false);
-    
+
     // Ref for password section auto-scroll
     const passwordSectionRef = useRef(null);
 
@@ -275,12 +275,12 @@ const ProfilePage = () => {
 
     const handleChangePassword = async (e) => {
         if (e) e.preventDefault();
-        
+
         if (!passwordData.currentPassword) {
             toast.error('Please enter your current password');
             return;
         }
-        
+
         if (passwordData.newPassword !== passwordData.confirmPassword) {
             toast.error('New passwords do not match');
             return;
@@ -373,7 +373,7 @@ const ProfilePage = () => {
                                 onClick={() => {
                                     setShowPasswordForm(!showPasswordForm);
                                     if (isEditing) setIsEditing(false); // Close edit mode when opening password form
-                                    
+
                                     // Auto-scroll to password section
                                     setTimeout(() => {
                                         passwordSectionRef.current?.scrollIntoView({

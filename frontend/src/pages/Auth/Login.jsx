@@ -35,7 +35,7 @@ const Login = ({ onSwitch, onForgotPassword }) => {
     } catch (err) {
       const errorData = err.response?.data;
       const errorMessage = errorData?.message || 'Login failed';
-      
+
       // Check if email verification is required
       if (errorData?.requiresVerification) {
         toast.error('⚠️ ' + errorMessage);
@@ -63,8 +63,8 @@ const Login = ({ onSwitch, onForgotPassword }) => {
   // Show OTP verification if needed
   if (showOTPVerification) {
     return (
-      <VerifyOTP 
-        email={unverifiedEmail} 
+      <VerifyOTP
+        email={unverifiedEmail}
         onBack={handleBackToLogin}
         onVerified={handleVerified}
       />

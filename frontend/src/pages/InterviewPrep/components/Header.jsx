@@ -77,7 +77,7 @@ const Header = ({ onLoginClick }) => {
     };
 
     fetchNotificationCount();
-    
+
     // Refresh count every 30 seconds
     const interval = setInterval(fetchNotificationCount, 30000);
     return () => clearInterval(interval);
