@@ -272,8 +272,8 @@ const NotesPage = () => {
                                 >
                                     {/* Card Header */}
                                     <div className={`p-3 sm:p-4 ${note.type === 'pdf'
-                                        ? 'bg-gradient-to-r from-primary to-secondary'
-                                        : 'bg-gradient-to-r from-highlight to-pink-500'
+                                        ? 'bg-gradient-to-r from-[rgb(var(--accent))] to-[#22D3EE]'
+                                        : 'bg-gradient-to-r from-[#F97316] to-[#FB7185]'
                                         }`}>
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-center gap-2 text-white">

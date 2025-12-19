@@ -152,6 +152,21 @@ const ResourcesPage = () => {
     const currentBranch = BRANCHES.find(b => b.id === selectedBranch);
     const BranchIcon = currentBranch?.icon || BookOpen;
 
+    // Ref for materials section
+    const materialsRef = React.useRef(null);
+
+    // Handle branch selection with auto-scroll
+    const handleBranchChange = (branchId) => {
+        setSelectedBranch(branchId);
+        // Scroll to materials section after a brief delay to allow state update
+        setTimeout(() => {
+            materialsRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
+    };
+
     // Fetch resources when branch, filters, or search changes
     const fetchResources = React.useCallback(async () => {
         try {
@@ -338,7 +353,7 @@ const ResourcesPage = () => {
                         <div className="relative">
                             <select
                                 value={selectedBranch}
-                                onChange={(e) => setSelectedBranch(e.target.value)}
+                                onChange={(e) => handleBranchChange(e.target.value)}
                                 className="w-full px-4 py-3 bg-[rgb(var(--bg-card))] border-2 border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-[rgb(var(--accent))] appearance-none"
                             >
                                 {BRANCHES.map((branch) => (
@@ -383,10 +398,10 @@ const ResourcesPage = () => {
                                     key={branch.id}
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
-                                    onClick={() => setSelectedBranch(branch.id)}
+                                    onClick={() => handleBranchChange(branch.id)}
                                     className={`p-4 rounded-xl border-2 transition-all duration-300 text-left ${isSelected
-                                            ? 'border-[rgb(var(--accent))] bg-gradient-to-br from-[rgb(var(--accent))]/10 to-[rgb(var(--accent))]/5 shadow-lg'
-                                            : 'border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-card))] hover:border-[rgb(var(--accent))]/50'
+                                        ? 'border-[rgb(var(--accent))] bg-gradient-to-br from-[rgb(var(--accent))]/10 to-[rgb(var(--accent))]/5 shadow-lg'
+                                        : 'border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-card))] hover:border-[rgb(var(--accent))]/50'
                                         }`}
                                 >
                                     <div className="flex items-start gap-3">
@@ -455,7 +470,7 @@ const ResourcesPage = () => {
                 </Card>
 
                 {/* Current Branch Info */}
-                <Card className="p-4 sm:p-6 mb-4 sm:mb-6 bg-gradient-to-br from-[rgb(var(--bg-card))] to-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">
+                <Card className="p-4 sm:p-6 mb-4 sm:mb-6 bg-gradient-to-br from-[rgb(var(--bg-card))] to-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]" ref={materialsRef}>
                     <div className="flex items-center gap-3 sm:gap-4">
                         <div className={`p-3 sm:p-4 rounded-xl bg-gradient-to-br ${currentBranch?.color}`}>
                             <BranchIcon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />

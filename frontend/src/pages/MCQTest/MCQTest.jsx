@@ -46,6 +46,7 @@ const MCQTest = () => {
         'One attempt per generated test',
         'Answers auto-submit at time end',
         'You can change answers before submitting',
+        'Saved and marked for review questions are evaluated',
         'Results include score, accuracy and time spent'
     ]);
     const [hasAttempted, setHasAttempted] = useState(false);
@@ -694,12 +695,19 @@ const MCQTest = () => {
     };
 
     const handleMarkForReviewAndNext = () => {
+        // Save the temporary answer first if one is selected
+        if (tempAnswer !== null) {
+            setAnswers(prev => ({
+                ...prev,
+                [currentQuestion]: tempAnswer
+            }));
+        }
         // Mark current question for review
         setMarkedForReview(prev => ({
             ...prev,
             [currentQuestion]: true
         }));
-        toast('Marked for review', { duration: 1500 });
+        toast('Saved and marked for review', { duration: 1500 });
         // Move to next question if not the last one
         if (currentQuestion < questions.length - 1) {
             setCurrentQuestion(prev => prev + 1);
