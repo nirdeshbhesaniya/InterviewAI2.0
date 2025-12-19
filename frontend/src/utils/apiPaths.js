@@ -1,9 +1,9 @@
 // src/utils/apiPaths.js
 // export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 // export const API_BASE_URL = 'https://interviewai2-0sever.onrender.com/api';
-// export const API_BASE_URL = 'http://localhost:8080/api';
+export const API_BASE_URL = 'http://localhost:8080/api';
 // export const API_BASE_URL = 'http://104.43.106.43:8080/api';
-export const API_BASE_URL = 'https://api.interviewai.tech/api';
+// export const API_BASE_URL = 'https://api.interviewai.tech/api';
 console.log("API BASE:", API_BASE_URL);
 
 export const API = {

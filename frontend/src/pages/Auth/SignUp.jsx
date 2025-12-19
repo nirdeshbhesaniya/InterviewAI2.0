@@ -24,6 +24,22 @@ const SignUp = ({ onSwitch }) => {
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('❌ Only JPEG, JPG, and PNG images are allowed!');
+        e.target.value = ''; // Clear the input
+        return;
+      }
+      
+      // Validate file size (5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
+        toast.error('❌ Image file is too large. Maximum size is 5MB.');
+        e.target.value = ''; // Clear the input
+        return;
+      }
+      
       setPhotoPreview(URL.createObjectURL(file));
       setPhotoFile(file);
     }
@@ -59,7 +75,19 @@ const SignUp = ({ onSwitch }) => {
         setTimeout(() => navigate('/dashboard'), 1000);
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Registration failed';
+      console.error('Registration error:', error);
+      
+      // Handle specific error messages
+      let errorMessage = 'Registration failed';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message === 'Network Error') {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast.error('❌ ' + errorMessage);
     } finally {
       setLoading(false);

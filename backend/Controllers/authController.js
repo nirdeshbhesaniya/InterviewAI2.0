@@ -18,6 +18,13 @@ exports.registerUser = async (req, res) => {
   try {
     const { fullName, email, password } = req.body;
 
+    // Validate required fields
+    if (!fullName || !email || !password) {
+      return res.status(400).json({ 
+        message: 'Please provide all required fields: fullName, email, and password' 
+      });
+    }
+
     // Check for existing user
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -30,8 +37,15 @@ exports.registerUser = async (req, res) => {
         // Upload profile image if provided
         let uploadedPhotoUrl = '';
         if (req.file) {
-          const result = await uploadToCloudinary(req.file.buffer, { folder: 'user_profiles' });
-          uploadedPhotoUrl = result.secure_url;
+          try {
+            const result = await uploadToCloudinary(req.file.buffer, { folder: 'user_profiles' });
+            uploadedPhotoUrl = result.secure_url;
+          } catch (uploadError) {
+            console.error('Cloudinary upload error:', uploadError);
+            return res.status(500).json({ 
+              message: 'Failed to upload profile image. Please try again with a different image.' 
+            });
+          }
         }
 
         // Hash password
@@ -76,8 +90,15 @@ exports.registerUser = async (req, res) => {
     // Upload profile image from memory to Cloudinary
     let uploadedPhotoUrl = '';
     if (req.file) {
-      const result = await uploadToCloudinary(req.file.buffer, { folder: 'user_profiles' });
-      uploadedPhotoUrl = result.secure_url;
+      try {
+        const result = await uploadToCloudinary(req.file.buffer, { folder: 'user_profiles' });
+        uploadedPhotoUrl = result.secure_url;
+      } catch (uploadError) {
+        console.error('Cloudinary upload error:', uploadError);
+        return res.status(500).json({ 
+          message: 'Failed to upload profile image. Please try again with a different image.' 
+        });
+      }
     }
 
     // Hash password
@@ -131,6 +152,20 @@ exports.registerUser = async (req, res) => {
     });
   } catch (err) {
     console.error('Registration Error:', err);
+    
+    // Handle multer errors
+    if (err.name === 'MulterError') {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ message: 'Image file is too large. Maximum size is 5MB.' });
+      }
+      return res.status(400).json({ message: 'Image upload error: ' + err.message });
+    }
+    
+    // Handle file type errors
+    if (err.message && err.message.includes('Only JPEG')) {
+      return res.status(400).json({ message: err.message });
+    }
+    
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
