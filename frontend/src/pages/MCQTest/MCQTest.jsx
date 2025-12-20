@@ -1512,10 +1512,10 @@ const MCQTest = () => {
 
     const renderResults = () => {
         const getPerformanceLevel = (score) => {
-            if (score >= 90) return { level: 'Excellent', color: 'text-success', bgColor: 'bg-success/10', borderColor: 'border-success' };
-            if (score >= 75) return { level: 'Good', color: 'text-secondary', bgColor: 'bg-secondary/10', borderColor: 'border-secondary' };
-            if (score >= 60) return { level: 'Average', color: 'text-warning', bgColor: 'bg-warning/10', borderColor: 'border-warning' };
-            return { level: 'Needs Improvement', color: 'text-danger', bgColor: 'bg-danger/10', borderColor: 'border-danger' };
+            if (score >= 90) return { level: 'Excellent', color: 'text-[rgb(var(--accent))]', bgColor: 'bg-[rgb(var(--accent))]/10', borderColor: 'border-[rgb(var(--accent))]' };
+            if (score >= 75) return { level: 'Good', color: 'text-[rgb(var(--text-primary))]', bgColor: 'bg-[rgb(var(--text-primary))]/10', borderColor: 'border-[rgb(var(--text-primary))]' };
+            if (score >= 60) return { level: 'Average', color: 'text-[rgb(var(--text-secondary))]', bgColor: 'bg-[rgb(var(--text-secondary))]/10', borderColor: 'border-[rgb(var(--text-secondary))]' };
+            return { level: 'Needs Improvement', color: 'text-[rgb(var(--text-muted))]', bgColor: 'bg-[rgb(var(--text-muted))]/10', borderColor: 'border-[rgb(var(--text-muted))]' };
         };
 
         const performance = results ? getPerformanceLevel(results.score) : null;
@@ -1529,7 +1529,7 @@ const MCQTest = () => {
                 {/* Summary Card */}
                 <Card className="p-6 sm:p-8 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] shadow-xl">
                     <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-green-600 rounded-full mb-4 shadow-lg">
+                        <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-[rgb(var(--accent))] rounded-full mb-4 shadow-lg">
                             <Award className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                         </div>
                         <h2 className="text-2xl sm:text-3xl font-bold text-[rgb(var(--text-primary))] mb-2">
@@ -1547,42 +1547,42 @@ const MCQTest = () => {
                     {/* Stats Grid */}
                     {results && (
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-                            <div className="bg-[rgb(var(--bg-body))] rounded-xl p-4 sm:p-6 shadow-md border border-[rgb(var(--border-subtle))] hover:border-secondary transition-colors">
-                                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-secondary/20 rounded-full mx-auto mb-3">
-                                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-secondary" />
+                            <div className="bg-[rgb(var(--bg-body))] rounded-xl p-4 sm:p-6 shadow-md border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))] transition-colors">
+                                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-[rgb(var(--accent))]/20 rounded-full mx-auto mb-3">
+                                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-[rgb(var(--accent))]" />
                                 </div>
                                 <h3 className="text-xs sm:text-sm font-medium text-[rgb(var(--text-muted))] mb-1 text-center">Score</h3>
-                                <p className="text-2xl sm:text-3xl font-bold text-secondary text-center">
+                                <p className="text-2xl sm:text-3xl font-bold text-[rgb(var(--accent))] text-center">
                                     {results.score}%
                                 </p>
                             </div>
 
-                            <div className="bg-bg-body rounded-xl p-4 sm:p-6 shadow-md border border-border-subtle hover:border-success transition-colors">
-                                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-success/20 rounded-full mx-auto mb-3">
-                                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
+                            <div className="bg-[rgb(var(--bg-body))] rounded-xl p-4 sm:p-6 shadow-md border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))] transition-colors">
+                                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-[rgb(var(--accent))]/20 rounded-full mx-auto mb-3">
+                                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-[rgb(var(--accent))]" />
                                 </div>
-                                <h3 className="text-xs sm:text-sm font-medium text-text-muted mb-1 text-center">Correct</h3>
-                                <p className="text-2xl sm:text-3xl font-bold text-success text-center">
+                                <h3 className="text-xs sm:text-sm font-medium text-[rgb(var(--text-muted))] mb-1 text-center">Correct</h3>
+                                <p className="text-2xl sm:text-3xl font-bold text-[rgb(var(--accent))] text-center">
                                     {results.correctAnswers}/{results.totalQuestions}
                                 </p>
                             </div>
 
-                            <div className="bg-bg-body rounded-xl p-4 sm:p-6 shadow-md border border-border-subtle hover:border-danger transition-colors">
-                                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-danger/20 rounded-full mx-auto mb-3">
-                                    <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-danger" />
+                            <div className="bg-[rgb(var(--bg-body))] rounded-xl p-4 sm:p-6 shadow-md border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--text-muted))] transition-colors">
+                                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-[rgb(var(--text-muted))]/20 rounded-full mx-auto mb-3">
+                                    <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-[rgb(var(--text-muted))]" />
                                 </div>
-                                <h3 className="text-xs sm:text-sm font-medium text-text-muted mb-1 text-center">Wrong</h3>
-                                <p className="text-2xl sm:text-3xl font-bold text-danger text-center">
+                                <h3 className="text-xs sm:text-sm font-medium text-[rgb(var(--text-muted))] mb-1 text-center">Wrong</h3>
+                                <p className="text-2xl sm:text-3xl font-bold text-[rgb(var(--text-muted))] text-center">
                                     {results.totalQuestions - results.correctAnswers}
                                 </p>
                             </div>
 
-                            <div className="bg-bg-body rounded-xl p-4 sm:p-6 shadow-md border border-border-subtle hover:border-primary transition-colors">
-                                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-primary/20 rounded-full mx-auto mb-3">
-                                    <Timer className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                            <div className="bg-[rgb(var(--bg-body))] rounded-xl p-4 sm:p-6 shadow-md border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--text-primary))] transition-colors">
+                                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-[rgb(var(--text-primary))]/20 rounded-full mx-auto mb-3">
+                                    <Timer className="w-5 h-5 sm:w-6 sm:h-6 text-[rgb(var(--text-primary))]" />
                                 </div>
-                                <h3 className="text-xs sm:text-sm font-medium text-text-muted mb-1 text-center">Time</h3>
-                                <p className="text-2xl sm:text-3xl font-bold text-primary text-center">
+                                <h3 className="text-xs sm:text-sm font-medium text-[rgb(var(--text-muted))] mb-1 text-center">Time</h3>
+                                <p className="text-2xl sm:text-3xl font-bold text-[rgb(var(--text-primary))] text-center">
                                     {formatTime(results.timeSpent || 0)}
                                 </p>
                             </div>
@@ -1591,19 +1591,19 @@ const MCQTest = () => {
 
                     {/* Security Warnings */}
                     {(fullscreenWarnings > 0 || tabSwitchWarnings > 0) && (
-                        <div className="bg-danger/10 rounded-xl p-4 sm:p-6 mb-6 border border-danger/30">
+                        <div className="bg-[rgb(var(--text-muted))]/10 rounded-xl p-4 sm:p-6 mb-6 border border-[rgb(var(--text-muted))]/30">
                             <div className="flex items-center gap-2 mb-3">
                                 <span className="text-xl sm:text-2xl">⚠️</span>
-                                <h3 className="text-base sm:text-lg font-semibold text-danger">
+                                <h3 className="text-base sm:text-lg font-semibold text-[rgb(var(--text-muted))]">
                                     Security Warnings Detected
                                 </h3>
                             </div>
-                            <div className="text-sm sm:text-base text-text-secondary space-y-1">
+                            <div className="text-sm sm:text-base text-[rgb(var(--text-secondary))] space-y-1">
                                 {fullscreenWarnings > 0 && (
-                                    <p>• Fullscreen exits: <span className="font-bold text-danger">{fullscreenWarnings}</span></p>
+                                    <p>• Fullscreen exits: <span className="font-bold text-[rgb(var(--text-muted))]">{fullscreenWarnings}</span></p>
                                 )}
                                 {tabSwitchWarnings > 0 && (
-                                    <p>• Tab/window switches: <span className="font-bold text-danger">{tabSwitchWarnings}</span></p>
+                                    <p>• Tab/window switches: <span className="font-bold text-[rgb(var(--text-muted))]">{tabSwitchWarnings}</span></p>
                                 )}
                                 <p className="text-xs sm:text-sm text-text-muted mt-2">
                                     These violations have been recorded and may affect the validity of your test results.
@@ -1613,12 +1613,12 @@ const MCQTest = () => {
                     )}
 
                     {/* AI Disclaimer */}
-                    <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-4 sm:p-5 mb-6 shadow-md">
+                    <div className="bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border-subtle))] rounded-xl p-4 sm:p-5 mb-6 shadow-md">
                         <div className="flex items-start gap-3">
-                            <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+                            <AlertTriangle className="w-5 h-5 text-[rgb(var(--text-secondary))] flex-shrink-0 mt-0.5" />
                             <div className="flex-1">
-                                <h4 className="text-sm sm:text-base font-semibold text-warning mb-1">AI-Generated Results Disclaimer</h4>
-                                <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+                                <h4 className="text-sm sm:text-base font-semibold text-[rgb(var(--text-primary))] mb-1">AI-Generated Results Disclaimer</h4>
+                                <p className="text-xs sm:text-sm text-[rgb(var(--text-secondary))] leading-relaxed">
                                     The answers and explanations are verified by AI and may occasionally contain mistakes.
                                     If you're not satisfied with the AI's answer, we recommend verifying it yourself through additional resources.
                                 </p>
@@ -1637,14 +1637,14 @@ const MCQTest = () => {
                     </div>
 
                     {/* Email Notification */}
-                    <div className="bg-primary/10 rounded-xl p-4 sm:p-6 mb-6 border border-primary/30">
+                    <div className="bg-[rgb(var(--accent))]/10 rounded-xl p-4 sm:p-6 mb-6 border border-[rgb(var(--accent))]/30">
                         <div className="flex items-center gap-2 mb-2">
-                            <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                            <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-[rgb(var(--accent))]" />
                             <h3 className="text-sm sm:text-base font-semibold text-[rgb(var(--text-primary))]">
                                 Detailed Report Sent
                             </h3>
                         </div>
-                        <p className="text-xs sm:text-sm text-text-secondary">
+                        <p className="text-xs sm:text-sm text-[rgb(var(--text-secondary))]">
                             A comprehensive report with question-wise analysis, explanations, and improvement suggestions has been sent to your email.
                         </p>
                     </div>
@@ -1688,16 +1688,16 @@ const MCQTest = () => {
                     >
                         <Card className="p-4 sm:p-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">
                             <h3 className="text-xl sm:text-2xl font-bold text-[rgb(var(--text-primary))] mb-4 flex items-center gap-2">
-                                <Brain className="w-6 h-6 text-secondary" />
+                                <Brain className="w-6 h-6 text-[rgb(var(--accent))]" />
                                 Question-wise Analysis
                             </h3>
 
                             {/* AI Disclaimer for detailed results */}
-                            <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-4 mb-6">
+                            <div className="bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border-subtle))] rounded-xl p-4 mb-6">
                                 <div className="flex items-start gap-3">
-                                    <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+                                    <AlertTriangle className="w-5 h-5 text-[rgb(var(--text-secondary))] flex-shrink-0 mt-0.5" />
                                     <div className="flex-1">
-                                        <h4 className="text-sm font-semibold text-warning mb-1">AI-Generated Content</h4>
+                                        <h4 className="text-sm font-semibold text-[rgb(var(--text-primary))] mb-1">AI-Generated Content</h4>
                                         <p className="text-xs text-[rgb(var(--text-secondary))] leading-relaxed">
                                             Answers and explanations are verified by AI and may occasionally contain mistakes.
                                             Please verify independently if you have concerns.
@@ -1718,28 +1718,28 @@ const MCQTest = () => {
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: index * 0.05 }}
-                                            className={`rounded-xl border-2 overflow-hidden ${isCorrect ? 'border-success bg-success/5' :
-                                                wasAttempted ? 'border-danger bg-danger/5' : 'border-warning bg-warning/5'
+                                            className={`rounded-xl border-2 overflow-hidden ${isCorrect ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/5' :
+                                                wasAttempted ? 'border-[rgb(var(--text-muted))] bg-[rgb(var(--text-muted))]/5' : 'border-[rgb(var(--text-secondary))] bg-[rgb(var(--text-secondary))]/5'
                                                 }`}
                                         >
                                             {/* Question Header */}
-                                            <div className={`px-4 sm:px-6 py-3 flex items-center justify-between ${isCorrect ? 'bg-success/10' :
-                                                wasAttempted ? 'bg-danger/10' : 'bg-warning/10'
+                                            <div className={`px-4 sm:px-6 py-3 flex items-center justify-between ${isCorrect ? 'bg-[rgb(var(--accent))]/10' :
+                                                wasAttempted ? 'bg-[rgb(var(--text-muted))]/10' : 'bg-[rgb(var(--text-secondary))]/10'
                                                 }`}>
                                                 <div className="flex items-center gap-3">
-                                                    <span className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-white ${isCorrect ? 'bg-success' :
-                                                        wasAttempted ? 'bg-danger' : 'bg-warning'
+                                                    <span className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-white ${isCorrect ? 'bg-[rgb(var(--accent))]' :
+                                                        wasAttempted ? 'bg-[rgb(var(--text-muted))]' : 'bg-[rgb(var(--text-secondary))]'
                                                         }`}>
                                                         {index + 1}
                                                     </span>
-                                                    <span className={`text-sm sm:text-base font-semibold ${isCorrect ? 'text-success' :
-                                                        wasAttempted ? 'text-danger' : 'text-warning'
+                                                    <span className={`text-sm sm:text-base font-semibold ${isCorrect ? 'text-[rgb(var(--accent))]' :
+                                                        wasAttempted ? 'text-[rgb(var(--text-muted))]' : 'text-[rgb(var(--text-secondary))]'
                                                         }`}>
                                                         {isCorrect ? '✓ Correct' : wasAttempted ? '✗ Wrong' : '⊘ Not Attempted'}
                                                     </span>
                                                 </div>
                                                 {markedForReview[index] && (
-                                                    <span className="text-xs sm:text-sm px-2 py-1 bg-purple-600/20 text-purple-400 rounded-full border border-purple-600/30">
+                                                    <span className="text-xs sm:text-sm px-2 py-1 bg-[rgb(var(--accent))]/20 text-[rgb(var(--accent))] rounded-full border border-[rgb(var(--accent))]/30">
                                                         ⚑ Marked
                                                     </span>
                                                 )}
@@ -1765,14 +1765,14 @@ const MCQTest = () => {
                                                         return (
                                                             <div
                                                                 key={optIndex}
-                                                                className={`p-3 sm:p-4 rounded-lg border-2 ${isCorrectAnswer ? 'border-success bg-success/10' :
-                                                                    isUserAnswer ? 'border-danger bg-danger/10' :
-                                                                        'border-[rgb(var(--border-subtle))] bg-bg-elevated'
+                                                                className={`p-3 sm:p-4 rounded-lg border-2 ${isCorrectAnswer ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10' :
+                                                                    isUserAnswer ? 'border-[rgb(var(--text-muted))] bg-[rgb(var(--text-muted))]/10' :
+                                                                        'border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-elevated))]'
                                                                     }`}
                                                             >
                                                                 <div className="flex items-start gap-3">
-                                                                    <span className={`flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm ${isCorrectAnswer ? 'bg-success text-white' :
-                                                                        isUserAnswer ? 'bg-danger text-white' :
+                                                                    <span className={`flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm ${isCorrectAnswer ? 'bg-[rgb(var(--accent))] text-white' :
+                                                                        isUserAnswer ? 'bg-[rgb(var(--text-muted))] text-white' :
                                                                             'bg-[rgb(var(--bg-body))] text-[rgb(var(--text-muted))] border border-[rgb(var(--border-subtle))]'
                                                                         }`}>
                                                                         {String.fromCharCode(65 + optIndex)}
@@ -1784,13 +1784,13 @@ const MCQTest = () => {
                                                                             </ReactMarkdown>
                                                                         </div>
                                                                         {isCorrectAnswer && (
-                                                                            <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-success mt-1">
+                                                                            <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-[rgb(var(--accent))] mt-1">
                                                                                 <CheckCircle className="w-4 h-4" />
                                                                                 Correct Answer
                                                                             </span>
                                                                         )}
                                                                         {isUserAnswer && !isCorrectAnswer && (
-                                                                            <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-danger mt-1">
+                                                                            <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-[rgb(var(--text-muted))] mt-1">
                                                                                 <XCircle className="w-4 h-4" />
                                                                                 Your Answer
                                                                             </span>
@@ -1804,8 +1804,8 @@ const MCQTest = () => {
 
                                                 {/* Explanation */}
                                                 {q.explanation && (
-                                                    <div className="bg-primary/10 rounded-lg p-4 border border-primary/30">
-                                                        <h4 className="text-sm sm:text-base font-semibold text-primary mb-2 flex items-center gap-2">
+                                                    <div className="bg-[rgb(var(--accent))]/10 rounded-lg p-4 border border-[rgb(var(--accent))]/30">
+                                                        <h4 className="text-sm sm:text-base font-semibold text-[rgb(var(--accent))] mb-2 flex items-center gap-2">
                                                             <Brain className="w-4 h-4" />
                                                             Explanation
                                                         </h4>
@@ -1827,30 +1827,30 @@ const MCQTest = () => {
                         {results && (
                             <Card className="p-4 sm:p-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">
                                 <h3 className="text-xl sm:text-2xl font-bold text-[rgb(var(--text-primary))] mb-4 flex items-center gap-2">
-                                    <Settings className="w-6 h-6 text-accent-warm" />
+                                    <Settings className="w-6 h-6 text-[rgb(var(--accent))]" />
                                     Personalized Recommendations
                                 </h3>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* Strengths */}
                                     {results.score >= 60 && (
-                                        <div className="bg-success/10 rounded-xl p-4 border border-success/30">
-                                            <h4 className="text-base sm:text-lg font-semibold text-success mb-3 flex items-center gap-2">
+                                        <div className="bg-[rgb(var(--accent))]/10 rounded-xl p-4 border border-[rgb(var(--accent))]/30">
+                                            <h4 className="text-base sm:text-lg font-semibold text-[rgb(var(--accent))] mb-3 flex items-center gap-2">
                                                 <CheckCircle className="w-5 h-5" />
                                                 Strengths
                                             </h4>
                                             <ul className="space-y-2 text-sm sm:text-base text-[rgb(var(--text-secondary))]">
                                                 <li className="flex items-start gap-2">
-                                                    <span className="text-success mt-1">•</span>
+                                                    <span className="text-[rgb(var(--accent))] mt-1">•</span>
                                                     <span>Good understanding of {formData.topic} fundamentals</span>
                                                 </li>
                                                 <li className="flex items-start gap-2">
-                                                    <span className="text-success mt-1">•</span>
+                                                    <span className="text-[rgb(var(--accent))] mt-1">•</span>
                                                     <span>Completed test within time limit</span>
                                                 </li>
                                                 {results.score >= 80 && (
                                                     <li className="flex items-start gap-2">
-                                                        <span className="text-success mt-1">•</span>
+                                                        <span className="text-[rgb(var(--accent))] mt-1">•</span>
                                                         <span>Strong performance indicates readiness for advanced topics</span>
                                                     </li>
                                                 )}
@@ -1859,44 +1859,44 @@ const MCQTest = () => {
                                     )}
 
                                     {/* Areas for Improvement */}
-                                    <div className="bg-accent-warm/10 rounded-xl p-4 border border-accent-warm/30">
-                                        <h4 className="text-base sm:text-lg font-semibold text-accent-warm mb-3 flex items-center gap-2">
+                                    <div className="bg-[rgb(var(--text-secondary))]/10 rounded-xl p-4 border border-[rgb(var(--text-secondary))]/30">
+                                        <h4 className="text-base sm:text-lg font-semibold text-[rgb(var(--text-secondary))] mb-3 flex items-center gap-2">
                                             <Brain className="w-5 h-5" />
                                             Focus Areas
                                         </h4>
                                         <ul className="space-y-2 text-sm sm:text-base text-[rgb(var(--text-secondary))]">
                                             {results.score < 60 && (
                                                 <li className="flex items-start gap-2">
-                                                    <span className="text-accent-warm mt-1">•</span>
+                                                    <span className="text-[rgb(var(--text-secondary))] mt-1">•</span>
                                                     <span>Review core concepts of {formData.topic}</span>
                                                 </li>
                                             )}
                                             {results.totalQuestions - results.correctAnswers > 0 && (
                                                 <li className="flex items-start gap-2">
-                                                    <span className="text-accent-warm mt-1">•</span>
+                                                    <span className="text-[rgb(var(--text-secondary))] mt-1">•</span>
                                                     <span>Study the explanations for {results.totalQuestions - results.correctAnswers} incorrect answers</span>
                                                 </li>
                                             )}
                                             <li className="flex items-start gap-2">
-                                                <span className="text-accent-warm mt-1">•</span>
+                                                <span className="text-[rgb(var(--text-secondary))] mt-1">•</span>
                                                 <span>Practice more {formData.experience} level questions</span>
                                             </li>
                                             <li className="flex items-start gap-2">
-                                                <span className="text-accent-warm mt-1">•</span>
+                                                <span className="text-[rgb(var(--text-secondary))] mt-1">•</span>
                                                 <span>Review marked questions to clarify doubts</span>
                                             </li>
                                         </ul>
                                     </div>
 
                                     {/* Next Steps */}
-                                    <div className="bg-secondary/10 rounded-xl p-4 border border-secondary/30">
-                                        <h4 className="text-base sm:text-lg font-semibold text-secondary mb-3 flex items-center gap-2">
+                                    <div className="bg-[rgb(var(--text-primary))]/10 rounded-xl p-4 border border-[rgb(var(--text-primary))]/30">
+                                        <h4 className="text-base sm:text-lg font-semibold text-[rgb(var(--text-primary))] mb-3 flex items-center gap-2">
                                             <ChevronRight className="w-5 h-5" />
                                             Next Steps
                                         </h4>
                                         <ul className="space-y-2 text-sm sm:text-base text-[rgb(var(--text-secondary))]">
                                             <li className="flex items-start gap-2">
-                                                <span className="text-secondary mt-1">•</span>
+                                                <span className="text-[rgb(var(--text-primary))] mt-1">•</span>
                                                 <span>Take another test on {formData.topic} to track improvement</span>
                                             </li>
                                             <li className="flex items-start gap-2">

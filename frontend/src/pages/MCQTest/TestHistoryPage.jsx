@@ -207,17 +207,17 @@ const TestHistoryPage = () => {
     };
 
     const getPerformanceLevel = (score) => {
-        if (score >= 90) return { label: 'Excellent', color: 'text-green-400', bg: 'bg-green-500/20' };
-        if (score >= 75) return { label: 'Good', color: 'text-blue-400', bg: 'bg-blue-500/20' };
-        if (score >= 60) return { label: 'Average', color: 'text-yellow-400', bg: 'bg-yellow-500/20' };
-        return { label: 'Needs Improvement', color: 'text-red-400', bg: 'bg-red-500/20' };
+        if (score >= 90) return { label: 'Excellent', color: 'text-[rgb(var(--accent))]', bg: 'bg-[rgb(var(--accent))]/20' };
+        if (score >= 75) return { label: 'Good', color: 'text-[rgb(var(--text-primary))]', bg: 'bg-[rgb(var(--text-primary))]/20' };
+        if (score >= 60) return { label: 'Average', color: 'text-[rgb(var(--text-secondary))]', bg: 'bg-[rgb(var(--text-secondary))]/20' };
+        return { label: 'Needs Improvement', color: 'text-[rgb(var(--text-muted))]', bg: 'bg-[rgb(var(--text-muted))]/20' };
     };
 
     const getStatusBadge = (status) => {
         const styles = {
-            completed: { label: 'Completed', color: 'text-green-400', bg: 'bg-green-500/20' },
-            'auto-submitted': { label: 'Auto-Submitted', color: 'text-yellow-400', bg: 'bg-yellow-500/20' },
-            timeout: { label: 'Timeout', color: 'text-orange-400', bg: 'bg-orange-500/20' }
+            completed: { label: 'Completed', color: 'text-[rgb(var(--accent))]', bg: 'bg-[rgb(var(--accent))]/20' },
+            'auto-submitted': { label: 'Auto-Submitted', color: 'text-[rgb(var(--text-secondary))]', bg: 'bg-[rgb(var(--text-secondary))]/20' },
+            timeout: { label: 'Timeout', color: 'text-[rgb(var(--text-muted))]', bg: 'bg-[rgb(var(--text-muted))]/20' }
         };
         return styles[status] || styles.completed;
     };
@@ -242,7 +242,7 @@ const TestHistoryPage = () => {
                         </Button>
                         <div>
                             <h1 className="text-2xl md:text-3xl font-bold text-[rgb(var(--text-primary))] flex items-center gap-2 md:gap-3">
-                                <Trophy className="w-6 h-6 md:w-8 md:h-8 text-yellow-500" />
+                                <Trophy className="w-6 h-6 md:w-8 md:h-8 text-[rgb(var(--accent))]" />
                                 Test History
                             </h1>
                             <p className="text-sm md:text-base text-[rgb(var(--text-secondary))] mt-1">View your past test performance and progress</p>
