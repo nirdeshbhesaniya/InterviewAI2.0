@@ -58,15 +58,20 @@ const SignUp = ({ onSwitch }) => {
         formData.append('photo', photoFile);
       }
 
+      console.log('📤 Sending registration request...');
       const res = await axios.post(API.REGISTER, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
+      console.log('📥 Registration response:', res.data);
+
       if (res.data.requiresVerification) {
+        console.log('✅ Email verification required');
         toast.success('✅ Verification code sent to your email!');
         setShowOTPVerification(true);
       } else {
         // Fallback in case old flow is still used
+        console.log('ℹ️ Using old registration flow (no verification)');
         const userData = res.data.user;
         localStorage.setItem('user', JSON.stringify(userData));
         localStorage.setItem('token', res.data.token);
@@ -75,7 +80,9 @@ const SignUp = ({ onSwitch }) => {
         setTimeout(() => navigate('/dashboard'), 1000);
       }
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('❌ Registration error:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
 
       // Handle specific error messages
       let errorMessage = 'Registration failed';
