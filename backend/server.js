@@ -14,7 +14,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   process.env.FRONTEND_URL,
   "https://interviewai2-0.onrender.com"
-  
+
 ].filter(Boolean);
 
 app.use(cors({
