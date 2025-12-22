@@ -465,7 +465,7 @@ const LandingPage = () => {
               {testimonials.map((item, index) => (
                 <motion.div
                   key={`mobile-${item.id}`}
-                  className="snap-start flex-shrink-0 w-[85vw] sm:w-[70vw] max-w-sm bg-bg-card rounded-xl shadow-lg p-6 border border-border-subtle"
+                  className="snap-start flex-shrink-0 w-[85vw] sm:w-[70vw] max-w-sm bg-[rgb(var(--bg-card))] rounded-xl shadow-lg p-6 border border-[rgb(var(--border-subtle))]"
                   initial={{ opacity: 0, x: 50 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
@@ -478,11 +478,11 @@ const LandingPage = () => {
                       alt={item.name}
                     />
                     <div>
-                      <h4 className="font-semibold text-text-primary">{item.name}</h4>
+                      <h4 className="font-semibold text-[rgb(var(--text-primary))]">{item.name}</h4>
                       <p className="text-sm text-primary">{item.role}</p>
                     </div>
                   </div>
-                  <p className="text-text-secondary text-sm leading-relaxed">"{item.feedback}"</p>
+                  <p className="text-[rgb(var(--text-secondary))] text-sm leading-relaxed">"{item.feedback}"</p>
                 </motion.div>
               ))}
             </div>
@@ -494,7 +494,7 @@ const LandingPage = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 pt-16 border-t border-border-subtle"
+            className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 pt-16 border-t border-[rgb(var(--border-subtle))]"
           >
             {[
               { icon: Users, label: "Active Users", value: "10,000+" },
@@ -513,8 +513,8 @@ const LandingPage = () => {
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-highlight to-pink-500 text-white rounded-2xl mb-4 shadow-button-primary">
                   <stat.icon className="w-8 h-8" />
                 </div>
-                <div className="font-bold text-2xl text-text-primary">{stat.value}</div>
-                <div className="text-text-secondary">{stat.label}</div>
+                <div className="font-bold text-2xl text-[rgb(var(--text-primary))]">{stat.value}</div>
+                <div className="text-[rgb(var(--text-secondary))]">{stat.label}</div>
               </motion.div>
             ))}
           </motion.div>
@@ -523,7 +523,7 @@ const LandingPage = () => {
 
 
       {/* Enhanced Why Choose Section */}
-      <section className="px-4 sm:px-6 lg:px-8 py-20 bg-bg-body-alt">
+      <section className="px-4 sm:px-6 lg:px-8 py-20 bg-[rgb(var(--bg-body-alt))]">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -532,10 +532,10 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-text-primary mb-6">
-              Why Choose <span className="text-text-primary">Interview AI?</span>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[rgb(var(--text-primary))] mb-6">
+              Why Choose <span className="text-[rgb(var(--text-primary))]">Interview AI?</span>
             </h2>
-            <p className="text-lg sm:text-xl text-text-secondary max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-[rgb(var(--text-secondary))] max-w-3xl mx-auto">
               Experience the future of interview preparation with our cutting-edge AI technology
             </p>
           </motion.div>
@@ -571,7 +571,7 @@ const LandingPage = () => {
                   y: -10,
                   transition: { duration: 0.3 }
                 }}
-                className="group relative bg-bg-card border border-border-subtle p-8 rounded-3xl shadow-lg hover:shadow-2xl hover:bg-bg-card-alt transition-all duration-500 overflow-hidden"
+                className="group relative bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] p-8 rounded-3xl shadow-lg hover:shadow-2xl hover:bg-[rgb(var(--bg-card-alt))] transition-all duration-500 overflow-hidden"
               >
                 {/* Background Effects */}
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -586,17 +586,17 @@ const LandingPage = () => {
 
                 {/* Content */}
                 <div className="relative z-10">
-                  <h3 className="text-2xl font-bold text-text-primary mb-4 group-hover:text-highlight transition-colors duration-300">
+                  <h3 className="text-2xl font-bold text-[rgb(var(--text-primary))] mb-4 group-hover:text-highlight transition-colors duration-300">
                     {item.title}
                   </h3>
-                  <p className="text-text-secondary leading-relaxed text-lg">
+                  <p className="text-[rgb(var(--text-secondary))] leading-relaxed text-lg">
                     {item.text}
                   </p>
                 </div>
 
                 {/* Decorative Elements */}
                 <div className="absolute bottom-4 right-4 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
-                  <item.icon className="w-24 h-24 text-text-muted" />
+                  <item.icon className="w-24 h-24 text-[rgb(var(--text-muted))]" />
                 </div>
               </motion.div>
             ))}
@@ -622,10 +622,10 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
-                className="text-center p-6 bg-bg-card border border-border-subtle rounded-2xl hover:bg-bg-card-alt transition-all"
+                className="text-center p-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] rounded-2xl hover:bg-[rgb(var(--bg-card-alt))] transition-all"
               >
                 <benefit.icon className="w-12 h-12 mx-auto mb-3 text-primary" />
-                <div className="font-semibold text-text-primary">{benefit.label}</div>
+                <div className="font-semibold text-[rgb(var(--text-primary))]">{benefit.label}</div>
               </motion.div>
             ))}
           </motion.div>
@@ -633,7 +633,7 @@ const LandingPage = () => {
       </section>
 
       {/* Enhanced FAQ Section */}
-      <section className="bg-bg-body py-20 px-4 sm:px-6 lg:px-8">
+      <section className="bg-[rgb(var(--bg-body))] py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -642,10 +642,10 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl sm:text-5xl font-bold text-text-primary mb-6">
-              Frequently Asked <span className="text-text-primary">Questions</span>
+            <h2 className="text-4xl sm:text-5xl font-bold text-[rgb(var(--text-primary))] mb-6">
+              Frequently Asked <span className="text-[rgb(var(--text-primary))]">Questions</span>
             </h2>
-            <p className="text-lg sm:text-xl text-text-secondary">
+            <p className="text-lg sm:text-xl text-[rgb(var(--text-secondary))]">
               Everything you need to know about Interview AI
             </p>
           </motion.div>
@@ -659,8 +659,8 @@ const LandingPage = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                <details className="group bg-bg-card p-6 rounded-2xl shadow-lg border border-border-subtle hover:shadow-xl hover:bg-bg-card-alt transition-all duration-300">
-                  <summary className="flex items-center justify-between font-bold text-lg text-text-primary cursor-pointer list-none">
+                <details className="group bg-[rgb(var(--bg-card))] p-6 rounded-2xl shadow-lg border border-[rgb(var(--border-subtle))] hover:shadow-xl hover:bg-[rgb(var(--bg-card-alt))] transition-all duration-300">
+                  <summary className="flex items-center justify-between font-bold text-lg text-[rgb(var(--text-primary))] cursor-pointer list-none">
                     <span className="pr-4">{faq.question}</span>
                     <div className="flex-shrink-0">
                       <div className="w-8 h-8 bg-gradient-to-r from-highlight to-pink-500 rounded-full flex items-center justify-center text-white transform group-open:rotate-45 transition-transform duration-300 shadow-button-primary">
@@ -668,8 +668,8 @@ const LandingPage = () => {
                       </div>
                     </div>
                   </summary>
-                  <div className="mt-4 pt-4 border-t border-border-subtle">
-                    <p className="text-text-secondary leading-relaxed">{faq.answer}</p>
+                  <div className="mt-4 pt-4 border-t border-[rgb(var(--border-subtle))]">
+                    <p className="text-[rgb(var(--text-secondary))] leading-relaxed">{faq.answer}</p>
                   </div>
                 </details>
               </motion.div>

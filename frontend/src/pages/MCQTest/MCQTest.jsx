@@ -864,7 +864,7 @@ const MCQTest = () => {
                             <select
                                 value={formData.experience}
                                 onChange={(e) => setFormData(prev => ({ ...prev, experience: e.target.value }))}
-                                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-border-subtle rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-bg-body text-text-primary"
+                                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-[rgb(var(--border-subtle))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))]"
                             >
                                 <option value="beginner">Beginner (0-1 years)</option>
                                 <option value="intermediate">Intermediate (1-3 years)</option>
@@ -884,7 +884,7 @@ const MCQTest = () => {
                                     setFormData(prev => ({ ...prev, numberOfQuestions: numQuestions }));
                                     setTimeLeft(numQuestions * 120); // 2 minutes per question
                                 }}
-                                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-border-subtle rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-bg-body text-text-primary"
+                                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-[rgb(var(--border-subtle))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))]"
                             >
                                 <option value={10}>10 Questions (20 min)</option>
                                 <option value={15}>15 Questions (30 min)</option>
