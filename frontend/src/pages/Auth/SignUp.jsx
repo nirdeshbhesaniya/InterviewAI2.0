@@ -124,22 +124,22 @@ const SignUp = ({ onSwitch }) => {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto bg-[rgb(var(--bg-card))] shadow-lg rounded-2xl p-6 border border-[rgb(var(--border))]">
-      <h2 className="text-2xl font-bold text-center text-[rgb(var(--accent))] mb-1">Create an Account ✨</h2>
-      <p className="text-sm text-[rgb(var(--text-muted))] text-center mb-6">Join us by filling the details below</p>
+    <div className="w-full">
+      <h2 className="text-xl sm:text-2xl font-bold text-center text-[rgb(var(--accent))] mb-1">Create an Account ✨</h2>
+      <p className="text-xs sm:text-sm text-[rgb(var(--text-muted))] text-center mb-4 sm:mb-6">Join us by filling the details below</p>
 
       {/* Profile Upload */}
-      <div className="flex justify-center mb-6">
+      <div className="flex justify-center mb-4 sm:mb-6">
         <label className="relative cursor-pointer group">
           {photoPreview ? (
             <img
               src={photoPreview}
               alt="Profile"
-              className="w-20 h-20 rounded-full object-cover border-2 border-[rgb(var(--accent))] shadow-md"
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-[rgb(var(--accent))] shadow-md"
             />
           ) : (
-            <div className="w-20 h-20 rounded-full bg-[rgb(var(--accent))]/10 flex items-center justify-center border-2 border-[rgb(var(--accent))]/50">
-              <Upload className="text-[rgb(var(--accent))]" />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[rgb(var(--accent))]/10 flex items-center justify-center border-2 border-[rgb(var(--accent))]/50">
+              <Upload className="text-[rgb(var(--accent))] w-5 h-5 sm:w-6 sm:h-6" />
             </div>
           )}
           <input
@@ -151,36 +151,36 @@ const SignUp = ({ onSwitch }) => {
         </label>
       </div>
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-3 sm:space-y-4" onSubmit={handleSubmit}>
         {/* Full Name */}
         <div className="relative">
-          <User className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-5 h-5" />
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-4 h-4 sm:w-5 sm:h-5" />
           <input
             type="text"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="Full Name"
             required
-            className="w-full pl-10 pr-4 py-2 bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
+            className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-2 text-sm sm:text-base bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
           />
         </div>
 
         {/* Email */}
         <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-5 h-5" />
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-4 h-4 sm:w-5 sm:h-5" />
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email Address"
             required
-            className="w-full pl-10 pr-4 py-2 bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
+            className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-2 text-sm sm:text-base bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
           />
         </div>
 
         {/* Password */}
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-5 h-5" />
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-4 h-4 sm:w-5 sm:h-5" />
           <input
             type={showPassword ? 'text' : 'password'}
             placeholder="Min 6 characters"
@@ -188,14 +188,14 @@ const SignUp = ({ onSwitch }) => {
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={6}
-            className="w-full pl-10 pr-10 py-2 bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
+            className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2.5 sm:py-2 text-sm sm:text-base bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
           />
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))]"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] p-1"
           >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            {showPassword ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
           </button>
         </div>
 
@@ -204,7 +204,7 @@ const SignUp = ({ onSwitch }) => {
           type="submit"
           whileTap={{ scale: 0.97 }}
           disabled={loading}
-          className={`w-full py-2 rounded-md transition font-semibold tracking-wide shadow-md ${loading
+          className={`w-full py-2.5 sm:py-2 rounded-md transition font-semibold tracking-wide shadow-md text-sm sm:text-base ${loading
             ? 'bg-[rgb(var(--text-muted))]/50 text-[rgb(var(--text-secondary))] cursor-not-allowed'
             : 'bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] hover:shadow-lg text-white'
             }`}
@@ -214,7 +214,7 @@ const SignUp = ({ onSwitch }) => {
       </form>
 
       {/* Switch to login */}
-      <p className="text-sm text-center mt-5 text-[rgb(var(--text-secondary))]">
+      <p className="text-xs sm:text-sm text-center mt-4 sm:mt-5 text-[rgb(var(--text-secondary))]">
         Already have an account?{' '}
         <button
           onClick={onSwitch}

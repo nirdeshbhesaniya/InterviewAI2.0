@@ -44,19 +44,20 @@ const HeroSection = () => {
           <source src="/assets/hero.mp4" type="video/mp4" />
         </video>
 
-        {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--accent))]/20 via-[rgb(var(--bg-body))] to-[rgb(var(--accent))]/20"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20"></div>
+        {/* Vibrant Gradient Overlays */}
+        <div className="absolute inset-0"></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-cyan-600/20 via-transparent to-indigo-600/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30"></div>
 
-        {/* Animated Grid Pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(99,102,241,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(99,102,241,0.03)_1px,transparent_1px)] bg-[size:50px_50px] animate-pulse"></div>
+        {/* Animated Grid Pattern with glow */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(147,51,234,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(147,51,234,0.05)_1px,transparent_1px)] bg-[size:50px_50px] animate-pulse"></div>
       </div>
 
       {/* Enhanced Floating Elements */}
       <div className="absolute inset-0 z-0 hidden md:block">
-        {/* Top Left Orb */}
+        {/* Top Left Orb - Purple to Pink */}
         <motion.div
-          className="absolute top-20 left-10 w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-[rgb(var(--accent))]/30 to-indigo-500/20 rounded-full blur-xl"
+          className="absolute top-20 left-10 w-24 h-24 lg:w-32 lg:h-3 rounded-full blur-2xl"
           animate={{
             x: [0, 40, 0],
             y: [0, -30, 0],
@@ -66,9 +67,9 @@ const HeroSection = () => {
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         />
 
-        {/* Bottom Right Orb */}
+        {/* Bottom Right Orb - Cyan to Blue */}
         <motion.div
-          className="absolute bottom-40 right-20 w-32 h-32 lg:w-40 lg:h-40 bg-gradient-to-br from-[rgb(var(--accent))]/30 to-cyan-500/20 rounded-full blur-xl"
+          className="absolute bottom-40 right-20 w-36 h-36 lg:w-48 lg:h-48 bg-gradient-to-br from-cyan-400/40 to-blue-600/30 rounded-full blur-2xl"
           animate={{
             x: [0, -50, 0],
             y: [0, 40, 0],
@@ -78,14 +79,26 @@ const HeroSection = () => {
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
 
-        {/* Center Accent */}
+        {/* Center Accent - Orange to Red */}
         <motion.div
-          className="absolute top-1/2 left-1/4 w-16 h-16 bg-gradient-to-br from-[rgb(var(--accent))]/20 to-pink-500/15 rounded-full blur-lg"
+          className="absolute top-1/2 left-1/4 w-20 h-20 bg-gradient-to-br from-orange-400/30 to-red-500/25 rounded-full blur-xl"
           animate={{
             scale: [1, 1.5, 1],
             opacity: [0.3, 0.6, 0.3]
           }}
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        {/* Additional Top Right Orb - Emerald */}
+        <motion.div
+          className="absolute top-32 right-32 w-28 h-28 bg-gradient-to-br from-emerald-400/35 to-teal-500/25 rounded-full blur-2xl"
+          animate={{
+            x: [0, 30, 0],
+            y: [0, -40, 0],
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3]
+          }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
         />
       </div>
 
@@ -101,12 +114,12 @@ const HeroSection = () => {
           className="flex justify-center mb-6 sm:mb-8 lg:mb-10"
         >
           <div className="group relative">
-            <div className="absolute -inset-0.5 bg-[rgb(var(--accent))] rounded-full blur opacity-60 group-hover:opacity-80 transition duration-300"></div>
-            <span className="relative inline-flex items-center gap-2 sm:gap-3 px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 text-xs sm:text-sm lg:text-base font-semibold text-white bg-[rgb(var(--bg-card))]/80 backdrop-blur-xl rounded-full border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/40 transition-all duration-300">
-              <BrainCircuit className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[rgb(var(--accent))] animate-pulse" />
-              <span className="hidden sm:inline text-black">AI-Powered Interview Assistant</span>
-              <span className="sm:hidden">AI Interview Assistant</span>
-              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-[rgb(var(--accent))] animate-spin" style={{ animationDuration: '3s' }} />
+            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-green-500 to-blue-500 rounded-full blur-lg opacity-70 group-hover:opacity-90 transition duration-300 animate-gradient-x"></div>
+            <span className="relative inline-flex items-center gap-2 sm:gap-3 px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 text-xs sm:text-sm lg:text-base font-semibold bg-gradient-to-r from-slate-900 to-slate-800 backdrop-blur-xl rounded-full border border-purple-400/30 hover:border-pink-400/50 transition-all duration-300 shadow-2xl">
+              <BrainCircuit className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-purple-400 animate-pulse" />
+              <span className="hidden sm:inline bg-gradient-to-r from-purple-300 via-green-300 to-blue-300 bg-clip-text text-transparent font-bold">AI-Powered Interview Assistant</span>
+              <span className="sm:hidden bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent font-bold">AI Interview Assistant</span>
+              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-pink-400 animate-spin" style={{ animationDuration: '3s' }} />
             </span>
           </div>
         </motion.div>
@@ -122,7 +135,7 @@ const HeroSection = () => {
             <span className="block text-white drop-shadow-2xl mb-2 sm:mb-4">
               Ace Interviews with
             </span>
-            <span className="block text-white">
+            <span className="block bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent drop-shadow-2xl animate-gradient-x">
               AI-Powered Learning
             </span>
           </h1>
@@ -149,15 +162,15 @@ const HeroSection = () => {
                 ))}
               </div>
               <span className="text-white/90 text-sm sm:text-base lg:text-lg font-medium">
-                <span className="hidden sm:inline">Trusted by 10,000+ developers</span>
+                <span className="hidden sm:inline text-green-500">Trusted by 10,000+ developers</span>
                 <span className="sm:hidden">10k+ developers</span>
               </span>
             </div>
 
             {/* Verification Badge */}
-            <div className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-[rgb(var(--accent))]/20 backdrop-blur-sm rounded-full border border-[rgb(var(--accent))]/30">
-              <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-[rgb(var(--accent))]" />
-              <span className="text-[rgb(var(--accent))]/90 text-xs sm:text-sm lg:text-base font-medium">Verified Platform</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 backdrop-blur-sm rounded-full border border-emerald-400/40 shadow-lg shadow-emerald-500/20">
+              <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
+              <span className="text-emerald-300 text-xs sm:text-sm lg:text-base font-semibold">Verified Platform</span>
             </div>
           </motion.div>
         </motion.div>
@@ -176,10 +189,10 @@ const HeroSection = () => {
           {/* Enhanced Feature Highlights */}
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4 lg:gap-6">
             {[
-              { icon: CheckCircle, text: "Personalized Questions", shortText: "Personalized", color: "text-[rgb(var(--accent))]" },
-              { icon: Zap, text: "Instant Feedback", shortText: "Instant", color: "text-[rgb(var(--accent))]" },
-              { icon: Trophy, text: "Track Progress", shortText: "Progress", color: "text-[rgb(var(--accent))]" },
-              { icon: Target, text: "Role-Specific", shortText: "Targeted", color: "text-pink-400" }
+              { icon: CheckCircle, text: "Personalized Questions", shortText: "Personalized", color: "text-emerald-400", bgGrad: "from-emerald-500/20 to-green-500/10" },
+              { icon: Zap, text: "Instant Feedback", shortText: "Instant", color: "text-yellow-400", bgGrad: "from-yellow-500/20 to-orange-500/10" },
+              { icon: Trophy, text: "Track Progress", shortText: "Progress", color: "text-purple-400", bgGrad: "from-purple-500/20 to-pink-500/10" },
+              { icon: Target, text: "Role-Specific", shortText: "Targeted", color: "text-cyan-400", bgGrad: "from-cyan-500/20 to-blue-500/10" }
             ].map((feature, index) => (
               <motion.div
                 key={index}
@@ -189,10 +202,10 @@ const HeroSection = () => {
                 whileHover={{ scale: 1.05, y: -2 }}
                 className="group relative"
               >
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-white/20 to-white/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
-                <div className="relative flex items-center gap-2 sm:gap-3 px-4 py-2.5 sm:px-5 sm:py-3 lg:px-6 lg:py-4 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 group-hover:border-white/40 transition-all duration-300">
-                  <feature.icon className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 ${feature.color}`} />
-                  <span className="text-sm sm:text-base lg:text-lg font-medium text-white">
+                <div className={`absolute -inset-0.5 bg-gradient-to-r ${feature.bgGrad} rounded-2xl blur-md opacity-50 group-hover:opacity-100 transition duration-300`}></div>
+                <div className="relative flex items-center gap-2 sm:gap-3 px-4 py-2.5 sm:px-5 sm:py-3 lg:px-6 lg:py-4 bg-slate-900/60 backdrop-blur-sm rounded-2xl border border-white/20 group-hover:border-white/50 transition-all duration-300 shadow-lg">
+                  <feature.icon className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 ${feature.color} drop-shadow-lg`} />
+                  <span className="text-sm sm:text-base lg:text-lg font-semibold text-white">
                     <span className="hidden sm:inline">{feature.text}</span>
                     <span className="sm:hidden">{feature.shortText}</span>
                   </span>
@@ -216,13 +229,13 @@ const HeroSection = () => {
             className="group relative w-full sm:w-auto min-w-[200px] lg:min-w-[240px] overflow-hidden"
             onClick={handleGetStarted}
           >
-            <div className="absolute inset-0 bg-[rgb(var(--accent))] rounded-full blur-lg opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
-            <div className="relative px-6 py-4 sm:px-8 sm:py-5 lg:px-10 lg:py-6 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-full font-semibold text-base sm:text-lg lg:text-xl hover:shadow-button-hover transition-all duration-300 shadow-button-primary">
-              <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 rounded-full blur-xl opacity-60 group-hover:opacity-80 transition-opacity duration-300 animate-gradient-x"></div>
+            <div className="relative px-6 py-4 sm:px-8 sm:py-5 lg:px-10 lg:py-6 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 hover:from-purple-500 hover:via-pink-400 hover:to-orange-400 text-white rounded-full font-bold text-base sm:text-lg lg:text-xl transition-all duration-300 shadow-2xl">
+              <div className="absolute inset-0 bg-white/30 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
               <div className="relative flex items-center justify-center gap-3">
-                <Play className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
-                <span>Get Started Free</span>
-                <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform duration-300" />
+                <Play className="w-5 h-5 sm:w-6 sm:h-6 fill-current drop-shadow-lg" />
+                <span className="drop-shadow-lg">Get Started Free</span>
+                <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform duration-300 drop-shadow-lg" />
               </div>
             </div>
           </motion.button>
@@ -234,11 +247,11 @@ const HeroSection = () => {
             className="group relative w-full sm:w-auto min-w-[200px] lg:min-w-[240px] overflow-hidden"
             onClick={handleGoCodebase}
           >
-            <div className="absolute inset-0 bg-[rgb(var(--accent))]/10 rounded-full blur-lg opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
-            <div className="relative px-6 py-4 sm:px-8 sm:py-5 lg:px-10 lg:py-6 bg-[rgb(var(--bg-card))]/50 text-white border-2 border-[rgb(var(--border-subtle))] rounded-full font-semibold text-base sm:text-lg lg:text-xl hover:bg-[rgb(var(--bg-body-alt))] hover:border-[rgb(var(--accent))]/50 backdrop-blur-xl transition-all duration-300 shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-full blur-xl opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
+            <div className="relative px-6 py-4 sm:px-8 sm:py-5 lg:px-10 lg:py-6 bg-slate-900/70 text-white border-2 border-cyan-400/50 rounded-full font-bold text-base sm:text-lg lg:text-xl hover:bg-slate-800/70 hover:border-purple-400/70 backdrop-blur-xl transition-all duration-300 shadow-2xl">
               <div className="flex items-center justify-center gap-3">
-                <FileCode className="w-5 h-5 sm:w-6 sm:h-6 group-hover:rotate-12 transition-transform duration-300" />
-                <span>Explore Codebase</span>
+                <FileCode className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400 group-hover:rotate-12 group-hover:text-purple-400 transition-all duration-300" />
+                <span className="bg-gradient-to-r from-cyan-300 to-purple-300 bg-clip-text text-transparent group-hover:from-purple-300 group-hover:to-pink-300 transition-all duration-300">Explore Codebase</span>
               </div>
             </div>
           </motion.button>
@@ -252,10 +265,10 @@ const HeroSection = () => {
           className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 max-w-5xl mx-auto"
         >
           {[
-            { number: "10K+", label: "Active Users", icon: Users, color: "from-[rgb(var(--accent))] to-indigo-600" },
-            { number: "50K+", label: "Questions Solved", icon: FileCode, color: "from-[rgb(var(--accent))] to-cyan-600" },
-            { number: "95%", label: "Success Rate", icon: Trophy, color: "from-[rgb(var(--accent))] to-pink-600" },
-            { number: "24/7", label: "AI Support", icon: Bot, color: "from-purple-500 to-purple-700" }
+            { number: "10K+", label: "Active Users", icon: Users, color: "from-purple-500 via-pink-500 to-rose-500", glow: "from-purple-500/30 to-pink-500/20" },
+            { number: "50K+", label: "Questions Solved", icon: FileCode, color: "from-cyan-500 via-blue-500 to-indigo-500", glow: "from-cyan-500/30 to-blue-500/20" },
+            { number: "95%", label: "Success Rate", icon: Trophy, color: "from-yellow-500 via-orange-500 to-red-500", glow: "from-yellow-500/30 to-orange-500/20" },
+            { number: "24/7", label: "AI Support", icon: Bot, color: "from-emerald-500 via-teal-500 to-cyan-500", glow: "from-emerald-500/30 to-teal-500/20" }
           ].map((stat, index) => (
             <motion.div
               key={index}
@@ -265,13 +278,13 @@ const HeroSection = () => {
               whileHover={{ scale: 1.05, y: -5 }}
               className="group relative"
             >
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-white/20 to-white/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
-              <div className="relative text-center p-4 sm:p-6 lg:p-8 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 group-hover:border-white/40 transition-all duration-300">
-                <div className={`w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 mx-auto mb-3 sm:mb-4 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center shadow-lg`}>
-                  <stat.icon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white" />
+              <div className={`absolute -inset-0.5 bg-gradient-to-r ${stat.glow} rounded-2xl blur-lg opacity-60 group-hover:opacity-100 transition duration-300`}></div>
+              <div className="relative text-center p-4 sm:p-6 lg:p-8 bg-slate-900/60 backdrop-blur-sm rounded-2xl border border-white/20 group-hover:border-white/50 transition-all duration-300 shadow-xl">
+                <div className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-18 lg:h-18 mx-auto mb-3 sm:mb-4 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300`}>
+                  <stat.icon className="w-6 h-6 sm:w-7 sm:h-7 lg:w-10 lg:h-10 text-white drop-shadow-lg" />
                 </div>
-                <div className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-white mb-1 sm:mb-2">{stat.number}</div>
-                <div className="text-xs sm:text-sm lg:text-base text-white/70 font-medium">{stat.label}</div>
+                <div className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent mb-1 sm:mb-2">{stat.number}</div>
+                <div className="text-xs sm:text-sm lg:text-base text-white/80 font-semibold">{stat.label}</div>
               </div>
             </motion.div>
           ))}
@@ -290,14 +303,14 @@ const HeroSection = () => {
           transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
           className="group cursor-pointer"
         >
-          <div className="w-6 h-10 sm:w-7 sm:h-12 lg:w-8 lg:h-14 border-2 border-white/40 group-hover:border-white/60 rounded-full flex justify-center transition-colors duration-300">
+          <div className="w-6 h-10 sm:w-7 sm:h-12 lg:w-8 lg:h-14 border-2 border-purple-400/50 group-hover:border-pink-400/70 rounded-full flex justify-center transition-colors duration-300 shadow-lg shadow-purple-500/30">
             <motion.div
-              animate={{ y: [0, 16, 0], opacity: [0.4, 1, 0.4] }}
+              animate={{ y: [0, 16, 0], opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-              className="w-1 h-3 sm:w-1.5 sm:h-4 lg:w-2 lg:h-5 bg-white/60 group-hover:bg-white/80 rounded-full mt-2 transition-colors duration-300"
+              className="w-1 h-3 sm:w-1.5 sm:h-4 lg:w-2 lg:h-5 bg-gradient-to-b from-purple-400 to-pink-400 group-hover:from-pink-400 group-hover:to-orange-400 rounded-full mt-2 transition-colors duration-300 shadow-lg"
             />
           </div>
-          <div className="text-white/40 group-hover:text-white/60 text-xs mt-2 text-center transition-colors duration-300">
+          <div className="text-purple-300/60 group-hover:text-pink-300/80 text-xs mt-2 text-center transition-colors duration-300 font-medium">
             Scroll
           </div>
         </motion.div>

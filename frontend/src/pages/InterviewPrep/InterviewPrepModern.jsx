@@ -30,7 +30,7 @@
  */
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -99,7 +99,7 @@ const CodeBlock = ({ language = 'javascript', content }) => {
             {/* Copy Button - Always visible on mobile, hover on desktop */}
             <button
                 onClick={handleCopy}
-                className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20 bg-gray-800/90 dark:bg-gray-700/90 hover:bg-gray-900 dark:hover:bg-gray-600 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-lg shadow-lg transition-all duration-200 flex items-center gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] backdrop-blur-sm"
+                className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20 bg-gray-700/95 dark:bg-gray-800/95 hover:bg-gray-800 dark:hover:bg-gray-700 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-lg shadow-lg transition-all duration-200 flex items-center gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] backdrop-blur-sm"
                 aria-label="Copy code to clipboard"
             >
                 {copied ? (
@@ -116,30 +116,30 @@ const CodeBlock = ({ language = 'javascript', content }) => {
             </button>
 
             {/* Code Container */}
-            <div className="bg-gray-900 dark:bg-gray-950 rounded-lg sm:rounded-xl border border-gray-700 dark:border-gray-600 shadow-lg overflow-hidden">
+            <div className="bg-[#1e1e1e] dark:bg-[#0d1117] rounded-lg sm:rounded-xl border border-gray-700 dark:border-[rgb(var(--border))] shadow-lg overflow-hidden">
                 {/* Header */}
-                <div className="bg-gray-800/95 dark:bg-gray-900/95 px-3 sm:px-4 py-2 sm:py-2.5 border-b border-gray-700 dark:border-gray-600 flex items-center justify-between">
+                <div className="bg-[#252526] dark:bg-[#161b22] px-3 sm:px-4 py-2 sm:py-2.5 border-b border-gray-700 dark:border-[rgb(var(--border))] flex items-center justify-between">
                     <div className="flex items-center gap-2 sm:gap-3">
                         <div className="flex gap-1 sm:gap-1.5">
-                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500"></div>
-                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500"></div>
-                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500"></div>
+                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-400 dark:bg-red-500"></div>
+                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-400 dark:bg-yellow-500"></div>
+                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-400 dark:bg-green-500"></div>
                         </div>
-                        <span className="text-[10px] sm:text-xs font-mono font-semibold text-gray-300 dark:text-gray-400 uppercase tracking-wide">
+                        <span className="text-[10px] sm:text-xs font-mono font-semibold text-gray-400 dark:text-[rgb(var(--text-muted))] uppercase tracking-wide">
                             {language}
                         </span>
                     </div>
                 </div>
 
                 {/* Code Content */}
-                <div className="p-3 sm:p-4 bg-gray-900 dark:bg-gray-950 overflow-x-auto scrollbar-thin scrollbar-track-gray-800 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500">
+                <div className="p-3 sm:p-4 bg-[#1e1e1e] dark:bg-[#0d1117] overflow-x-auto scrollbar-thin scrollbar-track-gray-800 dark:scrollbar-track-[rgb(var(--bg-card))] scrollbar-thumb-gray-600 dark:scrollbar-thumb-[rgb(var(--border-strong))] hover:scrollbar-thumb-gray-500 dark:hover:scrollbar-thumb-[rgb(var(--accent))]">
                     <ReactMarkdown
                         children={`\`\`\`${language}\n${content}\n\`\`\``}
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeHighlight]}
                         components={{
-                            pre: ({ ...props }) => <pre className="!bg-gray-900 dark:!bg-gray-950 !p-0 !m-0 text-xs sm:text-sm leading-relaxed font-mono" {...props} />,
-                            code: ({ ...props }) => <code className="!bg-gray-900 dark:!bg-gray-950 font-mono font-medium text-xs sm:text-sm text-gray-100 dark:text-gray-200" {...props} />
+                            pre: ({ ...props }) => <pre className="!bg-[#1e1e1e] dark:!bg-[#0d1117] !p-0 !m-0 text-xs sm:text-sm leading-relaxed font-mono" {...props} />,
+                            code: ({ ...props }) => <code className="!bg-[#1e1e1e] dark:!bg-[#0d1117] font-mono font-medium text-xs sm:text-sm text-gray-100 dark:text-[rgb(var(--text-secondary))]" {...props} />
                         }}
                     />
                 </div>
@@ -157,16 +157,11 @@ const QuestionCard = ({
     index,
     isStarred,
     isExpanded,
-    isEditing,
-    editedContent,
     onToggleStar,
     onRegenerate,
     onEdit,
-    onSaveEdit,
-    onCancelEdit,
     onShare,
-    onCopyAnswer,
-    onEditContentChange
+    onCopyAnswer
 }) => {
     const [isOpen, setIsOpen] = useState(isExpanded);
 
@@ -279,37 +274,7 @@ const QuestionCard = ({
                             <div className="px-4 sm:px-5 md:px-6 py-4 sm:py-5 border-t border-[rgb(var(--border))]">
                                 {/* Answer */}
                                 <div className="mb-4 sm:mb-6 overflow-hidden break-words">
-                                    {isEditing ? (
-                                        <div className="space-y-3">
-                                            <label className="block text-sm font-semibold text-[rgb(var(--text-secondary))]">
-                                                Edit Answer:
-                                            </label>
-                                            <textarea
-                                                value={editedContent}
-                                                onChange={(e) => onEditContentChange(e.target.value)}
-                                                className="w-full min-h-[300px] px-4 py-3 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent resize-y font-mono text-sm leading-relaxed"
-                                                placeholder="Enter your answer here..."
-                                            />
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => onSaveEdit(index)}
-                                                    className="px-4 py-2 bg-[rgb(var(--success))] hover:bg-[rgb(var(--success-hover))] text-white rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 shadow-md">
-                                                
-                                                    <Check className="w-4 h-4" />
-                                                    Save Changes
-                                                </button>
-                                                <button
-                                                    onClick={onCancelEdit}
-                                                    className="px-4 py-2 bg-[rgb(var(--bg-card-alt))] hover:bg-[rgb(var(--bg-card-alt))]/80 text-[rgb(var(--text-secondary))] rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2">
-                                                
-                                                    <X className="w-4 h-4" />
-                                                    Cancel
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        formattedAnswer
-                                    )}
+                                    {formattedAnswer}
                                 </div>
 
                                 {/* Action Buttons */}
@@ -318,8 +283,8 @@ const QuestionCard = ({
                                     <button
                                         onClick={() => onToggleStar(index)}
                                         className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${isStarred
-                                            ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-900/50'
-                                            : 'bg-[rgb(var(--bg-card-alt))] text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-card-alt))]/80'
+                                            ? 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-500/30 border border-transparent dark:border-yellow-500/30'
+                                            : 'bg-[rgb(var(--bg-card-alt))] text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-card-alt))]/80 dark:hover:bg-[rgb(var(--bg-elevated))]'
                                             }`}
                                         aria-label={isStarred ? 'Unmark as important' : 'Mark as important'}
                                     >
@@ -330,7 +295,7 @@ const QuestionCard = ({
                                     {/* Regenerate */}
                                     <button
                                         onClick={() => onRegenerate(index)}
-                                        className="px-3 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                                        className="px-3 py-2 bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-500/30 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 border border-transparent dark:border-blue-500/30"
                                         aria-label="Regenerate answer"
                                     >
                                         <RefreshCcw className="w-4 h-4" />
@@ -340,7 +305,7 @@ const QuestionCard = ({
                                     {/* Edit */}
                                     <button
                                         onClick={() => onEdit(index)}
-                                        className="px-3 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                                        className="px-3 py-2 bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-500/30 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 border border-transparent dark:border-purple-500/30"
                                         aria-label="Edit answer"
                                     >
                                         <Edit2 className="w-4 h-4" />
@@ -350,7 +315,7 @@ const QuestionCard = ({
                                     {/* Copy Answer */}
                                     <button
                                         onClick={() => onCopyAnswer(index)}
-                                        className="px-3 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                                        className="px-3 py-2 bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-500/30 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 border border-transparent dark:border-green-500/30"
                                         aria-label="Copy answer"
                                     >
                                         <Copy className="w-4 h-4" />
@@ -381,6 +346,7 @@ const QuestionCard = ({
 const InterviewPrepModern = () => {
     const { sessionId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
 
     // ==================== STATE ====================
     const [session, setSession] = useState(null);
@@ -396,8 +362,6 @@ const InterviewPrepModern = () => {
         return stored ? JSON.parse(stored) : {};
     });
     const [isGenerating, setIsGenerating] = useState(false);
-    const [editingIndex, setEditingIndex] = useState(null);
-    const [editedContent, setEditedContent] = useState('');
 
     // ==================== EFFECTS ====================
     useEffect(() => {
@@ -417,6 +381,13 @@ const InterviewPrepModern = () => {
             try {
                 const response = await axios.get(API.INTERVIEW.GET_ONE(sessionId));
                 setSession(response.data);
+
+                // Show success message if coming back from editor
+                if (location.state?.updated) {
+                    toast.success('Answer updated successfully!');
+                    // Clear the state
+                    window.history.replaceState({}, document.title);
+                }
             } catch (error) {
                 toast.error('Failed to load interview session');
                 console.error('Fetch error:', error);
@@ -426,7 +397,7 @@ const InterviewPrepModern = () => {
         };
 
         fetchSession();
-    }, [sessionId]);
+    }, [sessionId, location.state]);
 
     // ==================== HANDLERS ====================
     const handleToggleStar = useCallback((index) => {
@@ -470,104 +441,16 @@ const InterviewPrepModern = () => {
     const handleEdit = useCallback((index) => {
         if (!session?.qna[index]) return;
 
-        // Convert answerParts to editable text, preserving code blocks with markdown formatting
-        const answerText = session.qna[index].answerParts
-            .map(part => {
-                if (part.type === 'code') {
-                    // Preserve code blocks with triple backticks and language
-                    return `\`\`\`${part.language || 'javascript'}\n${part.content}\n\`\`\``;
-                }
-                return part.content;
-            })
-            .join('\n\n');
-
-        setEditedContent(answerText);
-        setEditingIndex(index);
-    }, [session]);
-
-    const handleSaveEdit = useCallback(async (index) => {
-        if (!session || !editedContent.trim()) return;
-
-        toast.loading('Saving changes...', { id: `save-${index}` });
-
-        try {
-            // Parse the edited content to detect code blocks
-            const parseEditedContent = (text) => {
-                const lines = text.split('\n');
-                const parts = [];
-                let current = { type: 'text', content: '' };
-                let isInCodeBlock = false;
-                let codeLang = '';
-
-                for (const line of lines) {
-                    const codeBlockMatch = line.trim().match(/^```(\w+)?/);
-
-                    if (codeBlockMatch) {
-                        // Toggle code block
-                        if (isInCodeBlock) {
-                            // End code block
-                            if (current.content.trim()) {
-                                parts.push({
-                                    type: 'code',
-                                    content: current.content.trim(),
-                                    language: codeLang || 'javascript',
-                                });
-                            }
-                            current = { type: 'text', content: '' };
-                            codeLang = '';
-                        } else {
-                            // Start code block
-                            if (current.content.trim()) {
-                                parts.push({
-                                    type: 'text',
-                                    content: current.content.trim(),
-                                });
-                            }
-                            current = { type: 'code', content: '' };
-                            codeLang = codeBlockMatch[1] || 'javascript';
-                        }
-                        isInCodeBlock = !isInCodeBlock;
-                    } else {
-                        current.content += line + '\n';
-                    }
-                }
-
-                if (current.content.trim()) {
-                    parts.push({
-                        type: isInCodeBlock ? 'code' : 'text',
-                        content: current.content.trim(),
-                        ...(isInCodeBlock && { language: codeLang || 'javascript' }),
-                    });
-                }
-
-                return parts.length > 0 ? parts : [{ type: 'text', content: text.trim() }];
-            };
-
-            const answerParts = parseEditedContent(editedContent);
-
-            const response = await axios.patch(API.INTERVIEW.EDIT(sessionId, index), {
-                answerParts
-            });
-
-            setSession(prev => {
-                const updated = { ...prev };
-                updated.qna[index].answerParts = response.data.answerParts || answerParts;
-                return updated;
-            });
-
-            setEditingIndex(null);
-            setEditedContent('');
-            toast.success('Answer updated!', { id: `save-${index}` });
-        } catch (error) {
-            toast.error('Failed to save changes', { id: `save-${index}` });
-            console.error('Save edit error:', error);
-        }
-    }, [session, sessionId, editedContent]);
-
-    const handleCancelEdit = useCallback(() => {
-        setEditingIndex(null);
-        setEditedContent('');
-    }, []);
+        // Navigate to full-page editor
+        navigate(`/interview-prep/${sessionId}/edit`, {
+            state: {
+                question: session.qna[index].question,
+                answer: session.qna[index].answerParts,
+                index,
+                originalAnswer: session.qna[index].answerParts
+            }
+        });
+    }, [session, sessionId, navigate]);
 
     const handleShare = useCallback((index) => {
         const url = `${window.location.origin}/interview-prep/${sessionId}#q${index + 1}`;
@@ -737,7 +620,7 @@ const InterviewPrepModern = () => {
                                     {session.tag?.split(',').map((tag, i) => (
                                         <span
                                             key={i}
-                                            className="px-3 py-1 bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 text-pink-800 dark:text-pink-200 text-xs font-medium rounded-full border border-pink-200 dark:border-pink-800/30"
+                                            className="px-3 py-1 bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-500/20 dark:to-purple-500/20 text-pink-800 dark:text-pink-300 text-xs font-medium rounded-full border border-pink-200 dark:border-pink-500/30"
                                         >
                                             {tag.trim()}
                                         </span>
@@ -746,12 +629,12 @@ const InterviewPrepModern = () => {
                             </div>
 
                             {/* Right: Metadata Card */}
-                            <div className="lg:w-64 bg-[rgb(var(--bg-card-alt))]/60 rounded-xl p-4 border border-[rgb(var(--border-subtle))]/50 backdrop-blur-sm space-y-3">
+                            <div className="lg:w-64 bg-[rgb(var(--bg-card-alt))]/60 dark:bg-[rgb(var(--bg-elevated))]/80 rounded-xl p-4 border border-[rgb(var(--border-subtle))]/50 dark:border-[rgb(var(--border))] backdrop-blur-sm space-y-3">
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm font-semibold text-[rgb(var(--text-secondary))]">
                                         Experience:
                                     </span>
-                                    <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 text-xs font-medium rounded-md">
+                                    <span className="px-2 py-1 bg-orange-100 dark:bg-orange-500/20 text-orange-800 dark:text-orange-300 text-xs font-medium rounded-md border border-transparent dark:border-orange-500/30">
                                         {session.experience}
                                     </span>
                                 </div>
@@ -775,8 +658,8 @@ const InterviewPrepModern = () => {
                                 <button
                                     onClick={() => setImportantOnly(!importantOnly)}
                                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${importantOnly
-                                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
-                                        : 'bg-[rgb(var(--bg-card-alt))]/80 text-[rgb(var(--text-secondary))]'
+                                        ? 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border border-transparent dark:border-yellow-500/30'
+                                        : 'bg-[rgb(var(--bg-card-alt))]/80 dark:bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-card-alt))] dark:hover:bg-[rgb(var(--bg-elevated-alt))]'
                                         }`}
                                     aria-pressed={importantOnly}
                                 >
@@ -786,7 +669,7 @@ const InterviewPrepModern = () => {
 
                                 <button
                                     onClick={() => setExpandedAll(!expandedAll)}
-                                    className="px-4 py-2 bg-[rgb(var(--bg-card-alt))]/80 hover:bg-[rgb(var(--bg-card-alt))] text-[rgb(var(--text-secondary))] rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                                    className="px-4 py-2 bg-[rgb(var(--bg-card-alt))]/80 dark:bg-[rgb(var(--bg-elevated))] hover:bg-[rgb(var(--bg-card-alt))] dark:hover:bg-[rgb(var(--bg-elevated-alt))] text-[rgb(var(--text-secondary))] rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
                                     aria-label={expandedAll ? 'Collapse all questions' : 'Expand all questions'}
                                 >
                                     {expandedAll ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -795,7 +678,7 @@ const InterviewPrepModern = () => {
 
                                 <button
                                     onClick={() => setDarkMode(!darkMode)}
-                                    className="px-4 py-2 bg-[rgb(var(--bg-card-alt))]/80 hover:bg-[rgb(var(--bg-card-alt))] text-[rgb(var(--text-secondary))] rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                                    className="px-4 py-2 bg-[rgb(var(--bg-card-alt))]/80 dark:bg-[rgb(var(--accent))]/20 hover:bg-[rgb(var(--bg-card-alt))] dark:hover:bg-[rgb(var(--accent))]/30 text-[rgb(var(--text-secondary))] dark:text-[rgb(var(--accent))] rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 border border-transparent dark:border-[rgb(var(--accent))]/30"
                                     aria-label="Toggle dark mode"
                                 >
                                     {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -807,7 +690,7 @@ const InterviewPrepModern = () => {
                             <div className="flex gap-2">
                                 <button
                                     onClick={handleExport}
-                                    className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                                    className="px-4 py-2 bg-blue-100 dark:bg-blue-500/20 hover:bg-blue-200 dark:hover:bg-blue-500/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 border border-transparent dark:border-blue-500/30"
                                     aria-label="Export session"
                                 >
                                     <Download className="w-4 h-4" />
@@ -863,16 +746,11 @@ const InterviewPrepModern = () => {
                                 index={index}
                                 isStarred={starredQuestions[index]}
                                 isExpanded={expandedAll}
-                                isEditing={editingIndex === index}
-                                editedContent={editedContent}
                                 onToggleStar={handleToggleStar}
                                 onRegenerate={handleRegenerate}
                                 onEdit={handleEdit}
-                                onSaveEdit={handleSaveEdit}
-                                onCancelEdit={handleCancelEdit}
                                 onShare={handleShare}
                                 onCopyAnswer={handleCopyAnswer}
-                                onEditContentChange={setEditedContent}
                             />
                         ))}
                     </motion.div>

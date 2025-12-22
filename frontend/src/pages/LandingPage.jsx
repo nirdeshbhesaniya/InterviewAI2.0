@@ -24,6 +24,7 @@ import Login from '../pages/Auth/Login';
 import ForgotPassword from '../pages/Auth/ForgotPassword';
 import { APP_FEATURES } from '../utils/data';
 import { UserContext } from '../context/UserContext.jsx';
+import { ChatbotContext } from '../context/ChatBotContext.jsx';
 import HeroSection from './InterviewPrep/components/HeroSection';
 
 const testimonials = [
@@ -71,11 +72,19 @@ const LandingPage = () => {
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loading, setLoading] = useState(true);
   const { user } = useContext(UserContext);
+  const { setIsAuthModalOpen } = useContext(ChatbotContext);
   const navigate = useNavigate();
   const testimonialsRef = useRef(null);
 
-  const openModal = () => setShowModal(true);
-  const closeModal = () => setShowModal(false);
+  const openModal = () => {
+    setShowModal(true);
+    setIsAuthModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setIsAuthModalOpen(false);
+  };
   const toggleAuth = () => {
     setIsLogin((prev) => !prev);
     setIsForgotPassword(false);

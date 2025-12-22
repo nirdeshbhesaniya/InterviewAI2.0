@@ -207,30 +207,11 @@ const SettingsPageNew = () => {
                 {/* Appearance Settings */}
                 <div className="bg-[rgb(var(--bg-card))] rounded-xl shadow-lg border border-[rgb(var(--border-subtle))] p-6 mb-6">
                     <div className="flex items-center gap-3 mb-6">
-                        {settings.appearance.theme === 'dark' ? (
-                            <Moon className="w-6 h-6 text-[rgb(var(--accent))]" />
-                        ) : (
-                            <Sun className="w-6 h-6 text-[rgb(var(--accent))]" />
-                        )}
+                        <Globe className="w-6 h-6 text-[rgb(var(--accent))]" />
                         <h2 className="text-xl font-bold text-[rgb(var(--text-primary))]">Appearance</h2>
                     </div>
 
                     <div className="space-y-6">
-                        <div>
-                            <label className="block text-sm font-medium text-[rgb(var(--text-primary))] mb-2">
-                                Theme
-                            </label>
-                            <select
-                                value={settings.appearance.theme}
-                                onChange={(e) => handleSettingChange('appearance', 'theme', e.target.value)}
-                                className="w-full px-4 py-2 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
-                            >
-                                <option value="light">Light</option>
-                                <option value="dark">Dark</option>
-                                <option value="auto">Auto</option>
-                            </select>
-                        </div>
-
                         <div>
                             <label className="block text-sm font-medium text-[rgb(var(--text-primary))] mb-2">
                                 Language

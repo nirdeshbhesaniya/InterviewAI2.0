@@ -16,7 +16,9 @@ import {
     Search,
     Calendar,
     User,
-    Tag
+    Tag,
+    ChevronUp,
+    ChevronDown
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import moment from 'moment';
@@ -28,6 +30,7 @@ const NotesPage = () => {
     const [filter, setFilter] = useState('all'); // all, pdf, youtube, my-notes
     const [searchQuery, setSearchQuery] = useState('');
     const [showAddModal, setShowAddModal] = useState(false);
+    const [headerExpanded, setHeaderExpanded] = useState(true);
     const [formData, setFormData] = useState({
         type: 'pdf',
         title: '',
@@ -179,16 +182,37 @@ const NotesPage = () => {
     return (
         <div className="min-h-screen bg-[rgb(var(--bg-body))] pb-6">
             {/* Header */}
-            <div className="bg-[rgb(var(--bg-card))] border-b border-[rgb(var(--border-subtle))] sticky top-0 z-40">
+            <div className="bg-[rgb(var(--bg-card))] border-b border-[rgb(var(--border-subtle))] sticky top-0 z-40 shadow-md">
                 <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                        <div>
-                            <h1 className="text-2xl sm:text-3xl font-extrabold text-[rgb(var(--text-primary))]">
-                                Shared Notes
-                            </h1>
-                            <p className="text-sm sm:text-base text-[rgb(var(--text-secondary))] mt-1">
-                                Share and discover study materials from the community
-                            </p>
+                        <div className="flex-1">
+                            <div className="flex items-center gap-3">
+                                <h1 className="text-2xl sm:text-3xl font-extrabold text-[rgb(var(--text-primary))]">
+                                    Shared Notes
+                                </h1>
+                                <button
+                                    onClick={() => setHeaderExpanded(!headerExpanded)}
+                                    className="p-2 hover:bg-[rgb(var(--bg-body-alt))] rounded-lg transition-all duration-200 group"
+                                    aria-label="Toggle header"
+                                >
+                                    {headerExpanded ? (
+                                        <ChevronUp className="w-5 h-5 text-[rgb(var(--text-secondary))] group-hover:text-[rgb(var(--accent))] transition-colors" />
+                                    ) : (
+                                        <ChevronDown className="w-5 h-5 text-[rgb(var(--text-secondary))] group-hover:text-[rgb(var(--accent))] transition-colors" />
+                                    )}
+                                </button>
+                            </div>
+                            {headerExpanded && (
+                                <motion.p
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="text-sm sm:text-base text-[rgb(var(--text-secondary))] mt-1"
+                                >
+                                    Share and discover study materials from the community
+                                </motion.p>
+                            )}
                         </div>
 
                         <button
@@ -201,43 +225,54 @@ const NotesPage = () => {
                     </div>
 
                     {/* Search and Filters */}
-                    <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))]" size={20} />
-                            <input
-                                type="text"
-                                placeholder="Search notes..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                                className="w-full pl-10 pr-4 py-2 sm:py-2.5 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent text-sm sm:text-base"
-                            />
-                        </div>
-
-                        <button
-                            onClick={handleSearch}
-                            className="w-full sm:w-auto px-6 py-2 sm:py-2.5 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-[rgb(var(--accent))]/30 transition-all text-sm sm:text-base"
-                        >
-                            Search
-                        </button>
-                    </div>
-
-                    {/* Filter Tabs */}
-                    <div className="mt-3 sm:mt-4 flex flex-wrap gap-2">
-                        {filterButtons.map(({ id, label, icon: Icon }) => (
-                            <button
-                                key={id}
-                                onClick={() => setFilter(id)}
-                                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition-all text-xs sm:text-sm ${filter === id
-                                    ? 'bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white shadow-md shadow-[rgb(var(--accent))]/30'
-                                    : 'bg-[rgb(var(--bg-card))] text-[rgb(var(--text-secondary))] border border-[rgb(var(--border-subtle))] hover:bg-[rgb(var(--bg-body-alt))] hover:text-[rgb(var(--text-primary))]'
-                                    }`}
+                    <AnimatePresence>
+                        {headerExpanded && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.3 }}
                             >
-                                <Icon size={16} className="sm:w-[18px] sm:h-[18px]" />
-                                <span>{label}</span>
-                            </button>
-                        ))}
-                    </div>
+                                <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
+                                    <div className="flex-1 relative">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))]" size={20} />
+                                        <input
+                                            type="text"
+                                            placeholder="Search notes..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                                            className="w-full pl-10 pr-4 py-2 sm:py-2.5 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent text-sm sm:text-base"
+                                        />
+                                    </div>
+
+                                    <button
+                                        onClick={handleSearch}
+                                        className="w-full sm:w-auto px-6 py-2 sm:py-2.5 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-[rgb(var(--accent))]/30 transition-all text-sm sm:text-base"
+                                    >
+                                        Search
+                                    </button>
+                                </div>
+
+                                {/* Filter Tabs */}
+                                <div className="mt-3 sm:mt-4 flex flex-wrap gap-2">
+                                    {filterButtons.map(({ id, label, icon: Icon }) => (
+                                        <button
+                                            key={id}
+                                            onClick={() => setFilter(id)}
+                                            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition-all text-xs sm:text-sm ${filter === id
+                                                ? 'bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white shadow-md shadow-[rgb(var(--accent))]/30'
+                                                : 'bg-[rgb(var(--bg-card))] text-[rgb(var(--text-secondary))] border border-[rgb(var(--border-subtle))] hover:bg-[rgb(var(--bg-body-alt))] hover:text-[rgb(var(--text-primary))]'
+                                                }`}
+                                        >
+                                            <Icon size={16} className="sm:w-[18px] sm:h-[18px]" />
+                                            <span>{label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             </div>
 

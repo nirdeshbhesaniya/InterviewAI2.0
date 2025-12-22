@@ -6,6 +6,7 @@ const ChatbotContext = createContext();
 const ChatbotProvider = ({ children }) => {
     const chatbot = useChatbot();
     const [isMinimized, setIsMinimized] = useState(false);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     const minimizeChatbot = () => setIsMinimized(true);
     const expandChatbot = () => setIsMinimized(false);
@@ -15,6 +16,8 @@ const ChatbotProvider = ({ children }) => {
         isMinimized,
         minimizeChatbot,
         expandChatbot,
+        isAuthModalOpen,
+        setIsAuthModalOpen,
     };
 
     return (

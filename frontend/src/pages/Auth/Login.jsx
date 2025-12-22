@@ -72,41 +72,41 @@ const Login = ({ onSwitch, onForgotPassword }) => {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto bg-[rgb(var(--bg-card))] shadow-lg rounded-2xl p-6 border border-[rgb(var(--border))]">
-      <h2 className="text-2xl font-bold text-center text-[rgb(var(--accent))] mb-1">Welcome Back 👋</h2>
-      <p className="text-sm text-[rgb(var(--text-muted))] text-center mb-6">Login with your account below</p>
+    <div className="w-full">
+      <h2 className="text-xl sm:text-2xl font-bold text-center text-[rgb(var(--accent))] mb-1">Welcome Back 👋</h2>
+      <p className="text-xs sm:text-sm text-[rgb(var(--text-muted))] text-center mb-4 sm:mb-6">Login with your account below</p>
 
-      <form className="space-y-5" onSubmit={handleLogin}>
+      <form className="space-y-4 sm:space-y-5" onSubmit={handleLogin}>
         {/* Email Field */}
         <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-5 h-5" />
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-4 h-4 sm:w-5 sm:h-5" />
           <input
             type="email"
             placeholder="Email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
+            className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-2 text-sm sm:text-base bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
             required
           />
         </div>
 
         {/* Password Field */}
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-5 h-5" />
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-4 h-4 sm:w-5 sm:h-5" />
           <input
             type={showPass ? 'text' : 'password'}
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full pl-10 pr-10 py-2 bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
+            className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2.5 sm:py-2 text-sm sm:text-base bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
             required
           />
           <button
             type="button"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))]"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] p-1"
             onClick={() => setShowPass((prev) => !prev)}
           >
-            {showPass ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            {showPass ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
           </button>
         </div>
 
@@ -115,7 +115,7 @@ const Login = ({ onSwitch, onForgotPassword }) => {
           <button
             type="button"
             onClick={onForgotPassword}
-            className="text-sm text-[rgb(var(--accent))] hover:text-[rgb(var(--accent-hover))] transition-colors"
+            className="text-xs sm:text-sm text-[rgb(var(--accent))] hover:text-[rgb(var(--accent-hover))] transition-colors py-1"
           >
             Forgot password?
           </button>
@@ -126,7 +126,7 @@ const Login = ({ onSwitch, onForgotPassword }) => {
           type="submit"
           whileTap={{ scale: 0.97 }}
           disabled={loading}
-          className={`w-full py-2 rounded-md transition font-semibold tracking-wide shadow-md ${loading
+          className={`w-full py-2.5 sm:py-2 rounded-md transition font-semibold tracking-wide shadow-md text-sm sm:text-base ${loading
             ? 'bg-[rgb(var(--text-muted))]/50 text-[rgb(var(--text-secondary))] cursor-not-allowed'
             : 'bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] hover:shadow-lg text-white'
             }`}
@@ -135,7 +135,7 @@ const Login = ({ onSwitch, onForgotPassword }) => {
         </motion.button>
       </form>
 
-      <p className="text-sm text-center mt-4 text-[rgb(var(--text-secondary))]">
+      <p className="text-xs sm:text-sm text-center mt-3 sm:mt-4 text-[rgb(var(--text-secondary))]">
         New here?{' '}
         <button
           onClick={onSwitch}
