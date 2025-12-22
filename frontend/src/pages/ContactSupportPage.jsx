@@ -114,7 +114,7 @@ const ContactSupportPage = () => {
                             </div>
                             <h4 className="font-semibold text-text-primary mb-2">Video Tutorials</h4>
                             <p className="text-text-secondary text-sm">
-                                Watch step-by-step video guides to master Interview AI
+                                Watch step-by-step video guides for master Interview AI
                             </p>
                         </div>
                     </div>
