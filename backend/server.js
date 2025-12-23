@@ -117,7 +117,7 @@ const startServer = async () => {
 
   app.listen(PORT, () => {
     console.log('='.repeat(50));
-    console.log(`🚀 Interview AI Backend Server`);
+    console.log(`🚀 Interview AI Backend Server with new version 2.0`);
     console.log(`📡 Running on port ${PORT}`);
     console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
