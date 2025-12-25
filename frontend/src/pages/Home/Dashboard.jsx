@@ -52,14 +52,14 @@ export const Dashboard = () => {
   ];
 
   const badgeColors = [
-    'bg-highlight/20 text-highlight border-highlight/30',
-    'bg-secondary/20 text-secondary border-secondary/30',
-    'bg-green-500/20 text-green-400 border-green-500/30',
-    'bg-primary/20 text-primary border-primary/30',
-    'bg-pink-500/20 text-pink-400 border-pink-500/30',
-    'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-    'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
-    'bg-teal-500/20 text-teal-400 border-teal-500/30'
+    'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    'bg-purple-500/20 text-purple-300 border-purple-500/30',
+    'bg-green-500/20 text-green-300 border-green-500/30',
+    'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+    'bg-pink-500/20 text-pink-300 border-pink-500/30',
+    'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+    'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+    'bg-teal-500/20 text-teal-300 border-teal-500/30'
   ];
 
   const fetchCards = async () => {
@@ -428,7 +428,7 @@ export const Dashboard = () => {
                               </Badge>
                             ))}
                           {(card.tag || '').split(',').filter(tag => tag.trim()).length > 3 && (
-                            <Badge className="bg-gray-100 text-gray-600 border-gray-200 text-xs px-2 py-1 rounded-md border">
+                            <Badge className="bg-[rgb(var(--bg-card))]/90 text-[rgb(var(--text-secondary))] border-[rgb(var(--border-subtle))] text-xs px-2 py-1 rounded-md border">
                               +{(card.tag || '').split(',').filter(tag => tag.trim()).length - 3}
                             </Badge>
                           )}

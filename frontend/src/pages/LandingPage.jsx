@@ -280,7 +280,7 @@ const LandingPage = () => {
       </section>
 
 
-      {/* Enhanced Features Section */}
+      {/* Enhanced Features Section - Modern Design */}
       <section className="px-4 sm:px-6 lg:px-8 py-20 bg-[rgb(var(--bg-body-alt))]">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -291,7 +291,7 @@ const LandingPage = () => {
             className="text-center mb-16"
           >
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[rgb(var(--text-primary))] mb-6">
-              App <span className="text-[rgb(var(--text-primary))]">Features</span>
+              App <span className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">Features</span>
             </h2>
             <p className="text-lg sm:text-xl text-[rgb(var(--text-secondary))] max-w-3xl mx-auto">
               Discover powerful tools designed to accelerate your interview preparation journey
@@ -299,49 +299,75 @@ const LandingPage = () => {
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {APP_FEATURES.map((feature, index) => (
-              <motion.div
-                key={feature.id}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{
-                  y: -10,
-                  transition: { duration: 0.3 }
-                }}
-                className="group relative bg-[rgb(var(--bg-card))] p-8 rounded-2xl border border-[rgb(var(--border))] shadow-lg hover:shadow-2xl hover:bg-[rgb(var(--bg-card-alt))] transition-all duration-500 overflow-hidden"
-              >
-                {/* Background Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--accent))]/5 via-transparent to-[rgb(var(--accent-hover))]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            {APP_FEATURES.map((feature, index) => {
+              // Icon mapping
+              const IconComponent = {
+                'MessageSquare': BrainCircuit,
+                'ClipboardCheck': CheckCircle,
+                'Code': FileCode,
+                'BookOpen': Bot,
+                'Library': Users,
+                'FolderOpen': Shield,
+                'Bot': Sparkles,
+                'User': Star,
+                'Network': Globe
+              }[feature.icon] || BrainCircuit;
 
-                {/* Feature Number Badge */}
-                <div className="relative z-10 mb-6">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-[rgb(var(--accent))] text-white rounded-xl font-bold text-lg shadow-md">
-                    {feature.id}
+              return (
+                <motion.div
+                  key={feature.id}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: index * 0.08 }}
+                  whileHover={{
+                    y: -8,
+                    transition: { duration: 0.3 }
+                  }}
+                  className="group relative bg-white dark:bg-[rgb(var(--bg-card))] p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-[rgb(var(--border))] shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden"
+                >
+                  {/* Gradient Background Effect */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 dark:group-hover:opacity-10 transition-opacity duration-500`} />
+
+                  {/* Icon with Gradient Background */}
+                  <div className="relative z-10 mb-6">
+                    <div className={`inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br ${feature.color} text-white rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                      <IconComponent className="w-7 h-7 sm:w-8 sm:h-8" />
+                    </div>
                   </div>
-                </div>
 
-                {/* Content */}
-                <div className="relative z-10">
-                  <h3 className="text-xl sm:text-2xl font-bold text-[rgb(var(--text-primary))] mb-4 group-hover:text-[rgb(var(--accent))] transition-colors duration-300">
-                    {feature.title}
-                  </h3>
-                  <p className="text-[rgb(var(--text-secondary))] leading-relaxed mb-6">
-                    {feature.description}
-                  </p>
+                  {/* Content */}
+                  <div className="relative z-10">
+                    <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-[rgb(var(--text-primary))] mb-3 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600 dark:text-[rgb(var(--text-secondary))] leading-relaxed mb-6 text-sm sm:text-base">
+                      {feature.description}
+                    </p>
 
-                  {/* Learn More Link */}
-                  <div className="flex items-center text-[rgb(var(--accent))] font-medium opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-[-10px] group-hover:translate-x-0">
-                    <span className="text-sm">Learn more</span>
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    {/* Always Visible Learn More Link */}
+                    <button
+                      onClick={() => {
+                        if (feature.link && feature.link !== '#') {
+                          if (user || localStorage.getItem('user')) {
+                            navigate(feature.link);
+                          } else {
+                            openModal();
+                          }
+                        }
+                      }}
+                      className="inline-flex items-center text-purple-600 dark:text-purple-400 font-semibold text-sm sm:text-base hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-300 group/link"
+                    >
+                      <span>Learn more</span>
+                      <ArrowRight className="w-4 h-4 ml-2 group-hover/link:translate-x-1 transition-transform duration-300" />
+                    </button>
                   </div>
-                </div>
 
-                {/* Decorative Element */}
-                <div className="absolute top-4 right-4 w-20 h-20 bg-gradient-to-br from-[rgb(var(--accent))]/10 to-[rgb(var(--accent-hover))]/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              </motion.div>
-            ))}
+                  {/* Decorative Corner Element */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/5 to-pink-500/5 dark:from-purple-500/10 dark:to-pink-500/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform translate-x-16 -translate-y-16" />
+                </motion.div>
+              );
+            })}
           </div>
 
           {/* Call to Action */}
@@ -356,7 +382,7 @@ const LandingPage = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleGetStarted}
-              className="inline-flex items-center gap-3 px-8 py-4 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300 shadow-md"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300 shadow-md"
             >
               <span>Start Your Journey</span>
               <ArrowRight className="w-5 h-5" />

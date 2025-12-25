@@ -352,6 +352,7 @@ exports.loginUser = async (req, res) => {
         website: user.website,
         linkedin: user.linkedin,
         github: user.github,
+        createdAt: user.createdAt,
         token: token
       },
       token

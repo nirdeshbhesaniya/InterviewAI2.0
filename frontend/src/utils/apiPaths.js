@@ -24,7 +24,8 @@ export const API = {
     UPDATE_PREFERENCES: `${API_BASE_URL}/profile/preferences`,
     GET_SECURITY: `${API_BASE_URL}/profile/security`,
     REVOKE_SESSION: `${API_BASE_URL}/profile/revoke-session`,
-    TOGGLE_2FA: `${API_BASE_URL}/profile/toggle-2fa`
+    TOGGLE_2FA: `${API_BASE_URL}/profile/toggle-2fa`,
+    GET_STATS: `${API_BASE_URL}/profile/stats`
   },
   INTERVIEW: {
     GET_ALL: `${API_BASE_URL}/interview`,
@@ -37,6 +38,7 @@ export const API = {
     SUMMARIZE: `${API_BASE_URL}/interview/summarize`,
     VERIFY_DELETE_OTP: `${API_BASE_URL}/interview/verify-delete-otp`,
     REQUEST_DELETE_OTP: `${API_BASE_URL}/interview/request-delete-otp`,
+    ADD_QUESTION: (sessionId) => `${API_BASE_URL}/interview/add-question/${sessionId}`,
   },
   CODE: {
     COMPILE: `${API_BASE_URL}/compile`

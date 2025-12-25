@@ -18,7 +18,9 @@ import {
   Camera,
   BookOpen,
   Library,
-  Code
+  Code,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from '../../../utils/axiosInstance';
@@ -29,6 +31,9 @@ const Header = ({ onLoginClick }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('interviewPrepTheme') === 'dark';
+  });
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
@@ -49,6 +54,17 @@ const Header = ({ onLoginClick }) => {
     setShowDropdown(false);
     setShowMobileMenu(false);
   };
+
+  // Apply dark mode
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('interviewPrepTheme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('interviewPrepTheme', 'light');
+    }
+  }, [darkMode]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -285,6 +301,24 @@ const Header = ({ onLoginClick }) => {
                             {unreadCount > 99 ? '99+' : unreadCount}
                           </span>
                         )}
+                      </motion.button>
+
+                      <motion.button
+                        onClick={() => setDarkMode(!darkMode)}
+                        className="w-full flex items-center gap-3 px-6 py-3 bg-[rgb(var(--bg-elevated))] hover:bg-[rgb(var(--bg-elevated-alt))] transition-colors group"
+                        whileHover={{ x: 4 }}
+                      >
+                        {darkMode ? (
+                          <Sun className="w-5 h-5 text-[rgb(var(--accent))] group-hover:text-[rgb(var(--accent-hover))]" />
+                        ) : (
+                          <Moon className="w-5 h-5 text-[rgb(var(--accent))] group-hover:text-[rgb(var(--accent-hover))]" />
+                        )}
+                        <div className="flex-1 text-left">
+                          <p className="font-medium text-[rgb(var(--text-primary))]">Theme</p>
+                          <p className="text-xs text-[rgb(var(--text-muted))]">
+                            {darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+                          </p>
+                        </div>
                       </motion.button>
 
                       <hr className="my-2 border-[rgb(var(--border))]" />

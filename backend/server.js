@@ -56,11 +56,15 @@ app.get("/api/health", (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', require('./Routes/profileRoutes'));
-app.use('/api/interview', require('./Routes/interview'));
-app.use('/api/compile', require('./Routes/compile'));
-app.use('/api/chatbot', require('./Routes/chatbot'));
-app.use('/api/support', require('./Routes/support_new'));
+
+// LangChain-powered routes (new implementations with memory & structured outputs)
+app.use('/api/interview', require('./Routes/interview-langchain'));
+app.use('/api/chatbot', require('./Routes/chatbot-langchain'));
 app.use('/api/mcq', require('./Routes/mcq'));
+
+// Other routes
+app.use('/api/compile', require('./Routes/compile'));
+app.use('/api/support', require('./Routes/support_new'));
 app.use('/api/notifications', require('./Routes/notifications'));
 app.use('/api/settings', require('./Routes/settings'));
 app.use('/api/notes', require('./Routes/notes'));

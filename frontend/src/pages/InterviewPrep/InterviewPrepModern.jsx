@@ -675,19 +675,19 @@ const InterviewPrepModern = () => {
                                     {expandedAll ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                                     <span>{expandedAll ? 'Collapse All' : 'Expand All'}</span>
                                 </button>
-
-                                <button
-                                    onClick={() => setDarkMode(!darkMode)}
-                                    className="px-4 py-2 bg-[rgb(var(--bg-card-alt))]/80 dark:bg-[rgb(var(--accent))]/20 hover:bg-[rgb(var(--bg-card-alt))] dark:hover:bg-[rgb(var(--accent))]/30 text-[rgb(var(--text-secondary))] dark:text-[rgb(var(--accent))] rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 border border-transparent dark:border-[rgb(var(--accent))]/30"
-                                    aria-label="Toggle dark mode"
-                                >
-                                    {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                                    <span className="hidden sm:inline">{darkMode ? 'Light' : 'Dark'}</span>
-                                </button>
                             </div>
 
                             {/* Right Side Actions */}
                             <div className="flex gap-2">
+                                <button
+                                    onClick={() => navigate(`/interview-prep/${sessionId}/add`)}
+                                    className="px-4 py-2 bg-[rgb(var(--primary))] hover:bg-[rgb(var(--primary))]/90 text-white rounded-lg text-sm font-medium shadow-lg transition-all duration-200 flex items-center gap-2"
+                                    aria-label="Add new question"
+                                >
+                                    <PlusCircle className="w-4 h-4" />
+                                    <span>Add Q&A</span>
+                                </button>
+
                                 <button
                                     onClick={handleExport}
                                     className="px-4 py-2 bg-blue-100 dark:bg-blue-500/20 hover:bg-blue-200 dark:hover:bg-blue-500/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 border border-transparent dark:border-blue-500/30"

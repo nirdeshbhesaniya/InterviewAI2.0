@@ -428,14 +428,132 @@ router.post('/toggle-2fa', authenticateUser, async (req, res) => {
 // Get user statistics
 router.get('/stats', authenticateUser, async (req, res) => {
     try {
-        // You can expand this to get actual statistics from your database
+        // Import models
+        const Interview = require('../Models/Interview');
+        const MCQTest = require('../Models/MCQTest');
+        const Note = require('../Models/Note');
+
+        // Get actual statistics from database
+        const [interviewCount, mcqCount, notesCount] = await Promise.all([
+            // Count interview sessions created by user
+            Interview.countDocuments({ userEmail: req.user.email }),
+
+            // Count MCQ tests taken by user
+            MCQTest.countDocuments({ userEmail: req.user.email }),
+
+            // Count notes shared by user
+            Note.countDocuments({ userId: req.user.email })
+        ]);
+
+        // Get activity timeline for last 30 days
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const [mcqActivity, notesActivity, interviewActivity] = await Promise.all([
+            MCQTest.aggregate([
+                {
+                    $match: {
+                        userEmail: req.user.email,
+                        createdAt: { $gte: thirtyDaysAgo }
+                    }
+                },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                        count: { $sum: 1 }
+                    }
+                },
+                { $sort: { _id: 1 } }
+            ]),
+            Note.aggregate([
+                {
+                    $match: {
+                        userId: req.user.email,
+                        createdAt: { $gte: thirtyDaysAgo }
+                    }
+                },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                        count: { $sum: 1 }
+                    }
+                },
+                { $sort: { _id: 1 } }
+            ]),
+            Interview.aggregate([
+                {
+                    $match: {
+                        userEmail: req.user.email,
+                        createdAt: { $gte: thirtyDaysAgo }
+                    }
+                },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                        count: { $sum: 1 }
+                    }
+                },
+                { $sort: { _id: 1 } }
+            ])
+        ]);
+
+        // Create activity timeline array
+        const activityMap = {};
+
+        mcqActivity.forEach(item => {
+            if (!activityMap[item._id]) activityMap[item._id] = { date: item._id, tests: 0, notes: 0, interviews: 0 };
+            activityMap[item._id].tests = item.count;
+        });
+
+        notesActivity.forEach(item => {
+            if (!activityMap[item._id]) activityMap[item._id] = { date: item._id, tests: 0, notes: 0, interviews: 0 };
+            activityMap[item._id].notes = item.count;
+        });
+
+        interviewActivity.forEach(item => {
+            if (!activityMap[item._id]) activityMap[item._id] = { date: item._id, tests: 0, notes: 0, interviews: 0 };
+            activityMap[item._id].interviews = item.count;
+        });
+
+        const activityTimeline = Object.values(activityMap).sort((a, b) =>
+            new Date(a.date) - new Date(b.date)
+        );
+
+        // Get performance by category (from MCQ tests)
+        const performanceByCategory = await MCQTest.aggregate([
+            {
+                $match: {
+                    userEmail: req.user.email,
+                    score: { $exists: true }
+                }
+            },
+            {
+                $group: {
+                    _id: '$topic',
+                    avgScore: { $avg: '$score' },
+                    testCount: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    category: '$_id',
+                    score: { $round: ['$avgScore', 0] },
+                    tests: '$testCount',
+                    _id: 0
+                }
+            },
+            { $sort: { score: -1 } },
+            { $limit: 5 }
+        ]);
+
         const stats = {
-            interviewsSessions: 0, // Count from Interview model
-            mcqTestsTaken: 0, // Count from MCQ submissions
-            totalTimeSpent: 0, // Calculate from session data
-            averageScore: 0, // Calculate from test results
+            interviewsSessions: interviewCount,
+            mcqTestsTaken: mcqCount,
+            notesShared: notesCount,
             joinedDate: req.user.createdAt,
-            lastActive: new Date()
+            lastActive: new Date(),
+            activityTimeline,
+            performanceByCategory
         };
 
         res.json({

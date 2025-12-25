@@ -8,6 +8,7 @@ import LandingPage from './pages/LandingPage';
 import { Dashboard } from './pages/Home/Dashboard';
 import InterviewPrepModern from './pages/InterviewPrep/InterviewPrepModern';
 import AnswerEditor from './pages/InterviewPrep/AnswerEditor';
+import AddQuestionPage from './pages/InterviewPrep/AddQuestionPage';
 import ContactSupportPage from './pages/ContactSupportPage';
 import MCQTest from './pages/MCQTest/MCQTest';
 import TestHistoryPage from './pages/MCQTest/TestHistoryPage';
@@ -81,6 +82,14 @@ const App = () => {
                   element={
                     <ProtectedRoute>
                       <InterviewPrepModern />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/interview-prep/:sessionId/add"
+                  element={
+                    <ProtectedRoute>
+                      <AddQuestionPage />
                     </ProtectedRoute>
                   }
                 />

@@ -1,36 +1,76 @@
-
-
-// data.js
+// data.js - Comprehensive App Features
 export const APP_FEATURES = [
   {
     id: '01',
-    title: 'MCQ Test Platform',
-    description: 'Take comprehensive multiple choice tests with 30 AI-generated questions, instant evaluation, and detailed email reports.'
+    title: 'AI Interview Q&A Sessions',
+    description: 'Create personalized interview preparation sessions with AI-generated questions and detailed answers tailored to your role and experience level.',
+    icon: 'MessageSquare',
+    color: 'from-emerald-500 to-green-600',
+    link: '/dashboard'
   },
   {
     id: '02',
-    title: 'Behavioral Questions',
-    description: 'Prepare answers for common behavioral questions like STAR method, team conflicts, and leadership examples.'
+    title: 'MCQ Test Platform',
+    description: 'Take comprehensive multiple choice tests with 30 AI-generated questions, instant evaluation, and detailed email reports.',
+    icon: 'ClipboardCheck',
+    color: 'from-blue-500 to-indigo-600',
+    link: '/mcq-test'
   },
   {
     id: '03',
-    title: 'Data Structures & Algorithms',
-    description: 'Practice problems on arrays, linked lists, trees, graphs, dynamic programming, and system design basics.'
+    title: 'Code Execution Platform',
+    description: 'Practice coding problems with our integrated code editor supporting multiple languages with real-time execution and testing.',
+    icon: 'Code',
+    color: 'from-purple-500 to-pink-600',
+    link: '/codebase'
   },
   {
     id: '04',
-    title: 'System Design Basics',
-    description: 'Understand high-level architecture, load balancing, caching, databases, and scalability concepts.'
+    title: 'Notes & Resources',
+    description: 'Organize your learning materials, save important notes, and access curated resources for interview preparation.',
+    icon: 'BookOpen',
+    color: 'from-cyan-500 to-blue-600',
+    link: '/notes'
   },
   {
     id: '05',
-    title: 'Resume & Profile Review',
-    description: 'Get AI feedback on your resume and LinkedIn profile for clarity, formatting, and achievements.'
+    title: 'Resource Library',
+    description: 'Access a comprehensive collection of PDFs, videos, and links organized by topics to enhance your preparation.',
+    icon: 'Library',
+    color: 'from-orange-500 to-red-600',
+    link: '/resources'
   },
   {
     id: '06',
-    title: 'Mock Interviews',
-    description: 'Simulate real interviews with AI-generated questions and receive instant performance feedback.'
+    title: 'Session Management',
+    description: 'Save, export, and revisit your interview sessions. Export as PDF or Markdown for offline access and sharing.',
+    icon: 'FolderOpen',
+    color: 'from-teal-500 to-cyan-600',
+    link: '/dashboard'
+  },
+  {
+    id: '07',
+    title: 'AI Chatbot Assistant',
+    description: 'Get instant help and answers to your questions with our intelligent AI chatbot available 24/7 across the platform.',
+    icon: 'Bot',
+    color: 'from-violet-500 to-purple-600',
+    link: '#'
+  },
+  {
+    id: '08',
+    title: 'Profile & Progress Tracking',
+    description: 'Track your preparation progress, manage your profile, and monitor your performance across different topics.',
+    icon: 'User',
+    color: 'from-pink-500 to-rose-600',
+    link: '/profile'
+  },
+  {
+    id: '09',
+    title: 'Data Structures & Algorithms',
+    description: 'Practice problems on arrays, linked lists, trees, graphs, dynamic programming, and system design basics.',
+    icon: 'Network',
+    color: 'from-indigo-500 to-blue-600',
+    link: '/dashboard'
   }
 ];
 

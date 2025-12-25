@@ -4,6 +4,8 @@ const { chatWithAI } = require('../utils/gemini');
 const { sendCustomEmail, getEmailTemplate } = require('../utils/emailService');
 const MCQTest = require('../Models/MCQTest');
 const User = require('../Models/User');
+const { generateMCQBatch, shuffleQuestionOptions } = require('../utils/mcq-optimizer');
+const { getFromCache, addToCache, getCacheStats } = require('../utils/mcq-cache');
 
 // Track recent submissions to prevent duplicates (userId -> timestamp)
 const recentSubmissions = new Map();
@@ -381,7 +383,7 @@ async function sendResultsEmail(userInfo, results, topic) {
     );
 }
 
-// Generate MCQ test with enhanced uniqueness
+// Generate MCQ test with OPTIMIZED batch processing and caching
 router.post('/generate', async (req, res) => {
     try {
         const { topic, difficulty = 'medium', numberOfQuestions = 30, userEmail } = req.body;
@@ -393,49 +395,85 @@ router.post('/generate', async (req, res) => {
             });
         }
 
-        // Add user-specific and time-based uniqueness factors
         const sessionId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        const userHash = userEmail ? userEmail.split('@')[0] : 'anonymous';
+        const startTime = Date.now();
 
-        console.log(`Generating UNIQUE MCQ test for topic: ${topic} with ${numberOfQuestions} questions (Session: ${sessionId})`);
+        console.log(`\n🎯 MCQ Generation Request: ${topic} (${difficulty}) - ${numberOfQuestions} questions`);
+        console.log(`Session ID: ${sessionId}`);
 
-        // Generate questions with uniqueness factors
-        const questions = await generateMCQQuestions(topic, difficulty, numberOfQuestions);
+        let questions;
+        let cacheHit = false;
 
-        if (questions.length < numberOfQuestions) {
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to generate enough questions. Please try again.'
-            });
+        // Try to get from cache first
+        const cachedQuestions = getFromCache(topic, difficulty, numberOfQuestions);
+
+        if (cachedQuestions && cachedQuestions.length >= numberOfQuestions) {
+            console.log(`⚡ Using cached questions (${cachedQuestions.length} available)`);
+            questions = cachedQuestions;
+            cacheHit = true;
+        } else {
+            // Generate using optimized batch processing
+            console.log(`🚀 Generating questions using optimized batch processing...`);
+
+            questions = await generateMCQBatch(
+                topic,
+                difficulty,
+                numberOfQuestions,
+                (progress) => {
+                    console.log(`Progress: Batch ${progress.batch}/${progress.totalBatches} - ${progress.questionsGenerated} questions`);
+                }
+            );
+
+            if (questions.length < numberOfQuestions) {
+                return res.status(500).json({
+                    success: false,
+                    message: `Failed to generate enough questions. Got ${questions.length}/${numberOfQuestions}.`
+                });
+            }
+
+            // Add to cache for future requests
+            addToCache(topic, difficulty, questions);
         }
 
-        // Add variations by shuffling options within each question
-        const variatedQuestions = addQuestionVariations(questions);
+        // Shuffle options within each question for variety
+        const shuffledQuestions = shuffleQuestionOptions(questions);
 
-        // Shuffle questions to add another layer of uniqueness
-        const shuffledQuestions = variatedQuestions.sort(() => Math.random() - 0.5);
+        // Shuffle question order
+        const finalQuestions = shuffledQuestions.sort(() => Math.random() - 0.5);
 
         // Remove correct answers and explanations from response for frontend
-        const questionsForTest = shuffledQuestions.map(({ correctAnswer, explanation, ...question }) => question);
+        const questionsForTest = finalQuestions.map(({ correctAnswer, explanation, ...question }) => question);
+
+        const endTime = Date.now();
+        const totalTime = ((endTime - startTime) / 1000).toFixed(2);
+
+        console.log(`✅ MCQ Generation Complete:`);
+        console.log(`   - Time: ${totalTime}s`);
+        console.log(`   - Questions: ${finalQuestions.length}`);
+        console.log(`   - Cache: ${cacheHit ? 'HIT ⚡' : 'MISS'}`);
+        console.log(`   - Avg per question: ${(totalTime / finalQuestions.length).toFixed(2)}s\n`);
 
         res.json({
             success: true,
             data: {
                 questions: questionsForTest,
-                questionsWithAnswers: shuffledQuestions, // Include questions with correct answers for evaluation
+                questionsWithAnswers: finalQuestions,
                 topic,
                 difficulty,
-                totalQuestions: shuffledQuestions.length,
-                timeLimit: 45, // 45 minutes
-                sessionId: sessionId // Track session for uniqueness
+                totalQuestions: finalQuestions.length,
+                timeLimit: 45,
+                sessionId,
+                generationTime: parseFloat(totalTime),
+                cached: cacheHit
             }
         });
 
     } catch (error) {
-        console.error('Error generating MCQ test:', error);
+        console.error('❌ Error generating MCQ test:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to generate MCQ test. Please try again.'
+            message: 'Failed to generate MCQ test. Please try again.',
+            error: error.message
         });
     }
 });
@@ -622,6 +660,23 @@ router.get('/topics', (req, res) => {
         success: true,
         data: { topics }
     });
+});
+
+// Get cache statistics
+router.get('/cache-stats', (req, res) => {
+    try {
+        const stats = getCacheStats();
+        res.json({
+            success: true,
+            data: stats
+        });
+    } catch (error) {
+        console.error('Error fetching cache stats:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch cache statistics'
+        });
+    }
 });
 
 // Get user's test history

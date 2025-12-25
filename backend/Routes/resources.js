@@ -7,13 +7,13 @@ const { authenticateToken } = require('../middlewares/auth');
 router.get('/', async (req, res) => {
     try {
         const { branch, type, semester, search } = req.query;
-        
+
         let query = {};
-        
+
         if (branch) query.branch = branch;
         if (type && type !== 'all') query.type = type;
         if (semester && semester !== 'all') query.semester = semester;
-        
+
         if (search) {
             query.$or = [
                 { title: { $regex: search, $options: 'i' } },
@@ -22,11 +22,11 @@ router.get('/', async (req, res) => {
                 { tags: { $regex: search, $options: 'i' } }
             ];
         }
-        
+
         const resources = await Resource.find(query)
             .populate('uploadedBy', 'name email')
             .sort({ createdAt: -1 });
-        
+
         res.json(resources);
     } catch (error) {
         console.error('Error fetching resources:', error);
@@ -39,15 +39,15 @@ router.get('/:id', async (req, res) => {
     try {
         const resource = await Resource.findById(req.params.id)
             .populate('uploadedBy', 'name email');
-        
+
         if (!resource) {
             return res.status(404).json({ message: 'Resource not found' });
         }
-        
+
         // Increment views
         resource.views += 1;
         await resource.save();
-        
+
         res.json(resource);
     } catch (error) {
         console.error('Error fetching resource:', error);
@@ -68,7 +68,7 @@ router.post('/', authenticateToken, async (req, res) => {
             semester,
             tags
         } = req.body;
-        
+
         // Validate required fields
         if (!title || !type || !url || !branch || !subject || !semester) {
             return res.status(400).json({
@@ -76,7 +76,7 @@ router.post('/', authenticateToken, async (req, res) => {
                 required: ['title', 'type', 'url', 'branch', 'subject', 'semester']
             });
         }
-        
+
         // Validate URL based on type
         if (type === 'video') {
             const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
@@ -89,7 +89,7 @@ router.post('/', authenticateToken, async (req, res) => {
                 return res.status(400).json({ message: 'For PDF type, please provide a Google Drive URL' });
             }
         }
-        
+
         const resource = new Resource({
             title,
             description,
@@ -102,9 +102,9 @@ router.post('/', authenticateToken, async (req, res) => {
             uploadedByName: req.user.name || 'Anonymous',
             tags: tags || []
         });
-        
+
         await resource.save();
-        
+
         res.status(201).json({
             message: 'Resource uploaded successfully',
             resource
@@ -119,24 +119,24 @@ router.post('/', authenticateToken, async (req, res) => {
 router.put('/:id', authenticateToken, async (req, res) => {
     try {
         const resource = await Resource.findById(req.params.id);
-        
+
         if (!resource) {
             return res.status(404).json({ message: 'Resource not found' });
         }
-        
+
         // Check if user is the owner
         if (resource.uploadedBy.toString() !== req.user.userId) {
             return res.status(403).json({ message: 'You can only update your own resources' });
         }
-        
+
         const updates = req.body;
         delete updates.uploadedBy; // Prevent changing owner
         delete updates.downloads; // Prevent manipulating download count
         delete updates.views; // Prevent manipulating view count
-        
+
         Object.assign(resource, updates);
         await resource.save();
-        
+
         res.json({
             message: 'Resource updated successfully',
             resource
@@ -151,18 +151,18 @@ router.put('/:id', authenticateToken, async (req, res) => {
 router.delete('/:id', authenticateToken, async (req, res) => {
     try {
         const resource = await Resource.findById(req.params.id);
-        
+
         if (!resource) {
             return res.status(404).json({ message: 'Resource not found' });
         }
-        
+
         // Check if user is the owner
         if (resource.uploadedBy.toString() !== req.user.userId) {
             return res.status(403).json({ message: 'You can only delete your own resources' });
         }
-        
+
         await Resource.findByIdAndDelete(req.params.id);
-        
+
         res.json({ message: 'Resource deleted successfully' });
     } catch (error) {
         console.error('Error deleting resource:', error);
@@ -174,14 +174,14 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 router.post('/:id/download', async (req, res) => {
     try {
         const resource = await Resource.findById(req.params.id);
-        
+
         if (!resource) {
             return res.status(404).json({ message: 'Resource not found' });
         }
-        
+
         resource.downloads += 1;
         await resource.save();
-        
+
         res.json({ message: 'Download count incremented', downloads: resource.downloads });
     } catch (error) {
         console.error('Error incrementing download count:', error);
@@ -193,14 +193,14 @@ router.post('/:id/download', async (req, res) => {
 router.post('/:id/like', authenticateToken, async (req, res) => {
     try {
         const resource = await Resource.findById(req.params.id);
-        
+
         if (!resource) {
             return res.status(404).json({ message: 'Resource not found' });
         }
-        
+
         const userId = req.user.userId;
         const likeIndex = resource.likes.indexOf(userId);
-        
+
         if (likeIndex > -1) {
             // Unlike
             resource.likes.splice(likeIndex, 1);
@@ -208,9 +208,9 @@ router.post('/:id/like', authenticateToken, async (req, res) => {
             // Like
             resource.likes.push(userId);
         }
-        
+
         await resource.save();
-        
+
         res.json({
             message: likeIndex > -1 ? 'Resource unliked' : 'Resource liked',
             likes: resource.likes.length,
@@ -227,7 +227,7 @@ router.get('/user/my-uploads', authenticateToken, async (req, res) => {
     try {
         const resources = await Resource.find({ uploadedBy: req.user.userId })
             .sort({ createdAt: -1 });
-        
+
         res.json(resources);
     } catch (error) {
         console.error('Error fetching user resources:', error);

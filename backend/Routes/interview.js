@@ -236,5 +236,35 @@ router.post('/verify-delete-otp', async (req, res) => {
 });
 
 
+// POST to add a new manual question
+router.post('/add-question/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { question, answerParts } = req.body;
+
+    if (!question) {
+      return res.status(400).json({ message: 'Question is required' });
+    }
+
+    const session = await Interview.findOne({ sessionId });
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found' });
+    }
+
+    const newQnA = {
+      question,
+      answerParts: answerParts || []
+    };
+
+    session.qna.push(newQnA);
+    await session.save();
+
+    res.status(201).json({ message: 'Question added successfully', qna: newQnA });
+  } catch (err) {
+    console.error('Error adding question:', err);
+    res.status(500).json({ message: 'Failed to add question', error: err.message });
+  }
+});
+
 
 module.exports = router;

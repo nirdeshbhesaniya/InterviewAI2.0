@@ -1,6 +1,11 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { UserContext } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+    Tooltip, Legend, ResponsiveContainer
+} from 'recharts';
 import {
     User,
     Mail,
@@ -19,7 +24,14 @@ import {
     Shield,
     Bell,
     Globe,
-    Trash2
+    Trash2,
+    TrendingUp,
+    Award,
+    Sparkles,
+    MapPin,
+    Link2,
+    Github,
+    Linkedin
 } from 'lucide-react';
 import Button from '../components/ui/SimpleButton';
 import Card from '../components/ui/SimpleCard';
@@ -80,6 +92,15 @@ const ProfilePage = () => {
     const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
     const [loadingSecurity, setLoadingSecurity] = useState(false);
 
+    // Stats state
+    const [stats, setStats] = useState({
+        interviewsSessions: 0,
+        mcqTestsTaken: 0,
+        notesShared: 0,
+        activityTimeline: [],
+        performanceByCategory: []
+    });
+
     useEffect(() => {
         if (user) {
             setProfileData({
@@ -95,8 +116,20 @@ const ProfilePage = () => {
             // Fetch preferences and security data
             fetchPreferences();
             fetchSecurityInfo();
+            fetchStats();
         }
     }, [user]);
+
+    const fetchStats = async () => {
+        try {
+            const response = await axiosInstance.get(API.PROFILE.GET_STATS);
+            if (response.data.success) {
+                setStats(response.data.data.stats);
+            }
+        } catch (error) {
+            console.error('Error fetching stats:', error);
+        }
+    };
 
     const fetchPreferences = async () => {
         try {
@@ -318,81 +351,461 @@ const ProfilePage = () => {
 
     const renderProfileTab = () => (
         <div className="space-y-6">
-            {/* Profile Header */}
-            <Card className="p-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-                    {/* Profile Picture */}
-                    <div className="relative">
-                        <div className="w-32 h-32 rounded-full overflow-hidden bg-[rgb(var(--accent))] p-1">
-                            <img
-                                src={user?.photo || '/default-avatar.jpg'}
-                                alt="Profile"
-                                className="w-full h-full rounded-full object-cover bg-[rgb(var(--bg-body))]"
-                            />
+            {/* Enhanced Profile Header with Gradient */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+            >
+                <Card className="overflow-hidden bg-gradient-to-br from-[rgb(var(--accent))] via-purple-500 to-pink-500 border-0 shadow-2xl">
+                    <div className="relative p-6 sm:p-8">
+                        {/* Decorative Elements */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+
+                        <div className="relative flex flex-col sm:flex-row items-center sm:items-start gap-6">
+                            {/* Enhanced Profile Picture */}
+                            <motion.div
+                                className="relative"
+                                whileHover={{ scale: 1.05 }}
+                                transition={{ type: "spring", stiffness: 300 }}
+                            >
+                                <div className="relative">
+                                    {/* Animated Ring */}
+                                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-white/40 to-white/20 animate-pulse"></div>
+
+                                    {/* Avatar Container */}
+                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden bg-white p-1.5 shadow-2xl">
+                                        <img
+                                            src={user?.photo || '/default-avatar.jpg'}
+                                            alt="Profile"
+                                            className="w-full h-full rounded-full object-cover"
+                                        />
+                                    </div>
+
+                                    {/* Upload Button */}
+                                    <label className="absolute bottom-0 right-0 w-12 h-12 bg-white rounded-full shadow-xl flex items-center justify-center cursor-pointer hover:scale-110 transition-transform border-4 border-[rgb(var(--accent))]">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handlePhotoUpload}
+                                            className="hidden"
+                                            disabled={uploadingPhoto}
+                                        />
+                                        {uploadingPhoto ? (
+                                            <div className="w-6 h-6 border-2 border-[rgb(var(--accent))] border-t-transparent rounded-full animate-spin" />
+                                        ) : (
+                                            <Camera className="w-6 h-6 text-[rgb(var(--accent))]" />
+                                        )}
+                                    </label>
+
+                                    {/* Online Status */}
+                                    <div className="absolute top-2 right-2 w-5 h-5 bg-green-400 rounded-full border-4 border-white shadow-lg"></div>
+                                </div>
+                            </motion.div>
+
+                            {/* Profile Info */}
+                            <div className="flex-1 text-center sm:text-left">
+                                <motion.h2
+                                    className="text-3xl sm:text-4xl font-extrabold text-white mb-2 drop-shadow-lg"
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.2 }}
+                                >
+                                    {user?.fullName || user?.email?.split('@')[0]}
+                                </motion.h2>
+
+                                <motion.div
+                                    className="flex items-center justify-center sm:justify-start gap-2 text-white/90 mb-3"
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.3 }}
+                                >
+                                    <Mail className="w-4 h-4" />
+                                    <p className="text-sm sm:text-base">{user?.email}</p>
+                                </motion.div>
+
+                                <motion.div
+                                    className="flex items-center justify-center sm:justify-start gap-2 text-white/80 mb-6"
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.4 }}
+                                >
+                                    <Calendar className="w-4 h-4" />
+                                    <p className="text-sm">
+                                        Member since {new Date(user?.createdAt || Date.now()).toLocaleDateString('en-US', {
+                                            month: 'long',
+                                            year: 'numeric'
+                                        })}
+                                    </p>
+                                </motion.div>
+
+                                {/* Action Buttons */}
+                                <motion.div
+                                    className="flex flex-wrap gap-3 justify-center sm:justify-start"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.5 }}
+                                >
+                                    <button
+                                        onClick={() => setIsEditing(!isEditing)}
+                                        className="flex items-center gap-2 px-5 py-2.5 bg-white text-[rgb(var(--accent))] rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-200"
+                                    >
+                                        <Edit3 className="w-4 h-4" />
+                                        {isEditing ? 'Cancel' : 'Edit Profile'}
+                                    </button>
+
+                                    <button
+                                        onClick={() => {
+                                            setShowPasswordForm(!showPasswordForm);
+                                            if (isEditing) setIsEditing(false);
+                                            setTimeout(() => {
+                                                passwordSectionRef.current?.scrollIntoView({
+                                                    behavior: 'smooth',
+                                                    block: 'start'
+                                                });
+                                            }, 100);
+                                        }}
+                                        className="flex items-center gap-2 px-5 py-2.5 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 hover:scale-105 transition-all duration-200 border border-white/30"
+                                    >
+                                        <Lock className="w-4 h-4" />
+                                        Change Password
+                                    </button>
+                                </motion.div>
+                            </div>
                         </div>
-                        <label className="absolute bottom-0 right-0 w-10 h-10 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-full shadow-lg flex items-center justify-center cursor-pointer hover:bg-[rgb(var(--bg-body-alt))] transition-colors">
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handlePhotoUpload}
-                                className="hidden"
-                                disabled={uploadingPhoto}
-                            />
-                            {uploadingPhoto ? (
-                                <div className="w-5 h-5 border-2 border-[rgb(var(--accent))] border-t-transparent rounded-full animate-spin" />
+                    </div>
+                </Card>
+            </motion.div>
+
+            {/* Stats Cards */}
+            <motion.div
+                className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+            >
+                {/* Tests Taken */}
+                <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-blue-600/10 border border-blue-500/20 hover:shadow-lg hover:scale-105 transition-all duration-300">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-blue-500/20 rounded-xl">
+                            <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                            <p className="text-2xl font-bold text-[rgb(var(--text-primary))]">{stats.mcqTestsTaken}</p>
+                            <p className="text-sm text-[rgb(var(--text-muted))]">Tests Taken</p>
+                        </div>
+                    </div>
+                </Card>
+
+                {/* Notes Shared */}
+                <Card className="p-6 bg-gradient-to-br from-purple-500/10 to-purple-600/10 border border-purple-500/20 hover:shadow-lg hover:scale-105 transition-all duration-300">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-purple-500/20 rounded-xl">
+                            <Sparkles className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <div>
+                            <p className="text-2xl font-bold text-[rgb(var(--text-primary))]">{stats.notesShared}</p>
+                            <p className="text-sm text-[rgb(var(--text-muted))]">Notes Shared</p>
+                        </div>
+                    </div>
+                </Card>
+
+                {/* Days Active */}
+                <Card className="p-6 bg-gradient-to-br from-green-500/10 to-green-600/10 border border-green-500/20 hover:shadow-lg hover:scale-105 transition-all duration-300">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-green-500/20 rounded-xl">
+                            <Award className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        </div>
+                        <div>
+                            <p className="text-2xl font-bold text-[rgb(var(--text-primary))]">
+                                {Math.floor((Date.now() - new Date(user?.createdAt || Date.now()).getTime()) / (1000 * 60 * 60 * 24))}
+                            </p>
+                            <p className="text-sm text-[rgb(var(--text-muted))]">Days Active</p>
+                        </div>
+                    </div>
+                </Card>
+            </motion.div>
+
+            {/* Progress Summary Section */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7, duration: 0.5 }}
+            >
+                <Card className="p-4 sm:p-8 bg-gradient-to-br from-[rgb(var(--bg-card))] via-[rgb(var(--bg-card))] to-purple-500/5 border-2 border-[rgb(var(--border-subtle))] shadow-2xl overflow-hidden relative">
+                    {/* Decorative background elements */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-3xl -z-10" />
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-500/10 to-cyan-500/10 rounded-full blur-3xl -z-10" />
+
+                    <div className="mb-6 sm:mb-8">
+                        <div className="flex items-center gap-3 sm:gap-4 mb-2">
+                            <motion.div
+                                className="p-3 bg-gradient-to-br from-[rgb(var(--accent))] via-purple-500 to-pink-500 rounded-2xl shadow-lg"
+                                whileHover={{ scale: 1.05, rotate: 5 }}
+                                transition={{ type: "spring", stiffness: 300 }}
+                            >
+                                <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                            </motion.div>
+                            <div>
+                                <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[rgb(var(--text-primary))]">
+                                    Your Progress Summary
+                                </h3>
+                                <p className="text-xs sm:text-sm text-[rgb(var(--text-muted))] mt-1">
+                                    Track your learning journey over the last 30 days
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
+                        {/* Activity Timeline Chart */}
+                        <motion.div
+                            className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-2xl p-5 sm:p-6 border-2 border-blue-200/50 dark:border-blue-800/50 shadow-xl hover:shadow-2xl transition-all duration-300"
+                            whileHover={{ y: -5 }}
+                        >
+                            <div className="flex items-center justify-between mb-5">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md">
+                                        <Calendar className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-base sm:text-lg font-bold text-[rgb(var(--text-primary))]">
+                                            Activity Timeline
+                                        </h4>
+                                        <p className="text-xs text-[rgb(var(--text-muted))]">Daily engagement</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {stats.activityTimeline && stats.activityTimeline.length > 0 ? (
+                                <div className="bg-white/50 dark:bg-gray-900/50 rounded-xl p-3 sm:p-4">
+                                    <ResponsiveContainer width="100%" height={280}>
+                                        <AreaChart data={stats.activityTimeline} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
+                                            <defs>
+                                                <linearGradient id="colorTests" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.9} />
+                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
+                                                </linearGradient>
+                                                <linearGradient id="colorNotes" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.9} />
+                                                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0.1} />
+                                                </linearGradient>
+                                                <linearGradient id="colorInterviews" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.9} />
+                                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.1} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
+                                            <XAxis
+                                                dataKey="date"
+                                                stroke="#9ca3af"
+                                                tick={{ fontSize: 11, fill: '#6b7280' }}
+                                                tickFormatter={(value) => {
+                                                    const date = new Date(value);
+                                                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                                }}
+                                                angle={-35}
+                                                textAnchor="end"
+                                                height={70}
+                                            />
+                                            <YAxis
+                                                stroke="#9ca3af"
+                                                tick={{ fontSize: 11, fill: '#6b7280' }}
+                                                width={35}
+                                                allowDecimals={false}
+                                            />
+                                            <Tooltip
+                                                contentStyle={{
+                                                    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                                                    border: '2px solid #e5e7eb',
+                                                    borderRadius: '12px',
+                                                    boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+                                                    padding: '12px',
+                                                    fontSize: '13px'
+                                                }}
+                                                labelStyle={{ fontWeight: 'bold', marginBottom: '8px', color: '#111827' }}
+                                                labelFormatter={(value) => new Date(value).toLocaleDateString('en-US', {
+                                                    weekday: 'short',
+                                                    month: 'long',
+                                                    day: 'numeric',
+                                                    year: 'numeric'
+                                                })}
+                                            />
+                                            <Legend
+                                                wrapperStyle={{
+                                                    fontSize: '12px',
+                                                    paddingTop: '15px',
+                                                    fontWeight: '600'
+                                                }}
+                                                iconType="circle"
+                                            />
+                                            <Area
+                                                type="monotone"
+                                                dataKey="tests"
+                                                stroke="#3b82f6"
+                                                strokeWidth={3}
+                                                fillOpacity={1}
+                                                fill="url(#colorTests)"
+                                                name="MCQ Tests"
+                                                activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
+                                            />
+                                            <Area
+                                                type="monotone"
+                                                dataKey="notes"
+                                                stroke="#a855f7"
+                                                strokeWidth={3}
+                                                fillOpacity={1}
+                                                fill="url(#colorNotes)"
+                                                name="Notes Shared"
+                                                activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
+                                            />
+                                            <Area
+                                                type="monotone"
+                                                dataKey="interviews"
+                                                stroke="#10b981"
+                                                strokeWidth={3}
+                                                fillOpacity={1}
+                                                fill="url(#colorInterviews)"
+                                                name="Interview Prep"
+                                                activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
+                                            />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                </div>
                             ) : (
-                                <Camera className="w-5 h-5 text-[rgb(var(--text-muted))]" />
+                                <div className="h-[280px] flex items-center justify-center bg-white/50 dark:bg-gray-900/50 rounded-xl">
+                                    <div className="text-center px-6">
+                                        <motion.div
+                                            animate={{ y: [0, -10, 0] }}
+                                            transition={{ duration: 2, repeat: Infinity }}
+                                        >
+                                            <Calendar className="w-16 h-16 mx-auto mb-4 text-blue-300 dark:text-blue-700" />
+                                        </motion.div>
+                                        <p className="text-base font-semibold text-[rgb(var(--text-primary))] mb-2">No activity data yet</p>
+                                        <p className="text-sm text-[rgb(var(--text-muted))]">Start your learning journey today!</p>
+                                        <p className="text-xs text-[rgb(var(--text-muted))] mt-1">Take tests, create notes, and prep for interviews</p>
+                                    </div>
+                                </div>
                             )}
-                        </label>
+                        </motion.div>
+
+                        {/* Performance by Category Chart */}
+                        <motion.div
+                            className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 rounded-2xl p-5 sm:p-6 border-2 border-purple-200/50 dark:border-purple-800/50 shadow-xl hover:shadow-2xl transition-all duration-300"
+                            whileHover={{ y: -5 }}
+                        >
+                            <div className="flex items-center justify-between mb-5">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-md">
+                                        <Award className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-base sm:text-lg font-bold text-[rgb(var(--text-primary))]">
+                                            Performance by Topic
+                                        </h4>
+                                        <p className="text-xs text-[rgb(var(--text-muted))]">Average scores</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {stats.performanceByCategory && stats.performanceByCategory.length > 0 ? (
+                                <div className="bg-white/50 dark:bg-gray-900/50 rounded-xl p-3 sm:p-4">
+                                    <ResponsiveContainer width="100%" height={280}>
+                                        <BarChart
+                                            data={stats.performanceByCategory}
+                                            layout="vertical"
+                                            margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+                                        >
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
+                                            <XAxis
+                                                type="number"
+                                                domain={[0, 100]}
+                                                stroke="#9ca3af"
+                                                tick={{ fontSize: 11, fill: '#6b7280' }}
+                                                label={{ value: 'Score (%)', position: 'bottom', fontSize: 12, fill: '#6b7280' }}
+                                            />
+                                            <YAxis
+                                                dataKey="category"
+                                                type="category"
+                                                width={90}
+                                                stroke="#9ca3af"
+                                                tick={{ fontSize: 11, fill: '#6b7280', fontWeight: '600' }}
+                                            />
+                                            <Tooltip
+                                                contentStyle={{
+                                                    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                                                    border: '2px solid #e5e7eb',
+                                                    borderRadius: '12px',
+                                                    boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+                                                    padding: '12px',
+                                                    fontSize: '13px'
+                                                }}
+                                                cursor={{ fill: 'rgba(168, 85, 247, 0.1)' }}
+                                                formatter={(value, name, props) => {
+                                                    if (name === 'score') {
+                                                        const tests = props.payload.tests || 0;
+                                                        return [
+                                                            <div key="score">
+                                                                <div className="font-bold text-purple-600">{value}%</div>
+                                                                <div className="text-xs text-gray-500">{tests} test{tests !== 1 ? 's' : ''} taken</div>
+                                                            </div>,
+                                                            'Score'
+                                                        ];
+                                                    }
+                                                    return [value, name];
+                                                }}
+                                            />
+                                            <Bar
+                                                dataKey="score"
+                                                radius={[0, 12, 12, 0]}
+                                                label={{
+                                                    position: 'right',
+                                                    fill: '#7c3aed',
+                                                    fontSize: 12,
+                                                    fontWeight: 'bold',
+                                                    formatter: (value) => `${value}%`
+                                                }}
+                                            >
+                                                <defs>
+                                                    <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
+                                                        <stop offset="0%" stopColor="#a855f7" />
+                                                        <stop offset="50%" stopColor="#c026d3" />
+                                                        <stop offset="100%" stopColor="#ec4899" />
+                                                    </linearGradient>
+                                                </defs>
+                                                {stats.performanceByCategory.map((entry, index) => (
+                                                    <motion.rect
+                                                        key={`bar-${index}`}
+                                                        initial={{ scaleX: 0 }}
+                                                        animate={{ scaleX: 1 }}
+                                                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                                                        fill="url(#barGradient)"
+                                                    />
+                                                ))}
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            ) : (
+                                <div className="h-[280px] flex items-center justify-center bg-white/50 dark:bg-gray-900/50 rounded-xl">
+                                    <div className="text-center px-6">
+                                        <motion.div
+                                            animate={{ rotate: [0, 10, -10, 0] }}
+                                            transition={{ duration: 2, repeat: Infinity }}
+                                        >
+                                            <Award className="w-16 h-16 mx-auto mb-4 text-purple-300 dark:text-purple-700" />
+                                        </motion.div>
+                                        <p className="text-base font-semibold text-[rgb(var(--text-primary))] mb-2">No performance data yet</p>
+                                        <p className="text-sm text-[rgb(var(--text-muted))]">Complete MCQ tests to track your progress!</p>
+                                        <p className="text-xs text-[rgb(var(--text-muted))] mt-1">See which topics you excel at</p>
+                                    </div>
+                                </div>
+                            )}
+                        </motion.div>
                     </div>
-
-                    {/* Profile Info */}
-                    <div className="flex-1 text-center sm:text-left">
-                        <h2 className="text-2xl font-bold text-[rgb(var(--text-primary))]">
-                            {user?.fullName || user?.email?.split('@')[0]}
-                        </h2>
-                        <p className="text-[rgb(var(--text-secondary))]">{user?.email}</p>
-                        <p className="text-sm text-[rgb(var(--text-muted))] mt-2">
-                            Member since {new Date(user?.createdAt || Date.now()).toLocaleDateString('en-US', {
-                                month: 'long',
-                                year: 'numeric'
-                            })}
-                        </p>
-
-                        <div className="flex flex-wrap gap-3 mt-4 justify-center sm:justify-start">
-                            <Button
-                                onClick={() => setIsEditing(!isEditing)}
-                                variant="outline"
-                                size="sm"
-                                className="flex items-center gap-2 border-[rgb(var(--border))] bg-[rgb(var(--bg-body))] hover:bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-primary))]"
-                            >
-                                <Edit3 className="w-4 h-4" />
-                                {isEditing ? 'Cancel' : 'Edit Profile'}
-                            </Button>
-                            <Button
-                                onClick={() => {
-                                    setShowPasswordForm(!showPasswordForm);
-                                    if (isEditing) setIsEditing(false); // Close edit mode when opening password form
-
-                                    // Auto-scroll to password section
-                                    setTimeout(() => {
-                                        passwordSectionRef.current?.scrollIntoView({
-                                            behavior: 'smooth',
-                                            block: 'start'
-                                        });
-                                    }, 100);
-                                }}
-                                variant="outline"
-                                size="sm"
-                                className="flex items-center gap-2 border-[rgb(var(--border))] bg-[rgb(var(--bg-body))] hover:bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-primary))]"
-                            >
-                                <Lock className="w-4 h-4" />
-                                Change Password
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </Card>
+                </Card>
+            </motion.div>
 
             {/* Profile Form */}
             <Card className="p-4 sm:p-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">

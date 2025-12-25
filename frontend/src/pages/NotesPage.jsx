@@ -81,7 +81,7 @@ const NotesPage = () => {
         try {
             const response = await axios.post(API.NOTES.CREATE, {
                 userId: user.email,
-                userName: user.name || 'Anonymous',
+                userName: user.fullName,
                 userEmail: user.email,
                 type: formData.type,
                 title: formData.title,
@@ -132,7 +132,7 @@ const NotesPage = () => {
         try {
             const response = await axios.post(API.NOTES.LIKE(noteId), {
                 userId: user.email,
-                userName: user.name || 'Anonymous'
+                userName: user.fullName
             });
 
             if (response.data.success) {

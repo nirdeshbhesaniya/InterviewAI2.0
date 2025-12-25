@@ -610,10 +610,26 @@ const MCQTest = () => {
             });
 
             if (response.data.success) {
-                setQuestions(response.data.data.questions);
+                // LangChain backend returns questions directly in response.data.questions
+                const rawQuestions = response.data.questions || response.data.data?.questions;
+                
+                // Transform questions: convert options object {A, B, C, D} to array
+                const transformedQuestions = rawQuestions.map(q => {
+                    if (q.options && typeof q.options === 'object' && !Array.isArray(q.options)) {
+                        // Convert {A: "...", B: "...", C: "...", D: "..."} to ["...", "...", "...", "..."]
+                        return {
+                            ...q,
+                            options: [q.options.A, q.options.B, q.options.C, q.options.D],
+                            correctAnswer: q.correctAnswer // Keep as letter (A, B, C, D)
+                        };
+                    }
+                    return q;
+                });
+                
+                setQuestions(transformedQuestions);
                 // Store questions with answers for evaluation
-                if (response.data.data.questionsWithAnswers) {
-                    setQuestionsWithAnswers(response.data.data.questionsWithAnswers);
+                if (response.data.questionsWithAnswers || response.data.data?.questionsWithAnswers) {
+                    setQuestionsWithAnswers(response.data.questionsWithAnswers || response.data.data.questionsWithAnswers);
                 }
                 setCurrentStep('test');
                 setTimeLeft(formData.numberOfQuestions * 120); // Reset timer based on questions
