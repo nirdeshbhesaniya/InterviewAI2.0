@@ -612,7 +612,7 @@ const MCQTest = () => {
             if (response.data.success) {
                 // LangChain backend returns questions directly in response.data.questions
                 const rawQuestions = response.data.questions || response.data.data?.questions;
-                
+
                 // Transform questions: convert options object {A, B, C, D} to array
                 const transformedQuestions = rawQuestions.map(q => {
                     if (q.options && typeof q.options === 'object' && !Array.isArray(q.options)) {
@@ -625,7 +625,7 @@ const MCQTest = () => {
                     }
                     return q;
                 });
-                
+
                 setQuestions(transformedQuestions);
                 // Store questions with answers for evaluation
                 if (response.data.questionsWithAnswers || response.data.data?.questionsWithAnswers) {

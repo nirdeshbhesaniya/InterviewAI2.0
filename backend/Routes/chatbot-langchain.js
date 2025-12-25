@@ -9,14 +9,14 @@ const sessionTimestamps = new Map();
 // Cleanup old sessions every 10 minutes (1 hour max age)
 const SESSION_MAX_AGE = 3600000; // 1 hour
 setInterval(() => {
-  const now = Date.now();
-  for (const [sessionId, timestamp] of sessionTimestamps) {
-    if (now - timestamp > SESSION_MAX_AGE) {
-      chatSessions.delete(sessionId);
-      sessionTimestamps.delete(sessionId);
-      console.log(`🧹 Cleaned up chat session: ${sessionId}`);
+    const now = Date.now();
+    for (const [sessionId, timestamp] of sessionTimestamps) {
+        if (now - timestamp > SESSION_MAX_AGE) {
+            chatSessions.delete(sessionId);
+            sessionTimestamps.delete(sessionId);
+            console.log(`🧹 Cleaned up chat session: ${sessionId}`);
+        }
     }
-  }
 }, 600000); // Every 10 minutes
 
 // POST /api/chatbot/ask
@@ -68,7 +68,7 @@ router.post('/ask', async (req, res) => {
 router.post('/clear', async (req, res) => {
     try {
         const { sessionId = 'default' } = req.body;
-        
+
         if (chatSessions.has(sessionId)) {
             chatSessions.delete(sessionId);
         }
@@ -91,7 +91,7 @@ router.post('/clear', async (req, res) => {
 router.get('/sessions', async (req, res) => {
     try {
         const activeSessions = Array.from(chatSessions.keys());
-        
+
         res.json({
             success: true,
             sessions: activeSessions,

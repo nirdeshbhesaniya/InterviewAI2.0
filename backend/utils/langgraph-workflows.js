@@ -1,8 +1,8 @@
 const { StateGraph, END } = require('@langchain/langgraph');
-const { 
-  createInterviewQAChain, 
+const {
+  createInterviewQAChain,
   createAnswerChain,
-  createMCQChain 
+  createMCQChain
 } = require('./langchain-chains');
 
 // ============================================
@@ -100,7 +100,7 @@ async function createInterviewPrepWorkflow() {
   // Define edges
   workflow.addEdge('__start__', 'generate_qa');
   workflow.addEdge('generate_qa', 'review');
-  
+
   // Conditional edge: if needs regeneration, go to regenerate; otherwise end
   workflow.addConditionalEdges(
     'review',
@@ -173,7 +173,7 @@ async function createMCQWorkflow() {
 
     for (const question of state.questions) {
       // Basic validation rules
-      const isValid = 
+      const isValid =
         question.questionText &&
         question.options &&
         Object.keys(question.options).length === 4 &&
@@ -223,7 +223,7 @@ async function createMCQWorkflow() {
   // Define edges
   workflow.addEdge('__start__', 'generate_mcqs');
   workflow.addEdge('generate_mcqs', 'validate');
-  
+
   workflow.addConditionalEdges(
     'validate',
     (state) => {
@@ -317,7 +317,7 @@ async function createAdaptiveInterviewWorkflow() {
   workflow.addEdge('__start__', 'generate_question');
   workflow.addEdge('generate_question', 'evaluate_answer');
   workflow.addEdge('evaluate_answer', 'check_continue');
-  
+
   workflow.addConditionalEdges(
     'check_continue',
     (state) => {

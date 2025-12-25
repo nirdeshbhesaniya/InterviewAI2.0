@@ -3,11 +3,11 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const Interview = require('../Models/Interview');
 const User = require('../Models/User');
-const { 
-  createInterviewQAChain, 
-  createAnswerChain, 
+const {
+  createInterviewQAChain,
+  createAnswerChain,
   createMoreQuestionsChain,
-  createSummarizeChain 
+  createSummarizeChain
 } = require('../utils/langchain-chains');
 const { createInterviewPrepWorkflow } = require('../utils/langgraph-workflows');
 const { sendOTPEmail } = require('../utils/emailService');
@@ -15,26 +15,26 @@ const { sendOTPEmail } = require('../utils/emailService');
 // Helper function to parse LangChain string output into Q&A format
 function parseInterviewResponse(responseText) {
   const questions = [];
-  
+
   // Split by QUESTION markers
   const questionBlocks = responseText.split(/QUESTION\s+\d+:/i).filter(Boolean);
-  
+
   for (const block of questionBlocks) {
     // Split each block into question and answer
     const answerMatch = block.match(/^(.*?)\s*ANSWER\s+\d+:\s*([\s\S]*)/i);
-    
+
     if (answerMatch) {
       // Replace all backticks in question with double quotes
       let question = answerMatch[1].trim().replace(/`/g, '"');
       const answer = answerMatch[2].trim();
-      
+
       questions.push({
         question,
         answer
       });
     }
   }
-  
+
   return questions;
 }
 
@@ -44,7 +44,7 @@ function parseAnswerIntoParts(answerText) {
 
   const parts = [];
   const lines = answerText.split('\n');
-  
+
   let current = { type: 'text', content: '' };
   let isInCodeBlock = false;
   let codeLang = '';
@@ -135,7 +135,7 @@ router.post('/', async (req, res) => {
 
     // Parse the response
     const parsedQuestions = parseInterviewResponse(responseText);
-    
+
     // Transform the structured output into the format expected by the database
     const qna = parsedQuestions.map((q) => ({
       question: q.question,
@@ -189,7 +189,7 @@ router.post('/workflow', async (req, res) => {
 
     // Parse and transform the output
     const parsedQuestions = parseInterviewResponse(result.questions || '');
-    
+
     const qna = parsedQuestions.map((q) => ({
       question: q.question,
       answerParts: parseAnswerIntoParts(q.answer)
@@ -300,7 +300,7 @@ router.post('/generate-more/:sessionId', async (req, res) => {
 
     // Parse the response
     const parsedQuestions = parseInterviewResponse(responseText);
-    
+
     // Transform the output
     const generatedQnA = parsedQuestions.map((q) => ({
       question: q.question,

@@ -1,12 +1,12 @@
 const { RunnableSequence } = require('@langchain/core/runnables');
-const { 
-  qaModel, 
+const {
+  qaModel,
   chatbotModel,
   mcqModel,
-  stringParser, 
+  stringParser,
   qaParser,
   mcqParser,
-  ChatPromptTemplate 
+  ChatPromptTemplate
 } = require('./langchain-config');
 const { BufferMemory } = require('langchain/memory');
 const { ConversationChain } = require('langchain/chains');
