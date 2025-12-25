@@ -499,13 +499,37 @@ const AddQuestionPage = () => {
                                 {/* Content */}
                                 <div className="p-6 sm:p-8 overflow-y-auto custom-scrollbar flex-1 bg-[rgb(var(--bg-card))]">
                                     <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none">
-                                        <h1 className="mb-6">{question || <span className="opacity-30">Question Title...</span>}</h1>
+                                        <h1 className="mb-6 text-[rgb(var(--text-primary))]"><span className={question ? "" : "opacity-50 text-[rgb(var(--text-muted))]"}>{question || "Question Title..."}</span></h1>
 
                                         <ReactMarkdown
                                             children={generatedMarkdown}
                                             remarkPlugins={[remarkGfm]}
                                             rehypePlugins={[rehypeHighlight]}
                                             components={{
+                                                p: (props) => (
+                                                    <p className="mb-4 leading-relaxed text-[rgb(var(--text-secondary))]" {...props} />
+                                                ),
+                                                h1: (props) => (
+                                                    <h1 className="text-3xl font-extrabold mt-6 mb-4 text-[rgb(var(--text-primary))]" {...props} />
+                                                ),
+                                                h2: (props) => (
+                                                    <h2 className="text-2xl font-bold mt-5 mb-3 text-[rgb(var(--text-primary))]" {...props} />
+                                                ),
+                                                h3: (props) => (
+                                                    <h3 className="text-xl font-bold mt-4 mb-2 text-[rgb(var(--text-primary))]" {...props} />
+                                                ),
+                                                ul: (props) => (
+                                                    <ul className="list-disc pl-6 mb-4 space-y-2 text-[rgb(var(--text-secondary))]" {...props} />
+                                                ),
+                                                ol: (props) => (
+                                                    <ol className="list-decimal pl-6 mb-4 space-y-2 text-[rgb(var(--text-secondary))]" {...props} />
+                                                ),
+                                                li: (props) => (
+                                                    <li className="text-[rgb(var(--text-secondary))] leading-relaxed" {...props} />
+                                                ),
+                                                strong: (props) => (
+                                                    <strong className="font-extrabold text-[rgb(var(--text-primary))]" {...props} />
+                                                ),
                                                 code({ node, inline, className, children, ...props }) {
                                                     const match = /language-(\w+)/.exec(className || '')
                                                     return !inline && match ? (
@@ -526,7 +550,7 @@ const AddQuestionPage = () => {
                                                     )
                                                 },
                                                 blockquote: (props) => (
-                                                    <blockquote className="border-l-4 border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/5 pl-4 py-2 my-4 italic rounded-r-lg" {...props} />
+                                                    <blockquote className="border-l-4 border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/5 pl-4 py-2 my-4 italic rounded-r-lg text-[rgb(var(--text-secondary))]" {...props} />
                                                 ),
                                                 img: (props) => (
                                                     <img {...props} className="rounded-lg border border-[rgb(var(--border))] shadow-sm max-h-[400px] object-contain bg-black/5" />
@@ -535,9 +559,9 @@ const AddQuestionPage = () => {
                                         />
 
                                         {!generatedMarkdown && (
-                                            <div className="flex flex-col items-center justify-center py-10 text-[rgb(var(--text-muted))] opacity-50 border-2 border-dashed border-[rgb(var(--border))] rounded-xl mt-4">
-                                                <Eye className="w-8 h-8 mb-2" />
-                                                <p className="text-sm">Start adding blocks to see preview</p>
+                                            <div className="flex flex-col items-center justify-center py-10 text-[rgb(var(--text-muted))] border-2 border-dashed border-[rgb(var(--border))] rounded-xl mt-4">
+                                                <Eye className="w-8 h-8 mb-2 opacity-60" />
+                                                <p className="text-sm font-medium opacity-70">Start adding blocks to see preview</p>
                                             </div>
                                         )}
                                     </div>

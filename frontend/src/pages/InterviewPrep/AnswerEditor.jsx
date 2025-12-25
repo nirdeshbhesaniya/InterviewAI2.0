@@ -494,9 +494,9 @@ const AnswerEditor = () => {
                                         </div>
                                         <div className="space-y-2 text-sm">
                                             <div>
-                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono mb-1"># Heading 1</code>
-                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono mb-1">## Heading 2</code>
-                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono">### Heading 3</code>
+                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono mb-1 text-gray-800 dark:text-gray-200"># Heading 1</code>
+                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono mb-1 text-gray-800 dark:text-gray-200">## Heading 2</code>
+                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono text-gray-800 dark:text-gray-200">### Heading 3</code>
                                             </div>
                                         </div>
                                     </div>
@@ -511,10 +511,10 @@ const AnswerEditor = () => {
                                         </div>
                                         <div className="space-y-2 text-sm">
                                             <div>
-                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono mb-1">**Bold text**</code>
-                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono mb-1">*Italic text*</code>
-                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono mb-1">***Bold & Italic***</code>
-                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono">`inline code`</code>
+                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono mb-1 text-gray-800 dark:text-gray-200">**Bold text**</code>
+                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono mb-1 text-gray-800 dark:text-gray-200">*Italic text*</code>
+                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono mb-1 text-gray-800 dark:text-gray-200">***Bold & Italic***</code>
+                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono text-gray-800 dark:text-gray-200">`inline code`</code>
                                             </div>
                                         </div>
                                     </div>
@@ -529,10 +529,10 @@ const AnswerEditor = () => {
                                         </div>
                                         <div className="space-y-2 text-sm">
                                             <div>
-                                                <p className="text-gray-600 dark:text-gray-400 text-xs mb-1">Unordered:</p>
-                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono mb-2">- Item 1<br />- Item 2</code>
-                                                <p className="text-gray-600 dark:text-gray-400 text-xs mb-1">Ordered:</p>
-                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono">1. First<br />2. Second</code>
+                                                <p className="text-gray-600 dark:text-gray-300 text-xs mb-1 font-medium">Unordered:</p>
+                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono mb-2 text-gray-800 dark:text-gray-200">- Item 1<br />- Item 2</code>
+                                                <p className="text-gray-600 dark:text-gray-300 text-xs mb-1 font-medium">Ordered:</p>
+                                                <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono text-gray-800 dark:text-gray-200">1. First<br />2. Second</code>
                                             </div>
                                         </div>
                                     </div>
@@ -546,7 +546,7 @@ const AnswerEditor = () => {
                                             <h4 className="font-bold text-gray-900 dark:text-gray-100">Code Blocks</h4>
                                         </div>
                                         <div className="space-y-2 text-sm">
-                                            <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono whitespace-pre">```javascript{'\n'}function hello() {'{'}
+                                            <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono whitespace-pre text-gray-800 dark:text-gray-200">```javascript{'\n'}function hello() {'{'}
                                                 console.log("Hi!");
                                                 {'}'}{'\n'}```</code>
                                         </div>
@@ -561,7 +561,7 @@ const AnswerEditor = () => {
                                             <h4 className="font-bold text-gray-900 dark:text-gray-100">Links</h4>
                                         </div>
                                         <div className="space-y-2 text-sm">
-                                            <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono">[Link text](url)</code>
+                                            <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono text-gray-800 dark:text-gray-200">[Link text](url)</code>
                                         </div>
                                     </div>
 
@@ -574,7 +574,7 @@ const AnswerEditor = () => {
                                             <h4 className="font-bold text-gray-900 dark:text-gray-100">Quotes</h4>
                                         </div>
                                         <div className="space-y-2 text-sm">
-                                            <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono">&gt; Quote text</code>
+                                            <code className="block bg-gray-100 dark:bg-gray-900/50 px-2 py-1 rounded text-xs font-mono text-gray-800 dark:text-gray-200">&gt; Quote text</code>
                                         </div>
                                     </div>
 
