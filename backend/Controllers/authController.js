@@ -25,8 +25,18 @@ exports.registerUser = async (req, res) => {
       });
     }
 
-    // Check for existing user
-    const existingUser = await User.findOne({ email });
+    // Check for existing user with timeout
+    let existingUser;
+    try {
+      existingUser = await User.findOne({ email }).maxTimeMS(5000);
+    } catch (dbError) {
+      console.error('❌ Database error during registration check:', dbError.message);
+      return res.status(503).json({
+        message: 'Service temporarily unavailable. Please try again.',
+        error: process.env.NODE_ENV === 'production' ? undefined : dbError.message
+      });
+    }
+
     if (existingUser) {
       // If user exists but not verified, allow re-registration
       if (!existingUser.isEmailVerified) {
@@ -266,12 +276,33 @@ exports.resendRegistrationOTP = async (req, res) => {
 const jwt = require('jsonwebtoken');
 
 exports.loginUser = async (req, res) => {
+  const startTime = Date.now();
+
   try {
     const { email, password } = req.body;
 
-    // Check if user exists
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Invalid email or password' });
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({
+        message: 'Please provide both email and password'
+      });
+    }
+
+    // Check if user exists with error handling
+    let user;
+    try {
+      user = await User.findOne({ email }).maxTimeMS(5000); // 5 second timeout
+    } catch (dbError) {
+      console.error('❌ Database error during login (findOne):', dbError.message);
+      return res.status(503).json({
+        message: 'Service temporarily unavailable. Please try again.',
+        error: process.env.NODE_ENV === 'production' ? undefined : dbError.message
+      });
+    }
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid email or password' });
+    }
 
     // Check if email is verified
     if (!user.isEmailVerified) {
@@ -282,16 +313,37 @@ exports.loginUser = async (req, res) => {
       });
     }
 
-    // Compare password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
+    // Compare password with error handling
+    let isMatch;
+    try {
+      isMatch = await bcrypt.compare(password, user.password);
+    } catch (bcryptError) {
+      console.error('❌ Bcrypt error during login:', bcryptError.message);
+      return res.status(500).json({
+        message: 'Authentication error. Please try again.',
+        error: process.env.NODE_ENV === 'production' ? undefined : bcryptError.message
+      });
+    }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id, email: user.email, name: user.fullName },
-      process.env.JWT_SECRET || 'your-secret-key-change-this-in-production',
-      { expiresIn: '7d' }
-    );
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid email or password' });
+    }
+
+    // Generate JWT token with error handling
+    let token;
+    try {
+      token = jwt.sign(
+        { userId: user._id, email: user.email, name: user.fullName },
+        process.env.JWT_SECRET || 'your-secret-key-change-this-in-production',
+        { expiresIn: '7d' }
+      );
+    } catch (jwtError) {
+      console.error('❌ JWT generation error:', jwtError.message);
+      return res.status(500).json({
+        message: 'Token generation failed. Please try again.',
+        error: process.env.NODE_ENV === 'production' ? undefined : jwtError.message
+      });
+    }
 
     // Extract device info from headers
     const userAgent = req.headers['user-agent'] || 'Unknown';
@@ -330,14 +382,24 @@ exports.loginUser = async (req, res) => {
       lastActive: new Date()
     };
 
-    // Add session to user (keep last 5 sessions)
-    if (!user.sessions) user.sessions = [];
-    user.sessions.push(newSession);
-    if (user.sessions.length > 5) {
-      user.sessions = user.sessions.slice(-5);
+    // Add session to user (keep last 5 sessions) with error handling
+    try {
+      if (!user.sessions) user.sessions = [];
+      user.sessions.push(newSession);
+      if (user.sessions.length > 5) {
+        user.sessions = user.sessions.slice(-5);
+      }
+
+      await user.save();
+    } catch (saveError) {
+      console.error('❌ Database error during login (save session):', saveError.message);
+      // Continue with login even if session save fails - non-critical
+      console.log('⚠️ Login succeeded but session save failed - continuing');
     }
 
-    await user.save();
+    // Performance logging
+    const duration = Date.now() - startTime;
+    console.log(`✅ Login successful for ${email} in ${duration}ms`);
 
     res.status(200).json({
       message: 'Login successful',
@@ -358,7 +420,15 @@ exports.loginUser = async (req, res) => {
       token
     });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    const duration = Date.now() - startTime;
+    console.error(`❌ Login error after ${duration}ms:`, err.message);
+    console.error('Stack trace:', err.stack);
+
+    // Return safe error message for production
+    res.status(500).json({
+      message: 'Server error during login. Please try again.',
+      error: process.env.NODE_ENV === 'production' ? undefined : err.message
+    });
   }
 };
 
@@ -368,8 +438,18 @@ exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
     // console.log('Forgot password request for email:', email);
 
-    // Find user by email
-    const user = await User.findOne({ email });
+    // Find user by email with timeout
+    let user;
+    try {
+      user = await User.findOne({ email }).maxTimeMS(5000);
+    } catch (dbError) {
+      console.error('❌ Database error during forgot password:', dbError.message);
+      return res.status(503).json({
+        message: 'Service temporarily unavailable. Please try again.',
+        error: process.env.NODE_ENV === 'production' ? undefined : dbError.message
+      });
+    }
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }

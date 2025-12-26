@@ -4,9 +4,13 @@ dotenv.config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 const authRoutes = require('./Routes/authRoutes');
 
 const app = express();
+
+// Trust proxy for reverse proxy compatibility (Nginx, Cloudflare)
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 8080;
 
 const allowedOrigins = [
@@ -41,6 +45,25 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/uploads', express.static('uploads'));
 
+// Rate limiting for login API - 10 requests per minute per IP
+const loginLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // Limit each IP to 10 requests per windowMs
+  message: {
+    error: 'Too many login attempts from this IP, please try again after a minute'
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  skipFailedRequests: false, // Count failed requests
+  handler: (req, res) => {
+    console.log(`⚠️ Rate limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({
+      error: 'Too many login attempts from this IP, please try again after a minute',
+      retryAfter: 60
+    });
+  }
+});
+
 app.get("/", (req, res) => {
   res.status(200).json({
     status: "OK",
@@ -55,6 +78,9 @@ app.get("/api/health", (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+
+// Apply rate limiting specifically to login endpoint
+app.use('/api/auth/login', loginLimiter);
 app.use('/api/profile', require('./Routes/profileRoutes'));
 
 // LangChain-powered routes (new implementations with memory & structured outputs)
@@ -101,16 +127,24 @@ process.on('uncaughtException', (error) => {
   process.exit(1);
 });
 
-// MongoDB connection
+// MongoDB connection with optimized pool settings for high concurrent load
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000,
+      // Connection pool optimization for 100-300 concurrent users
+      maxPoolSize: 20,        // Maximum 20 concurrent connections
+      minPoolSize: 5,         // Maintain 5 idle connections for quick response
+      socketTimeoutMS: 45000, // 45 seconds socket timeout
+      serverSelectionTimeoutMS: 5000, // 5 seconds server selection timeout
     });
+
     console.log('✅ MongoDB connected successfully');
     console.log(`✅ Database: ${mongoose.connection.name}`);
+    console.log(`✅ Connection pool: min=${mongoose.connection.client.options.minPoolSize}, max=${mongoose.connection.client.options.maxPoolSize}`);
+    console.log(`✅ Socket timeout: ${mongoose.connection.client.options.socketTimeoutMS}ms`);
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
+    console.error('❌ Please check your MONGODB_URI in .env file');
     process.exit(1);
   }
 };
