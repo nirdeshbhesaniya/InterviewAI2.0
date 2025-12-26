@@ -1,4 +1,4 @@
-# 📚 Interview Preparation Application - Complete System Documentation
+# 📚 Interview AI Website - Complete System Documentation
 
 > **InterviewAI 2.0** - A Modern MERN Stack Interview Preparation Platform with AI-Powered Features
 
