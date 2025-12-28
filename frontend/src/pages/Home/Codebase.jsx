@@ -108,6 +108,28 @@ const LANGUAGES = [
     },
 ];
 
+// Heuristic to check if code likely requires input
+const checkInputRequired = (code, languageName) => {
+    const codeStr = code.toLowerCase();
+
+    switch (languageName) {
+        case 'Python':
+            return codeStr.includes('input(');
+        case 'JavaScript':
+            return codeStr.includes('readline') || codeStr.includes('alert(') || codeStr.includes('prompt(') || codeStr.includes('process.stdin');
+        case 'Java':
+            return codeStr.includes('scanner') || codeStr.includes('bufferedreader') || codeStr.includes('system.in') || codeStr.includes('console.readline');
+        case 'C':
+            return codeStr.includes('scanf') || codeStr.includes('getchar') || codeStr.includes('gets') || codeStr.includes('fgets');
+        case 'C++':
+            return codeStr.includes('cin') || codeStr.includes('scanf') || codeStr.includes('getline');
+        case 'Kotlin':
+            return codeStr.includes('readline') || codeStr.includes('scanner');
+        default:
+            return false;
+    }
+};
+
 const CodeExecution = () => {
     const [language, setLanguage] = useState(63);
     const [code, setCode] = useState(LANGUAGES.find(l => l.id === 63).sample);
@@ -153,6 +175,18 @@ const CodeExecution = () => {
     const runCode = useCallback(async () => {
         if (!code.trim()) {
             toast.error('Please write some code first!');
+            return;
+        }
+
+        // Check if code expects input but input box is empty
+        const needsInput = checkInputRequired(code, selectedLanguage.name);
+        if (needsInput && !input.trim()) {
+            toast.error('Your code looks like it expects input. Please provide input in the "Input (stdin)" box.', {
+                duration: 5000,
+                icon: '⚠️',
+            });
+            // Optional: return; to stop execution, or let them proceed. 
+            // Given the EOFError complaint, stopping is better UX.
             return;
         }
 
@@ -263,6 +297,9 @@ const CodeExecution = () => {
     };
 
     const selectedLanguage = LANGUAGES.find(l => l.id === language);
+
+    // Re-check input requirement when code changes to show visual hint (optional, but good for UX - maybe later)
+
 
     return (
         <motion.div

@@ -7,6 +7,10 @@ const JUDGE0_API = 'https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=
 router.post('/', async (req, res) => {
   const { source_code, language_id, stdin } = req.body;
 
+  // Debug logging
+  console.log(`Compiling language ${language_id}. Code length: ${source_code?.length}, Stdin length: ${stdin?.length || 0}`);
+
+
   // Validate required fields
   if (!source_code || !language_id) {
     return res.status(400).json({
