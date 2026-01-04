@@ -1,9 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../Models/User');
+const Interview = require('../Models/Interview'); // 👈 Import Interview model
 const bcrypt = require('bcryptjs');
 const upload = require('../middlewares/upload');
 const { uploadToCloudinary } = require('../utils/cloudinary');
+// ... (lines 8-109 unchanged)
+
+
 
 // Middleware to verify user authentication
 const authenticateUser = async (req, res, next) => {
@@ -107,6 +111,25 @@ router.put('/update', authenticateUser, async (req, res) => {
             { new: true, runValidators: true }
         ).select('-password -resetPasswordToken -resetPasswordExpires -otp -otpExpires');
 
+        // Sync changes to Interview sessions
+        try {
+            await Interview.updateMany(
+                { creatorEmail: req.user.email },
+                {
+                    $set: {
+                        'creatorDetails.fullName': updatedUser.fullName,
+                        'creatorDetails.bio': updatedUser.bio,
+                        'creatorDetails.location': updatedUser.location,
+                        'creatorDetails.website': updatedUser.website,
+                        'creatorDetails.linkedin': updatedUser.linkedin,
+                        'creatorDetails.github': updatedUser.github
+                    }
+                }
+            );
+        } catch (syncError) {
+            console.error('Failed to sync profile updates to sessions:', syncError);
+        }
+
         res.json({
             success: true,
             message: 'Profile updated successfully',
@@ -168,6 +191,20 @@ router.post('/upload-photo', upload.single('photo'), async (req, res) => {
             },
             { new: true }
         ).select('-password -resetPasswordToken -resetPasswordExpires -otp -otpExpires');
+
+        // Sync photo change to Interview sessions
+        try {
+            await Interview.updateMany(
+                { creatorEmail: user.email },
+                {
+                    $set: {
+                        'creatorDetails.photo': result.secure_url
+                    }
+                }
+            );
+        } catch (syncError) {
+            console.error('Failed to sync profile photo to sessions:', syncError);
+        }
 
         res.json({
             success: true,

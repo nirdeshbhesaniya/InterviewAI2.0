@@ -20,6 +20,7 @@ import {
   Library
 } from 'lucide-react';
 import CreateCardModal from '../../components/Cards/CreateCardForm';
+import CreatorInfoModal from '../../components/Cards/CreatorInfoModal';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +37,8 @@ export const Dashboard = () => {
   const [confirmModal, setConfirmModal] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+  const [creatorModalOpen, setCreatorModalOpen] = useState(false);
+  const [selectedCreator, setSelectedCreator] = useState(null);
   const navigate = useNavigate();
 
   const userEmail = JSON.parse(localStorage.getItem("user"))?.email;
@@ -98,6 +101,22 @@ export const Dashboard = () => {
       fetchCards();
     } catch {
       toast.error("Failed to delete card");
+    }
+  };
+
+  const handleCreatorClick = (e, card) => {
+    e.stopPropagation();
+    const creator = card.creatorDetails || {
+      fullName: 'Unknown Creator',
+      email: card.creatorEmail,
+      bio: 'No information available.',
+      photo: null
+    };
+
+    // Always open if we at least have an email
+    if (creator.email || (creator.fullName && creator.fullName !== 'Unknown Creator')) {
+      setSelectedCreator(creator);
+      setCreatorModalOpen(true);
     }
   };
 
@@ -436,9 +455,12 @@ export const Dashboard = () => {
 
                         {/* Footer Stats */}
                         <div className="flex items-center justify-between text-xs text-[rgb(var(--text-secondary))]">
-                          <div className="flex items-center gap-1">
-                            <Target className="w-3 h-3" />
-                            <span>Exp: {card.experience || "N/A"}</span>
+                          <div
+                            onClick={(e) => handleCreatorClick(e, card)}
+                            className="flex items-center gap-1 hover:text-[rgb(var(--accent))] cursor-pointer transition-colors"
+                          >
+                            <Users className="w-3 h-3" />
+                            <span>{card.creatorDetails?.fullName || 'Unknown'}</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <BookOpen className="w-3 h-3" />
@@ -498,10 +520,13 @@ export const Dashboard = () => {
                               {card.desc || "No description provided."}
                             </p>
                             <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-[rgb(var(--text-muted))]">
-                              <span className="flex items-center gap-1">
-                                <Target className="w-3 h-3" />
-                                <span className="hidden sm:inline">{card.experience || "N/A"}</span>
-                                <span className="sm:hidden">{(card.experience || "N/A").split(' ')[0]}</span>
+                              <span
+                                onClick={(e) => handleCreatorClick(e, card)}
+                                className="flex items-center gap-1 hover:text-[rgb(var(--accent))] cursor-pointer transition-colors"
+                              >
+                                <Users className="w-3 h-3" />
+                                <span className="hidden sm:inline">{card.creatorDetails?.fullName || 'Unknown'}</span>
+                                <span className="sm:hidden">{(card.creatorDetails?.fullName || 'Unknown').split(' ')[0]}</span>
                               </span>
                               <span className="flex items-center gap-1">
                                 <BookOpen className="w-3 h-3" />
@@ -557,6 +582,14 @@ export const Dashboard = () => {
           <CreateCardModal
             onClose={() => setModalOpen(false)}
             onCreated={handleCreated}
+          />
+        )}
+
+        {creatorModalOpen && (
+          <CreatorInfoModal
+            isOpen={creatorModalOpen}
+            onClose={() => setCreatorModalOpen(false)}
+            creator={selectedCreator}
           />
         )}
 

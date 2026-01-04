@@ -21,23 +21,17 @@ Your answers should include:
 - Clear explanations
 - Code examples wrapped in triple backticks with language identifiers
 - Best practices and common pitfalls
-- Real-world applications`],
+- Real-world applications
+
+{format_instructions}`],
   ['human', `Generate {numberOfQuestions} structured technical interview questions on the topic "{title}" under the tag [{tag}], tailored for a candidate with {experience} of experience.
 
 For each question:
 1. Create a challenging, relevant question
-2. Provide a detailed answer in markdown format
-3. Include code blocks where appropriate (use \`\`\`language syntax)
-4. Add bullet points for key concepts
-
-Return a simple list format:
-QUESTION 1: [question text]
-ANSWER 1: [detailed answer with markdown and code blocks]
-
-QUESTION 2: [question text]
-ANSWER 2: [detailed answer with markdown and code blocks]
-
-etc.`]
+2. Categorize it into a relevant subtopic (e.g., "Core Concepts", "Best Practices", "Advanced")
+3. Provide a detailed answer in markdown format
+4. Include code blocks where appropriate (use \`\`\`language syntax)
+5. Add bullet points for key concepts`]
 ]);
 
 async function createInterviewQAChain() {
@@ -46,11 +40,12 @@ async function createInterviewQAChain() {
       title: (input) => input.title,
       tag: (input) => input.tag,
       experience: (input) => input.experience,
-      numberOfQuestions: (input) => input.numberOfQuestions || 5
+      numberOfQuestions: (input) => input.numberOfQuestions || 5,
+      format_instructions: () => qaParser.getFormatInstructions()
     },
     interviewQAPrompt,
-    qaModel,
-    stringParser
+    qaModel.bind({ response_format: { type: "json_object" } }),
+    qaParser
   ]);
 
   return chain;
@@ -123,7 +118,7 @@ async function createMCQChain() {
     {
       topic: (input) => input.topic,
       difficulty: (input) => input.difficulty || 'medium',
-      numberOfQuestions: (input) => input.numberOfQuestions || 30,
+      numberOfQuestions: (input) => input.numberOfQuestions || 10, // Reduced default from 30 to 10
       sessionId: (input) => `${Math.floor(Math.random() * 100000)}-${Date.now()}`,
       focusAreas: (input) => {
         const areas = [

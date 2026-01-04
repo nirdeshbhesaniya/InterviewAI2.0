@@ -113,6 +113,50 @@ router.get('/:sessionId', async (req, res) => {
   }
 });
 
+// CHECK DUPLICATES
+router.post('/check-duplicates', async (req, res) => {
+  try {
+    const { title, tag } = req.body;
+    if (!title) return res.status(400).json({ message: 'Title is required' });
+
+    // 1. Combine title and tags into a single text
+    const searchText = `${title} ${tag || ''}`;
+
+    // 2. Tokenize and clean (remove stopwords, short words)
+    const stopWords = new Set(['the', 'and', 'for', 'with', 'interview', 'guide', 'prep', 'full', 'stack', 'developer', 'software', 'engineer']);
+    const keywords = searchText
+      .split(/[\s,.-]+/) // Split by delimiters
+      .map(w => w.toLowerCase())
+      .filter(w => w.length > 2 && !stopWords.has(w)); // Filter short & stop words
+
+    // If no unique keywords found, fall back to simple title match
+    if (keywords.length === 0) {
+      const exactMatches = await Interview.find({
+        title: { $regex: new RegExp(title, 'i') }
+      }).select('sessionId title creatorDetails createdAt').limit(5);
+      return res.json(exactMatches);
+    }
+
+    // 3. Construct $or query for matching ANY keyword in title OR tag
+    const orConditions = keywords.map(keyword => ({
+      $or: [
+        { title: { $regex: new RegExp(keyword, 'i') } },
+        { tag: { $regex: new RegExp(keyword, 'i') } }
+      ]
+    }));
+
+    // Find documents matching ANY of the keyword conditions
+    const duplicates = await Interview.find({
+      $or: orConditions
+    }).select('sessionId title creatorDetails createdAt initials color tag').limit(5);
+
+    res.json(duplicates);
+  } catch (err) {
+    console.error('Error checking duplicates:', err);
+    res.status(500).json({ message: 'Failed to check duplicates' });
+  }
+});
+
 // CREATE card using LangChain
 router.post('/', async (req, res) => {
   const { title, tag, initials, experience, desc, color, creatorEmail } = req.body;
@@ -126,7 +170,7 @@ router.post('/', async (req, res) => {
 
     // Use LangChain chain to generate Q&A
     const qaChain = await createInterviewQAChain();
-    const responseText = await qaChain.invoke({
+    const result = await qaChain.invoke({
       title,
       tag,
       experience,
@@ -134,13 +178,27 @@ router.post('/', async (req, res) => {
     });
 
     // Parse the response
-    const parsedQuestions = parseInterviewResponse(responseText);
+    const parsedQuestions = result.questions;
 
     // Transform the structured output into the format expected by the database
     const qna = parsedQuestions.map((q) => ({
       question: q.question,
+      category: q.category || 'General',
       answerParts: parseAnswerIntoParts(q.answer)
     }));
+
+    // Fetch creator details
+    const user = await User.findOne({ email: creatorEmail });
+    const creatorDetails = user ? {
+      fullName: user.fullName,
+      email: user.email,
+      photo: user.photo,
+      bio: user.bio,
+      location: user.location,
+      website: user.website,
+      linkedin: user.linkedin,
+      github: user.github
+    } : {};
 
     const newCard = new Interview({
       sessionId,
@@ -151,6 +209,7 @@ router.post('/', async (req, res) => {
       desc,
       color,
       creatorEmail,
+      creatorDetails,
       qna
     });
 
@@ -188,12 +247,26 @@ router.post('/workflow', async (req, res) => {
     }
 
     // Parse and transform the output
-    const parsedQuestions = parseInterviewResponse(result.questions || '');
+    const parsedQuestions = result.questions || [];
 
     const qna = parsedQuestions.map((q) => ({
       question: q.question,
+      category: q.category || 'General',
       answerParts: parseAnswerIntoParts(q.answer)
     }));
+
+    // Fetch creator details
+    const user = await User.findOne({ email: creatorEmail });
+    const creatorDetails = user ? {
+      fullName: user.fullName,
+      email: user.email,
+      photo: user.photo,
+      bio: user.bio,
+      location: user.location,
+      website: user.website,
+      linkedin: user.linkedin,
+      github: user.github
+    } : {};
 
     const newCard = new Interview({
       sessionId,
@@ -204,6 +277,7 @@ router.post('/workflow', async (req, res) => {
       desc,
       color,
       creatorEmail,
+      creatorDetails,
       qna
     });
 

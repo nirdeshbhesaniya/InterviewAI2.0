@@ -16,11 +16,22 @@ const InterviewSchema = new mongoose.Schema({
   qna: [
     {
       question: String,
+      category: String, // 👈 Added category
       answerParts: [AnswerPartSchema]
     }
   ],
   creatorEmail: { type: String, required: true }, // 👈 Add this
   deleteOTP: { type: String }, // 👈 Temporary OTP for deletion
+  creatorDetails: {
+    fullName: String,
+    email: String,
+    photo: String,
+    bio: String,
+    location: String,
+    website: String,
+    linkedin: String,
+    github: String
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Interview', InterviewSchema);

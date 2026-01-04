@@ -732,26 +732,50 @@ const InterviewPrepModern = () => {
                     </motion.div>
 
                     {/* ==================== QUESTIONS LIST ==================== */}
+                    {/* ==================== QUESTIONS LIST (GROUPED) ==================== */}
                     <motion.div
                         variants={ANIMATION_VARIANTS.container}
                         initial="hidden"
                         animate="show"
-                        className="space-y-3 sm:space-y-4 px-3 sm:px-4 md:px-6"
+                        className="space-y-6 px-3 sm:px-4 md:px-6"
                     >
-                        {visibleQuestions.map((qa, index) => (
-                            <QuestionCard
-                                key={index}
-                                question={qa.question}
-                                answer={qa.answerParts}
-                                index={index}
-                                isStarred={starredQuestions[index]}
-                                isExpanded={expandedAll}
-                                onToggleStar={handleToggleStar}
-                                onRegenerate={handleRegenerate}
-                                onEdit={handleEdit}
-                                onShare={handleShare}
-                                onCopyAnswer={handleCopyAnswer}
-                            />
+                        {Object.entries(
+                            visibleQuestions.reduce((acc, qa) => {
+                                const category = qa.category || 'General';
+                                if (!acc[category]) acc[category] = [];
+                                acc[category].push(qa);
+                                return acc;
+                            }, {})
+                        ).map(([category, questions], groupIndex) => (
+                            <div key={groupIndex} className="space-y-3 sm:space-y-4">
+                                <div className="flex items-center gap-2 pb-2 border-b border-[rgb(var(--border-subtle))]">
+                                    <h2 className="text-xl font-bold text-[rgb(var(--accent))]">
+                                        {category}
+                                    </h2>
+                                    <span className="text-sm text-[rgb(var(--text-muted))]">
+                                        ({questions.length})
+                                    </span>
+                                </div>
+                                {questions.map((qa, index) => {
+                                    // Calculate global index for correct state tracking
+                                    const globalIndex = session.qna.indexOf(qa);
+                                    return (
+                                        <QuestionCard
+                                            key={globalIndex}
+                                            question={qa.question}
+                                            answer={qa.answerParts}
+                                            index={globalIndex}
+                                            isStarred={starredQuestions[globalIndex]}
+                                            isExpanded={expandedAll}
+                                            onToggleStar={handleToggleStar}
+                                            onRegenerate={handleRegenerate}
+                                            onEdit={handleEdit}
+                                            onShare={handleShare}
+                                            onCopyAnswer={handleCopyAnswer}
+                                        />
+                                    );
+                                })}
+                            </div>
                         ))}
                     </motion.div>
 

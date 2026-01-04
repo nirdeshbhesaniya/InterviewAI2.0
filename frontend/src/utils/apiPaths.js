@@ -39,6 +39,7 @@ export const API = {
     VERIFY_DELETE_OTP: `${API_BASE_URL}/interview/verify-delete-otp`,
     REQUEST_DELETE_OTP: `${API_BASE_URL}/interview/request-delete-otp`,
     ADD_QUESTION: (sessionId) => `${API_BASE_URL}/interview/add-question/${sessionId}`,
+    CHECK_DUPLICATES: `${API_BASE_URL}/interview/check-duplicates`,
   },
   CODE: {
     COMPILE: `${API_BASE_URL}/compile`

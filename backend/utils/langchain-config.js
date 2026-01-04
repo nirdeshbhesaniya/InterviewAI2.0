@@ -12,6 +12,7 @@ const chatModel = new ChatOpenAI({
   openAIApiKey: OPENAI_API_KEY,
   modelName: isOpenRouter ? 'openai/gpt-4o-mini' : 'gpt-4o-mini',
   temperature: 0.7,
+  maxTokens: 1500, // Added safety limit
   configuration: isOpenRouter ? {
     baseURL: 'https://openrouter.ai/api/v1',
     defaultHeaders: {
@@ -26,6 +27,7 @@ const qaModel = new ChatOpenAI({
   openAIApiKey: OPENAI_API_KEY,
   modelName: isOpenRouter ? 'openai/gpt-4o-mini' : 'gpt-4o-mini',
   temperature: 0.7,
+  maxTokens: 2000, // Limit response size for Q&A
   configuration: isOpenRouter ? {
     baseURL: 'https://openrouter.ai/api/v1',
     defaultHeaders: {
@@ -39,6 +41,7 @@ const chatbotModel = new ChatOpenAI({
   openAIApiKey: OPENAI_API_KEY,
   modelName: isOpenRouter ? 'openai/gpt-4o-mini' : 'gpt-4o-mini',
   temperature: 0.8,
+  maxTokens: 2000, // Added safety limit to prevent 402 errors
   configuration: isOpenRouter ? {
     baseURL: 'https://openrouter.ai/api/v1',
     defaultHeaders: {
@@ -71,6 +74,7 @@ const qaSchema = z.object({
   questions: z.array(z.object({
     question: z.string().describe('The interview question'),
     answer: z.string().describe('Detailed answer in markdown format'),
+    category: z.string().describe('The subtopic or category this question belongs to (e.g., "Basics", "Advanced", "Performance")'),
     difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
     topics: z.array(z.string()).optional()
   }))

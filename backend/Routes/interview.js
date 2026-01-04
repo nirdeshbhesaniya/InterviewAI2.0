@@ -7,11 +7,13 @@ const { generateInterviewQuestions, generateAnswer, generateMoreQuestions, summa
 const { sendOTPEmail } = require('../utils/emailService');
 
 // GET all cards
+// GET all cards
 router.get('/', async (req, res) => {
   try {
     const cards = await Interview.find().sort({ createdAt: -1 });
     res.json(cards);
-  } catch {
+  } catch (err) {
+    console.error("Error fetching interview cards:", err);
     res.status(500).json({ message: 'Failed to fetch cards' });
   }
 });
@@ -35,6 +37,24 @@ router.get('/:sessionId', async (req, res) => {
 //   next();
 // };
 
+// CHECK DUPLICATES
+router.post('/check-duplicates', async (req, res) => {
+  try {
+    const { title } = req.body;
+    if (!title) return res.status(400).json({ message: 'Title is required' });
+
+    // Case-insensitive regex search
+    const duplicates = await Interview.find({
+      title: { $regex: new RegExp(title, 'i') }
+    }).select('sessionId title creatorDetails createdAt initials color tag').limit(5);
+
+    res.json(duplicates);
+  } catch (err) {
+    console.error('Error checking duplicates:', err);
+    res.status(500).json({ message: 'Failed to check duplicates' });
+  }
+});
+
 // CREATE card
 router.post('/', async (req, res) => {
   const { title, tag, initials, experience, desc, color, creatorEmail } = req.body;
@@ -56,6 +76,20 @@ router.post('/', async (req, res) => {
         : []
     }));
 
+    // Fetch creator details
+    const user = await User.findOne({ email: creatorEmail });
+
+    const creatorDetails = user ? {
+      fullName: user.fullName,
+      email: user.email,
+      photo: user.photo,
+      bio: user.bio,
+      location: user.location,
+      website: user.website,
+      linkedin: user.linkedin,
+      github: user.github
+    } : {};
+
     const newCard = new Interview({
       sessionId,
       title,
@@ -65,6 +99,7 @@ router.post('/', async (req, res) => {
       desc,
       color,
       creatorEmail: creatorEmail,
+      creatorDetails, // 👈 Save details
       qna
     });
 
