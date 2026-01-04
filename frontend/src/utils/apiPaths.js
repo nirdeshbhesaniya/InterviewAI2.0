@@ -59,6 +59,14 @@ export const API = {
     GET_TEST: (testId) => `${API_BASE_URL}/mcq/test/${testId}`,
     DELETE_TEST: (testId) => `${API_BASE_URL}/mcq/test/${testId}`
   },
+  ADMIN: {
+    GET_USERS: `${API_BASE_URL}/admin/users`,
+    UPDATE_USER: (userId) => `${API_BASE_URL}/admin/users/${userId}`,
+    BAN_USER: (userId) => `${API_BASE_URL}/admin/users/${userId}/ban`,
+    GET_QNA_REQUESTS: `${API_BASE_URL}/admin/qna-requests`,
+    APPROVE_QNA: (sessionId, qnaId) => `${API_BASE_URL}/interview/approve-question/${sessionId}/${qnaId}`,
+    REJECT_QNA: (sessionId, qnaId) => `${API_BASE_URL}/interview/reject-question/${sessionId}/${qnaId}`,
+  },
   NOTIFICATIONS: {
     GET_ALL: (userId) => `${API_BASE_URL}/notifications/${userId}`,
     CREATE: `${API_BASE_URL}/notifications`,

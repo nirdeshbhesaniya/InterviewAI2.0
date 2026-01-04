@@ -313,6 +313,14 @@ exports.loginUser = async (req, res) => {
       });
     }
 
+    // Check if user is banned
+    if (user.isBanned) {
+      return res.status(403).json({
+        message: 'your account blocked by admin',
+        isBanned: true
+      });
+    }
+
     // Compare password with error handling
     let isMatch;
     try {

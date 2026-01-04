@@ -40,6 +40,30 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  // Sync user data with backend on mount
+  useEffect(() => {
+    const syncUser = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const { default: axios } = await import('../utils/axiosInstance');
+          const { API } = await import('../utils/apiPaths');
+          const res = await axios.get(API.PROFILE.GET);
+          if (res.data.success) {
+            setUser(prev => ({ ...prev, ...res.data.data.user }));
+          }
+        } catch (error) {
+          console.error('Failed to sync user data:', error);
+          if (error.response?.status === 401 || error.response?.status === 403) {
+            logout();
+          }
+        }
+      }
+    };
+
+    syncUser();
+  }, []);
+
   return (
     <UserContext.Provider value={{ user, setUser, logout }}>
       {children}

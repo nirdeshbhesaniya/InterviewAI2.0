@@ -20,6 +20,9 @@ import ResourcesPage from './pages/ResourcesPage';
 
 import MainLayout from './components/layouts/MainLayout';
 import ProtectedRoute from './components/layouts/ProtectedRoute';
+
+import AdminGuard from './components/layouts/AdminGuard';
+import AdminDashboard from './pages/Admin/AdminDashboard';
 import CodeExecutionPlatform from './pages/Home/Codebase';
 
 // Chatbot Components
@@ -138,6 +141,24 @@ const App = () => {
                   element={
                     <ProtectedRoute>
                       <ResourcesPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/resources"
+                  element={
+                    <ProtectedRoute>
+                      <ResourcesPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <AdminGuard>
+                        <AdminDashboard />
+                      </AdminGuard>
                     </ProtectedRoute>
                   }
                 />

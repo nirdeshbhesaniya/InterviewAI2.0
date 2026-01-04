@@ -93,6 +93,7 @@ app.use('/api/compile', require('./Routes/compile'));
 app.use('/api/support', require('./Routes/support_new'));
 app.use('/api/notifications', require('./Routes/notifications'));
 app.use('/api/settings', require('./Routes/settings'));
+app.use('/api/admin', require('./Routes/adminRoutes'));
 app.use('/api/notes', require('./Routes/notes'));
 app.use('/api/resources', require('./Routes/resources'));
 

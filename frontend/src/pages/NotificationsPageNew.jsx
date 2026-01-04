@@ -234,12 +234,24 @@ const NotificationsPageNew = () => {
                                             {notification.message}
                                         </p>
                                         <div className="flex items-center gap-2">
-                                            {notification.action && notification.actionUrl && (
+                                            {notification.action && (
                                                 <button
-                                                    onClick={() => navigate(notification.actionUrl)}
+                                                    onClick={() => {
+                                                        if (notification.action === 'review_qna') {
+                                                            if (user.role === 'admin') {
+                                                                navigate('/admin');
+                                                            } else {
+                                                                // Redirect to session
+                                                                // The URL should be in actionUrl or we assume it
+                                                                navigate(notification.actionUrl);
+                                                            }
+                                                        } else {
+                                                            navigate(notification.actionUrl);
+                                                        }
+                                                    }}
                                                     className="px-3 py-1 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg text-sm font-medium shadow-md shadow-[rgb(var(--accent))]/30 transition-all"
                                                 >
-                                                    {notification.action}
+                                                    {notification.action === 'review_qna' ? 'Review Request' : notification.action}
                                                 </button>
                                             )}
                                             {!notification.read && (

@@ -15,10 +15,15 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     const user = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+
     if (user) {
       const userData = JSON.parse(user);
       config.headers['user-email'] = userData.email;
-      console.log('Axios interceptor - sending user email:', userData.email);
     }
     return config;
   },

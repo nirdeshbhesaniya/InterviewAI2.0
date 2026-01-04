@@ -11,6 +11,8 @@ const {
 } = require('../utils/langchain-chains');
 const { createInterviewPrepWorkflow } = require('../utils/langgraph-workflows');
 const { sendOTPEmail } = require('../utils/emailService');
+const { authenticateToken } = require('../middlewares/auth');
+const Notification = require('../Models/Notification');
 
 // Helper function to parse LangChain string output into Q&A format
 function parseInterviewResponse(responseText) {
@@ -471,5 +473,162 @@ router.post('/verify-delete-otp', async (req, res) => {
   await Interview.deleteOne({ sessionId });
   res.status(200).json({ message: 'Card deleted successfully' });
 });
+
+// POST Request to add a new QnA (Pending Approval)
+router.post('/add-question/:sessionId', authenticateToken, async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { question, answerParts, category } = req.body;
+    const userId = req.user._id;
+
+    if (!question) {
+      return res.status(400).json({ message: 'Question is required' });
+    }
+
+    const session = await Interview.findOne({ sessionId });
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found' });
+    }
+
+    // Check if user is the creator or admin (auto-approve)
+    // For now, let's strictly follow the requirement: "send first request to admin and that session creator"
+    // implies even if I add it, it goes to approval? 
+    // Usually creator adding to own text is auto-approved.
+    const isCreator = session.creatorEmail === req.user.email;
+    const isAdmin = req.user.role === 'admin';
+
+    const status = (isCreator || isAdmin) ? 'approved' : 'pending';
+
+    const newQnA = {
+      question,
+      answerParts: answerParts || [],
+      category: category || 'General',
+      status: status,
+      requestedBy: userId,
+      createdAt: new Date()
+    };
+
+    session.qna.push(newQnA);
+    await session.save();
+
+    // If pending, send notifications
+    if (status === 'pending') {
+      // Notify Session Creator
+      // Need to find creator User ID by email
+      const creator = await User.findOne({ email: session.creatorEmail });
+      if (creator) {
+        await Notification.create({
+          userId: creator._id,
+          type: 'info',
+          title: 'New Q&A Request',
+          message: `User ${req.user.fullName} requested to add a new question to your session "${session.title}".`,
+          action: 'review_qna',
+          metadata: { sessionId, qnaId: newQnA._id, interviewTitle: session.title }
+        });
+      }
+
+      // Notify Admins
+      const admins = await User.find({ role: 'admin' });
+      const adminNotifications = admins.map(admin => ({
+        userId: admin._id,
+        type: 'info',
+        title: 'New Q&A Request',
+        message: `User ${req.user.fullName} requested to add a new question to session "${session.title}".`,
+        action: 'review_qna',
+        metadata: { sessionId, qnaId: newQnA._id, interviewTitle: session.title }
+      }));
+      if (adminNotifications.length > 0) {
+        await Notification.insertMany(adminNotifications);
+      }
+    }
+
+    res.status(201).json({ message: isCreator || isAdmin ? 'Question added successfully' : 'Question submitted for approval', qna: newQnA });
+  } catch (err) {
+    console.error('Error adding question:', err);
+    res.status(500).json({ message: 'Failed to add question', error: err.message });
+  }
+});
+
+// PATCH Approve QnA Request
+router.patch('/approve-question/:sessionId/:qnaId', authenticateToken, async (req, res) => {
+  try {
+    const { sessionId, qnaId } = req.params;
+    const session = await Interview.findOne({ sessionId });
+
+    if (!session) return res.status(404).json({ message: 'Session not found' });
+
+    // Find the QnA item
+    const qnaItem = session.qna.id(qnaId);
+    if (!qnaItem) return res.status(404).json({ message: 'Question not found' });
+
+    // Check permissions: Admin or Session Creator
+    const isCreator = session.creatorEmail === req.user.email;
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isCreator && !isAdmin) {
+      return res.status(403).json({ message: 'You do not have permission to approve this request' });
+    }
+
+    qnaItem.status = 'approved';
+    await session.save();
+
+    // Notify requester
+    if (qnaItem.requestedBy) {
+      await Notification.create({
+        userId: qnaItem.requestedBy,
+        type: 'success',
+        title: 'Q&A Approved',
+        message: `Your question "${qnaItem.question.substring(0, 30)}..." has been approved in "${session.title}".`,
+        metadata: { sessionId, qnaId }
+      });
+    }
+
+    res.json({ message: 'Question approved', qna: qnaItem });
+  } catch (err) {
+    console.error('Error approving question:', err);
+    res.status(500).json({ message: 'Failed to approve question' });
+  }
+});
+
+// PATCH Reject QnA Request
+router.patch('/reject-question/:sessionId/:qnaId', authenticateToken, async (req, res) => {
+  try {
+    const { sessionId, qnaId } = req.params;
+    const session = await Interview.findOne({ sessionId });
+
+    if (!session) return res.status(404).json({ message: 'Session not found' });
+
+    const qnaItem = session.qna.id(qnaId);
+    if (!qnaItem) return res.status(404).json({ message: 'Question not found' });
+
+    // Check permissions
+    const isCreator = session.creatorEmail === req.user.email;
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isCreator && !isAdmin) {
+      return res.status(403).json({ message: 'Permission denied' });
+    }
+
+    qnaItem.status = 'rejected';
+    await session.save();
+
+    // Notify requester
+    if (qnaItem.requestedBy) {
+      await Notification.create({
+        userId: qnaItem.requestedBy,
+        type: 'warning',
+        title: 'Q&A Rejected',
+        message: `Your question "${qnaItem.question.substring(0, 30)}..." was rejected in "${session.title}".`,
+        metadata: { sessionId, qnaId }
+      });
+    }
+
+    res.json({ message: 'Question rejected', qna: qnaItem });
+  } catch (err) {
+    console.error('Error rejecting question:', err);
+    res.status(500).json({ message: 'Failed to reject question' });
+  }
+});
+
 
 module.exports = router;

@@ -4,13 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import {
   LogOut,
   UserCircle2,
-  Menu,
-  X,
   Bot,
   Settings,
   User,
-  Mail,
-  Calendar,
+  ShieldAlert,
   Shield,
   Bell,
   ChevronDown,
@@ -145,6 +142,15 @@ const Header = ({ onLoginClick }) => {
             >
               Dashboard
             </motion.button>
+            {user?.role === 'admin' && (
+              <motion.button
+                onClick={() => navigate('/admin')}
+                className="text-red-500 hover:text-red-600 font-medium transition-colors duration-200"
+                whileHover={{ y: -2 }}
+              >
+                Admin Panel
+              </motion.button>
+            )}
             <motion.button
               onClick={() => navigate('/mcq-test')}
               className="text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] font-medium transition-colors duration-200"
@@ -367,6 +373,16 @@ const Header = ({ onLoginClick }) => {
                 <Bot className="w-5 h-5 mb-1" />
                 <span className="text-[10px] leading-tight">Dashboard</span>
               </motion.button>
+              {user?.role === 'admin' && (
+                <motion.button
+                  onClick={() => navigate('/admin')}
+                  className="flex flex-col items-center py-2 px-1.5 text-red-500 hover:text-red-600 transition-colors min-w-0"
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <ShieldAlert className="w-5 h-5 mb-1" />
+                  <span className="text-[10px] leading-tight">Admin</span>
+                </motion.button>
+              )}
               <motion.button
                 onClick={() => navigate('/mcq-test')}
                 className="flex flex-col items-center py-2 px-1.5 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors min-w-0"

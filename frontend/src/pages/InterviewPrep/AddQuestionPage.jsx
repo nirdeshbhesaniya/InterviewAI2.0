@@ -168,12 +168,23 @@ const AddQuestionPage = () => {
                 }
             }).filter(Boolean);
 
-            await axios.post(API.INTERVIEW.ADD_QUESTION(sessionId), {
+            const res = await axios.post(API.INTERVIEW.ADD_QUESTION(sessionId), {
                 question,
                 answerParts
             });
 
-            toast.success('Question added successfully!', { id: 'save' });
+            const successMessage = res.data.message || 'Question added successfully!';
+
+            // Check if it's a pending approval message
+            if (successMessage.toLowerCase().includes('approval')) {
+                toast.success(successMessage, {
+                    id: 'save',
+                    icon: '⏳',
+                    duration: 5000
+                });
+            } else {
+                toast.success(successMessage, { id: 'save' });
+            }
 
             setTimeout(() => {
                 navigate(`/interview-prep/${sessionId}`, {

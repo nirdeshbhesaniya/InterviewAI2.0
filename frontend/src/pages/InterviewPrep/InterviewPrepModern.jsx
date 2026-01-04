@@ -29,7 +29,8 @@
  * ✅ Keyboard navigation support
  */
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useContext } from 'react';
+import { UserContext } from '../../context/UserContext';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
@@ -347,6 +348,7 @@ const InterviewPrepModern = () => {
     const { sessionId } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
+    const { user } = useContext(UserContext);
 
     // ==================== STATE ====================
     const [session, setSession] = useState(null);
@@ -709,6 +711,75 @@ const InterviewPrepModern = () => {
                         </div>
                     </motion.div>
 
+                    {/* ==================== PENDING APPROVALS (CREATOR ONLY) ==================== */}
+                    {session?.userId === user?.id && session.qna.some(q => q.status === 'pending') && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-700/30 rounded-xl p-6 mb-8 mx-3 sm:mx-4 md:mx-6 lg:mx-8"
+                        >
+                            <div className="flex items-center gap-2 mb-4">
+                                <ShieldAlert className="w-5 h-5 text-yellow-600 dark:text-yellow-500" />
+                                <h3 className="text-lg font-bold text-yellow-700 dark:text-yellow-400">
+                                    Pending Approval Requests ({session.qna.filter(q => q.status === 'pending').length})
+                                </h3>
+                            </div>
+
+                            <div className="space-y-4">
+                                {session.qna.map((qa, idx) => {
+                                    if (qa.status !== 'pending') return null;
+                                    return (
+                                        <div key={idx} className="bg-[rgb(var(--bg-card))] p-4 rounded-lg border border-[rgb(var(--border))] shadow-sm">
+                                            <div className="flex justify-between items-start gap-4">
+                                                <div>
+                                                    <p className="font-semibold text-[rgb(var(--text-primary))] mb-2">{qa.question}</p>
+                                                    <p className="text-xs text-[rgb(var(--text-muted))] mb-2">Requested by: <span className="font-medium">{qa.requestedBy || 'Unknown User'}</span></p>
+                                                    <div className="text-sm text-[rgb(var(--text-secondary))] line-clamp-2">
+                                                        {qa.answerParts?.[0]?.content}
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2 shrink-0">
+                                                    <button
+                                                        onClick={async () => {
+                                                            try {
+                                                                await axios.patch(API.ADMIN.APPROVE_QNA(sessionId, qa._id));
+                                                                toast.success('Question approved!');
+                                                                // Refresh session
+                                                                const res = await axios.get(API.INTERVIEW.GET_ONE(sessionId));
+                                                                setSession(res.data);
+                                                            } catch (err) {
+                                                                toast.error('Failed to approve');
+                                                            }
+                                                        }}
+                                                        className="px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                                                    >
+                                                        <Check className="w-3 h-3" /> Approve
+                                                    </button>
+                                                    <button
+                                                        onClick={async () => {
+                                                            try {
+                                                                await axios.patch(API.ADMIN.REJECT_QNA(sessionId, qa._id));
+                                                                toast.success('Question rejected');
+                                                                // Refresh session
+                                                                const res = await axios.get(API.INTERVIEW.GET_ONE(sessionId));
+                                                                setSession(res.data);
+                                                            } catch (err) {
+                                                                toast.error('Failed to reject');
+                                                            }
+                                                        }}
+                                                        className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                                                    >
+                                                        <X className="w-3 h-3" /> Reject
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </motion.div>
+                    )}
+
                     {/* ==================== DISCLAIMER ==================== */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -746,37 +817,43 @@ const InterviewPrepModern = () => {
                                 acc[category].push(qa);
                                 return acc;
                             }, {})
-                        ).map(([category, questions], groupIndex) => (
-                            <div key={groupIndex} className="space-y-3 sm:space-y-4">
-                                <div className="flex items-center gap-2 pb-2 border-b border-[rgb(var(--border-subtle))]">
-                                    <h2 className="text-xl font-bold text-[rgb(var(--accent))]">
-                                        {category}
-                                    </h2>
-                                    <span className="text-sm text-[rgb(var(--text-muted))]">
-                                        ({questions.length})
-                                    </span>
+                        ).map(([category, questions], groupIndex) => {
+                            // Filter out pending questions for general view (unless owner)
+                            const displayQuestions = questions.filter(q => q.status !== 'pending' && q.status !== 'rejected');
+                            if (displayQuestions.length === 0) return null;
+
+                            return (
+                                <div key={groupIndex} className="space-y-3 sm:space-y-4">
+                                    <div className="flex items-center gap-2 pb-2 border-b border-[rgb(var(--border-subtle))]">
+                                        <h2 className="text-xl font-bold text-[rgb(var(--accent))]">
+                                            {category}
+                                        </h2>
+                                        <span className="text-sm text-[rgb(var(--text-muted))]">
+                                            ({displayQuestions.length})
+                                        </span>
+                                    </div>
+                                    {displayQuestions.map((qa, index) => {
+                                        // Calculate global index for correct state tracking
+                                        const globalIndex = session.qna.indexOf(qa);
+                                        return (
+                                            <QuestionCard
+                                                key={globalIndex}
+                                                question={qa.question}
+                                                answer={qa.answerParts}
+                                                index={globalIndex}
+                                                isStarred={starredQuestions[globalIndex]}
+                                                isExpanded={expandedAll}
+                                                onToggleStar={handleToggleStar}
+                                                onRegenerate={handleRegenerate}
+                                                onEdit={handleEdit}
+                                                onShare={handleShare}
+                                                onCopyAnswer={handleCopyAnswer}
+                                            />
+                                        );
+                                    })}
                                 </div>
-                                {questions.map((qa, index) => {
-                                    // Calculate global index for correct state tracking
-                                    const globalIndex = session.qna.indexOf(qa);
-                                    return (
-                                        <QuestionCard
-                                            key={globalIndex}
-                                            question={qa.question}
-                                            answer={qa.answerParts}
-                                            index={globalIndex}
-                                            isStarred={starredQuestions[globalIndex]}
-                                            isExpanded={expandedAll}
-                                            onToggleStar={handleToggleStar}
-                                            onRegenerate={handleRegenerate}
-                                            onEdit={handleEdit}
-                                            onShare={handleShare}
-                                            onCopyAnswer={handleCopyAnswer}
-                                        />
-                                    );
-                                })}
-                            </div>
-                        ))}
+                            );
+                        })}
                     </motion.div>
 
                     {/* ==================== LOAD MORE / GENERATE MORE ==================== */}

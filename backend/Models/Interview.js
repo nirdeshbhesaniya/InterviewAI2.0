@@ -17,7 +17,10 @@ const InterviewSchema = new mongoose.Schema({
     {
       question: String,
       category: String, // 👈 Added category
-      answerParts: [AnswerPartSchema]
+      answerParts: [AnswerPartSchema],
+      status: { type: String, enum: ['approved', 'pending', 'rejected'], default: 'approved' },
+      requestedBy: { type: String }, // User ID
+      createdAt: { type: Date, default: Date.now }
     }
   ],
   creatorEmail: { type: String, required: true }, // 👈 Add this
