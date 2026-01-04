@@ -18,7 +18,7 @@ import {
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import toast from 'react-hot-toast';
-import { Button } from '../../components/ui/Button';
+import { Button } from '../../components/ui/button';
 import UserEditModal from './components/UserEditModal';
 
 const STATS_CARDS = [
