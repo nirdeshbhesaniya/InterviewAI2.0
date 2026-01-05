@@ -346,7 +346,10 @@ const AdminDashboard = () => {
                             <FileText className="w-5 h-5" />
                             Approvals
                             {(qnaRequests.length > 0) && (
-                                <span className="ml-auto bg-white/20 text-white text-xs px-2 py-0.5 rounded-full">
+                                <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${activeTab === 'qna'
+                                    ? 'bg-white/20 text-white'
+                                    : 'bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))]'
+                                    }`}>
                                     {qnaRequests.length}
                                 </span>
                             )}
@@ -361,7 +364,10 @@ const AdminDashboard = () => {
                             <FileIcon className="w-5 h-5" />
                             Notes
                             {pendingNotes.length > 0 && (
-                                <span className="ml-auto bg-white/20 text-white text-xs px-2 py-0.5 rounded-full">
+                                <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${activeTab === 'notes'
+                                    ? 'bg-white/20 text-white'
+                                    : 'bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))]'
+                                    }`}>
                                     {pendingNotes.length}
                                 </span>
                             )}
@@ -376,7 +382,10 @@ const AdminDashboard = () => {
                             <BookOpen className="w-5 h-5" />
                             Resources
                             {pendingResources.length > 0 && (
-                                <span className="ml-auto bg-white/20 text-white text-xs px-2 py-0.5 rounded-full">
+                                <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${activeTab === 'resources'
+                                    ? 'bg-white/20 text-white'
+                                    : 'bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))]'
+                                    }`}>
                                     {pendingResources.length}
                                 </span>
                             )}
