@@ -32,4 +32,30 @@ axiosInstance.interceptors.request.use(
   }
 );
 
+// Add a response interceptor to handle authentication errors globally
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      const { status, data } = error.response;
+
+      // Handle blocked/banned users (403) or unauthorized access (401)
+      if (status === 401 || (status === 403 && data?.isBanned)) {
+        // Clear local storage
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+
+        // Dispatch a custom event so the UI (like Header/UserContext) can react immediately
+        window.dispatchEvent(new Event('auth:logout'));
+
+        // Redirect to login if not already there
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default axiosInstance;

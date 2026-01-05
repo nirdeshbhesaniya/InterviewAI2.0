@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Resource = require('../Models/Resource');
-const { authenticateToken } = require('../middlewares/auth');
+const { authenticateToken, identifyUser } = require('../middlewares/auth');
 
 // Get all resources with filters
-router.get('/', async (req, res) => {
+router.get('/', identifyUser, async (req, res) => {
     try {
         const { branch, type, semester, search } = req.query;
 
@@ -14,8 +14,10 @@ router.get('/', async (req, res) => {
         if (type && type !== 'all') query.type = type;
         if (semester && semester !== 'all') query.semester = semester;
 
+        // Search logic
+        let searchCondition = {};
         if (search) {
-            query.$or = [
+            searchCondition.$or = [
                 { title: { $regex: search, $options: 'i' } },
                 { subject: { $regex: search, $options: 'i' } },
                 { description: { $regex: search, $options: 'i' } },
@@ -23,11 +25,43 @@ router.get('/', async (req, res) => {
             ];
         }
 
-        const resources = await Resource.find(query)
-            .populate('uploadedBy', 'name email')
-            .sort({ createdAt: -1 });
+        // Status filter logic (Allow pending if user is owner)
+        let statusCondition = { status: 'approved' };
+        if (req.user) {
+            statusCondition = {
+                $or: [
+                    { status: 'approved' },
+                    { status: 'pending', uploadedBy: req.user._id }
+                ]
+            };
+        }
 
-        res.json(resources);
+        // Combine conditions
+        const conditions = [];
+        if (Object.keys(query).length > 0) conditions.push(query);
+        if (Object.keys(searchCondition).length > 0) conditions.push(searchCondition);
+        conditions.push(statusCondition);
+
+        const finalQuery = conditions.length > 0 ? { $and: conditions } : {};
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const total = await Resource.countDocuments(finalQuery);
+        const resources = await Resource.find(finalQuery)
+            .populate('uploadedBy', 'name email')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        res.json({
+            success: true,
+            resources,
+            totalPages: Math.ceil(total / limit),
+            currentPage: page,
+            totalResources: total
+        });
     } catch (error) {
         console.error('Error fetching resources:', error);
         res.status(500).json({ message: 'Failed to fetch resources', error: error.message });
@@ -98,9 +132,10 @@ router.post('/', authenticateToken, async (req, res) => {
             branch,
             subject,
             semester,
-            uploadedBy: req.user.userId,
-            uploadedByName: req.user.name || 'Anonymous',
-            tags: tags || []
+            uploadedBy: req.user._id,
+            uploadedByName: req.user.fullName || 'Anonymous',
+            tags: tags || [],
+            status: req.user.role === 'admin' ? 'approved' : 'pending'
         });
 
         await resource.save();
@@ -225,7 +260,7 @@ router.post('/:id/like', authenticateToken, async (req, res) => {
 // Get user's uploaded resources (protected)
 router.get('/user/my-uploads', authenticateToken, async (req, res) => {
     try {
-        const resources = await Resource.find({ uploadedBy: req.user.userId })
+        const resources = await Resource.find({ uploadedBy: req.user._id })
             .sort({ createdAt: -1 });
 
         res.json(resources);
@@ -235,4 +270,51 @@ router.get('/user/my-uploads', authenticateToken, async (req, res) => {
     }
 });
 
+// ADMIN: Get all pending resources
+router.get('/admin/pending', authenticateToken, async (req, res) => {
+    try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        const resources = await Resource.find({ status: 'pending' })
+            .populate('uploadedBy', 'name email')
+            .sort({ createdAt: -1 });
+
+        res.json(resources);
+    } catch (error) {
+        console.error('Error fetching pending resources:', error);
+        res.status(500).json({ message: 'Failed to fetch pending resources', error: error.message });
+    }
+});
+
+// ADMIN: Update resource status (Approve/Reject)
+router.patch('/:id/status', authenticateToken, async (req, res) => {
+    try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        const { status } = req.body;
+        if (!['approved', 'rejected'].includes(status)) {
+            return res.status(400).json({ message: 'Invalid status' });
+        }
+
+        const resource = await Resource.findById(req.params.id);
+        if (!resource) {
+            return res.status(404).json({ message: 'Resource not found' });
+        }
+
+        resource.status = status;
+        await resource.save();
+
+        res.json({ message: `Resource ${status} successfully`, resource });
+    } catch (error) {
+        console.error('Error updating status:', error);
+        res.status(500).json({ message: 'Failed to update status', error: error.message });
+    }
+});
+
 module.exports = router;
+
+

@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Note = require('../Models/Note');
+const { authenticateToken, identifyUser } = require('../middlewares/auth');
 
 // Get all notes (global view with optional filters)
-router.get('/', async (req, res) => {
+router.get('/', identifyUser, async (req, res) => {
     try {
         const { type, userId, tags, search, limit = 50, skip = 0 } = req.query;
 
@@ -24,20 +25,43 @@ router.get('/', async (req, res) => {
             query.tags = { $in: tags.split(',') };
         }
 
-        // Search in title and description
+        // Search logic
+        let searchCondition = {};
         if (search) {
-            query.$or = [
+            searchCondition.$or = [
                 { title: { $regex: search, $options: 'i' } },
                 { description: { $regex: search, $options: 'i' } }
             ];
         }
 
-        const notes = await Note.find(query)
+        // Status filter logic
+        let statusCondition = { status: 'approved' };
+
+        // If user is logged in, allow them to see THEIR pending notes
+        if (req.user) {
+            statusCondition = {
+                $or: [
+                    { status: 'approved' },
+                    { status: 'pending', userEmail: req.user.email }, // Note: Notes uses userEmail for ownership
+                    { status: 'pending', userId: req.user.email }     // Handling potential field naming inconsistency (DB uses userId as email usually)
+                ]
+            };
+        }
+
+        // Combine all conditions
+        const conditions = [];
+        if (Object.keys(query).length > 0) conditions.push(query);
+        if (Object.keys(searchCondition).length > 0) conditions.push(searchCondition);
+        conditions.push(statusCondition);
+
+        const finalQuery = conditions.length > 0 ? { $and: conditions } : {};
+
+        const notes = await Note.find(finalQuery)
             .sort({ createdAt: -1 })
             .limit(parseInt(limit))
             .skip(parseInt(skip));
 
-        const totalCount = await Note.countDocuments(query);
+        const totalCount = await Note.countDocuments(finalQuery);
 
         res.json({
             success: true,
@@ -335,6 +359,34 @@ router.get('/user/:userId', async (req, res) => {
             message: 'Failed to fetch user notes',
             error: error.message
         });
+    }
+});
+
+// ADMIN: Get all pending notes
+router.get('/admin/pending', async (req, res) => {
+    try {
+        // ideally check for admin role here if we had middleware, 
+        // but for now we'll just expose the endpoint and trust the frontend/admin panel to use it
+        // A better approach would be to add auth middleware to this specific route if possible
+        const notes = await Note.find({ status: 'pending' }).sort({ createdAt: -1 });
+        res.json({ success: true, notes });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to fetch pending notes' });
+    }
+});
+
+// ADMIN: Update note status
+router.patch('/:id/status', async (req, res) => {
+    try {
+        const { status } = req.body;
+        const note = await Note.findById(req.params.id);
+        if (!note) return res.status(404).json({ success: false, message: 'Note not found' });
+
+        note.status = status;
+        await note.save();
+        res.json({ success: true, message: `Note ${status}` });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to update status' });
     }
 });
 

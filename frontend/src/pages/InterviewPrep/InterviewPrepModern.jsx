@@ -37,6 +37,7 @@ import { API } from '../../utils/apiPaths';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ChevronDown,
+
     Copy,
     Moon,
     Sun,
@@ -46,23 +47,19 @@ import {
     Share2,
     Download,
     Edit2,
-    Check,
-    X,
     AlertCircle,
     Maximize2,
     Minimize2,
     ExternalLink,
     Sparkles,
     Bot,
-    Filter
+    Filter,
+    Trash2
 } from 'lucide-react';
 import { ButtonLoader } from '../../components/ui/Loader';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeHighlight from 'rehype-highlight';
-import 'highlight.js/styles/github-dark.css';
 import toast, { Toaster } from 'react-hot-toast';
 import moment from 'moment';
+import AnswerRenderer from '../../components/interview/AnswerRenderer';
 
 // ==================== CONSTANTS ====================
 const ITEMS_PER_PAGE = 10;
@@ -82,72 +79,7 @@ const ANIMATION_VARIANTS = {
 
 // ==================== SUB-COMPONENTS ====================
 
-/**
- * Code Block Component with copy functionality
- */
-const CodeBlock = ({ language = 'javascript', content }) => {
-    const [copied, setCopied] = useState(false);
 
-    const handleCopy = useCallback(() => {
-        navigator.clipboard.writeText(content);
-        setCopied(true);
-        toast.success('Code copied!', { duration: 2000 });
-        setTimeout(() => setCopied(false), 2000);
-    }, [content]);
-
-    return (
-        <div className="relative group my-3 sm:my-4">
-            {/* Copy Button - Always visible on mobile, hover on desktop */}
-            <button
-                onClick={handleCopy}
-                className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20 bg-gray-700/95 dark:bg-gray-800/95 hover:bg-gray-800 dark:hover:bg-gray-700 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-lg shadow-lg transition-all duration-200 flex items-center gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] backdrop-blur-sm"
-                aria-label="Copy code to clipboard"
-            >
-                {copied ? (
-                    <>
-                        <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        <span className="font-medium">Copied!</span>
-                    </>
-                ) : (
-                    <>
-                        <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        <span className="font-medium">Copy</span>
-                    </>
-                )}
-            </button>
-
-            {/* Code Container */}
-            <div className="bg-[#1e1e1e] dark:bg-[#0d1117] rounded-lg sm:rounded-xl border border-gray-700 dark:border-[rgb(var(--border))] shadow-lg overflow-hidden">
-                {/* Header */}
-                <div className="bg-[#252526] dark:bg-[#161b22] px-3 sm:px-4 py-2 sm:py-2.5 border-b border-gray-700 dark:border-[rgb(var(--border))] flex items-center justify-between">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="flex gap-1 sm:gap-1.5">
-                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-400 dark:bg-red-500"></div>
-                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-400 dark:bg-yellow-500"></div>
-                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-400 dark:bg-green-500"></div>
-                        </div>
-                        <span className="text-[10px] sm:text-xs font-mono font-semibold text-gray-400 dark:text-[rgb(var(--text-muted))] uppercase tracking-wide">
-                            {language}
-                        </span>
-                    </div>
-                </div>
-
-                {/* Code Content */}
-                <div className="p-3 sm:p-4 bg-[#1e1e1e] dark:bg-[#0d1117] overflow-x-auto scrollbar-thin scrollbar-track-gray-800 dark:scrollbar-track-[rgb(var(--bg-card))] scrollbar-thumb-gray-600 dark:scrollbar-thumb-[rgb(var(--border-strong))] hover:scrollbar-thumb-gray-500 dark:hover:scrollbar-thumb-[rgb(var(--accent))]">
-                    <ReactMarkdown
-                        children={`\`\`\`${language}\n${content}\n\`\`\``}
-                        remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeHighlight]}
-                        components={{
-                            pre: ({ ...props }) => <pre className="!bg-[#1e1e1e] dark:!bg-[#0d1117] !p-0 !m-0 text-xs sm:text-sm leading-relaxed font-mono" {...props} />,
-                            code: ({ ...props }) => <code className="!bg-[#1e1e1e] dark:!bg-[#0d1117] font-mono font-medium text-xs sm:text-sm text-gray-100 dark:text-[rgb(var(--text-secondary))]" {...props} />
-                        }}
-                    />
-                </div>
-            </div>
-        </div>
-    );
-};
 
 /**
  * Question Accordion Card Component
@@ -162,56 +94,19 @@ const QuestionCard = ({
     onRegenerate,
     onEdit,
     onShare,
-    onCopyAnswer
+    onCopyAnswer,
+    onDelete,
+    canDelete,
+    status,
+    isCreator,
+    onApprove,
+    onReject
 }) => {
     const [isOpen, setIsOpen] = useState(isExpanded);
 
     useEffect(() => {
         setIsOpen(isExpanded);
     }, [isExpanded]);
-
-    const formattedAnswer = useMemo(() => {
-        if (!answer?.length) {
-            return <p className="text-sm italic text-[rgb(var(--text-muted))] py-4">No answer available.</p>;
-        }
-
-        return answer.map((part, idx) => {
-            const content = part.content?.trim();
-            if (!content) return null;
-
-            if (part.type === 'code') {
-                return <CodeBlock key={idx} language={part.language || 'javascript'} content={content} />;
-            }
-
-            return (
-                <div key={idx} className="prose prose-sm sm:prose-base dark:prose-invert max-w-none break-words">
-                    <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                            h1: (props) => <h1 className="text-xl sm:text-2xl font-extrabold mt-4 sm:mt-6 mb-3 sm:mb-4 break-words text-[rgb(var(--text-primary))]" {...props} />,
-                            h2: (props) => <h2 className="text-lg sm:text-xl font-bold mt-4 sm:mt-5 mb-2 sm:mb-3 break-words text-[rgb(var(--text-primary))]" {...props} />,
-                            h3: (props) => <h3 className="text-base sm:text-lg font-bold mt-3 sm:mt-4 mb-2 break-words text-[rgb(var(--text-primary))]" {...props} />,
-                            p: (props) => <p className="mb-3 sm:mb-4 leading-relaxed break-words text-[rgb(var(--text-secondary))]" {...props} />,
-                            ul: (props) => <ul className="list-disc pl-4 sm:pl-6 mb-3 sm:mb-4 space-y-1.5 sm:space-y-2 break-words" {...props} />,
-                            ol: (props) => <ol className="list-decimal pl-4 sm:pl-6 mb-3 sm:mb-4 space-y-1.5 sm:space-y-2 break-words" {...props} />,
-                            li: (props) => <li className="text-[rgb(var(--text-secondary))] leading-relaxed" {...props} />,
-                            strong: (props) => <strong className="font-extrabold text-[rgb(var(--text-primary))]" {...props} />,
-                            em: (props) => <em className="italic text-[rgb(var(--text-primary))]" {...props} />,
-                            blockquote: (props) => (
-                                <blockquote className="border-l-4 border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10 pl-3 sm:pl-4 py-2 sm:py-3 my-3 sm:my-4 italic rounded-r-lg break-words font-medium text-[rgb(var(--text-secondary))]" {...props} />
-                            ),
-                            code: (props) => (
-                                <code className="bg-[rgb(var(--bg-card-alt))] px-1.5 py-0.5 rounded text-xs sm:text-sm font-mono font-semibold break-all text-[rgb(var(--accent))]" {...props} />
-                            ),
-                            a: (props) => <a className="text-blue-600 dark:text-blue-400 hover:underline font-semibold break-all" target="_blank" rel="noopener noreferrer" {...props} />
-                        }}
-                    >
-                        {content}
-                    </ReactMarkdown>
-                </div>
-            );
-        });
-    }, [answer]);
 
     return (
         <motion.div
@@ -236,47 +131,74 @@ const QuestionCard = ({
 
                                 {/* Question Text */}
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-[rgb(var(--text-primary))] text-sm sm:text-base md:text-lg leading-relaxed break-words overflow-wrap-anywhere">
+                                    <h3 className="text-base sm:text-lg font-bold text-[rgb(var(--text-primary))] leading-relaxed break-words">
                                         {question}
                                     </h3>
-
-                                    {/* Starred Badge */}
-                                    {isStarred && (
-                                        <div className="flex items-center gap-1.5 mt-2">
-                                            <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                                            <span className="text-xs font-medium text-yellow-600 dark:text-yellow-400">
-                                                Important
-                                            </span>
-                                        </div>
+                                    {/* Mobile: Show truncated answer preview when collapsed */}
+                                    {!isOpen && (
+                                        <p className="mt-1 text-xs text-[rgb(var(--text-muted))] line-clamp-1 sm:hidden">
+                                            Tap to view answer...
+                                        </p>
                                     )}
                                 </div>
                             </div>
                         </div>
 
-                        {/* Expand/Collapse Icon */}
+                        {/* Chevron Icon */}
                         <ChevronDown
-                            className={`w-5 h-5 text-[rgb(var(--text-muted))] transition-transform duration-200 flex-shrink-0 ${isOpen ? 'rotate-180' : ''
-                                }`}
+                            className={`w-5 h-5 text-[rgb(var(--text-muted))] transition-transform duration-300 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
                         />
                     </div>
                 </button>
 
+                {/* Pending Status Banner */}
+                {status === 'pending' && (
+                    <div className="bg-yellow-50 dark:bg-yellow-900/10 px-4 py-2 border-y border-yellow-100 dark:border-yellow-900/30 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400 text-sm font-medium">
+                            <Bot className="w-4 h-4" />
+                            <span>Pending Approval</span>
+                        </div>
+                        {isCreator && (
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onApprove(index);
+                                    }}
+                                    className="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded shadow-sm transition-colors"
+                                >
+                                    Approve
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onReject(index);
+                                    }}
+                                    className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded shadow-sm transition-colors"
+                                >
+                                    Reject
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Answer Content */}
-                <AnimatePresence>
+                <AnimatePresence initial={false}>
                     {isOpen && (
                         <motion.div
                             id={`answer-${index}`}
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="overflow-hidden"
+                            initial="collapsed"
+                            animate="open"
+                            exit="collapsed"
+                            variants={{
+                                open: { opacity: 1, height: "auto" },
+                                collapsed: { opacity: 0, height: 0 }
+                            }}
+                            transition={{ duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] }}
                         >
-                            <div className="px-4 sm:px-5 md:px-6 py-4 sm:py-5 border-t border-[rgb(var(--border))]">
-                                {/* Answer */}
-                                <div className="mb-4 sm:mb-6 overflow-hidden break-words">
-                                    {formattedAnswer}
-                                </div>
+                            <div className="px-4 sm:px-5 md:px-6 pb-4 sm:pb-5 md:pb-6 bg-[rgb(var(--bg-card))] border-t border-[rgb(var(--border-subtle))]">
+                                <AnswerRenderer answer={answer} />
 
                                 {/* Action Buttons */}
                                 <div className="flex flex-wrap gap-2 pt-4 border-t border-[rgb(var(--border-subtle))]">
@@ -323,6 +245,21 @@ const QuestionCard = ({
                                         <span className="hidden sm:inline">Copy</span>
                                     </button>
 
+                                    {/* Delete Button (Admin/Creator only) */}
+                                    {canDelete && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onDelete(index);
+                                            }}
+                                            className="px-3 py-2 bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-500/30 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 border border-transparent dark:border-red-500/30"
+                                            aria-label="Delete question"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            <span className="hidden sm:inline">Delete</span>
+                                        </button>
+                                    )}
+
                                     {/* Share */}
                                     <button
                                         onClick={() => onShare(index)}
@@ -338,7 +275,61 @@ const QuestionCard = ({
                     )}
                 </AnimatePresence>
             </div>
-        </motion.div>
+        </motion.div >
+    );
+};
+
+/**
+ * Delete Confirmation Modal Component
+ */
+const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, isDeleting }) => {
+    if (!isOpen) return null;
+
+    return (
+        <AnimatePresence>
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="bg-[rgb(var(--bg-card))] w-full max-w-md rounded-xl shadow-2xl border border-[rgb(var(--border))]"
+                >
+                    <div className="p-6 text-center">
+                        <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
+                            <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400" />
+                        </div>
+                        <h3 className="text-xl font-bold text-[rgb(var(--text-primary))] mb-2">Delete Question?</h3>
+                        <p className="text-[rgb(var(--text-secondary))] mb-6">
+                            Are you sure you want to delete this question? This action cannot be undone.
+                        </p>
+
+                        <div className="flex gap-3 justify-center">
+                            <button
+                                onClick={onClose}
+                                disabled={isDeleting}
+                                className="px-5 py-2.5 rounded-lg font-medium text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-body-alt))] transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={onConfirm}
+                                disabled={isDeleting}
+                                className="px-5 py-2.5 rounded-lg font-medium bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/20 transition-all flex items-center gap-2"
+                            >
+                                {isDeleting ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        <span>Deleting...</span>
+                                    </>
+                                ) : (
+                                    <span>Delete</span>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        </AnimatePresence>
     );
 };
 
@@ -352,6 +343,7 @@ const InterviewPrepModern = () => {
 
     // ==================== STATE ====================
     const [session, setSession] = useState(null);
+    const isCreator = session?.creatorEmail === user?.email;
     const [loading, setLoading] = useState(true);
     const [darkMode, setDarkMode] = useState(() => {
         return localStorage.getItem('interviewPrepTheme') === 'dark';
@@ -364,6 +356,8 @@ const InterviewPrepModern = () => {
         return stored ? JSON.parse(stored) : {};
     });
     const [isGenerating, setIsGenerating] = useState(false);
+    const [deleteModal, setDeleteModal] = useState({ isOpen: false, index: null });
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // ==================== EFFECTS ====================
     useEffect(() => {
@@ -387,9 +381,29 @@ const InterviewPrepModern = () => {
                 // Show success message if coming back from editor
                 if (location.state?.updated) {
                     toast.success('Answer updated successfully!');
-                    // Clear the state
                     window.history.replaceState({}, document.title);
                 }
+
+                // Handle deep linking to question
+                const params = new URLSearchParams(location.search);
+                const qnaId = params.get('qnaId');
+                if (qnaId && response.data?.qna) {
+                    // Filter out pending questions to find correct index
+                    const approvedQuestions = response.data.qna.filter(q => q.status !== 'pending');
+                    const index = approvedQuestions.findIndex(q => q._id === qnaId);
+
+                    if (index !== -1) {
+                        setExpandedAll(true);
+                        // Ensure it's scrolled to
+                        setTimeout(() => {
+                            const el = document.getElementById(`answer-${index}`);
+                            if (el) {
+                                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        }, 500);
+                    }
+                }
+
             } catch (error) {
                 toast.error('Failed to load interview session');
                 console.error('Fetch error:', error);
@@ -399,7 +413,7 @@ const InterviewPrepModern = () => {
         };
 
         fetchSession();
-    }, [sessionId, location.state]);
+    }, [sessionId, location.state, location.search]);
 
     // ==================== HANDLERS ====================
     const handleToggleStar = useCallback((index) => {
@@ -525,11 +539,93 @@ const InterviewPrepModern = () => {
         setVisibleCount(prev => prev + ITEMS_PER_PAGE);
     }, []);
 
+    const handleDelete = useCallback((index) => {
+        setDeleteModal({ isOpen: true, index });
+    }, []);
+
+    const confirmDelete = useCallback(async () => {
+        const { index } = deleteModal;
+        if (index === null || !session || !session.qna[index]) return;
+
+        const questionToDelete = session.qna[index];
+        setIsDeleting(true);
+        const loadingId = toast.loading('Deleting question...');
+
+        try {
+            await axios.delete(API.INTERVIEW.DELETE_QUESTION(sessionId, questionToDelete._id));
+
+            // Update local state
+            setSession(prev => {
+                const updatedQna = [...prev.qna];
+                updatedQna.splice(index, 1);
+                return { ...prev, qna: updatedQna };
+            });
+
+            toast.success('Question deleted successfully', { id: loadingId });
+            setDeleteModal({ isOpen: false, index: null });
+        } catch (error) {
+            console.error('Delete error:', error);
+            toast.error('Failed to delete question', { id: loadingId });
+        } finally {
+            setIsDeleting(false);
+        }
+    }, [deleteModal, session, sessionId]);
+
+    const handleApprove = useCallback(async (index) => {
+        if (!session?.qna[index]) return;
+        const questionId = session.qna[index]._id;
+        const toastId = toast.loading('Approving question...');
+        try {
+            await axios.patch(API.ADMIN.APPROVE_QNA(sessionId, questionId));
+            toast.success('Question approved', { id: toastId });
+            setSession(prev => {
+                const updatedQna = [...prev.qna];
+                updatedQna[index] = { ...updatedQna[index], status: 'approved' };
+                return { ...prev, qna: updatedQna };
+            });
+        } catch (error) {
+            console.error('Error approving question:', error);
+            toast.error('Failed to approve question', { id: toastId });
+        }
+    }, [session, sessionId]);
+
+    const handleReject = useCallback(async (index) => {
+        if (!session?.qna[index]) return;
+        if (!window.confirm('Are you sure you want to reject this question?')) return;
+
+        const questionId = session.qna[index]._id;
+        const toastId = toast.loading('Rejecting question...');
+        try {
+            await axios.patch(API.ADMIN.REJECT_QNA(sessionId, questionId));
+            toast.success('Question rejected', { id: toastId });
+            setSession(prev => {
+                const updatedQna = [...prev.qna];
+                updatedQna[index] = { ...updatedQna[index], status: 'rejected' };
+                return { ...prev, qna: updatedQna };
+            });
+        } catch (error) {
+            console.error('Error rejecting question:', error);
+            toast.error('Failed to reject question', { id: toastId });
+        }
+    }, [session, sessionId]);
+
     // ==================== COMPUTED VALUES ====================
     const filteredQuestions = useMemo(() => {
         if (!session?.qna) return [];
-        if (!importantOnly) return session.qna;
-        return session.qna.filter((_, i) => starredQuestions[i]);
+
+        // Filter out pending questions for non-creators and non-requesters
+        let questions = session.qna.filter(q => {
+            if (q.status === 'pending') {
+                const isRequester = user && (q.requestedBy === user._id || q.requestedBy === user.userId || q.requestedBy === user.id);
+                return isCreator || isRequester;
+            }
+            return q.status !== 'rejected';
+        });
+
+        if (importantOnly) {
+            questions = questions.filter((_, i) => starredQuestions[i]);
+        }
+        return questions;
     }, [session, importantOnly, starredQuestions]);
 
     const visibleQuestions = useMemo(() => {
@@ -590,6 +686,13 @@ const InterviewPrepModern = () => {
     return (
         <div className={darkMode ? 'dark' : ''}>
             <Toaster position="top-right" />
+
+            <DeleteConfirmationModal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ isOpen: false, index: null })}
+                onConfirm={confirmDelete}
+                isDeleting={isDeleting}
+            />
 
             <div className="min-h-screen bg-[rgb(var(--bg-body))]">
                 <div className="w-full py-4 sm:py-6">
@@ -712,73 +815,7 @@ const InterviewPrepModern = () => {
                     </motion.div>
 
                     {/* ==================== PENDING APPROVALS (CREATOR ONLY) ==================== */}
-                    {session?.userId === user?.id && session.qna.some(q => q.status === 'pending') && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-700/30 rounded-xl p-6 mb-8 mx-3 sm:mx-4 md:mx-6 lg:mx-8"
-                        >
-                            <div className="flex items-center gap-2 mb-4">
-                                <ShieldAlert className="w-5 h-5 text-yellow-600 dark:text-yellow-500" />
-                                <h3 className="text-lg font-bold text-yellow-700 dark:text-yellow-400">
-                                    Pending Approval Requests ({session.qna.filter(q => q.status === 'pending').length})
-                                </h3>
-                            </div>
 
-                            <div className="space-y-4">
-                                {session.qna.map((qa, idx) => {
-                                    if (qa.status !== 'pending') return null;
-                                    return (
-                                        <div key={idx} className="bg-[rgb(var(--bg-card))] p-4 rounded-lg border border-[rgb(var(--border))] shadow-sm">
-                                            <div className="flex justify-between items-start gap-4">
-                                                <div>
-                                                    <p className="font-semibold text-[rgb(var(--text-primary))] mb-2">{qa.question}</p>
-                                                    <p className="text-xs text-[rgb(var(--text-muted))] mb-2">Requested by: <span className="font-medium">{qa.requestedBy || 'Unknown User'}</span></p>
-                                                    <div className="text-sm text-[rgb(var(--text-secondary))] line-clamp-2">
-                                                        {qa.answerParts?.[0]?.content}
-                                                    </div>
-                                                </div>
-                                                <div className="flex gap-2 shrink-0">
-                                                    <button
-                                                        onClick={async () => {
-                                                            try {
-                                                                await axios.patch(API.ADMIN.APPROVE_QNA(sessionId, qa._id));
-                                                                toast.success('Question approved!');
-                                                                // Refresh session
-                                                                const res = await axios.get(API.INTERVIEW.GET_ONE(sessionId));
-                                                                setSession(res.data);
-                                                            } catch (err) {
-                                                                toast.error('Failed to approve');
-                                                            }
-                                                        }}
-                                                        className="px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
-                                                    >
-                                                        <Check className="w-3 h-3" /> Approve
-                                                    </button>
-                                                    <button
-                                                        onClick={async () => {
-                                                            try {
-                                                                await axios.patch(API.ADMIN.REJECT_QNA(sessionId, qa._id));
-                                                                toast.success('Question rejected');
-                                                                // Refresh session
-                                                                const res = await axios.get(API.INTERVIEW.GET_ONE(sessionId));
-                                                                setSession(res.data);
-                                                            } catch (err) {
-                                                                toast.error('Failed to reject');
-                                                            }
-                                                        }}
-                                                        className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
-                                                    >
-                                                        <X className="w-3 h-3" /> Reject
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </motion.div>
-                    )}
 
                     {/* ==================== DISCLAIMER ==================== */}
                     <motion.div
@@ -819,7 +856,15 @@ const InterviewPrepModern = () => {
                             }, {})
                         ).map(([category, questions], groupIndex) => {
                             // Filter out pending questions for general view (unless owner)
-                            const displayQuestions = questions.filter(q => q.status !== 'pending' && q.status !== 'rejected');
+
+                            // Filter out pending questions for general view (unless owner or requester)
+                            const displayQuestions = questions.filter(q => {
+                                if (q.status === 'pending') {
+                                    const isRequester = user && (q.requestedBy === user._id || q.requestedBy === user.userId || q.requestedBy === user.id);
+                                    return isCreator || isRequester;
+                                }
+                                return q.status !== 'rejected';
+                            });
                             if (displayQuestions.length === 0) return null;
 
                             return (
@@ -848,6 +893,12 @@ const InterviewPrepModern = () => {
                                                 onEdit={handleEdit}
                                                 onShare={handleShare}
                                                 onCopyAnswer={handleCopyAnswer}
+                                                onDelete={handleDelete}
+                                                canDelete={isCreator || user?.role === 'admin'}
+                                                status={qa.status}
+                                                isCreator={isCreator}
+                                                onApprove={handleApprove}
+                                                onReject={handleReject}
                                             />
                                         );
                                     })}
@@ -867,20 +918,22 @@ const InterviewPrepModern = () => {
                             </button>
                         )}
 
-                        <button
-                            onClick={handleGenerateMore}
-                            disabled={isGenerating}
-                            className="px-6 py-3 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:cursor-not-allowed">
+                        {(user?.role === 'admin' || user?.email === session?.creatorEmail) && (
+                            <button
+                                onClick={handleGenerateMore}
+                                disabled={isGenerating}
+                                className="px-6 py-3 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:cursor-not-allowed">
 
-                            {isGenerating ? (
-                                <ButtonLoader text="Generating..." />
-                            ) : (
-                                <>
-                                    <Sparkles className="w-5 h-5" />
-                                    Generate More Questions
-                                </>
-                            )}
-                        </button>
+                                {isGenerating ? (
+                                    <ButtonLoader text="Generating..." />
+                                ) : (
+                                    <>
+                                        <Sparkles className="w-5 h-5" />
+                                        Generate More Questions
+                                    </>
+                                )}
+                            </button>
+                        )}
                     </div>
 
                     {/* ==================== FLOATING ACTION BUTTON (Mobile) ==================== */}

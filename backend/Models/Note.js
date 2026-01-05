@@ -56,6 +56,12 @@ const noteSchema = new mongoose.Schema({
     views: {
         type: Number,
         default: 0
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending',
+        index: true
     }
 }, {
     timestamps: true

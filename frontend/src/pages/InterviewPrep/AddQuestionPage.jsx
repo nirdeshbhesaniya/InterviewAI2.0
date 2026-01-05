@@ -19,7 +19,8 @@ import {
     EyeOff,
     Monitor,
     Smartphone,
-    GripVertical
+    GripVertical,
+    Table as TableIcon
 } from 'lucide-react';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
@@ -37,7 +38,8 @@ const BLOCK_TYPES = {
     PARAGRAPH: 'paragraph',
     CODE: 'code',
     IMAGE: 'image',
-    LIST: 'list'
+    LIST: 'list',
+    TABLE: 'table'
 };
 
 const AddQuestionPage = () => {
@@ -163,6 +165,8 @@ const AddQuestionPage = () => {
                         return { type: 'text', content: `![Image](${block.content})` };
                     case BLOCK_TYPES.LIST:
                         return { type: 'text', content: block.items.map(item => `- ${item}`).join('\n') };
+                    case BLOCK_TYPES.TABLE:
+                        return { type: 'text', content: block.content };
                     default:
                         return null;
                 }
@@ -214,6 +218,8 @@ const AddQuestionPage = () => {
                 case BLOCK_TYPES.LIST:
                     if (!block.items || block.items.length === 0) return '- List item';
                     return block.items.map(item => `- ${item || 'Item'}`).join('\n');
+                case BLOCK_TYPES.TABLE:
+                    return block.content || '| Header 1 | Header 2 |\n|---|---|\n| Cell 1 | Cell 2 |';
                 default:
                     return '';
             }
@@ -231,7 +237,7 @@ const AddQuestionPage = () => {
                         value={block.content}
                         onChange={(e) => updateBlock(block.id, 'content', e.target.value)}
                         placeholder="Heading Text"
-                        className="w-full bg-transparent text-xl font-bold text-[rgb(var(--text-primary))] placeholder-[rgb(var(--text-muted))]/50 border-none outline-none focus:ring-0 px-0"
+                        className="w-full bg-transparent text-xl font-bold text-[rgb(var(--text-primary))] dark:text-white placeholder-[rgb(var(--text-muted))] dark:placeholder-gray-500 border-none outline-none focus:ring-0 px-0"
                     />
                 );
             case BLOCK_TYPES.PARAGRAPH:
@@ -240,7 +246,7 @@ const AddQuestionPage = () => {
                         value={block.content}
                         onChange={(e) => updateBlock(block.id, 'content', e.target.value)}
                         placeholder="Type your paragraph text here..."
-                        className="w-full bg-transparent text-[rgb(var(--text-primary))] placeholder-[rgb(var(--text-muted))]/50 border-none outline-none focus:ring-0 resize-none min-h-[80px]"
+                        className="w-full bg-transparent text-[rgb(var(--text-primary))] dark:text-gray-100 placeholder-[rgb(var(--text-muted))] dark:placeholder-gray-500 border-none outline-none focus:ring-0 resize-none min-h-[80px]"
                         style={{ height: 'auto', minHeight: '80px' }}
                     />
                 );
@@ -324,6 +330,27 @@ const AddQuestionPage = () => {
                         </button>
                     </div>
                 );
+            case BLOCK_TYPES.TABLE:
+                return (
+                    <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                            <span className="text-xs text-[rgb(var(--text-muted))]">Markdown Table</span>
+                            <button
+                                onClick={() => updateBlock(block.id, 'content', '| Header 1 | Header 2 | Header 3 |\n| :--- | :---: | ---: |\n| Left | Center | Right |\n| Item | Item | Item |')}
+                                className="text-xs text-[rgb(var(--accent))] hover:underline flex items-center gap-1"
+                            >
+                                <Plus className="w-3 h-3" /> Insert Template
+                            </button>
+                        </div>
+                        <textarea
+                            value={block.content}
+                            onChange={(e) => updateBlock(block.id, 'content', e.target.value)}
+                            placeholder="| Header 1 | Header 2 |\n|---|---|\n| Cell 1 | Cell 2 |"
+                            className="w-full bg-[rgb(var(--bg-body-alt))] p-3 rounded-lg font-mono text-sm text-[rgb(var(--text-primary))] border border-[rgb(var(--border))] focus:border-[rgb(var(--accent))] outline-none resize-none min-h-[120px]"
+                            spellCheck="false"
+                        />
+                    </div>
+                );
             default:
                 return null;
         }
@@ -402,7 +429,7 @@ const AddQuestionPage = () => {
                                 value={question}
                                 onChange={(e) => setQuestion(e.target.value)}
                                 placeholder="e.g., Explain the Event Loop in JavaScript"
-                                className="w-full bg-transparent text-xl sm:text-2xl font-bold text-[rgb(var(--text-primary))] placeholder-[rgb(var(--text-muted))]/50 border-none outline-none focus:ring-0 px-0"
+                                className="w-full bg-transparent text-xl sm:text-2xl font-bold text-[rgb(var(--text-primary))] dark:text-white placeholder-[rgb(var(--text-muted))] dark:placeholder-gray-500 border-none outline-none focus:ring-0 px-0"
                                 autoFocus
                             />
                         </section>
@@ -465,12 +492,14 @@ const AddQuestionPage = () => {
                                                     ${block.type === BLOCK_TYPES.CODE ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30' : ''}
                                                     ${block.type === BLOCK_TYPES.IMAGE ? 'bg-pink-100 text-pink-700 border-pink-200 dark:bg-pink-500/20 dark:text-pink-300 dark:border-pink-500/30' : ''}
                                                     ${block.type === BLOCK_TYPES.LIST ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/20 dark:text-green-300 dark:border-green-500/30' : ''}
+                                                    ${block.type === BLOCK_TYPES.TABLE ? 'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30' : ''}
                                                 `}>
                                                     {block.type === BLOCK_TYPES.HEADING && <Heading className="w-3 h-3" />}
                                                     {block.type === BLOCK_TYPES.PARAGRAPH && <AlignLeft className="w-3 h-3" />}
                                                     {block.type === BLOCK_TYPES.CODE && <Code className="w-3 h-3" />}
                                                     {block.type === BLOCK_TYPES.IMAGE && <ImageIcon className="w-3 h-3" />}
                                                     {block.type === BLOCK_TYPES.LIST && <List className="w-3 h-3" />}
+                                                    {block.type === BLOCK_TYPES.TABLE && <TableIcon className="w-3 h-3" />}
                                                     {block.type}
                                                 </span>
                                             </div>
@@ -565,6 +594,26 @@ const AddQuestionPage = () => {
                                                 ),
                                                 img: (props) => (
                                                     <img {...props} className="rounded-lg border border-[rgb(var(--border))] shadow-sm max-h-[400px] object-contain bg-black/5" />
+                                                ),
+                                                table: (props) => (
+                                                    <div className="overflow-x-auto my-6 rounded-lg border border-[rgb(var(--border))]">
+                                                        <table className="w-full text-sm text-left" {...props} />
+                                                    </div>
+                                                ),
+                                                thead: (props) => (
+                                                    <thead className="bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-primary))] uppercase font-semibold text-xs py-2" {...props} />
+                                                ),
+                                                tbody: (props) => (
+                                                    <tbody className="divide-y divide-[rgb(var(--border))]" {...props} />
+                                                ),
+                                                tr: (props) => (
+                                                    <tr className="hover:bg-[rgb(var(--bg-elevated-alt))] transition-colors" {...props} />
+                                                ),
+                                                th: (props) => (
+                                                    <th className="px-6 py-3 border-b border-[rgb(var(--border))]" {...props} />
+                                                ),
+                                                td: (props) => (
+                                                    <td className="px-6 py-4 text-[rgb(var(--text-secondary))]" {...props} />
                                                 )
                                             }}
                                         />
@@ -595,6 +644,8 @@ const AddQuestionPage = () => {
                         <TooltipButton icon={List} label="List" color="text-green-500" onClick={() => addBlock(BLOCK_TYPES.LIST)} />
                         <div className="w-px h-8 bg-[rgb(var(--border))]" />
                         <TooltipButton icon={ImageIcon} label="Image" color="text-pink-500" onClick={() => addBlock(BLOCK_TYPES.IMAGE)} />
+                        <div className="w-px h-8 bg-[rgb(var(--border))]" />
+                        <TooltipButton icon={TableIcon} label="Table" color="text-indigo-500" onClick={() => addBlock(BLOCK_TYPES.TABLE)} />
                     </div>
                 </div>
             </main>

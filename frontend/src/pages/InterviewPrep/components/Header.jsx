@@ -148,7 +148,7 @@ const Header = ({ onLoginClick }) => {
                 className="text-red-500 hover:text-red-600 font-medium transition-colors duration-200"
                 whileHover={{ y: -2 }}
               >
-                Admin Panel
+                Admin
               </motion.button>
             )}
             <motion.button

@@ -31,8 +31,13 @@ import {
     MapPin,
     Link2,
     Github,
-    Linkedin
+    Linkedin,
+    FileText,
+    Clock,
+    CheckCircle2,
+    XCircle
 } from 'lucide-react';
+import AnswerRenderer from '../components/interview/AnswerRenderer';
 import Button from '../components/ui/SimpleButton';
 import Card from '../components/ui/SimpleCard';
 import axiosInstance from '../utils/axiosInstance';
@@ -101,6 +106,12 @@ const ProfilePage = () => {
         performanceByCategory: []
     });
 
+    const [myUploads, setMyUploads] = useState({
+        notes: [],
+        resources: []
+    });
+    // pendingApprovals removed
+
     useEffect(() => {
         if (user) {
             setProfileData({
@@ -117,8 +128,33 @@ const ProfilePage = () => {
             fetchPreferences();
             fetchSecurityInfo();
             fetchStats();
+            fetchMyUploads();
+            // fetchPendingApprovals removed
         }
     }, [user]);
+
+    const fetchMyUploads = async () => {
+        try {
+            // Fetch user's notes and resources
+            // Assuming user object has _id or id
+            const userId = user._id || user.id;
+            if (!userId) return;
+
+            const [notesRes, resourcesRes] = await Promise.all([
+                axiosInstance.get(API.NOTES.GET_USER_NOTES(user.email)), // Notes are stored by email
+                axiosInstance.get(API.RESOURCES.MY_UPLOADS)
+            ]);
+
+            setMyUploads({
+                notes: notesRes.data.success ? notesRes.data.notes : [],
+                resources: resourcesRes.data || [] // Resources endpoint returns array directly or inside data? Checked resources.js: res.json(resources) -> Array
+            });
+        } catch (error) {
+            console.error('Error fetching uploads:', error);
+        }
+    };
+
+    // pending approvals logic removed
 
     const fetchStats = async () => {
         try {
@@ -479,6 +515,7 @@ const ProfilePage = () => {
             </motion.div>
 
             {/* Stats Cards */}
+            {/* Stats Cards */}
             <motion.div
                 className="grid grid-cols-1 sm:grid-cols-3 gap-4"
                 initial={{ opacity: 0, y: 20 }}
@@ -486,39 +523,39 @@ const ProfilePage = () => {
                 transition={{ delay: 0.3, duration: 0.5 }}
             >
                 {/* Tests Taken */}
-                <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-blue-600/10 border border-blue-500/20 hover:shadow-lg hover:scale-105 transition-all duration-300">
+                <Card className="p-5 sm:p-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))] hover:shadow-lg transition-all duration-300 group">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-blue-500/20 rounded-xl">
-                            <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                        <div className="p-3 bg-blue-500/10 text-blue-500 group-hover:bg-blue-500 group-hover:text-white rounded-xl transition-colors duration-300">
+                            <TrendingUp className="w-6 h-6" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-[rgb(var(--text-primary))]">{stats.mcqTestsTaken}</p>
+                            <p className="text-2xl sm:text-3xl font-bold text-[rgb(var(--text-primary))]">{stats.mcqTestsTaken}</p>
                             <p className="text-sm text-[rgb(var(--text-muted))]">Tests Taken</p>
                         </div>
                     </div>
                 </Card>
 
                 {/* Notes Shared */}
-                <Card className="p-6 bg-gradient-to-br from-purple-500/10 to-purple-600/10 border border-purple-500/20 hover:shadow-lg hover:scale-105 transition-all duration-300">
+                <Card className="p-5 sm:p-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))] hover:shadow-lg transition-all duration-300 group">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-purple-500/20 rounded-xl">
-                            <Sparkles className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                        <div className="p-3 bg-purple-500/10 text-purple-500 group-hover:bg-purple-500 group-hover:text-white rounded-xl transition-colors duration-300">
+                            <Sparkles className="w-6 h-6" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-[rgb(var(--text-primary))]">{stats.notesShared}</p>
+                            <p className="text-2xl sm:text-3xl font-bold text-[rgb(var(--text-primary))]">{stats.notesShared}</p>
                             <p className="text-sm text-[rgb(var(--text-muted))]">Notes Shared</p>
                         </div>
                     </div>
                 </Card>
 
                 {/* Days Active */}
-                <Card className="p-6 bg-gradient-to-br from-green-500/10 to-green-600/10 border border-green-500/20 hover:shadow-lg hover:scale-105 transition-all duration-300">
+                <Card className="p-5 sm:p-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))] hover:shadow-lg transition-all duration-300 group">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-green-500/20 rounded-xl">
-                            <Award className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        <div className="p-3 bg-green-500/10 text-green-500 group-hover:bg-green-500 group-hover:text-white rounded-xl transition-colors duration-300">
+                            <Award className="w-6 h-6" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-[rgb(var(--text-primary))]">
+                            <p className="text-2xl sm:text-3xl font-bold text-[rgb(var(--text-primary))]">
                                 {Math.floor((Date.now() - new Date(user?.createdAt || Date.now()).getTime()) / (1000 * 60 * 60 * 24))}
                             </p>
                             <p className="text-sm text-[rgb(var(--text-muted))]">Days Active</p>
@@ -532,20 +569,18 @@ const ProfilePage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7, duration: 0.5 }}
+                className="mt-8"
             >
-                <Card className="p-4 sm:p-8 bg-gradient-to-br from-[rgb(var(--bg-card))] via-[rgb(var(--bg-card))] to-purple-500/5 border-2 border-[rgb(var(--border-subtle))] shadow-2xl overflow-hidden relative">
-                    {/* Decorative background elements */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-3xl -z-10" />
-                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-500/10 to-cyan-500/10 rounded-full blur-3xl -z-10" />
+                <Card className="p-4 sm:p-8 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] shadow-lg overflow-hidden relative">
 
                     <div className="mb-6 sm:mb-8">
                         <div className="flex items-center gap-3 sm:gap-4 mb-2">
                             <motion.div
-                                className="p-3 bg-gradient-to-br from-[rgb(var(--accent))] via-purple-500 to-pink-500 rounded-2xl shadow-lg"
+                                className="p-3 bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] rounded-2xl"
                                 whileHover={{ scale: 1.05, rotate: 5 }}
                                 transition={{ type: "spring", stiffness: 300 }}
                             >
-                                <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                                <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7" />
                             </motion.div>
                             <div>
                                 <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[rgb(var(--text-primary))]">
@@ -561,13 +596,13 @@ const ProfilePage = () => {
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
                         {/* Activity Timeline Chart */}
                         <motion.div
-                            className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-2xl p-5 sm:p-6 border-2 border-blue-200/50 dark:border-blue-800/50 shadow-xl hover:shadow-2xl transition-all duration-300"
+                            className="bg-[rgb(var(--bg-elevated))] rounded-2xl p-5 sm:p-6 border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))] transition-colors duration-300 shadow-sm"
                             whileHover={{ y: -5 }}
                         >
                             <div className="flex items-center justify-between mb-5">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md">
-                                        <Calendar className="w-5 h-5 text-white" />
+                                    <div className="p-2.5 bg-blue-500/10 text-blue-500 rounded-xl">
+                                        <Calendar className="w-5 h-5" />
                                     </div>
                                     <div>
                                         <h4 className="text-base sm:text-lg font-bold text-[rgb(var(--text-primary))]">
@@ -579,28 +614,28 @@ const ProfilePage = () => {
                             </div>
 
                             {stats.activityTimeline && stats.activityTimeline.length > 0 ? (
-                                <div className="bg-white/50 dark:bg-gray-900/50 rounded-xl p-3 sm:p-4">
-                                    <ResponsiveContainer width="100%" height={280}>
+                                <div className="h-[280px] w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
                                         <AreaChart data={stats.activityTimeline} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
                                             <defs>
                                                 <linearGradient id="colorTests" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.9} />
-                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
+                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.0} />
                                                 </linearGradient>
                                                 <linearGradient id="colorNotes" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.9} />
-                                                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0.1} />
+                                                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.8} />
+                                                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0.0} />
                                                 </linearGradient>
                                                 <linearGradient id="colorInterviews" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.9} />
-                                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.1} />
+                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
                                                 </linearGradient>
                                             </defs>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
+                                            <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border-subtle))" opacity={0.5} />
                                             <XAxis
                                                 dataKey="date"
-                                                stroke="#9ca3af"
-                                                tick={{ fontSize: 11, fill: '#6b7280' }}
+                                                stroke="rgb(var(--text-muted))"
+                                                tick={{ fontSize: 11, fill: 'rgb(var(--text-secondary))' }}
                                                 tickFormatter={(value) => {
                                                     const date = new Date(value);
                                                     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -610,21 +645,22 @@ const ProfilePage = () => {
                                                 height={70}
                                             />
                                             <YAxis
-                                                stroke="#9ca3af"
-                                                tick={{ fontSize: 11, fill: '#6b7280' }}
+                                                stroke="rgb(var(--text-muted))"
+                                                tick={{ fontSize: 11, fill: 'rgb(var(--text-secondary))' }}
                                                 width={35}
                                                 allowDecimals={false}
                                             />
                                             <Tooltip
                                                 contentStyle={{
-                                                    backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                                                    border: '2px solid #e5e7eb',
+                                                    backgroundColor: 'rgb(var(--bg-elevated))',
+                                                    borderColor: 'rgb(var(--border))',
+                                                    color: 'rgb(var(--text-primary))',
                                                     borderRadius: '12px',
-                                                    boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+                                                    boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
                                                     padding: '12px',
                                                     fontSize: '13px'
                                                 }}
-                                                labelStyle={{ fontWeight: 'bold', marginBottom: '8px', color: '#111827' }}
+                                                labelStyle={{ fontWeight: 'bold', marginBottom: '8px', color: 'rgb(var(--text-primary))' }}
                                                 labelFormatter={(value) => new Date(value).toLocaleDateString('en-US', {
                                                     weekday: 'short',
                                                     month: 'long',
@@ -636,7 +672,8 @@ const ProfilePage = () => {
                                                 wrapperStyle={{
                                                     fontSize: '12px',
                                                     paddingTop: '15px',
-                                                    fontWeight: '600'
+                                                    fontWeight: '600',
+                                                    color: 'rgb(var(--text-primary))'
                                                 }}
                                                 iconType="circle"
                                             />
@@ -648,7 +685,7 @@ const ProfilePage = () => {
                                                 fillOpacity={1}
                                                 fill="url(#colorTests)"
                                                 name="MCQ Tests"
-                                                activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
+                                                activeDot={{ r: 6, strokeWidth: 2, stroke: 'rgb(var(--bg-card))' }}
                                             />
                                             <Area
                                                 type="monotone"
@@ -658,7 +695,7 @@ const ProfilePage = () => {
                                                 fillOpacity={1}
                                                 fill="url(#colorNotes)"
                                                 name="Notes Shared"
-                                                activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
+                                                activeDot={{ r: 6, strokeWidth: 2, stroke: 'rgb(var(--bg-card))' }}
                                             />
                                             <Area
                                                 type="monotone"
@@ -668,23 +705,22 @@ const ProfilePage = () => {
                                                 fillOpacity={1}
                                                 fill="url(#colorInterviews)"
                                                 name="Interview Prep"
-                                                activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
+                                                activeDot={{ r: 6, strokeWidth: 2, stroke: 'rgb(var(--bg-card))' }}
                                             />
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 </div>
                             ) : (
-                                <div className="h-[280px] flex items-center justify-center bg-white/50 dark:bg-gray-900/50 rounded-xl">
+                                <div className="h-[280px] flex items-center justify-center bg-[rgb(var(--bg-body))]/50 rounded-xl">
                                     <div className="text-center px-6">
                                         <motion.div
                                             animate={{ y: [0, -10, 0] }}
                                             transition={{ duration: 2, repeat: Infinity }}
                                         >
-                                            <Calendar className="w-16 h-16 mx-auto mb-4 text-blue-300 dark:text-blue-700" />
+                                            <Calendar className="w-16 h-16 mx-auto mb-4 text-[rgb(var(--text-muted))]" />
                                         </motion.div>
                                         <p className="text-base font-semibold text-[rgb(var(--text-primary))] mb-2">No activity data yet</p>
                                         <p className="text-sm text-[rgb(var(--text-muted))]">Start your learning journey today!</p>
-                                        <p className="text-xs text-[rgb(var(--text-muted))] mt-1">Take tests, create notes, and prep for interviews</p>
                                     </div>
                                 </div>
                             )}
@@ -692,13 +728,13 @@ const ProfilePage = () => {
 
                         {/* Performance by Category Chart */}
                         <motion.div
-                            className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 rounded-2xl p-5 sm:p-6 border-2 border-purple-200/50 dark:border-purple-800/50 shadow-xl hover:shadow-2xl transition-all duration-300"
+                            className="bg-[rgb(var(--bg-elevated))] rounded-2xl p-5 sm:p-6 border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))] transition-colors duration-300 shadow-sm"
                             whileHover={{ y: -5 }}
                         >
                             <div className="flex items-center justify-between mb-5">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-md">
-                                        <Award className="w-5 h-5 text-white" />
+                                    <div className="p-2.5 bg-purple-500/10 text-purple-500 rounded-xl">
+                                        <Award className="w-5 h-5" />
                                     </div>
                                     <div>
                                         <h4 className="text-base sm:text-lg font-bold text-[rgb(var(--text-primary))]">
@@ -710,34 +746,35 @@ const ProfilePage = () => {
                             </div>
 
                             {stats.performanceByCategory && stats.performanceByCategory.length > 0 ? (
-                                <div className="bg-white/50 dark:bg-gray-900/50 rounded-xl p-3 sm:p-4">
-                                    <ResponsiveContainer width="100%" height={280}>
+                                <div className="h-[280px] w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
                                         <BarChart
                                             data={stats.performanceByCategory}
                                             layout="vertical"
                                             margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
                                         >
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
+                                            <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border-subtle))" opacity={0.5} />
                                             <XAxis
                                                 type="number"
                                                 domain={[0, 100]}
-                                                stroke="#9ca3af"
-                                                tick={{ fontSize: 11, fill: '#6b7280' }}
-                                                label={{ value: 'Score (%)', position: 'bottom', fontSize: 12, fill: '#6b7280' }}
+                                                stroke="rgb(var(--text-muted))"
+                                                tick={{ fontSize: 11, fill: 'rgb(var(--text-secondary))' }}
+                                                label={{ value: 'Score (%)', position: 'bottom', fontSize: 12, fill: 'rgb(var(--text-muted))' }}
                                             />
                                             <YAxis
                                                 dataKey="category"
                                                 type="category"
                                                 width={90}
-                                                stroke="#9ca3af"
-                                                tick={{ fontSize: 11, fill: '#6b7280', fontWeight: '600' }}
+                                                stroke="rgb(var(--text-muted))"
+                                                tick={{ fontSize: 11, fill: 'rgb(var(--text-secondary))', fontWeight: '600' }}
                                             />
                                             <Tooltip
                                                 contentStyle={{
-                                                    backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                                                    border: '2px solid #e5e7eb',
+                                                    backgroundColor: 'rgb(var(--bg-elevated))',
+                                                    borderColor: 'rgb(var(--border))',
+                                                    color: 'rgb(var(--text-primary))',
                                                     borderRadius: '12px',
-                                                    boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+                                                    boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
                                                     padding: '12px',
                                                     fontSize: '13px'
                                                 }}
@@ -747,8 +784,8 @@ const ProfilePage = () => {
                                                         const tests = props.payload.tests || 0;
                                                         return [
                                                             <div key="score">
-                                                                <div className="font-bold text-purple-600">{value}%</div>
-                                                                <div className="text-xs text-gray-500">{tests} test{tests !== 1 ? 's' : ''} taken</div>
+                                                                <div className="font-bold text-[rgb(var(--accent))]">{value}%</div>
+                                                                <div className="text-xs text-[rgb(var(--text-muted))]">{tests} test{tests !== 1 ? 's' : ''} taken</div>
                                                             </div>,
                                                             'Score'
                                                         ];
@@ -761,7 +798,7 @@ const ProfilePage = () => {
                                                 radius={[0, 12, 12, 0]}
                                                 label={{
                                                     position: 'right',
-                                                    fill: '#7c3aed',
+                                                    fill: 'rgb(var(--accent))',
                                                     fontSize: 12,
                                                     fontWeight: 'bold',
                                                     formatter: (value) => `${value}%`
@@ -769,9 +806,8 @@ const ProfilePage = () => {
                                             >
                                                 <defs>
                                                     <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
-                                                        <stop offset="0%" stopColor="#a855f7" />
-                                                        <stop offset="50%" stopColor="#c026d3" />
-                                                        <stop offset="100%" stopColor="#ec4899" />
+                                                        <stop offset="0%" stopColor="rgb(var(--accent))" stopOpacity={0.8} />
+                                                        <stop offset="100%" stopColor="rgb(var(--accent))" />
                                                     </linearGradient>
                                                 </defs>
                                                 {stats.performanceByCategory.map((entry, index) => (
@@ -788,17 +824,16 @@ const ProfilePage = () => {
                                     </ResponsiveContainer>
                                 </div>
                             ) : (
-                                <div className="h-[280px] flex items-center justify-center bg-white/50 dark:bg-gray-900/50 rounded-xl">
+                                <div className="h-[280px] flex items-center justify-center bg-[rgb(var(--bg-body))]/50 rounded-xl">
                                     <div className="text-center px-6">
                                         <motion.div
                                             animate={{ rotate: [0, 10, -10, 0] }}
                                             transition={{ duration: 2, repeat: Infinity }}
                                         >
-                                            <Award className="w-16 h-16 mx-auto mb-4 text-purple-300 dark:text-purple-700" />
+                                            <Award className="w-16 h-16 mx-auto mb-4 text-[rgb(var(--text-muted))]" />
                                         </motion.div>
                                         <p className="text-base font-semibold text-[rgb(var(--text-primary))] mb-2">No performance data yet</p>
                                         <p className="text-sm text-[rgb(var(--text-muted))]">Complete MCQ tests to track your progress!</p>
-                                        <p className="text-xs text-[rgb(var(--text-muted))] mt-1">See which topics you excel at</p>
                                     </div>
                                 </div>
                             )}
@@ -1069,7 +1104,7 @@ const ProfilePage = () => {
 
             {/* Main Content */}
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-12">
                     {/* Sidebar - Mobile: Horizontal scroll, Desktop: Vertical */}
                     <div className="lg:col-span-1">
                         <Card className="p-3 sm:p-4 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">
@@ -1106,6 +1141,17 @@ const ProfilePage = () => {
                                         <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
                                         <span className="whitespace-nowrap">Security</span>
                                     </button>
+                                    <button
+                                        onClick={() => setActiveTab('uploads')}
+                                        className={`flex-shrink-0 lg:w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-left transition-all text-sm sm:text-base ${activeTab === 'uploads'
+                                            ? 'bg-[rgb(var(--accent))]/20 text-[rgb(var(--accent))] border border-[rgb(var(--accent))]/30'
+                                            : 'text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-body-alt))] hover:text-[rgb(var(--accent))]'
+                                            }`}
+                                    >
+                                        <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
+                                        <span className="whitespace-nowrap">My Uploads</span>
+                                    </button>
+
                                 </div>
                             </nav>
                         </Card>
@@ -1468,6 +1514,125 @@ const ProfilePage = () => {
                         </div>
                     </div>
                 </div>
+
+
+                {activeTab === 'uploads' && (
+                    <div className="space-y-6">
+                        {/* My Notes Section */}
+                        <Card className="p-4 sm:p-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+                                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-[rgb(var(--accent))]" />
+                                    <span className="text-[rgb(var(--text-primary))]">My Notes</span>
+                                </h3>
+                                <button
+                                    onClick={() => navigate('/notes')}
+                                    className="text-sm text-[rgb(var(--accent))] hover:underline"
+                                >
+                                    Upload New
+                                </button>
+                            </div>
+
+                            {myUploads.notes.length === 0 ? (
+                                <div className="text-center py-8 bg-[rgb(var(--bg-body-alt))] rounded-lg border border-dashed border-[rgb(var(--border-subtle))]">
+                                    <FileText className="w-10 h-10 text-[rgb(var(--text-muted))] mx-auto mb-2" />
+                                    <p className="text-[rgb(var(--text-secondary))]">You haven't uploaded any notes yet</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {myUploads.notes.map((note) => (
+                                        <div key={note._id} className="p-4 bg-[rgb(var(--bg-body-alt))] rounded-lg border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/30 transition-colors">
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div className="flex-1">
+                                                    <h4 className="font-medium text-[rgb(var(--text-primary))] line-clamp-1">{note.title}</h4>
+                                                    <p className="text-xs text-[rgb(var(--text-muted))] mt-1 line-clamp-1">{note.description}</p>
+                                                    <div className="flex items-center gap-2 mt-2">
+                                                        <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${note.status === 'approved'
+                                                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                            : note.status === 'rejected'
+                                                                ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                                                : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                                            }`}>
+                                                            {note.status ? note.status.charAt(0).toUpperCase() + note.status.slice(1) : 'Pending'}
+                                                        </span>
+                                                        <span className="text-xs text-[rgb(var(--text-muted))]">•</span>
+                                                        <span className="text-xs text-[rgb(var(--text-muted))]">{note.type === 'video' ? 'Video' : 'PDF'}</span>
+                                                        <span className="text-xs text-[rgb(var(--text-muted))]">•</span>
+                                                        <span className="text-xs text-[rgb(var(--text-muted))]">{note.views || 0} views</span>
+                                                    </div>
+                                                </div>
+                                                {note.status === 'approved' ? (
+                                                    <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+                                                ) : note.status === 'rejected' ? (
+                                                    <XCircle className="w-5 h-5 text-red-500 shrink-0" />
+                                                ) : (
+                                                    <Clock className="w-5 h-5 text-yellow-500 shrink-0" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </Card>
+
+                        {/* My Resources Section */}
+                        <Card className="p-4 sm:p-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+                                    <Link2 className="w-4 h-4 sm:w-5 sm:h-5 text-[rgb(var(--accent))]" />
+                                    <span className="text-[rgb(var(--text-primary))]">My Resources</span>
+                                </h3>
+                                <button
+                                    onClick={() => navigate('/resources')}
+                                    className="text-sm text-[rgb(var(--accent))] hover:underline"
+                                >
+                                    Upload New
+                                </button>
+                            </div>
+
+                            {myUploads.resources.length === 0 ? (
+                                <div className="text-center py-8 bg-[rgb(var(--bg-body-alt))] rounded-lg border border-dashed border-[rgb(var(--border-subtle))]">
+                                    <Link2 className="w-10 h-10 text-[rgb(var(--text-muted))] mx-auto mb-2" />
+                                    <p className="text-[rgb(var(--text-secondary))]">You haven't uploaded any resources yet</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {myUploads.resources.map((res) => (
+                                        <div key={res._id} className="p-4 bg-[rgb(var(--bg-body-alt))] rounded-lg border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/30 transition-colors">
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div className="flex-1">
+                                                    <h4 className="font-medium text-[rgb(var(--text-primary))] line-clamp-1">{res.title}</h4>
+                                                    <p className="text-xs text-[rgb(var(--text-muted))] mt-1 line-clamp-1">{res.description}</p>
+                                                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                                                        <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${res.status === 'approved'
+                                                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                            : res.status === 'rejected'
+                                                                ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                                                : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                                            }`}>
+                                                            {res.status ? res.status.charAt(0).toUpperCase() + res.status.slice(1) : 'Pending'}
+                                                        </span>
+                                                        <span className="text-xs text-[rgb(var(--text-muted))]">•</span>
+                                                        <span className="px-1.5 py-0.5 bg-[rgb(var(--bg-body))] rounded text-xs border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-secondary))]">{res.branch}</span>
+                                                        <span className="px-1.5 py-0.5 bg-[rgb(var(--bg-body))] rounded text-xs border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-secondary))]">Sem {res.semester}</span>
+                                                        <span className="text-xs text-[rgb(var(--text-muted))]">{res.views || 0} views</span>
+                                                    </div>
+                                                </div>
+                                                {res.status === 'approved' ? (
+                                                    <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+                                                ) : res.status === 'rejected' ? (
+                                                    <XCircle className="w-5 h-5 text-red-500 shrink-0" />
+                                                ) : (
+                                                    <Clock className="w-5 h-5 text-yellow-500 shrink-0" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </Card>
+                    </div>
+                )}
             </div>
         </div>
     );

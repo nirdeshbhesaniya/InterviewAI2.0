@@ -136,4 +136,36 @@ router.get('/qna-requests', async (req, res) => {
     }
 });
 
+// POST approve ALL pending Q&A requests
+router.post('/approve-all-qna', async (req, res) => {
+    try {
+        const interviews = await Interview.find({ 'qna.status': 'pending' });
+
+        let approvedCount = 0;
+
+        for (const interview of interviews) {
+            let modified = false;
+            interview.qna.forEach(q => {
+                if (q.status === 'pending') {
+                    q.status = 'approved';
+                    // Optional: Create notification for requester here if needed, 
+                    // skipping for bulk performance for now unless critical.
+                    modified = true;
+                    approvedCount++;
+                }
+            });
+
+            if (modified) {
+                await interview.save();
+            }
+        }
+
+        res.json({ message: `Successfully approved ${approvedCount} questions across ${interviews.length} sessions.`, count: approvedCount });
+
+    } catch (err) {
+        console.error('Error approving all requests:', err);
+        res.status(500).json({ message: 'Failed to approve all requests' });
+    }
+});
+
 module.exports = router;

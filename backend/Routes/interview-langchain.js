@@ -11,8 +11,48 @@ const {
 } = require('../utils/langchain-chains');
 const { createInterviewPrepWorkflow } = require('../utils/langgraph-workflows');
 const { sendOTPEmail } = require('../utils/emailService');
-const { authenticateToken } = require('../middlewares/auth');
+const { authenticateToken, identifyUser } = require('../middlewares/auth');
 const Notification = require('../Models/Notification');
+
+// GET pending approvals for the logged-in user (creator)
+router.get('/data/pending-approvals', authenticateToken, async (req, res) => {
+  try {
+    const userEmail = req.user.email;
+
+    // Find all interviews created by this user that have at least one pending question
+    const interviews = await Interview.find({
+      creatorEmail: userEmail,
+      'qna.status': 'pending'
+    }).select('sessionId title qna');
+
+    let pendingRequests = [];
+
+    interviews.forEach(interview => {
+      // Filter out only the pending questions from each interview
+      const pendingQuestions = interview.qna.filter(q => q.status === 'pending');
+
+      // Map them to a structured format
+      const formattedRequests = pendingQuestions.map(q => ({
+        _id: q._id,
+        sessionId: interview.sessionId,
+        interviewTitle: interview.title,
+        question: q.question,
+        category: q.category,
+        status: q.status,
+        requestedBy: q.requestedBy,
+        createdAt: q.createdAt,
+        answerParts: q.answerParts
+      }));
+
+      pendingRequests = [...pendingRequests, ...formattedRequests];
+    });
+
+    res.json(pendingRequests);
+  } catch (err) {
+    console.error('Error fetching pending approvals:', err);
+    res.status(500).json({ message: 'Failed to fetch pending approvals' });
+  }
+});
 
 // Helper function to parse LangChain string output into Q&A format
 function parseInterviewResponse(responseText) {
@@ -104,13 +144,39 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET single card
-router.get('/:sessionId', async (req, res) => {
+// GET single card with visibility filtering
+router.get('/:sessionId', identifyUser, async (req, res) => {
   try {
-    const card = await Interview.findOne({ sessionId: req.params.sessionId });
+    const card = await Interview.findOne({ sessionId: req.params.sessionId }).lean();
     if (!card) return res.status(404).json({ message: 'Card not found' });
+
+    // Filter QnA based on visibility
+    if (card.qna && card.qna.length > 0) {
+      card.qna = card.qna.filter(q => {
+        // Always show approved (or legacy/undefined status)
+        if (!q.status || q.status === 'approved' || q.status === 'rejected') return true;
+
+        // For pending, only show to:
+        // 1. Admin
+        // 2. Session Creator
+        // 3. The requester
+        if (q.status === 'pending') {
+          if (!req.user) return false;
+
+          const isAdmin = req.user.role === 'admin';
+          const isCreator = req.user.email === card.creatorEmail;
+          const isRequester = q.requestedBy && req.user._id.toString() === q.requestedBy.toString();
+
+          return isAdmin || isCreator || isRequester;
+        }
+
+        return true;
+      });
+    }
+
     res.json(card);
-  } catch {
+  } catch (err) {
+    console.error('Error fetching card:', err);
     res.status(500).json({ message: 'Failed to fetch card' });
   }
 });
@@ -627,6 +693,38 @@ router.patch('/reject-question/:sessionId/:qnaId', authenticateToken, async (req
   } catch (err) {
     console.error('Error rejecting question:', err);
     res.status(500).json({ message: 'Failed to reject question' });
+  }
+});
+
+// DELETE a specific question
+router.delete('/:sessionId/questions/:qnaId', authenticateToken, async (req, res) => {
+  try {
+    const { sessionId, qnaId } = req.params;
+    const session = await Interview.findOne({ sessionId });
+
+    if (!session) return res.status(404).json({ message: 'Session not found' });
+
+    // Check permissions
+    const isCreator = session.creatorEmail === req.user.email;
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isCreator && !isAdmin) {
+      return res.status(403).json({ message: 'Permission denied' });
+    }
+
+    // Filter out the question
+    const originalLength = session.qna.length;
+    session.qna = session.qna.filter(q => q._id.toString() !== qnaId);
+
+    if (session.qna.length === originalLength) {
+      return res.status(404).json({ message: 'Question not found' });
+    }
+
+    await session.save();
+    res.json({ message: 'Question deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting question:', err);
+    res.status(500).json({ message: 'Failed to delete question' });
   }
 });
 

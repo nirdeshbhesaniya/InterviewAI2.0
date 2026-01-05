@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   PlusCircle,
@@ -26,7 +25,9 @@ import { API } from '../../utils/apiPaths';
 import { Badge } from '@/components/ui/badge';
 import emptyStateImg from '../../assets/empty-state.jpg';
 import { Input } from '@/components/ui/input';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import Pagination from '../../components/common/Pagination';
 
 export const Dashboard = () => {
   const [cards, setCards] = useState([]);
@@ -39,6 +40,8 @@ export const Dashboard = () => {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [creatorModalOpen, setCreatorModalOpen] = useState(false);
   const [selectedCreator, setSelectedCreator] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
   const navigate = useNavigate();
 
   const userEmail = JSON.parse(localStorage.getItem("user"))?.email;
@@ -122,6 +125,7 @@ export const Dashboard = () => {
 
   // Debounced Search
   useEffect(() => {
+    setCurrentPage(1); // Reset to first page on search
     const delayDebounce = setTimeout(() => {
       const filtered = cards.filter((card) => {
         const combinedText = `${card.title} ${card.desc} ${card.tag}`.toLowerCase();
@@ -131,6 +135,17 @@ export const Dashboard = () => {
     }, 300);
     return () => clearTimeout(delayDebounce);
   }, [searchTerm, cards]);
+
+  // Pagination Logic
+  const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+  const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
+  const currentCards = filteredCards.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredCards.length / ITEMS_PER_PAGE);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="min-h-screen bg-[rgb(var(--bg-body))]">
@@ -273,7 +288,15 @@ export const Dashboard = () => {
               {
                 icon: Clock,
                 label: 'Avg. Prep Time',
-                value: '2.5h',
+                value: (() => {
+                  const totalQuestions = cards.reduce((acc, card) => acc + (card.qna?.length || 0), 0);
+                  // Estimate: 5 mins per question
+                  const totalMinutes = totalQuestions * 5;
+                  const avgMinutes = cards.length > 0 ? Math.round(totalMinutes / cards.length) : 0;
+
+                  if (avgMinutes < 60) return `${avgMinutes}m`;
+                  return `${(avgMinutes / 60).toFixed(1)}h`;
+                })(),
                 color: 'from-orange-500 to-red-500',
                 shortLabel: 'Avg Time'
               }
@@ -359,7 +382,7 @@ export const Dashboard = () => {
             {/* Grid View - Enhanced Mobile Responsive */}
             {viewMode === 'grid' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
-                {filteredCards.map((card, index) => {
+                {currentCards.map((card, index) => {
                   const gradient = gradients[index % gradients.length];
                   const showDelete = card.creatorEmail === userEmail;
 
@@ -478,7 +501,7 @@ export const Dashboard = () => {
             ) : (
               /* List View - Mobile Enhanced */
               <div className="space-y-3 sm:space-y-4">
-                {filteredCards.map((card, index) => {
+                {currentCards.map((card, index) => {
                   const showDelete = card.creatorEmail === userEmail;
 
                   return (
@@ -574,6 +597,11 @@ export const Dashboard = () => {
                 })}
               </div>
             )}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           </>
         )}
 

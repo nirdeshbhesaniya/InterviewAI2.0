@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { UserContext } from '../context/UserContext';
-import axios from 'axios';
+import axios from '../utils/axiosInstance';
 import { API } from '../utils/apiPaths';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -22,12 +22,15 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import moment from 'moment';
+import Pagination from '../components/common/Pagination';
 
 const NotesPage = () => {
     const { user } = useContext(UserContext);
     const [notes, setNotes] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('all'); // all, pdf, youtube, my-notes
+    const [filter, setFilter] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 9;
     const [searchQuery, setSearchQuery] = useState('');
     const [showAddModal, setShowAddModal] = useState(false);
     const [headerExpanded, setHeaderExpanded] = useState(true);
@@ -40,6 +43,7 @@ const NotesPage = () => {
     });
 
     useEffect(() => {
+        setCurrentPage(1);
         fetchNotes();
     }, [filter]);
 
@@ -72,7 +76,19 @@ const NotesPage = () => {
     };
 
     const handleSearch = () => {
+        setCurrentPage(1);
         fetchNotes();
+    };
+
+    // Pagination Logic
+    const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
+    const currentNotes = notes.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(notes.length / ITEMS_PER_PAGE);
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleAddNote = async (e) => {
@@ -297,7 +313,7 @@ const NotesPage = () => {
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                         <AnimatePresence>
-                            {notes.map((note) => (
+                            {currentNotes.map((note) => (
                                 <motion.div
                                     key={note._id}
                                     initial={{ opacity: 0, y: 20 }}
@@ -320,6 +336,11 @@ const NotesPage = () => {
                                                 <span className="font-bold text-xs sm:text-sm uppercase tracking-wide">
                                                     {note.type}
                                                 </span>
+                                                {note.status === 'pending' && (
+                                                    <span className="ml-2 px-2 py-0.5 bg-yellow-400 text-yellow-900 text-[10px] uppercase font-bold rounded-full shadow-sm">
+                                                        Pending
+                                                    </span>
+                                                )}
                                             </div>
 
                                             {note.userId === user.email && (

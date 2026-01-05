@@ -39,7 +39,9 @@ export const API = {
     VERIFY_DELETE_OTP: `${API_BASE_URL}/interview/verify-delete-otp`,
     REQUEST_DELETE_OTP: `${API_BASE_URL}/interview/request-delete-otp`,
     ADD_QUESTION: (sessionId) => `${API_BASE_URL}/interview/add-question/${sessionId}`,
+    DELETE_QUESTION: (sessionId, qnaId) => `${API_BASE_URL}/interview/${sessionId}/questions/${qnaId}`,
     CHECK_DUPLICATES: `${API_BASE_URL}/interview/check-duplicates`,
+    GET_PENDING_APPROVALS: `${API_BASE_URL}/interview/data/pending-approvals`,
   },
   CODE: {
     COMPILE: `${API_BASE_URL}/compile`
@@ -66,6 +68,7 @@ export const API = {
     GET_QNA_REQUESTS: `${API_BASE_URL}/admin/qna-requests`,
     APPROVE_QNA: (sessionId, qnaId) => `${API_BASE_URL}/interview/approve-question/${sessionId}/${qnaId}`,
     REJECT_QNA: (sessionId, qnaId) => `${API_BASE_URL}/interview/reject-question/${sessionId}/${qnaId}`,
+    APPROVE_ALL_QNA: `${API_BASE_URL}/admin/approve-all-qna`,
   },
   NOTIFICATIONS: {
     GET_ALL: (userId) => `${API_BASE_URL}/notifications/${userId}`,
@@ -87,7 +90,9 @@ export const API = {
     DELETE: (id) => `${API_BASE_URL}/notes/${id}`,
     LIKE: (id) => `${API_BASE_URL}/notes/${id}/like`,
     VIEW: (id) => `${API_BASE_URL}/notes/${id}/view`,
-    GET_USER_NOTES: (userId) => `${API_BASE_URL}/notes/user/${userId}`
+    GET_USER_NOTES: (userId) => `${API_BASE_URL}/notes/user/${userId}`,
+    ADMIN_PENDING: `${API_BASE_URL}/notes/admin/pending`,
+    UPDATE_STATUS: (id) => `${API_BASE_URL}/notes/${id}/status`
   },
   RESOURCES: {
     GET_ALL: `${API_BASE_URL}/resources`,
@@ -97,6 +102,8 @@ export const API = {
     DELETE: (id) => `${API_BASE_URL}/resources/${id}`,
     DOWNLOAD: (id) => `${API_BASE_URL}/resources/${id}/download`,
     LIKE: (id) => `${API_BASE_URL}/resources/${id}/like`,
-    MY_UPLOADS: `${API_BASE_URL}/resources/user/my-uploads`
+    MY_UPLOADS: `${API_BASE_URL}/resources/user/my-uploads`,
+    ADMIN_PENDING: `${API_BASE_URL}/resources/admin/pending`,
+    UPDATE_STATUS: (id) => `${API_BASE_URL}/resources/${id}/status`
   }
 };

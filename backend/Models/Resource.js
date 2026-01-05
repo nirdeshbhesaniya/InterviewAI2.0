@@ -63,6 +63,12 @@ const resourceSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending',
+        index: true
+    },
     likes: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'

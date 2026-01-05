@@ -55,4 +55,45 @@ const authenticateToken = (req, res, next) => {
     }
 };
 
-module.exports = { authenticateToken };
+const identifyUser = (req, res, next) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1];
+
+        if (!token) {
+            req.user = null;
+            return next();
+        }
+
+        const jwtSecret = process.env.JWT_SECRET || 'your-secret-key-change-this-in-production';
+
+        jwt.verify(token, jwtSecret, async (err, decodedUser) => {
+            if (err) {
+                req.user = null;
+                return next();
+            }
+
+            try {
+                const User = require('../Models/User');
+                const user = await User.findById(decodedUser.userId).select('isBanned role email fullName');
+
+                if (!user || user.isBanned) {
+                    req.user = null;
+                } else {
+                    req.user = user;
+                }
+                next();
+            } catch (dbErr) {
+                console.error('Identify Middleware DB Error:', dbErr);
+                req.user = null;
+                next();
+            }
+        });
+    } catch (error) {
+        console.error('Identify error:', error);
+        req.user = null;
+        next();
+    }
+};
+
+module.exports = { authenticateToken, identifyUser };

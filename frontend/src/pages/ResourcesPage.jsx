@@ -15,6 +15,7 @@ import toast from 'react-hot-toast';
 import axios from '../utils/axiosInstance';
 import { API } from '../utils/apiPaths';
 import { useUser } from '../context/UserContext';
+import Pagination from '../components/common/Pagination';
 
 // Branch configurations with icons and colors
 const BRANCHES = [
@@ -148,6 +149,9 @@ const ResourcesPage = () => {
     const [resources, setResources] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showUploadModal, setShowUploadModal] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const ITEMS_PER_PAGE = 12;
 
     const currentBranch = BRANCHES.find(b => b.id === selectedBranch);
     const BranchIcon = currentBranch?.icon || BookOpen;
@@ -158,6 +162,7 @@ const ResourcesPage = () => {
     // Handle branch selection with auto-scroll
     const handleBranchChange = (branchId) => {
         setSelectedBranch(branchId);
+        setCurrentPage(1); // Reset page on branch change
         // Scroll to materials section after a brief delay to allow state update
         setTimeout(() => {
             materialsRef.current?.scrollIntoView({
@@ -165,6 +170,10 @@ const ResourcesPage = () => {
                 block: 'start'
             });
         }, 100);
+    };
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
     };
 
     // Fetch resources when branch, filters, or search changes
@@ -175,17 +184,27 @@ const ResourcesPage = () => {
                 branch: selectedBranch,
                 ...(filterType !== 'all' && { type: filterType }),
                 ...(filterSemester !== 'all' && { semester: filterSemester }),
-                ...(searchQuery && { search: searchQuery })
+                ...(searchQuery && { search: searchQuery }),
+                page: currentPage,
+                limit: ITEMS_PER_PAGE
             });
 
             const response = await axios.get(`${API.RESOURCES.GET_ALL}?${params}`);
-            setResources(response.data);
+            if (response.data.success) {
+                setResources(response.data.resources);
+                setTotalPages(response.data.totalPages);
+            }
         } catch (error) {
             console.error('Error fetching resources:', error);
             toast.error('Failed to load resources');
         } finally {
             setLoading(false);
         }
+    }, [selectedBranch, filterType, filterSemester, searchQuery, currentPage]);
+
+    useEffect(() => {
+        setCurrentPage(1); // Reset page when filters or search change
+        fetchResources();
     }, [selectedBranch, filterType, filterSemester, searchQuery]);
 
     useEffect(() => {
@@ -497,140 +516,156 @@ const ResourcesPage = () => {
                         <Loader size="lg" text="Loading resources..." />
                     </div>
                 ) : (
-                    <div className="space-y-4">
-                        {resources.length === 0 ? (
-                            <Card className="p-8 sm:p-12 text-center bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">
-                                <Folder className="w-12 h-12 sm:w-16 sm:h-16 text-[rgb(var(--text-muted))] mx-auto mb-3 sm:mb-4" />
-                                <h3 className="text-lg sm:text-xl font-semibold text-[rgb(var(--text-primary))] mb-2">
-                                    No Resources Found
-                                </h3>
-                                <p className="text-[rgb(var(--text-secondary))] mb-4">
-                                    {searchQuery
-                                        ? 'Try adjusting your search or filters'
-                                        : 'Resources for this branch are being uploaded. Check back soon!'}
-                                </p>
-                                <Button
-                                    onClick={() => setShowUploadModal(true)}
-                                    className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white"
-                                >
-                                    <Upload className="w-4 h-4 mr-2" />
-                                    Be the First to Upload
-                                </Button>
-                            </Card>
-                        ) : (
-                            resources.map((resource) => {
-                                const TypeIcon = getTypeIcon(resource.type);
-                                const isOwner = user?.userId === resource.uploadedBy?._id || user?.userId === resource.uploadedBy;
-
-                                return (
-                                    <motion.div
-                                        key={resource._id}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
+                    <>
+                        <div className="space-y-4">
+                            {resources.length === 0 ? (
+                                <Card className="p-8 sm:p-12 text-center bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">
+                                    <Folder className="w-12 h-12 sm:w-16 sm:h-16 text-[rgb(var(--text-muted))] mx-auto mb-3 sm:mb-4" />
+                                    <h3 className="text-lg sm:text-xl font-semibold text-[rgb(var(--text-primary))] mb-2">
+                                        No Resources Found
+                                    </h3>
+                                    <p className="text-[rgb(var(--text-secondary))] mb-4">
+                                        {searchQuery
+                                            ? 'Try adjusting your search or filters'
+                                            : 'Resources for this branch are being uploaded. Check back soon!'}
+                                    </p>
+                                    <Button
+                                        onClick={() => setShowUploadModal(true)}
+                                        className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white"
                                     >
-                                        <Card className="p-4 md:p-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))] transition-all duration-300">
-                                            <div className="flex flex-col gap-4">
-                                                {/* Header with Icon and Title */}
-                                                <div className="flex items-start gap-3">
-                                                    <div className="flex-shrink-0">
-                                                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[rgb(var(--accent))]/20 to-[rgb(var(--accent))]/10 flex items-center justify-center">
-                                                            <TypeIcon className="w-6 h-6 text-[rgb(var(--accent))]" />
+                                        <Upload className="w-4 h-4 mr-2" />
+                                        Be the First to Upload
+                                    </Button>
+                                </Card>
+                            ) : (
+                                resources.map((resource) => {
+                                    const TypeIcon = getTypeIcon(resource.type);
+                                    const isOwner = user?.userId === resource.uploadedBy?._id || user?.userId === resource.uploadedBy;
+
+                                    return (
+                                        <motion.div
+                                            key={resource._id}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                        >
+                                            <Card className="p-4 md:p-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))] transition-all duration-300">
+                                                <div className="flex flex-col gap-4">
+                                                    {/* Header with Icon and Title */}
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="flex-shrink-0">
+                                                            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[rgb(var(--accent))]/20 to-[rgb(var(--accent))]/10 flex items-center justify-center">
+                                                                <TypeIcon className="w-6 h-6 text-[rgb(var(--accent))]" />
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="text-base sm:text-lg font-semibold text-[rgb(var(--text-primary))] mb-1 flex items-center gap-2 flex-wrap">
+                                                                {resource.title}
+                                                                {resource.status === 'pending' && (
+                                                                    <span className="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-[10px] uppercase font-bold rounded-full border border-yellow-200 dark:border-yellow-700 whitespace-nowrap">
+                                                                        Pending
+                                                                    </span>
+                                                                )}
+                                                            </h3>
+                                                            {resource.description && (
+                                                                <p className="text-xs sm:text-sm text-[rgb(var(--text-muted))] mb-2 line-clamp-2">
+                                                                    {resource.description}
+                                                                </p>
+                                                            )}
                                                         </div>
                                                     </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <h3 className="text-base sm:text-lg font-semibold text-[rgb(var(--text-primary))] mb-1">
-                                                            {resource.title}
-                                                        </h3>
-                                                        {resource.description && (
-                                                            <p className="text-xs sm:text-sm text-[rgb(var(--text-muted))] mb-2 line-clamp-2">
-                                                                {resource.description}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                </div>
 
-                                                {/* Content - Metadata */}
-                                                <div className="space-y-2">
-                                                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-[rgb(var(--text-secondary))]">
-                                                        <span className="flex items-center gap-1">
-                                                            <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                            <span className="truncate">{resource.subject}</span>
-                                                        </span>
-                                                        <span className="flex items-center gap-1">
-                                                            <Folder className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                            <span className="truncate">{resource.semester}</span>
-                                                        </span>
-                                                        <span className="flex items-center gap-1">
-                                                            <User className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                            <span className="truncate">{resource.uploadedByName || resource.uploadedBy?.name || 'Anonymous'}</span>
-                                                        </span>
-                                                        <span className="flex items-center gap-1">
-                                                            <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                            {new Date(resource.createdAt).toLocaleDateString()}
-                                                        </span>
+                                                    {/* Content - Metadata */}
+                                                    <div className="space-y-2">
+                                                        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-[rgb(var(--text-secondary))]">
+                                                            <span className="flex items-center gap-1">
+                                                                <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                                <span className="truncate">{resource.subject}</span>
+                                                            </span>
+                                                            <span className="flex items-center gap-1">
+                                                                <Folder className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                                <span className="truncate">{resource.semester}</span>
+                                                            </span>
+                                                            <span className="flex items-center gap-1">
+                                                                <User className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                                <span className="truncate">{resource.uploadedByName || resource.uploadedBy?.name || 'Anonymous'}</span>
+                                                            </span>
+                                                            <span className="flex items-center gap-1">
+                                                                <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                                {new Date(resource.createdAt).toLocaleDateString()}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-[rgb(var(--text-muted))]">
+                                                            <span className="flex items-center gap-1">
+                                                                <Download className="w-3 h-3" />
+                                                                {resource.downloads} downloads
+                                                            </span>
+                                                            <span>•</span>
+                                                            <span className="flex items-center gap-1">
+                                                                <Eye className="w-3 h-3" />
+                                                                {resource.views} views
+                                                            </span>
+                                                            {resource.tags && resource.tags.length > 0 && (
+                                                                <>
+                                                                    <span>•</span>
+                                                                    <div className="flex gap-1 flex-wrap">
+                                                                        {resource.tags.slice(0, 3).map((tag, idx) => (
+                                                                            <span
+                                                                                key={idx}
+                                                                                className="px-2 py-0.5 bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] rounded text-xs font-medium"
+                                                                            >
+                                                                                {tag}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                </>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-[rgb(var(--text-muted))]">
-                                                        <span className="flex items-center gap-1">
-                                                            <Download className="w-3 h-3" />
-                                                            {resource.downloads} downloads
-                                                        </span>
-                                                        <span>•</span>
-                                                        <span className="flex items-center gap-1">
-                                                            <Eye className="w-3 h-3" />
-                                                            {resource.views} views
-                                                        </span>
-                                                        {resource.tags && resource.tags.length > 0 && (
-                                                            <>
-                                                                <span>•</span>
-                                                                <div className="flex gap-1 flex-wrap">
-                                                                    {resource.tags.slice(0, 3).map((tag, idx) => (
-                                                                        <span
-                                                                            key={idx}
-                                                                            className="px-2 py-0.5 bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] rounded text-xs font-medium"
-                                                                        >
-                                                                            {tag}
-                                                                        </span>
-                                                                    ))}
-                                                                </div>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </div>
 
-                                                {/* Actions */}
-                                                <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-[rgb(var(--border-subtle))] sm:border-0 sm:pt-0">
-                                                    <Button
-                                                        onClick={() => handleView(resource)}
-                                                        className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white flex-1 justify-center"
-                                                    >
-                                                        <ExternalLink className="w-4 h-4 mr-2" />
-                                                        <span>View</span>
-                                                    </Button>
-                                                    <Button
-                                                        onClick={() => handleDownload(resource)}
-                                                        className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white flex-1 justify-center"
-                                                    >
-                                                        <Download className="w-4 h-4 mr-2" />
-                                                        <span className="hidden sm:inline">Download</span>
-                                                        <span className="sm:hidden">Get</span>
-                                                    </Button>
-                                                    {isOwner && (
+                                                    {/* Actions */}
+                                                    <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-[rgb(var(--border-subtle))] sm:border-0 sm:pt-0">
                                                         <Button
-                                                            onClick={() => handleDelete(resource._id)}
-                                                            className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white flex-1 sm:flex-none justify-center"
+                                                            onClick={() => handleView(resource)}
+                                                            className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white flex-1 justify-center"
                                                         >
-                                                            <Trash2 className="w-4 h-4 mr-2" />
-                                                            <span>Delete</span>
+                                                            <ExternalLink className="w-4 h-4 mr-2" />
+                                                            <span>View</span>
                                                         </Button>
-                                                    )}
+                                                        <Button
+                                                            onClick={() => handleDownload(resource)}
+                                                            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white flex-1 justify-center"
+                                                        >
+                                                            <Download className="w-4 h-4 mr-2" />
+                                                            <span className="hidden sm:inline">Download</span>
+                                                            <span className="sm:hidden">Get</span>
+                                                        </Button>
+                                                        {isOwner && (
+                                                            <Button
+                                                                onClick={() => handleDelete(resource._id)}
+                                                                className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white flex-1 sm:flex-none justify-center"
+                                                            >
+                                                                <Trash2 className="w-4 h-4 mr-2" />
+                                                                <span>Delete</span>
+                                                            </Button>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </Card>
-                                    </motion.div>
-                                );
-                            })
+                                            </Card>
+                                        </motion.div>
+                                    );
+                                })
+                            )}
+                        </div>
+                        {totalPages > 1 && (
+                            <div className="mt-8 flex justify-center">
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    onPageChange={handlePageChange}
+                                />
+                            </div>
                         )}
-                    </div>
+                    </>
                 )}
 
                 {/* Upload Modal */}
