@@ -69,6 +69,9 @@ export const API = {
     APPROVE_QNA: (sessionId, qnaId) => `${API_BASE_URL}/interview/approve-question/${sessionId}/${qnaId}`,
     REJECT_QNA: (sessionId, qnaId) => `${API_BASE_URL}/interview/reject-question/${sessionId}/${qnaId}`,
     APPROVE_ALL_QNA: `${API_BASE_URL}/admin/approve-all-qna`,
+    DELETE_INTERVIEW: (id) => `${API_BASE_URL}/admin/interviews/${id}`,
+    DELETE_NOTE: (id) => `${API_BASE_URL}/admin/notes/${id}`,
+    DELETE_RESOURCE: (id) => `${API_BASE_URL}/admin/resources/${id}`,
   },
   NOTIFICATIONS: {
     GET_ALL: (userId) => `${API_BASE_URL}/notifications/${userId}`,

@@ -1,6 +1,6 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import { UserContext } from '../../../context/UserContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LogOut,
   UserCircle2,
@@ -104,6 +104,12 @@ const Header = ({ onLoginClick }) => {
     })}`;
   };
 
+  const location = useLocation();
+
+  const isActive = (path) => {
+    return location.pathname === path ? 'text-[rgb(var(--accent))] font-bold' : 'text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))]';
+  };
+
   return (
     <header className="relative bg-[rgb(var(--bg-elevated))] border-b border-[rgb(var(--border))] shadow-sm z-50">
       {/* Main Header */}
@@ -137,7 +143,7 @@ const Header = ({ onLoginClick }) => {
           <nav className="hidden lg:flex items-center space-x-8">
             <motion.button
               onClick={() => navigate('/dashboard')}
-              className="text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] font-medium transition-colors duration-200"
+              className={`${isActive('/dashboard')} font-medium transition-colors duration-200`}
               whileHover={{ y: -2 }}
             >
               Dashboard
@@ -145,7 +151,7 @@ const Header = ({ onLoginClick }) => {
             {user?.role === 'admin' && (
               <motion.button
                 onClick={() => navigate('/admin')}
-                className="text-red-500 hover:text-red-600 font-medium transition-colors duration-200"
+                className={`${location.pathname.startsWith('/admin') ? 'text-red-600 font-bold' : 'text-red-500 hover:text-red-600'} font-medium transition-colors duration-200`}
                 whileHover={{ y: -2 }}
               >
                 Admin
@@ -153,32 +159,31 @@ const Header = ({ onLoginClick }) => {
             )}
             <motion.button
               onClick={() => navigate('/mcq-test')}
-              className="text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] font-medium transition-colors duration-200"
+              className={`${isActive('/mcq-test')} font-medium transition-colors duration-200`}
               whileHover={{ y: -2 }}
             >
               MCQ Tests
             </motion.button>
             <motion.button
               onClick={() => navigate('/codebase')}
-              className="text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] font-medium transition-colors duration-200"
+              className={`${isActive('/codebase')} font-medium transition-colors duration-200`}
               whileHover={{ y: -2 }}
             >
               Code Editor
             </motion.button>
             <motion.button
               onClick={() => navigate('/notes')}
-              className="flex items-center gap-2 text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] font-medium transition-colors duration-200"
+              className={`flex items-center gap-2 ${isActive('/notes')} font-medium transition-colors duration-200`}
               whileHover={{ y: -2 }}
             >
-              <BookOpen className="w-4 h-4" />
               Notes
             </motion.button>
             <motion.button
               onClick={() => navigate('/resources')}
-              className="flex items-center gap-2 text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] font-medium transition-colors duration-200"
+              className={`flex items-center gap-2 ${isActive('/resources')} font-medium transition-colors duration-200`}
               whileHover={{ y: -2 }}
             >
-              <Library className="w-4 h-4" />
+
               Resources
             </motion.button>
           </nav>

@@ -307,11 +307,17 @@ const ResourcesPage = () => {
                 return;
             }
 
-            await axios.delete(API.RESOURCES.DELETE(resourceId), {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            if (user.role === 'admin') {
+                await axios.delete(API.ADMIN.DELETE_RESOURCE(resourceId), {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            } else {
+                await axios.delete(API.RESOURCES.DELETE(resourceId), {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+            }
 
             toast.success('Resource deleted successfully');
             fetchResources();
@@ -639,7 +645,7 @@ const ResourcesPage = () => {
                                                             <span className="hidden sm:inline">Download</span>
                                                             <span className="sm:hidden">Get</span>
                                                         </Button>
-                                                        {isOwner && (
+                                                        {(isOwner || user.role === 'admin') && (
                                                             <Button
                                                                 onClick={() => handleDelete(resource._id)}
                                                                 className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white flex-1 sm:flex-none justify-center"

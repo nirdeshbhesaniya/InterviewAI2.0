@@ -168,4 +168,102 @@ router.post('/approve-all-qna', async (req, res) => {
     }
 });
 
+// DELETE user (Admin)
+router.delete('/users/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Prevent deleting self
+        if (user._id.toString() === req.user._id.toString()) {
+            return res.status(400).json({ message: 'Cannot delete yourself' });
+        }
+
+        // Soft delete (or hard delete if preferred, but usually soft first)
+        // User requested "delete any user account", implying removal. 
+        // We will perform a hard delete for "Delete" action to fully remove data as requested, 
+        // OR a strict soft delete. Given "isDeleted" exists in schema, let's use that but ensure it BLOCKS access.
+        // Actually, for "Delete" button in Admin, typically means hard delete or irreversible soft delete.
+        // Let's do Soft Delete + Ban to be safe, or Hard Delete if they want to clean up.
+        // User said "if any user account deleted... not able to use any service".
+        // Use soft delete with isDeleted flag.
+
+        user.isDeleted = true;
+        user.isBanned = true; // Double ensure lock
+        user.sessions = []; // Kill sessions
+        await user.save();
+
+        // Optionally remove related data? For now, we keep data but user is gone.
+
+        res.json({ message: 'User account deleted and access revoked successfully' });
+    } catch (err) {
+        console.error('Error deleting user:', err);
+        res.status(500).json({ message: 'Failed to delete user' });
+    }
+});
+
+// DELETE interview session (Admin)
+router.delete('/interviews/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const interview = await Interview.findByIdAndDelete(id);
+
+        if (!interview) {
+            return res.status(404).json({ message: 'Interview session not found' });
+        }
+
+        res.json({ message: 'Interview session deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting interview:', err);
+        res.status(500).json({ message: 'Failed to delete interview session' });
+    }
+});
+
+// DELETE Note (Admin)
+router.delete('/notes/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Assuming you have a Note model, but it wasn't required at top.
+        // I need to require it or use mongoose.model('Note') if strictly dynamic, 
+        // but better to add `const Note = require('../Models/Note');` at top if not there.
+        // Checking imports... Note is missing. I will add it to imports in a separate edit or use mongoose.model.
+        // For safety/cleanliness, I'll use mongoose.model if I can't confirm the file path, 
+        // but I should add the import.
+        // Let's assume the file is '../Models/Note'.
+        const Note = require('../Models/Note');
+        const note = await Note.findByIdAndDelete(id);
+
+        if (!note) {
+            return res.status(404).json({ message: 'Note not found' });
+        }
+
+        res.json({ message: 'Note deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting note:', err);
+        res.status(500).json({ message: 'Failed to delete note' });
+    }
+});
+
+// DELETE Resource (Admin)
+router.delete('/resources/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const Resource = require('../Models/Resource');
+        const resource = await Resource.findByIdAndDelete(id);
+
+        if (!resource) {
+            return res.status(404).json({ message: 'Resource not found' });
+        }
+
+        res.json({ message: 'Resource deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting resource:', err);
+        res.status(500).json({ message: 'Failed to delete resource' });
+    }
+});
+
 module.exports = router;

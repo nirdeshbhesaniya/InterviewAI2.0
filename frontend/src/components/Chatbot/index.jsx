@@ -9,16 +9,17 @@ const Chatbot = () => {
     const { isOpen, isAuthModalOpen } = useContext(ChatbotContext);
     const location = useLocation();
 
-    // Hide chatbot on MCQ test page or when auth modal is open
-    const shouldHideChatbot = location.pathname === '/mcq-test' || isAuthModalOpen;
+    // Hide chatbot ONLY on MCQ test page
+    // We allow it even if auth modal is open, or handle that via z-index/CSS instead of unmounting
+    const isMCQTest = location.pathname === '/mcq-test';
 
-    if (shouldHideChatbot) {
+    if (isMCQTest) {
         return null;
     }
 
     return (
         <>
-            {/* Toggle Button */}
+            {/* Toggle Button - always rendered if not on MCQ test */}
             <ChatbotToggle />
 
             {/* Desktop Chatbot Window */}

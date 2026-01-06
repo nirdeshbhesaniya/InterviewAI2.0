@@ -48,9 +48,9 @@ axiosInstance.interceptors.response.use(
         // Dispatch a custom event so the UI (like Header/UserContext) can react immediately
         window.dispatchEvent(new Event('auth:logout'));
 
-        // Redirect to login if not already there
-        if (!window.location.pathname.includes('/login')) {
-          window.location.href = '/login';
+        // Redirect to landing page
+        if (window.location.pathname !== '/') {
+          window.location.href = '/';
         }
       }
     }

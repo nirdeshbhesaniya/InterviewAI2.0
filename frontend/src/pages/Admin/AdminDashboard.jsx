@@ -415,26 +415,26 @@ const AdminDashboard = () => {
                                 </div>
 
                                 {/* Mobile View: User Cards */}
-                                <div className="md:hidden space-y-4">
+                                <div className="md:hidden space-y-4 pb-24">
                                     {currentUsers.map((user) => (
                                         <div key={user._id} className="bg-[rgb(var(--bg-elevated))] p-4 rounded-xl border border-[rgb(var(--border))] shadow-sm active:scale-[0.99] transition-transform">
                                             <div className="flex items-start justify-between mb-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="relative">
+                                                <div className="flex items-center gap-3 overflow-hidden">
+                                                    <div className="relative shrink-0">
                                                         <img src={user.photo || '/default-avatar.jpg'} alt="" className="w-10 h-10 rounded-full object-cover ring-2 ring-[rgb(var(--bg-main))]" />
                                                         <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[rgb(var(--bg-elevated))] ${user.isBanned ? 'bg-red-500' : 'bg-green-500'}`} />
                                                     </div>
-                                                    <div>
-                                                        <div className="font-semibold text-[rgb(var(--text-primary))]">{user.fullName}</div>
-                                                        <div className="text-xs text-[rgb(var(--text-muted))]">{user.email}</div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="font-semibold text-[rgb(var(--text-primary))] truncate">{user.fullName}</div>
+                                                        <div className="text-xs text-[rgb(var(--text-muted))] truncate">{user.email}</div>
                                                     </div>
                                                 </div>
                                                 {user.isBanned ? (
-                                                    <span className="inline-flex items-center gap-1.5 text-red-600 dark:text-red-400 font-medium text-xs bg-red-500/10 px-2 py-1 rounded-full">
+                                                    <span className="shrink-0 inline-flex items-center gap-1.5 text-red-600 dark:text-red-400 font-medium text-xs bg-red-500/10 px-2 py-1 rounded-full">
                                                         <ShieldAlert className="w-3 h-3" /> Suspended
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1.5 text-green-600 dark:text-green-400 font-medium text-xs bg-green-500/10 px-2 py-1 rounded-full">
+                                                    <span className="shrink-0 inline-flex items-center gap-1.5 text-green-600 dark:text-green-400 font-medium text-xs bg-green-500/10 px-2 py-1 rounded-full">
                                                         <CheckCircle className="w-3 h-3" /> Active
                                                     </span>
                                                 )}
@@ -459,23 +459,23 @@ const AdminDashboard = () => {
                                             </div>
 
                                             <div className="flex items-center justify-end gap-2">
-                                                <Button size="sm" variant="outline" onClick={() => handleEditUser(user)} className="h-8 text-xs">
-                                                    <PenSquare className="w-3 h-3 mr-1.5" /> Edit
+                                                <Button size="sm" variant="outline" onClick={() => handleEditUser(user)} className="h-9 px-4 text-xs">
+                                                    <PenSquare className="w-3.5 h-3.5 mr-1.5" /> Edit
                                                 </Button>
                                                 {user.role !== 'admin' && (
                                                     <Button
                                                         size="sm"
                                                         variant={user.isBanned ? "outline" : "ghost"}
                                                         onClick={() => handleBanToggle(user._id, user.isBanned)}
-                                                        className={`h-8 text-xs ${user.isBanned
+                                                        className={`h-9 px-4 text-xs ${user.isBanned
                                                             ? "bg-green-500/10 text-green-600 hover:bg-green-500/20 shadow-none border-green-200"
-                                                            : "text-red-500 hover:bg-red-500/10 hover:text-red-600"
+                                                            : "text-red-500 hover:bg-red-500/10 hover:text-red-600 bg-red-500/5"
                                                             }`}
                                                     >
                                                         {user.isBanned ? (
-                                                            <> <CheckCircle className="w-3 h-3 mr-1.5" /> Unban </>
+                                                            <> <CheckCircle className="w-3.5 h-3.5 mr-1.5" /> Unban </>
                                                         ) : (
-                                                            <> <ShieldAlert className="w-3 h-3 mr-1.5" /> Ban </>
+                                                            <> <ShieldAlert className="w-3.5 h-3.5 mr-1.5" /> Ban </>
                                                         )}
                                                     </Button>
                                                 )}
@@ -539,7 +539,7 @@ const AdminDashboard = () => {
                                                         {new Date(user.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                                                     </td>
                                                     <td className="py-4 px-6 text-right">
-                                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <div className="flex items-center justify-end gap-2">
                                                             <Button
                                                                 size="sm"
                                                                 variant="outline"

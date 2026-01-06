@@ -97,7 +97,12 @@ export const Dashboard = () => {
 
   const confirmDelete = async () => {
     try {
-      await axios.delete(API.INTERVIEW.DELETE(selectedCardId));
+      const userRole = JSON.parse(localStorage.getItem("user"))?.role;
+      if (userRole === 'admin') {
+        await axios.delete(API.ADMIN.DELETE_INTERVIEW(selectedCardId));
+      } else {
+        await axios.delete(API.INTERVIEW.DELETE(selectedCardId));
+      }
       toast.success("Card deleted successfully");
       setConfirmModal(false);
       setSelectedCardId(null);
@@ -384,7 +389,11 @@ export const Dashboard = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
                 {currentCards.map((card, index) => {
                   const gradient = gradients[index % gradients.length];
-                  const showDelete = card.creatorEmail === userEmail;
+
+                  // Check if user is admin (from local storage as fallback or context if available, 
+                  // but here we only have userEmail. Let's try to get role from localStorage safely)
+                  const userRole = JSON.parse(localStorage.getItem("user"))?.role;
+                  const showDelete = card.creatorEmail === userEmail || userRole === 'admin';
 
                   return (
                     <motion.div
@@ -502,7 +511,8 @@ export const Dashboard = () => {
               /* List View - Mobile Enhanced */
               <div className="space-y-3 sm:space-y-4">
                 {currentCards.map((card, index) => {
-                  const showDelete = card.creatorEmail === userEmail;
+                  const userRole = JSON.parse(localStorage.getItem("user"))?.role;
+                  const showDelete = card.creatorEmail === userEmail || userRole === 'admin';
 
                   return (
                     <motion.div

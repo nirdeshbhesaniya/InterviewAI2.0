@@ -39,6 +39,14 @@ const authenticateUser = async (req, res, next) => {
             });
         }
 
+        if (user.isBanned || user.isDeleted) {
+            return res.status(403).json({
+                success: false,
+                message: 'Your account has been blocked or deleted by admin',
+                isBanned: true
+            });
+        }
+
         req.user = user;
         next();
     } catch (error) {

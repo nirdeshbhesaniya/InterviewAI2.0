@@ -277,6 +277,8 @@ const jwt = require('jsonwebtoken');
 
 exports.loginUser = async (req, res) => {
   const startTime = Date.now();
+  const SERVER_ID = Math.floor(Math.random() * 10000); // Ephemeral ID for this request
+  console.log(`[${SERVER_ID}] 🚀 Login request received for email: ${req.body.email}`);
 
   try {
     const { email, password } = req.body;
@@ -301,11 +303,13 @@ exports.loginUser = async (req, res) => {
     }
 
     if (!user) {
+      console.log(`❌ Login failed: User not found for email ${email}`);
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
     // Check if email is verified
     if (!user.isEmailVerified) {
+      console.log(`❌ Login failed: Email not verified for ${email}`);
       return res.status(403).json({
         message: 'Please verify your email before logging in',
         requiresVerification: true,
@@ -315,11 +319,15 @@ exports.loginUser = async (req, res) => {
 
     // Check if user is banned
     if (user.isBanned) {
+      console.log(`❌ Login failed: User banned - ${email}`);
       return res.status(403).json({
         message: 'your account blocked by admin',
         isBanned: true
       });
     }
+
+    // Make sure we are really comparing what we think we are
+    // console.log(`DEBUG: Comparing password for ${email}`);
 
     // Compare password with error handling
     let isMatch;
@@ -334,10 +342,12 @@ exports.loginUser = async (req, res) => {
     }
 
     if (!isMatch) {
+      console.log(`❌ Login failed: Password mismatch for ${email}`);
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
     // Generate JWT token with error handling
+    // console.log('DEBUG: Password matched, generating token...');
     let token;
     try {
       token = jwt.sign(
@@ -408,6 +418,7 @@ exports.loginUser = async (req, res) => {
     // Performance logging
     const duration = Date.now() - startTime;
     console.log(`✅ Login successful for ${email} in ${duration}ms`);
+    console.log(`👉 Sending 200 response to client for ${email}`);
 
     res.status(200).json({
       message: 'Login successful',

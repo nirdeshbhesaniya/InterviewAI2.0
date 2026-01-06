@@ -35,7 +35,7 @@ const authenticateToken = (req, res, next) => {
                     return res.status(401).json({ message: 'User not found' });
                 }
 
-                if (user.isBanned) {
+                if (user.isBanned || user.isDeleted) {
                     return res.status(403).json({
                         message: 'your account blocked by admin', // Specific message as requested
                         isBanned: true
@@ -77,7 +77,7 @@ const identifyUser = (req, res, next) => {
                 const User = require('../Models/User');
                 const user = await User.findById(decodedUser.userId).select('isBanned role email fullName');
 
-                if (!user || user.isBanned) {
+                if (!user || user.isBanned || user.isDeleted) {
                     req.user = null;
                 } else {
                     req.user = user;

@@ -18,26 +18,30 @@ const allowedOrigins = [
   "http://localhost:3000",
   process.env.FRONTEND_URL,
   "https://interviewai2-0.onrender.com"
-
-].filter(Boolean);
+].filter(Boolean).map(origin => origin.replace(/\/$/, "")); // Remove trailing slashes
 
 app.use(cors({
   origin: (origin, callback) => {
     // Allow server-to-server & tools like Postman
     if (!origin) return callback(null, true);
 
+    const normalizedOrigin = origin.replace(/\/$/, "");
+
     if (
-      allowedOrigins.includes(origin) ||
-      origin.endsWith(".azurestaticapps.net")
+      allowedOrigins.includes(normalizedOrigin) ||
+      normalizedOrigin.endsWith(".azurestaticapps.net") ||
+      normalizedOrigin.endsWith(".onrender.com") // Wildcard for all render subdomains
     ) {
       return callback(null, true);
     }
 
+    console.log(`❌ CORS BLOCKED: Origin [${origin}] is not allowed.`);
     return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "user-email"]
+  allowedHeaders: ["Content-Type", "Authorization", "user-email"],
+  optionsSuccessStatus: 200 // For legacy browser support
 }));
 
 

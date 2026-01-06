@@ -130,14 +130,19 @@ const NotesPage = () => {
         }
 
         try {
-            const response = await axios.delete(API.NOTES.DELETE(noteId), {
-                data: { userId: user.email }
-            });
-
-            if (response.data.success) {
-                toast.success('Note deleted successfully!');
-                setNotes(notes.filter(note => note._id !== noteId));
+            if (user.role === 'admin') {
+                await axios.delete(API.ADMIN.DELETE_NOTE(noteId));
+            } else {
+                await axios.delete(API.NOTES.DELETE(noteId), {
+                    data: { userId: user.email }
+                });
             }
+
+            // Note: The response handling assumes standard success format. 
+            // Admin route returns simple json, need to ensure UI updates seamlessly.
+            // Both returns should be treated as success if no error thrown.
+            toast.success('Note deleted successfully!');
+            setNotes(notes.filter(note => note._id !== noteId));
         } catch (error) {
             console.error('Error deleting note:', error);
             toast.error(error.response?.data?.message || 'Failed to delete note');
@@ -343,7 +348,7 @@ const NotesPage = () => {
                                                 )}
                                             </div>
 
-                                            {note.userId === user.email && (
+                                            {(note.userId === user.email || user.role === 'admin') && (
                                                 <button
                                                     onClick={() => handleDeleteNote(note._id)}
                                                     className="p-1.5 sm:p-2 hover:bg-white/20 rounded-lg transition-colors"

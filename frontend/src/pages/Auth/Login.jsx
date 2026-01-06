@@ -22,6 +22,7 @@ const Login = ({ onSwitch, onForgotPassword }) => {
     e.preventDefault();
     setLoading(true);
 
+    console.log('AXIOS BASE URL:', axios.defaults.baseURL); // DEBUG
     try {
       const res = await axios.post(API.LOGIN, { email, password });
       const userData = res.data.user;
@@ -33,6 +34,9 @@ const Login = ({ onSwitch, onForgotPassword }) => {
       toast.success('✅ Login successful!');
       setTimeout(() => navigate('/dashboard'), 1000);
     } catch (err) {
+      console.error('LOGIN ERROR DEBUG:', err);
+      console.error('LOGIN ERROR RESPONSE:', err.response);
+
       const errorData = err.response?.data;
       const errorMessage = errorData?.message || 'Login failed';
 

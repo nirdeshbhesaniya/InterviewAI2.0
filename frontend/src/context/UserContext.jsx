@@ -62,6 +62,17 @@ export const UserProvider = ({ children }) => {
     };
 
     syncUser();
+
+    // Heartbeat to check user status every 30 seconds
+    // This ensures banned users are auto-logged out even without page refresh
+    const intervalId = setInterval(() => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        syncUser();
+      }
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
