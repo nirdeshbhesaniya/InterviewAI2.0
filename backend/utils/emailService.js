@@ -62,9 +62,22 @@ const getEmailConfig = (portOverride = null) => {
   };
 };
 
-// Create transporter with retry logic - prioritize port 465 for cloud platforms
-const createTransporter = async (retryPorts = [465, 587, 25]) => {
+// Singleton transporter instance
+let transporterInstance = null;
+
+// Create transporter with retry logic - caches the successful transporter
+const createTransporter = async (retryPorts = [465, 587]) => {
+  // Return existing instance if available
+  if (transporterInstance) {
+    return transporterInstance;
+  }
+
   const config = getEmailConfig(retryPorts[0]);
+
+  // Enable connection pooling for better performance
+  config.pool = true;
+  config.maxConnections = 5;
+  config.maxMessages = 100;
 
   try {
     const transporter = nodemailer.createTransport(config);
@@ -73,11 +86,12 @@ const createTransporter = async (retryPorts = [465, 587, 25]) => {
     await Promise.race([
       transporter.verify(),
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Verification timeout')), 15000)
+        setTimeout(() => reject(new Error('Verification timeout')), 10000)
       )
     ]);
 
     console.log(`✅ Email transporter ready on port ${config.port || config.service}`);
+    transporterInstance = transporter;
     return transporter;
   } catch (error) {
     console.error(`❌ Failed to connect on port ${retryPorts[0]}:`, error.message);
@@ -88,7 +102,7 @@ const createTransporter = async (retryPorts = [465, 587, 25]) => {
       return createTransporter(retryPorts.slice(1));
     }
 
-    // All ports failed, return unverified transporter as last resort
+    // All ports failed, return unverified transporter as last resort (don't cache it)
     console.warn('⚠️ Creating transporter without verification (may fail on send)');
     return nodemailer.createTransport(config);
   }

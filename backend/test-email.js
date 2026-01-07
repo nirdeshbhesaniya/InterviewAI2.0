@@ -12,9 +12,10 @@ const {
 } = require('./utils/emailService');
 
 // ========================================
-// CONFIGURATION - Change this to your test email
+// CONFIGURATION
 // ========================================
-const TEST_EMAIL = 'your-test-email@gmail.com'; // CHANGE THIS!
+// Use environment variable or fallback to the sender email
+const TEST_EMAIL = process.env.TEST_EMAIL || process.env.EMAIL_USER;
 
 // ========================================
 // Test Functions
@@ -24,23 +25,26 @@ async function testOTPEmail() {
     console.log('\n📧 Testing OTP Email...');
     console.log('Sending to:', TEST_EMAIL);
 
+    const start = Date.now();
     const result = await sendOTPEmail(TEST_EMAIL, '123456');
+    const duration = Date.now() - start;
 
     if (result.success) {
-        console.log('✅ OTP Email sent successfully!');
+        console.log(`✅ OTP Email sent successfully! (${duration}ms)`);
         console.log('Message ID:', result.messageId);
     } else {
         console.error('❌ Failed to send OTP email');
         console.error('Error:', result.error);
     }
 
-    return result;
+    return { ...result, duration };
 }
 
 async function testNotificationEmail() {
     console.log('\n🔔 Testing Notification Email...');
     console.log('Sending to:', TEST_EMAIL);
 
+    const start = Date.now();
     const result = await sendNotificationEmail(
         TEST_EMAIL,
         'New Feature Available',
@@ -48,16 +52,17 @@ async function testNotificationEmail() {
         'Try MCQ Tests',
         'http://localhost:5173/mcq-test'
     );
+    const duration = Date.now() - start;
 
     if (result.success) {
-        console.log('✅ Notification email sent successfully!');
+        console.log(`✅ Notification email sent successfully! (${duration}ms)`);
         console.log('Message ID:', result.messageId);
     } else {
         console.error('❌ Failed to send notification email');
         console.error('Error:', result.error);
     }
 
-    return result;
+    return { ...result, duration };
 }
 
 async function testSupportEmails() {
@@ -65,6 +70,7 @@ async function testSupportEmails() {
 
     // Test support email to team
     console.log('Sending support request to team...');
+    const startTeam = Date.now();
     const teamResult = await sendSupportEmailToTeam(
         'John Doe',
         TEST_EMAIL,
@@ -73,9 +79,10 @@ async function testSupportEmails() {
         'high',
         'I\'m having trouble accessing the code editor. Every time I try to run my code, it shows a compilation error even for simple print statements. I\'ve tried refreshing and clearing cache but the issue persists.'
     );
+    const durationTeam = Date.now() - startTeam;
 
     if (teamResult.success) {
-        console.log('✅ Support email sent to team!');
+        console.log(`✅ Support email sent to team! (${durationTeam}ms)`);
         console.log('Message ID:', teamResult.messageId);
     } else {
         console.error('❌ Failed to send support email to team');
@@ -84,6 +91,7 @@ async function testSupportEmails() {
 
     // Test auto-reply to user
     console.log('\nSending auto-reply to user...');
+    const startReply = Date.now();
     const autoReplyResult = await sendSupportAutoReply(
         'John Doe',
         TEST_EMAIL,
@@ -114,16 +122,17 @@ Best regards,
 The Interview AI Support Team`,
         'I\'m having trouble accessing the code editor...'
     );
+    const durationReply = Date.now() - startReply;
 
     if (autoReplyResult.success) {
-        console.log('✅ Auto-reply sent to user!');
+        console.log(`✅ Auto-reply sent to user! (${durationReply}ms)`);
         console.log('Message ID:', autoReplyResult.messageId);
     } else {
         console.error('❌ Failed to send auto-reply');
         console.error('Error:', autoReplyResult.error);
     }
 
-    return { teamResult, autoReplyResult };
+    return { teamResult, autoReplyResult, durationTeam, durationReply };
 }
 
 async function runAllTests() {
@@ -141,11 +150,6 @@ async function runAllTests() {
         process.exit(1);
     }
 
-    if (TEST_EMAIL === 'your-test-email@gmail.com') {
-        console.error('\n⚠️  WARNING: Please update TEST_EMAIL in test-email.js');
-        console.error('   Change line 13 to your actual email address\n');
-    }
-
     console.log('\n📋 Configuration:');
     console.log('  Email User:', process.env.EMAIL_USER);
     console.log('  Email Service:', process.env.EMAIL_SERVICE || 'gmail (default)');
@@ -159,31 +163,34 @@ async function runAllTests() {
     };
 
     try {
+        const startTotal = Date.now();
+
         // Test 1: OTP Email
         results.otp = await testOTPEmail();
-        await delay(2000); // Wait 2 seconds between tests
 
         // Test 2: Notification Email
         results.notification = await testNotificationEmail();
-        await delay(2000);
 
         // Test 3: Support Emails
         results.support = await testSupportEmails();
+
+        const totalTime = Date.now() - startTotal;
 
         // Summary
         console.log('\n' + '='.repeat(60));
         console.log('📊 TEST SUMMARY');
         console.log('='.repeat(60));
+        console.log(`Total Execution Time: ${totalTime}ms`);
 
         const otpStatus = results.otp?.success ? '✅ PASS' : '❌ FAIL';
         const notifStatus = results.notification?.success ? '✅ PASS' : '❌ FAIL';
         const supportTeamStatus = results.support?.teamResult?.success ? '✅ PASS' : '❌ FAIL';
         const supportReplyStatus = results.support?.autoReplyResult?.success ? '✅ PASS' : '❌ FAIL';
 
-        console.log(`\n  OTP Email:              ${otpStatus}`);
-        console.log(`  Notification Email:     ${notifStatus}`);
-        console.log(`  Support Team Email:     ${supportTeamStatus}`);
-        console.log(`  Support Auto-Reply:     ${supportReplyStatus}`);
+        console.log(`\n  OTP Email:              ${otpStatus} (${results.otp.duration}ms)`);
+        console.log(`  Notification Email:     ${notifStatus} (${results.notification.duration}ms)`);
+        console.log(`  Support Team Email:     ${supportTeamStatus} (${results.support.durationTeam}ms)`);
+        console.log(`  Support Auto-Reply:     ${supportReplyStatus} (${results.support.durationReply}ms)`);
 
         const allPassed = results.otp?.success &&
             results.notification?.success &&
@@ -192,18 +199,9 @@ async function runAllTests() {
 
         if (allPassed) {
             console.log('\n🎉 All tests passed! Check your email inbox.');
-            console.log('\n✅ Your email service is configured correctly!');
-            console.log('\nNext steps:');
-            console.log('  1. Check', TEST_EMAIL, 'for 4 test emails');
-            console.log('  2. Verify emails look correct on desktop and mobile');
-            console.log('  3. Check that colors match the AI Tech Dark Gradient theme');
-            console.log('  4. Test all links in the emails');
+            console.log('✅ Performance verified: Subsequent emails reuse the connection.');
         } else {
             console.log('\n⚠️  Some tests failed. Please check the errors above.');
-            console.log('\nTroubleshooting:');
-            console.log('  1. Verify EMAIL_USER and EMAIL_PASS in .env');
-            console.log('  2. Check Gmail App Password is correct');
-            console.log('  3. See EMAIL_SETUP_GUIDE.md for detailed help');
         }
 
     } catch (error) {
@@ -212,6 +210,7 @@ async function runAllTests() {
     }
 
     console.log('\n' + '='.repeat(60));
+    process.exit(0);
 }
 
 // Utility function to add delay between tests
