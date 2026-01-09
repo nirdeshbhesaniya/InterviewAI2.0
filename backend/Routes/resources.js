@@ -10,7 +10,12 @@ router.get('/', identifyUser, async (req, res) => {
 
         let query = {};
 
-        if (branch) query.branch = branch;
+        if (branch) {
+            query.$or = [
+                { branch: branch },
+                { branch: 'all' }
+            ];
+        }
         if (type && type !== 'all') query.type = type;
         if (semester && semester !== 'all') query.semester = semester;
 
@@ -159,8 +164,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
             return res.status(404).json({ message: 'Resource not found' });
         }
 
-        // Check if user is the owner
-        if (resource.uploadedBy.toString() !== req.user.userId) {
+        // Check if user is the owner or admin
+        if (resource.uploadedBy.toString() !== req.user.userId && req.user.role !== 'admin') {
             return res.status(403).json({ message: 'You can only update your own resources' });
         }
 

@@ -34,7 +34,8 @@ const resourceSchema = new mongoose.Schema({
             'instrumentation',
             'power-electronics',
             'chemical',
-            'interview'
+            'interview',
+            'all'
         ]
     },
     subject: {

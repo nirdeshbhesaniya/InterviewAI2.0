@@ -144,14 +144,7 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
-                <Route
-                  path="/resources"
-                  element={
-                    <ProtectedRoute>
-                      <ResourcesPage />
-                    </ProtectedRoute>
-                  }
-                />
+
                 <Route
                   path="/admin"
                   element={

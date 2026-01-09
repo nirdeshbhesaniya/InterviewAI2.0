@@ -17,86 +17,10 @@ import { API } from '../utils/apiPaths';
 import { useUser } from '../context/UserContext';
 import Pagination from '../components/common/Pagination';
 
-// Branch configurations with icons and colors
-const BRANCHES = [
-    {
-        id: 'computer',
-        name: 'Computer Engineering',
-        icon: Cpu,
-        color: 'from-blue-500 to-cyan-500',
-        description: 'Software, Hardware, and System Design'
-    },
-    {
-        id: 'it',
-        name: 'Information Technology',
-        icon: Cloud,
-        color: 'from-purple-500 to-pink-500',
-        description: 'Web Development, Cloud Computing, and Networks'
-    },
-    {
-        id: 'cs-ds',
-        name: 'Computer Science (Data Science)',
-        icon: Database,
-        color: 'from-green-500 to-emerald-500',
-        description: 'AI, ML, Data Analytics, and Big Data'
-    },
-    {
-        id: 'electronics',
-        name: 'Electronics & Communication',
-        icon: Radio,
-        color: 'from-orange-500 to-red-500',
-        description: 'Communication Systems, Signal Processing'
-    },
-    {
-        id: 'electrical',
-        name: 'Electrical Engineering',
-        icon: Zap,
-        color: 'from-yellow-500 to-orange-500',
-        description: 'Power Systems, Control Systems, Machines'
-    },
-    {
-        id: 'mechanical',
-        name: 'Mechanical Engineering',
-        icon: Wrench,
-        color: 'from-gray-500 to-slate-600',
-        description: 'Thermodynamics, Mechanics, Manufacturing'
-    },
-    {
-        id: 'civil',
-        name: 'Civil Engineering',
-        icon: Building,
-        color: 'from-stone-500 to-amber-600',
-        description: 'Structures, Construction, Transportation'
-    },
-    {
-        id: 'instrumentation',
-        name: 'Instrumentation & Control',
-        icon: Gauge,
-        color: 'from-teal-500 to-cyan-500',
-        description: 'Process Control, Automation, Sensors'
-    },
-    {
-        id: 'power-electronics',
-        name: 'Power Electronics',
-        icon: Battery,
-        color: 'from-indigo-500 to-purple-500',
-        description: 'Converters, Inverters, Motor Drives'
-    },
-    {
-        id: 'chemical',
-        name: 'Chemical Engineering',
-        icon: FlaskConical,
-        color: 'from-lime-500 to-green-500',
-        description: 'Process Engineering, Thermodynamics, Reactors'
-    },
-    {
-        id: 'interview',
-        name: 'Interview Preparation',
-        icon: Briefcase,
-        color: 'from-rose-500 to-pink-500',
-        description: 'Technical Interviews, HR, Aptitude, and Resume'
-    }
-];
+import { BRANCHES } from '../utils/constants';
+
+// Branch configurations removed - imported from utils/constants
+
 
 // Sample resource structure
 const SAMPLE_RESOURCES = {
@@ -149,6 +73,7 @@ const ResourcesPage = () => {
     const [resources, setResources] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showUploadModal, setShowUploadModal] = useState(false);
+    const [editingResource, setEditingResource] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const ITEMS_PER_PAGE = 12;
@@ -246,6 +171,40 @@ const ResourcesPage = () => {
             } else {
                 toast.error(error.response?.data?.message || 'Failed to upload resource');
             }
+        }
+    };
+
+    const handleEdit = (resource) => {
+        setEditingResource(resource);
+        setShowUploadModal(true);
+    };
+
+    const handleUpdateResource = async (formData) => {
+        try {
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            const token = storedUser.token || user?.token;
+
+            if (!token) {
+                toast.error('Session expired. Please logout and login again.');
+                return;
+            }
+
+            // Exclude non-modifiable fields
+            const { _id, uploadedBy, views, downloads, likes, createdAt, updatedAt, __v, ...updateData } = formData;
+
+            await axios.put(API.RESOURCES.UPDATE(_id), updateData, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            toast.success('Resource updated successfully!');
+            setShowUploadModal(false);
+            setEditingResource(null);
+            fetchResources();
+        } catch (error) {
+            console.error('Error updating resource:', error);
+            toast.error(error.response?.data?.message || 'Failed to update resource');
         }
     };
 
@@ -496,23 +455,32 @@ const ResourcesPage = () => {
 
                 {/* Current Branch Info */}
                 <Card className="p-4 sm:p-6 mb-4 sm:mb-6 bg-gradient-to-br from-[rgb(var(--bg-card))] to-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]" ref={materialsRef}>
-                    <div className="flex items-center gap-3 sm:gap-4">
-                        <div className={`p-3 sm:p-4 rounded-xl bg-gradient-to-br ${currentBranch?.color}`}>
-                            <BranchIcon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[rgb(var(--text-primary))] mb-1">
-                                {currentBranch?.name}
-                            </h2>
-                            <p className="text-sm sm:text-base text-[rgb(var(--text-secondary))] line-clamp-2">
-                                {currentBranch?.description}
-                            </p>
-                            <div className="flex items-center gap-2 sm:gap-4 mt-2">
-                                <span className="text-xs sm:text-sm text-[rgb(var(--text-muted))]">
-                                    📄 {resources.length} Resources Available
-                                </span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 sm:gap-4 flex-1">
+                            <div className={`p-3 sm:p-4 rounded-xl bg-gradient-to-br ${currentBranch?.color}`}>
+                                <BranchIcon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[rgb(var(--text-primary))] mb-1">
+                                    {currentBranch?.name}
+                                </h2>
+                                <p className="text-sm sm:text-base text-[rgb(var(--text-secondary))] line-clamp-2">
+                                    {currentBranch?.description}
+                                </p>
+                                <div className="flex items-center gap-2 sm:gap-4 mt-2">
+                                    <span className="text-xs sm:text-sm text-[rgb(var(--text-muted))]">
+                                        📄 {resources.length} Resources Available
+                                    </span>
+                                </div>
                             </div>
                         </div>
+                        <Button
+                            onClick={() => setShowUploadModal(true)}
+                            className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white shrink-0"
+                        >
+                            <Upload className="w-4 h-4 mr-2" />
+                            Upload Resource
+                        </Button>
                     </div>
                 </Card>
 
@@ -646,13 +614,22 @@ const ResourcesPage = () => {
                                                             <span className="sm:hidden">Get</span>
                                                         </Button>
                                                         {(isOwner || user.role === 'admin') && (
-                                                            <Button
-                                                                onClick={() => handleDelete(resource._id)}
-                                                                className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white flex-1 sm:flex-none justify-center"
-                                                            >
-                                                                <Trash2 className="w-4 h-4 mr-2" />
-                                                                <span>Delete</span>
-                                                            </Button>
+                                                            <>
+                                                                <Button
+                                                                    onClick={() => handleDelete(resource._id)}
+                                                                    className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white flex-1 sm:flex-none justify-center px-3"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                    <span className="sr-only sm:not-sr-only sm:ml-2">Delete</span>
+                                                                </Button>
+                                                                <Button
+                                                                    onClick={() => handleEdit(resource)}
+                                                                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white flex-1 sm:flex-none justify-center px-3"
+                                                                >
+                                                                    <Edit className="w-4 h-4" />
+                                                                    <span className="sr-only sm:not-sr-only sm:ml-2">Edit</span>
+                                                                </Button>
+                                                            </>
                                                         )}
                                                     </div>
                                                 </div>
@@ -674,12 +651,17 @@ const ResourcesPage = () => {
                     </>
                 )}
 
-                {/* Upload Modal */}
+                {/* Upload/Edit Modal */}
                 <UploadResourceModal
                     isOpen={showUploadModal}
-                    onClose={() => setShowUploadModal(false)}
-                    onUpload={handleUpload}
+                    onClose={() => {
+                        setShowUploadModal(false);
+                        setEditingResource(null);
+                    }}
+                    onUpload={editingResource ? handleUpdateResource : handleUpload}
                     selectedBranch={selectedBranch}
+                    initialData={editingResource}
+                    isEditing={!!editingResource}
                 />
             </div>
         </div>

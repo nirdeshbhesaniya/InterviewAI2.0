@@ -17,6 +17,7 @@ import {
     Calendar,
     User,
     Tag,
+    Edit2,
     ChevronUp,
     ChevronDown
 } from 'lucide-react';
@@ -34,6 +35,7 @@ const NotesPage = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [showAddModal, setShowAddModal] = useState(false);
     const [headerExpanded, setHeaderExpanded] = useState(true);
+    const [editingNote, setEditingNote] = useState(null);
     const [formData, setFormData] = useState({
         type: 'pdf',
         title: '',
@@ -167,6 +169,51 @@ const NotesPage = () => {
         }
     };
 
+    const handleEditNote = (note) => {
+        setEditingNote(note);
+        setFormData({
+            type: note.type,
+            title: note.title,
+            description: note.description || '',
+            link: note.link,
+            tags: note.tags ? note.tags.join(', ') : ''
+        });
+        setShowAddModal(true);
+    };
+
+    const handleUpdateNote = async (e) => {
+        e.preventDefault();
+        try {
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            const token = storedUser.token || user?.token;
+
+            if (!token) {
+                toast.error('Session expired');
+                return;
+            }
+
+            await axios.put(API.NOTES.UPDATE(editingNote._id), {
+                userId: user.email,
+                ...formData,
+                tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : []
+            },
+                {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+            toast.success('Note updated successfully!');
+            setEditingNote(null);
+            setShowAddModal(false);
+            setFormData({
+                type: 'pdf', title: '', description: '', link: '', tags: ''
+            });
+            fetchNotes(); // Refresh list
+        } catch (error) {
+            console.error('Error updating note:', error);
+            toast.error(error.response?.data?.message || 'Failed to update note');
+        }
+    };
+
     const openLink = async (link, noteId) => {
         try {
             // Track view count (only increments once per user)
@@ -237,7 +284,13 @@ const NotesPage = () => {
                         </div>
 
                         <button
-                            onClick={() => setShowAddModal(true)}
+                            onClick={() => {
+                                setEditingNote(null);
+                                setFormData({
+                                    type: 'pdf', title: '', description: '', link: '', tags: ''
+                                });
+                                setShowAddModal(true);
+                            }}
                             className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-[rgb(var(--accent))]/30 hover:scale-105 transition-all duration-200"
                         >
                             <Plus size={20} />
@@ -349,12 +402,20 @@ const NotesPage = () => {
                                             </div>
 
                                             {(note.userId === user.email || user.role === 'admin') && (
-                                                <button
-                                                    onClick={() => handleDeleteNote(note._id)}
-                                                    className="p-1.5 sm:p-2 hover:bg-white/20 rounded-lg transition-colors"
-                                                >
-                                                    <Trash2 size={16} className="sm:w-[18px] sm:h-[18px] text-white" />
-                                                </button>
+                                                <div className="flex items-center gap-1">
+                                                    <button
+                                                        onClick={() => handleEditNote(note)}
+                                                        className="p-1.5 sm:p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
+                                                    >
+                                                        <Edit2 size={16} className="sm:w-[18px] sm:h-[18px]" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteNote(note._id)}
+                                                        className="p-1.5 sm:p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
+                                                    >
+                                                        <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
                                     </div>
@@ -458,7 +519,7 @@ const NotesPage = () => {
                         >
                             {/* Modal Header */}
                             <div className="sticky top-0 bg-[rgb(var(--accent))] p-4 sm:p-6 flex items-center justify-between">
-                                <h2 className="text-xl sm:text-2xl font-extrabold text-white">Add New Note</h2>
+                                <h2 className="text-xl sm:text-2xl font-extrabold text-white">{editingNote ? 'Edit Note' : 'Add New Note'}</h2>
                                 <button
                                     onClick={() => setShowAddModal(false)}
                                     className="p-1.5 sm:p-2 hover:bg-white/20 rounded-lg transition-colors"
@@ -468,7 +529,7 @@ const NotesPage = () => {
                             </div>
 
                             {/* Modal Body */}
-                            <form onSubmit={handleAddNote} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+                            <form onSubmit={editingNote ? handleUpdateNote : handleAddNote} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                                 {/* Type Selection */}
                                 <div>
                                     <label className="block text-sm font-bold text-[rgb(var(--text-primary))] mb-2">
@@ -584,7 +645,7 @@ const NotesPage = () => {
                                         type="submit"
                                         className="w-full sm:flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-[rgb(var(--accent))]/30 transition-all text-sm sm:text-base"
                                     >
-                                        Add Note
+                                        {editingNote ? 'Update Note' : 'Add Note'}
                                     </button>
                                 </div>
                             </form>
