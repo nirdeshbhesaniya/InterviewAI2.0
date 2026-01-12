@@ -13,11 +13,13 @@ import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Clock, CheckCircle, XCircle, Award, Mail, Brain, Timer, BookOpen, Settings, ChevronLeft, ChevronRight, Code, Copy, History, AlertTriangle } from 'lucide-react';
 import { ButtonLoader } from '../../components/ui/Loader';
+import { useParams } from 'react-router-dom';
 
 const MCQTest = () => {
     const { user } = useContext(UserContext);
     const { setIsTestActive } = useTestMode();
     const navigate = useNavigate();
+    const { testId } = useParams(); // Get testId for practice mode
     const isSubmitting = useRef(false); // Synchronous lock to prevent double submissions
     const [currentStep, setCurrentStep] = useState('setup'); // setup, test, results
     const [formData, setFormData] = useState({
@@ -60,6 +62,48 @@ const MCQTest = () => {
         'DevOps', 'Cloud Computing', 'Cybersecurity', 'Frontend Development',
         'Backend Development'
     ]);
+
+    // Load Practice Test if testId is present
+    useEffect(() => {
+        if (testId) {
+            const fetchTest = async () => {
+                setLoading(true);
+                try {
+                    const res = await axiosInstance.get(API.MCQ.PRACTICE_DETAILS(testId));
+                    const data = res.data.data;
+
+                    if (data) {
+                        // Transform options if they are objects (though practice tests usually standard)
+                        const transformedQuestions = data.questions.map(q => ({
+                            ...q,
+                            options: Array.isArray(q.options) ? q.options : Object.values(q.options)
+                        }));
+
+                        setQuestions(transformedQuestions);
+                        setFormData(prev => ({
+                            ...prev,
+                            topic: data.topic,
+                            numberOfQuestions: data.questions.length,
+                            title: data.title
+                        }));
+                        setHasAttempted(true); // Treat as attempted to prevent regeneration logic
+                        setCurrentStep('test');
+                        setTimeLeft(data.questions.length * 120); // 2 mins per question default
+                        setTestStartTime(new Date());
+
+                        toast.success(`Practice Test: ${data.title} started!`);
+                    }
+                } catch (error) {
+                    console.error('Error loading practice test:', error);
+                    toast.error('Failed to load practice test');
+                    navigate('/mcq-test/practice');
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchTest();
+        }
+    }, [testId, navigate]);
 
     // Submit test function - defined before useEffect hooks that reference it
     const handleSubmitTest = useCallback(async () => {
@@ -109,10 +153,17 @@ const MCQTest = () => {
                 specialization: formData.specialization,
                 timeSpent: actualTimeSpent,
                 // Include security warnings
+                // Include security warnings
                 securityWarnings: {
                     fullscreenExits: fullscreenWarnings,
                     tabSwitches: tabSwitchWarnings
-                }
+                },
+                securityWarnings: {
+                    fullscreenExits: fullscreenWarnings,
+                    tabSwitches: tabSwitchWarnings
+                },
+                practiceTestId: testId, // Include practiceTestId if available
+                saveHistory: !testId // Do not save history for practice tests, save for AI tests
             };
 
             const response = await axiosInstance.post(API.MCQ.SUBMIT, submissionData);
@@ -140,7 +191,7 @@ const MCQTest = () => {
                         duration: 6000
                     });
                 } else {
-                    toast.success('Test submitted successfully! Results sent to your email.');
+                    toast.success(testId ? 'Practice Data Submitted' : 'Test submitted successfully! Results sent to your email.');
                 }
             }
         } catch (error) {
@@ -1027,6 +1078,22 @@ const MCQTest = () => {
                                                     <ReactMarkdown components={components}>
                                                         {questions[currentQuestion]?.question}
                                                     </ReactMarkdown>
+                                                    {questions[currentQuestion]?.codeSnippet && (
+                                                        <div className="mt-4 rounded-lg overflow-hidden border border-[rgb(var(--border))]">
+                                                            <div className="bg-[#0f0f0f] px-3 py-1.5 border-b border-white/10 flex items-center justify-between">
+                                                                <span className="text-xs text-gray-400 font-mono">
+                                                                    {formData.topic?.toLowerCase().includes('python') ? 'Python' : 'JavaScript'}
+                                                                </span>
+                                                            </div>
+                                                            <SyntaxHighlighter
+                                                                language={formData.topic?.toLowerCase().includes('python') ? 'python' : 'javascript'}
+                                                                style={tomorrow}
+                                                                customStyle={{ margin: 0, borderRadius: 0 }}
+                                                            >
+                                                                {questions[currentQuestion].codeSnippet}
+                                                            </SyntaxHighlighter>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -1526,6 +1593,107 @@ const MCQTest = () => {
         </div>
     );
 
+    const renderPracticeResults = () => {
+        if (!results) return null;
+
+        return (
+            <div className="max-w-4xl mx-auto px-4 py-8">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-[rgb(var(--bg-elevated))] rounded-2xl p-8 border border-[rgb(var(--border))]"
+                >
+                    <div className="text-center mb-8">
+                        <div className="inline-flex items-center justify-center p-4 rounded-full bg-[rgb(var(--accent))/10] mb-4">
+                            <Award className="w-12 h-12 text-[rgb(var(--accent))]" />
+                        </div>
+                        <h2 className="text-3xl font-bold text-[rgb(var(--text-primary))] mb-2">Practice Complete!</h2>
+                        <p className="text-[rgb(var(--text-muted))]">Here is how you performed</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div className="bg-[rgb(var(--bg-card))] p-6 rounded-xl border border-[rgb(var(--border-subtle))] text-center">
+                            <div className="text-sm text-[rgb(var(--text-muted))] mb-1">Score</div>
+                            <div className={`text-3xl font-bold ${results.score >= 70 ? 'text-green-500' : 'text-amber-500'}`}>
+                                {results.score}%
+                            </div>
+                        </div>
+                        <div className="bg-[rgb(var(--bg-card))] p-6 rounded-xl border border-[rgb(var(--border-subtle))] text-center">
+                            <div className="text-sm text-[rgb(var(--text-muted))] mb-1">Correct Answers</div>
+                            <div className="text-3xl font-bold text-[rgb(var(--text-primary))]">
+                                {results.correctAnswers}/{results.totalQuestions}
+                            </div>
+                        </div>
+                        <div className="bg-[rgb(var(--bg-card))] p-6 rounded-xl border border-[rgb(var(--border-subtle))] text-center">
+                            <div className="text-sm text-[rgb(var(--text-muted))] mb-1">Time Spent</div>
+                            <div className="text-3xl font-bold text-[rgb(var(--text-primary))]">
+                                {Math.floor(results.timeSpent / 60)}m {results.timeSpent % 60}s
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-6">
+                        <h3 className="text-xl font-bold text-[rgb(var(--text-primary))]">Detailed Review</h3>
+                        {results.detailedResults && results.detailedResults.map((result, index) => (
+                            <div key={index} className={`p-6 rounded-xl border ${result.isCorrect ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'}`}>
+                                <div className="flex justify-between items-start mb-4">
+                                    <h4 className="font-medium text-[rgb(var(--text-primary))]">Question {index + 1}</h4>
+                                    {result.isCorrect ? (
+                                        <span className="flex items-center text-green-500 text-sm font-medium">
+                                            <CheckCircle className="w-4 h-4 mr-1" /> Correct
+                                        </span>
+                                    ) : (
+                                        <span className="flex items-center text-red-500 text-sm font-medium">
+                                            <XCircle className="w-4 h-4 mr-1" /> Incorrect
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-[rgb(var(--text-secondary))] mb-4">{result.question}</p>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                    <div className="bg-[rgb(var(--bg-card))] p-3 rounded-lg border border-[rgb(var(--border-subtle))]">
+                                        <span className="text-[rgb(var(--text-muted))] block mb-1">Your Answer:</span>
+                                        <span className={result.isCorrect ? 'text-green-500' : 'text-red-500'}>
+                                            {result.userAnswer}
+                                        </span>
+                                    </div>
+                                    <div className="bg-[rgb(var(--bg-card))] p-3 rounded-lg border border-[rgb(var(--border-subtle))]">
+                                        <span className="text-[rgb(var(--text-muted))] block mb-1">Correct Answer:</span>
+                                        <span className="text-green-500">{result.correctAnswer}</span>
+                                    </div>
+                                </div>
+
+                                {result.explanation && (
+                                    <div className="mt-4 pt-4 border-t border-[rgb(var(--border-subtle))]">
+                                        <span className="text-[rgb(var(--text-muted))] text-sm font-semibold uppercase tracking-wider block mb-2">Explanation</span>
+                                        <p className="text-[rgb(var(--text-secondary))] text-sm leading-relaxed">{result.explanation}</p>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="flex justify-center mt-8 gap-4">
+                        <Button
+                            onClick={() => {
+                                setResults(null);
+                                setCurrentStep('setup');
+                                setVisitedQuestions({});
+                                setMarkedForReview({});
+                                setAnswers({});
+                                navigate('/mcq-test');
+                            }}
+                            variant="primary"
+                            className="px-8"
+                        >
+                            Back to Dashboard
+                        </Button>
+                    </div>
+                </motion.div>
+            </div>
+        );
+    };
+
     const renderResults = () => {
         const getPerformanceLevel = (score) => {
             if (score >= 90) return { level: 'Excellent', color: 'text-[rgb(var(--accent))]', bgColor: 'bg-[rgb(var(--accent))]/10', borderColor: 'border-[rgb(var(--accent))]' };
@@ -1972,7 +2140,7 @@ const MCQTest = () => {
                 {/* Content based on current step */}
                 {currentStep === 'setup' && renderSetupForm()}
                 {currentStep === 'test' && renderTest()}
-                {currentStep === 'results' && renderResults()}
+                {currentStep === 'results' && (testId ? renderPracticeResults() : renderResults())}
             </div>
 
             {/* Submit Confirmation Modal */}

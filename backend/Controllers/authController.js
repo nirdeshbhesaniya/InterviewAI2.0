@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const User = require('../Models/User');
+const User = require('../models/User');
 const { cloudinary, uploadToCloudinary } = require('../utils/cloudinary');
 const { sendOTPEmail, sendWelcomeEmail, sendRegistrationOTPEmail } = require('../utils/emailService');
 const crypto = require('crypto');

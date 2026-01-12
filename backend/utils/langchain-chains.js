@@ -158,7 +158,7 @@ async function createChatbotChain(sessionId = 'default') {
 - Industry-specific interview tips
 - Mock interview practice
 
-Provide detailed, actionable advice with examples. Use markdown formatting including:
+Provide short, concise, and easily understandable advice. Avoid long paragraphs. Use simple language. Use markdown formatting including:
 - Code blocks with language identifiers
 - Bullet points for lists
 - Bold/italic for emphasis
@@ -201,10 +201,11 @@ async function createSummarizeChain() {
 
 const moreQuestionsPrompt = ChatPromptTemplate.fromMessages([
   ['system', 'You are a senior technical interviewer creating diverse interview questions with detailed answers.'],
-  ['human', `Generate 3 additional unique technical interview questions with detailed answers on "{title}" [{tag}] for a candidate with {experience} experience.
+  ['human', `Generate 3 additional unique technical interview questions with detailed answers on "{topic}" (Context: {title} [{tag}]) for a candidate with {experience} experience.
 
 REQUIREMENTS:
 - Questions should be different from typical/common questions
+- Focus specifically on "{topic}" if provided, otherwise broadly on the main title
 - Include clear explanations
 - Add code blocks where relevant (use \`\`\`language syntax)
 - Cover different aspects of the topic
@@ -225,7 +226,8 @@ async function createMoreQuestionsChain() {
     {
       title: (input) => input.title,
       tag: (input) => input.tag,
-      experience: (input) => input.experience
+      experience: (input) => input.experience,
+      topic: (input) => input.topic || input.title // Use specific topic or fallback to title
     },
     moreQuestionsPrompt,
     qaModel,

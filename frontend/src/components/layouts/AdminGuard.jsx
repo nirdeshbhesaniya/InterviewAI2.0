@@ -5,7 +5,7 @@ import { useUser } from '../../context/UserContext';
 const AdminGuard = ({ children }) => {
     const { user } = useUser();
 
-    if (!user || user.role !== 'admin') {
+    if (!user || (user.role !== 'admin' && user.role !== 'owner')) {
         return <Navigate to="/dashboard" replace />;
     }
 

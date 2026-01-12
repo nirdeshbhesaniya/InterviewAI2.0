@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const Notification = require('../Models/Notification');
-const UserSettings = require('../Models/UserSettings');
+const Notification = require('../models/Notification');
+const UserSettings = require('../models/UserSettings');
 const { sendNotificationEmail } = require('../utils/emailService');
 
 // GET all notifications for a user

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save, User, Mail, MapPin, Briefcase, Key } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 
-const UserEditModal = ({ user, isOpen, onClose, onSave }) => {
+const UserEditModal = ({ user, isOpen, onClose, onSave, currentUserRole }) => {
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -111,14 +111,24 @@ const UserEditModal = ({ user, isOpen, onClose, onSave }) => {
                                     <label className="text-xs font-medium text-[rgb(var(--text-secondary))] uppercase tracking-wider flex items-center gap-1">
                                         <Key className="w-3 h-3" /> Role & Permissions
                                     </label>
-                                    <select
-                                        value={formData.role}
-                                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                        className="w-full px-4 py-2.5 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-xl text-sm focus:ring-2 focus:ring-[rgb(var(--accent))]/20 focus:border-[rgb(var(--accent))] outline-none transition-all cursor-pointer"
-                                    >
-                                        <option value="user">User</option>
-                                        <option value="admin">Admin</option>
-                                    </select>
+                                    {currentUserRole === 'owner' ? (
+                                        <select
+                                            value={formData.role}
+                                            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                                            className="w-full px-4 py-2.5 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-xl text-sm focus:ring-2 focus:ring-[rgb(var(--accent))]/20 focus:border-[rgb(var(--accent))] outline-none transition-all cursor-pointer"
+                                        >
+                                            <option value="user">User</option>
+                                            <option value="admin">Admin</option>
+                                            <option value="owner">Owner</option>
+                                        </select>
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            value={formData.role}
+                                            disabled
+                                            className="w-full px-4 py-2.5 bg-[rgb(var(--bg-elevated))]/50 border border-[rgb(var(--border))] rounded-xl text-sm text-[rgb(var(--text-muted))] cursor-not-allowed"
+                                        />
+                                    )}
                                 </div>
 
                                 <div className="space-y-2">

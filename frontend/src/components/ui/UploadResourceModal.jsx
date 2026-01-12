@@ -13,8 +13,8 @@ const UploadResourceModal = ({ isOpen, onClose, onUpload, selectedBranch, initia
         type: 'pdf',
         url: '',
         subject: '',
-        semester: '',
-        branch: '',
+        semester: [],
+        branch: [],
         tags: ''
     });
 
@@ -32,8 +32,8 @@ const UploadResourceModal = ({ isOpen, onClose, onUpload, selectedBranch, initia
                     type: initialData.type || 'pdf',
                     url: initialData.url || '',
                     subject: initialData.subject || '',
-                    semester: initialData.semester || '',
-                    branch: initialData.branch || '',
+                    semester: Array.isArray(initialData.semester) ? initialData.semester : (initialData.semester ? [initialData.semester] : []),
+                    branch: Array.isArray(initialData.branch) ? initialData.branch : (initialData.branch ? [initialData.branch] : []),
                     tags: Array.isArray(initialData.tags) ? initialData.tags.join(', ') : (initialData.tags || '')
                 });
                 setStep(3);
@@ -41,7 +41,7 @@ const UploadResourceModal = ({ isOpen, onClose, onUpload, selectedBranch, initia
                 // Upload Mode
                 setFormData({
                     title: '', description: '', type: 'pdf', url: '',
-                    subject: '', semester: '', branch: selectedBranch || '', tags: ''
+                    subject: '', semester: [], branch: selectedBranch ? (selectedBranch === 'all' ? ['all'] : [selectedBranch]) : [], tags: ''
                 });
 
                 // If branch is pre-selected, skip to Step 2
@@ -61,16 +61,16 @@ const UploadResourceModal = ({ isOpen, onClose, onUpload, selectedBranch, initia
     };
 
     const validateStep1 = () => {
-        if (!formData.branch) {
-            setErrors({ branch: 'Please select a branch' });
+        if (formData.branch.length === 0) {
+            setErrors({ branch: 'Please select at least one branch' });
             return false;
         }
         return true;
     };
 
     const validateStep2 = () => {
-        if (!formData.semester) {
-            setErrors({ semester: 'Please select a semester' });
+        if (formData.semester.length === 0) {
+            setErrors({ semester: 'Please select at least one semester' });
             return false;
         }
         return true;
@@ -204,12 +204,19 @@ const UploadResourceModal = ({ isOpen, onClose, onUpload, selectedBranch, initia
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                setFormData(prev => ({ ...prev, branch: 'all' }));
+                                                setFormData(prev => {
+                                                    const isAllSelected = prev.branch.includes('all');
+                                                    if (isAllSelected) {
+                                                        return { ...prev, branch: [] }; // Deselect
+                                                    } else {
+                                                        return { ...prev, branch: ['all'] }; // Select only all
+                                                    }
+                                                });
                                                 setErrors(prev => ({ ...prev, branch: '' }));
                                             }}
-                                            className={`p-4 border-2 rounded-xl text-left transition-all ${formData.branch === 'all'
-                                                    ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10'
-                                                    : 'border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/50'
+                                            className={`p-4 border-2 rounded-xl text-left transition-all ${formData.branch.includes('all')
+                                                ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10'
+                                                : 'border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/50'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-3">
@@ -220,24 +227,31 @@ const UploadResourceModal = ({ isOpen, onClose, onUpload, selectedBranch, initia
                                                     <h4 className="font-semibold text-[rgb(var(--text-primary))]">All Branches</h4>
                                                     <p className="text-xs text-[rgb(var(--text-muted))]">For common subjects</p>
                                                 </div>
-                                                {formData.branch === 'all' && <Check className="w-5 h-5 text-[rgb(var(--accent))] ml-auto" />}
+                                                {formData.branch.includes('all') && <Check className="w-5 h-5 text-[rgb(var(--accent))] ml-auto" />}
                                             </div>
                                         </button>
 
                                         {BRANCHES.map(branch => {
                                             const Icon = branch.icon;
+                                            const isSelected = formData.branch.includes(branch.id);
                                             return (
                                                 <button
                                                     key={branch.id}
                                                     type="button"
+                                                    disabled={formData.branch.includes('all')}
                                                     onClick={() => {
-                                                        setFormData(prev => ({ ...prev, branch: branch.id }));
+                                                        setFormData(prev => {
+                                                            const newBranches = isSelected
+                                                                ? prev.branch.filter(b => b !== branch.id)
+                                                                : [...prev.branch, branch.id];
+                                                            return { ...prev, branch: newBranches };
+                                                        });
                                                         setErrors(prev => ({ ...prev, branch: '' }));
                                                     }}
-                                                    className={`p-4 border-2 rounded-xl text-left transition-all ${formData.branch === branch.id
-                                                            ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10'
-                                                            : 'border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/50'
-                                                        }`}
+                                                    className={`p-4 border-2 rounded-xl text-left transition-all ${isSelected
+                                                        ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10'
+                                                        : 'border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/50'
+                                                        } ${formData.branch.includes('all') ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 >
                                                     <div className="flex items-center gap-3">
                                                         <div className={`p-2 rounded-lg bg-gradient-to-br ${branch.color}`}>
@@ -247,7 +261,7 @@ const UploadResourceModal = ({ isOpen, onClose, onUpload, selectedBranch, initia
                                                             <h4 className="font-semibold text-[rgb(var(--text-primary))]">{branch.name}</h4>
                                                             <p className="text-xs text-[rgb(var(--text-muted))] line-clamp-1">{branch.description}</p>
                                                         </div>
-                                                        {formData.branch === branch.id && <Check className="w-5 h-5 text-[rgb(var(--accent))] ml-auto" />}
+                                                        {isSelected && <Check className="w-5 h-5 text-[rgb(var(--accent))] ml-auto" />}
                                                     </div>
                                                 </button>
                                             );
@@ -266,21 +280,27 @@ const UploadResourceModal = ({ isOpen, onClose, onUpload, selectedBranch, initia
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                         {[1, 2, 3, 4, 5, 6, 7, 8].map(sem => {
                                             const semValue = `Semester ${sem}`;
+                                            const isSelected = formData.semester.includes(semValue);
                                             return (
                                                 <button
                                                     key={sem}
                                                     type="button"
                                                     onClick={() => {
-                                                        setFormData(prev => ({ ...prev, semester: semValue }));
+                                                        setFormData(prev => {
+                                                            const newSemesters = isSelected
+                                                                ? prev.semester.filter(s => s !== semValue)
+                                                                : [...prev.semester, semValue];
+                                                            return { ...prev, semester: newSemesters };
+                                                        });
                                                         setErrors(prev => ({ ...prev, semester: '' }));
                                                     }}
-                                                    className={`p-4 border-2 rounded-xl text-center transition-all ${formData.semester === semValue
-                                                            ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] font-bold'
-                                                            : 'border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/50 text-[rgb(var(--text-primary))]'
+                                                    className={`p-4 border-2 rounded-xl text-center transition-all ${isSelected
+                                                        ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] font-bold'
+                                                        : 'border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/50 text-[rgb(var(--text-primary))]'
                                                         }`}
                                                 >
                                                     <span className="text-lg">Sem {sem}</span>
-                                                    {formData.semester === semValue && <Check className="w-4 h-4 mx-auto mt-1" />}
+                                                    {isSelected && <Check className="w-4 h-4 mx-auto mt-1" />}
                                                 </button>
                                             );
                                         })}
@@ -310,8 +330,8 @@ const UploadResourceModal = ({ isOpen, onClose, onUpload, selectedBranch, initia
                                                     type="button"
                                                     onClick={() => setFormData(prev => ({ ...prev, type: type.value }))}
                                                     className={`flex-1 p-3 rounded-lg border flex items-center justify-center gap-2 transition-all ${formData.type === type.value
-                                                            ? 'bg-[rgb(var(--accent))] text-white border-[rgb(var(--accent))]'
-                                                            : 'border-[rgb(var(--border-subtle))] hover:bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-primary))]'
+                                                        ? 'bg-[rgb(var(--accent))] text-white border-[rgb(var(--accent))]'
+                                                        : 'border-[rgb(var(--border-subtle))] hover:bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-primary))]'
                                                         }`}
                                                 >
                                                     <Icon className="w-4 h-4" />

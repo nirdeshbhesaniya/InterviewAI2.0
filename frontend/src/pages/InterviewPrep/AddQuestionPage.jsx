@@ -48,6 +48,7 @@ const AddQuestionPage = () => {
 
     // ==================== STATE ====================
     const [question, setQuestion] = useState('');
+    const [category, setCategory] = useState(''); // New state for category
     const [sessionTitle, setSessionTitle] = useState(''); // New state for session title
     const [blocks, setBlocks] = useState([
         { id: '1', type: BLOCK_TYPES.PARAGRAPH, content: '' }
@@ -174,7 +175,8 @@ const AddQuestionPage = () => {
 
             const res = await axios.post(API.INTERVIEW.ADD_QUESTION(sessionId), {
                 question,
-                answerParts
+                answerParts,
+                category
             });
 
             const successMessage = res.data.message || 'Question added successfully!';
@@ -431,6 +433,20 @@ const AddQuestionPage = () => {
                                 placeholder="e.g., Explain the Event Loop in JavaScript"
                                 className="w-full bg-transparent text-xl sm:text-2xl font-bold text-[rgb(var(--text-primary))] dark:text-white placeholder-[rgb(var(--text-muted))] dark:placeholder-gray-500 border-none outline-none focus:ring-0 px-0"
                                 autoFocus
+                            />
+                        </section>
+
+                        {/* Category Input */}
+                        <section className="bg-[rgb(var(--bg-card))] rounded-xl p-6 shadow-sm border border-[rgb(var(--border))]">
+                            <label className="text-xs font-bold text-[rgb(var(--text-muted))] uppercase tracking-wider mb-2 block">
+                                Category / Topic
+                            </label>
+                            <input
+                                type="text"
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
+                                placeholder="e.g., Event Loop, Promises, CSS Grid (Optional)"
+                                className="w-full bg-transparent text-lg font-medium text-[rgb(var(--text-primary))] dark:text-white placeholder-[rgb(var(--text-muted))] dark:placeholder-gray-500 border-none outline-none focus:ring-0 px-0"
                             />
                         </section>
 

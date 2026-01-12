@@ -43,10 +43,12 @@ const AnswerEditor = () => {
     const location = useLocation();
 
     // Get question data from navigation state
-    const { question, answer, index } = location.state || {};
+    const { question, answer, category: initialCategory, index } = location.state || {};
 
     const [editedContent, setEditedContent] = useState('');
     const [originalContent, setOriginalContent] = useState('');
+    const [category, setCategory] = useState(initialCategory || 'General'); // New state
+    const [originalCategory, setOriginalCategory] = useState(initialCategory || 'General'); // New state
     const [showPreview, setShowPreview] = useState(true);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -60,8 +62,9 @@ const AnswerEditor = () => {
     const guideRef = useRef(null);
 
     useEffect(() => {
-        if (!question || !answer || index === undefined) {
-            toast.error('Invalid editor state');
+        if (!question || !answer || index === undefined || index === null) {
+            console.error('Invalid editor state:', { question, answer, index, state: location.state });
+            toast.error('Invalid editor state - Missing data');
             navigate(-1);
             return;
         }
@@ -90,8 +93,8 @@ const AnswerEditor = () => {
     }, [darkMode]);
 
     useEffect(() => {
-        setHasChanges(editedContent !== originalContent);
-    }, [editedContent, originalContent]);
+        setHasChanges(editedContent !== originalContent || category !== originalCategory);
+    }, [editedContent, originalContent, category, originalCategory]);
 
     // Parse edited content into answerParts format
     const parseEditedContent = useCallback((text) => {
@@ -157,10 +160,12 @@ const AnswerEditor = () => {
             const answerParts = parseEditedContent(editedContent);
 
             await axios.patch(API.INTERVIEW.EDIT(sessionId, index), {
-                answerParts
+                answerParts,
+                category
             });
 
             setOriginalContent(editedContent);
+            setOriginalCategory(category);
             setHasChanges(false);
             toast.success('Answer saved successfully!', { id: 'save' });
 
@@ -312,7 +317,7 @@ const AnswerEditor = () => {
                                         Edit Answer
                                     </h1>
                                     <p className="text-xs sm:text-sm text-[rgb(var(--text-muted))] truncate">
-                                        Question {index + 1}
+                                        Question {(index !== undefined && index !== null) ? index + 1 : ''}
                                     </p>
                                 </div>
                             </div>
@@ -409,9 +414,21 @@ const AnswerEditor = () => {
                                 {index + 1}
                             </div>
                             <div className="flex-1">
-                                <h2 className="text-base sm:text-lg font-semibold text-[rgb(var(--text-primary))] leading-relaxed">
+                                <h2 className="text-base sm:text-lg font-semibold text-[rgb(var(--text-primary))] leading-relaxed mb-3">
                                     {question}
                                 </h2>
+                                <div className="mt-2 pt-2 border-t border-[rgb(var(--border))]/50">
+                                    <label className="text-xs font-bold text-[rgb(var(--text-muted))] uppercase tracking-wider mb-1 block">
+                                        Category / Topic
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={category}
+                                        onChange={(e) => setCategory(e.target.value)}
+                                        className="bg-transparent text-[rgb(var(--text-secondary))] text-sm font-medium w-full focus:bg-[rgb(var(--bg-card-alt))] rounded px-2 py-1 -ml-2 transition-colors outline-none border border-transparent focus:border-[rgb(var(--accent))]/30"
+                                        placeholder="Category..."
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -466,8 +483,8 @@ const AnswerEditor = () => {
                             className="mt-6"
                         >
                             <div className={`bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 border-2 rounded-xl shadow-lg overflow-hidden transition-all duration-500 ${guideAnimated
-                                    ? 'border-blue-500 dark:border-blue-400 ring-4 ring-blue-300/50 dark:ring-blue-500/50 scale-[1.01]'
-                                    : 'border-blue-200 dark:border-blue-500/30'
+                                ? 'border-blue-500 dark:border-blue-400 ring-4 ring-blue-300/50 dark:ring-blue-500/50 scale-[1.01]'
+                                : 'border-blue-200 dark:border-blue-500/30'
                                 }`}>
                                 <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
                                     <div className="flex items-center gap-2 sm:gap-3">

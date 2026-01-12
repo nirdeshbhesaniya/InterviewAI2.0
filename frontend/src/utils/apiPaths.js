@@ -59,7 +59,9 @@ export const API = {
     TOPICS: `${API_BASE_URL}/mcq/topics`,
     HISTORY: `${API_BASE_URL}/mcq/history`,
     GET_TEST: (testId) => `${API_BASE_URL}/mcq/test/${testId}`,
-    DELETE_TEST: (testId) => `${API_BASE_URL}/mcq/test/${testId}`
+    DELETE_TEST: (testId) => `${API_BASE_URL}/mcq/test/${testId}`,
+    PRACTICE_LIST: `${API_BASE_URL}/mcq/practice-tests`,
+    PRACTICE_DETAILS: (id) => `${API_BASE_URL}/mcq/practice-tests/${id}`
   },
   ADMIN: {
     GET_USERS: `${API_BASE_URL}/admin/users`,
@@ -72,6 +74,9 @@ export const API = {
     DELETE_INTERVIEW: (id) => `${API_BASE_URL}/admin/interviews/${id}`,
     DELETE_NOTE: (id) => `${API_BASE_URL}/admin/notes/${id}`,
     DELETE_RESOURCE: (id) => `${API_BASE_URL}/admin/resources/${id}`,
+    CREATE_PRACTICE_TEST: `${API_BASE_URL}/admin/practice-tests`,
+    UPDATE_PRACTICE_TEST: (id) => `${API_BASE_URL}/admin/practice-tests/${id}`,
+    DELETE_PRACTICE_TEST: (id) => `${API_BASE_URL}/admin/practice-tests/${id}`,
   },
   NOTIFICATIONS: {
     GET_ALL: (userId) => `${API_BASE_URL}/notifications/${userId}`,

@@ -100,6 +100,7 @@ app.use('/api/settings', require('./Routes/settings'));
 app.use('/api/admin', require('./Routes/adminRoutes'));
 app.use('/api/notes', require('./Routes/notes'));
 app.use('/api/resources', require('./Routes/resources'));
+app.use('/api/ai', require('./Routes/aiRoutes'));
 
 // 404 handler
 app.use((req, res) => {

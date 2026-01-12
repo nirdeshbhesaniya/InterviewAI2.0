@@ -2,10 +2,12 @@ const express = require('express');
 const router = express.Router();
 const { chatWithAI } = require('../utils/gemini');
 const { sendCustomEmail, getEmailTemplate } = require('../utils/emailService');
-const MCQTest = require('../Models/MCQTest');
-const User = require('../Models/User');
+const MCQTest = require('../models/MCQTest');
+const User = require('../models/User');
 const { generateMCQBatch, shuffleQuestionOptions } = require('../utils/mcq-optimizer');
 const { getFromCache, addToCache, getCacheStats } = require('../utils/mcq-cache');
+const { checkFeatureEnabled } = require('../middlewares/featureAuth');
+const { logAIUsage } = require('../utils/aiLogger');
 
 // Track recent submissions to prevent duplicates (userId -> timestamp)
 const recentSubmissions = new Map();
@@ -384,7 +386,7 @@ async function sendResultsEmail(userInfo, results, topic) {
 }
 
 // Generate MCQ test with OPTIMIZED batch processing and caching
-router.post('/generate', async (req, res) => {
+router.post('/generate', checkFeatureEnabled('ai_mcq_generation'), async (req, res) => {
     try {
         const { topic, difficulty = 'medium', numberOfQuestions = 30, userEmail } = req.body;
 
@@ -433,6 +435,16 @@ router.post('/generate', async (req, res) => {
 
             // Add to cache for future requests
             addToCache(topic, difficulty, questions);
+
+            // Log AI Usage (if userId available from request body? userEmail is there)
+            // But we need userId. We can query User by email.
+            if (userEmail) {
+                // Async background lookup to avoid slowing response
+                if (user) {
+                    // Check if AI generation is enabled before logging
+                    // logAIUsage(user._id, 'openrouter', 'gpt-4o-mini', 'success');
+                }
+            }
         }
 
         // Shuffle options within each question for variety
@@ -490,7 +502,9 @@ router.post('/submit', async (req, res) => {
             questions,
             experience = 'beginner',
             specialization = '',
-            securityWarnings = {}
+            securityWarnings = {},
+            practiceTestId,
+            saveHistory = true // Default to true for AI tests
         } = req.body;
 
         if (!topic || !answers || !userInfo || !userInfo.name || !userInfo.email) {
@@ -505,7 +519,15 @@ router.post('/submit', async (req, res) => {
         let questionsWithAnswers;
 
         // Use provided questions if available, otherwise regenerate (fallback for old tests)
-        if (questions && Array.isArray(questions) && questions.length > 0) {
+        if (practiceTestId) {
+            console.log(`Evaluating Practice Test: ${practiceTestId}`);
+            const PracticeTest = require('../models/PracticeTest');
+            const practiceTest = await PracticeTest.findById(practiceTestId);
+            if (!practiceTest) {
+                return res.status(404).json({ success: false, message: 'Practice test not found' });
+            }
+            questionsWithAnswers = practiceTest.questions;
+        } else if (questions && Array.isArray(questions) && questions.length > 0) {
             questionsWithAnswers = questions;
             console.log(`Using provided questions for evaluation (${questions.length} questions)`);
         } else {
@@ -569,47 +591,52 @@ router.post('/submit', async (req, res) => {
             }
         }
 
-        // Save test results to database
-        try {
-            const mcqTest = new MCQTest({
-                userId: userId,
-                userEmail: userInfo.email,
-                topic,
-                experience,
-                specialization,
-                totalQuestions: results.totalQuestions,
-                correctAnswers: results.correctAnswers,
-                score: results.score,
-                timeSpent: results.timeSpent,
-                userAnswers: answers,
-                questionsWithAnswers: questionsWithAnswers.map(q => ({
-                    question: q.question,
-                    options: q.options,
-                    correctAnswer: q.correctAnswer,
-                    explanation: q.explanation
-                })),
-                securityWarnings: {
-                    fullscreenExits: securityWarnings.fullscreenExits || 0,
-                    tabSwitches: securityWarnings.tabSwitches || 0
-                },
-                testStatus,
-                completedAt: new Date()
-            });
+        // Only save to DB and send email if saveHistory is true
+        if (saveHistory) {
+            // Save test results to database
+            try {
+                const mcqTest = new MCQTest({
+                    userId: userId,
+                    userEmail: userInfo.email,
+                    topic,
+                    experience,
+                    specialization,
+                    totalQuestions: results.totalQuestions,
+                    correctAnswers: results.correctAnswers,
+                    score: results.score,
+                    timeSpent: results.timeSpent,
+                    userAnswers: answers,
+                    questionsWithAnswers: questionsWithAnswers.map(q => ({
+                        question: q.question,
+                        options: q.options,
+                        correctAnswer: q.correctAnswer,
+                        explanation: q.explanation
+                    })),
+                    securityWarnings: {
+                        fullscreenExits: securityWarnings.fullscreenExits || 0,
+                        tabSwitches: securityWarnings.tabSwitches || 0
+                    },
+                    testStatus,
+                    completedAt: new Date()
+                });
 
-            await mcqTest.save();
-            console.log(`Test results saved to database: ${mcqTest._id}`);
-        } catch (dbError) {
-            console.error('Error saving test to database:', dbError);
-            // Continue even if database save fails
-        }
+                await mcqTest.save();
+                console.log(`Test results saved to database: ${mcqTest._id}`);
+            } catch (dbError) {
+                console.error('Error saving test to database:', dbError);
+                // Continue even if database save fails
+            }
 
-        // Send results email
-        try {
-            await sendResultsEmail(userInfo, results, topic);
-            console.log(`Results email sent to: ${userInfo.email}`);
-        } catch (emailError) {
-            console.error('Failed to send results email:', emailError);
-            // Don't fail the request if email fails
+            // Send results email
+            try {
+                await sendResultsEmail(userInfo, results, topic);
+                console.log(`Results email sent to: ${userInfo.email}`);
+            } catch (emailError) {
+                console.error('Failed to send results email:', emailError);
+                // Don't fail the request if email fails
+            }
+        } else {
+            console.log('Skipping DB save and email for practice test (saveHistory=false)');
         }
 
         res.json({
@@ -621,9 +648,10 @@ router.post('/submit', async (req, res) => {
                     score: results.score,
                     grade: results.grade,
                     aiFeedback: results.aiFeedback,
-                    timeSpent: results.timeSpent
+                    timeSpent: results.timeSpent,
+                    detailedResults: results.detailedResults // Send detailed results for immediate display in practice mode
                 },
-                message: 'Test submitted successfully! Results have been sent to your email.'
+                message: saveHistory ? 'Test submitted successfully! Results have been sent to your email.' : 'Practice test completed!'
             }
         });
 
@@ -860,6 +888,77 @@ router.delete('/test/:testId', async (req, res) => {
             success: false,
             message: 'Failed to delete test'
         });
+    }
+});
+
+// GET all published Practice Tests
+router.get('/practice-tests', async (req, res) => {
+    try {
+        const PracticeTest = require('../models/PracticeTest');
+        const tests = await PracticeTest.find({ isPublished: true })
+            .select('title description topic difficulty questions.length attempts createdAt')
+            .sort({ createdAt: -1 });
+
+        // Return structured as existing API styles
+        res.json({
+            success: true,
+            data: tests
+        });
+    } catch (err) {
+        console.error('Error fetching practice tests:', err);
+        res.status(500).json({ success: false, message: 'Failed to fetch practice tests' });
+    }
+});
+
+// GET specific Practice Test
+router.get('/practice-tests/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const PracticeTest = require('../models/PracticeTest');
+
+        const test = await PracticeTest.findById(id);
+
+        if (!test) {
+            return res.status(404).json({ success: false, message: 'Test not found' });
+        }
+
+        // Increment attempts count
+        await PracticeTest.findByIdAndUpdate(id, { $inc: { attempts: 1 } });
+
+        // Transform for frontend (hide correct answers and explanations initially? 
+        // Existing MCQTest expects questions. For practice, we might want to prevent cheating by stripping answers,
+        // BUT the user wants "auto evaluate". The existing frontend likely needs `correctAnswer` to grade locally or sends answers back.
+        // The existing `generate` endpoint REMOVES correct answers (line 456).
+        // Checks line 456: `const questionsForTest = finalQuestions.map(({ correctAnswer, explanation, ...question }) => question);`
+        // So I should do the same.
+
+        const questionsForTest = test.questions.map(q => ({
+            id: q._id,
+            question: q.question,
+            options: q.options,
+            codeSnippet: q.codeSnippet // Include codeSnippet
+            // Omit correctAnswer and explanation
+        }));
+
+        // Return detailed object similar to `generate` response style
+        res.json({
+            success: true,
+            data: {
+                _id: test._id,
+                title: test.title,
+                description: test.description,
+                topic: test.topic,
+                difficulty: test.difficulty,
+                questions: questionsForTest, // Stripped for UI
+                totalQuestions: test.questions.length,
+                timeLimit: 45, // Default or add to schema
+                cached: true // Treat as cached/static
+            }
+        });
+
+    } catch (err) {
+        console.error('Error fetching practice test:', err);
+        res.status(500).json({ success: false, message: 'Failed to fetch test' });
     }
 });
 

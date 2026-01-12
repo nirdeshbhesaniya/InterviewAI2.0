@@ -87,20 +87,13 @@ const ANIMATION_VARIANTS = {
 const QuestionCard = ({
     question,
     answer,
+    category, // 👈 Added category prop
     index,
+    displayNumber, // 👈 Added display number prop
     isStarred,
     isExpanded,
     onToggleStar,
-    onRegenerate,
-    onEdit,
-    onShare,
-    onCopyAnswer,
-    onDelete,
-    canDelete,
-    status,
-    isCreator,
-    onApprove,
-    onReject
+    // ... (props)
 }) => {
     const [isOpen, setIsOpen] = useState(isExpanded);
 
@@ -126,11 +119,16 @@ const QuestionCard = ({
                             <div className="flex items-start gap-3">
                                 {/* Question Number Badge */}
                                 <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[rgb(var(--accent))] text-white text-sm font-bold shadow-md flex-shrink-0">
-                                    {index + 1}
+                                    {displayNumber || index + 1}
                                 </span>
 
-                                {/* Question Text */}
+                                {/* Category Badge & Question Text */}
                                 <div className="flex-1 min-w-0">
+                                    {category && category !== 'General' && (
+                                        <span className="inline-block px-2 py-0.5 mb-2 text-[10px] font-bold uppercase tracking-wider text-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10 rounded border border-[rgb(var(--accent))]/20">
+                                            {category}
+                                        </span>
+                                    )}
                                     <h3 className="text-base sm:text-lg font-bold text-[rgb(var(--text-primary))] leading-relaxed break-words">
                                         {question}
                                     </h3>
@@ -357,6 +355,7 @@ const InterviewPrepModern = () => {
     });
     const [isGenerating, setIsGenerating] = useState(false);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, index: null });
+    const [generateModal, setGenerateModal] = useState({ isOpen: false, topic: '' }); // 👈 New state for generate modal
     const [isDeleting, setIsDeleting] = useState(false);
 
     // ==================== EFFECTS ====================
@@ -462,6 +461,7 @@ const InterviewPrepModern = () => {
             state: {
                 question: session.qna[index].question,
                 answer: session.qna[index].answerParts,
+                category: session.qna[index].category,
                 index,
                 originalAnswer: session.qna[index].answerParts
             }
@@ -516,24 +516,31 @@ const InterviewPrepModern = () => {
         toast.success('Session link copied!');
     }, []);
 
-    const handleGenerateMore = useCallback(async () => {
+    const handleGenerateMore = useCallback(() => {
+        setGenerateModal({ isOpen: true, topic: '' });
+    }, []);
+
+    const confirmGenerateMore = useCallback(async () => {
         setIsGenerating(true);
-        toast.loading('Generating more questions...', { id: 'generate-more' });
+        const loadingId = toast.loading('Generating more questions...', { id: 'generate-more' });
+        setGenerateModal({ isOpen: false, topic: '' });
 
         try {
-            const response = await axios.post(API.INTERVIEW.GENERATE_MORE(sessionId));
+            const response = await axios.post(API.INTERVIEW.GENERATE_MORE(sessionId), {
+                topic: generateModal.topic // Pass specific topic
+            });
             setSession(prev => ({
                 ...prev,
                 qna: [...prev.qna, ...(response.data.qna || [])]
             }));
-            toast.success('Generated more questions!', { id: 'generate-more' });
+            toast.success('Generated more questions!', { id: loadingId });
         } catch (error) {
-            toast.error('Failed to generate questions', { id: 'generate-more' });
+            toast.error('Failed to generate questions', { id: loadingId });
             console.error('Generate error:', error);
         } finally {
             setIsGenerating(false);
         }
-    }, [sessionId]);
+    }, [sessionId, generateModal.topic]);
 
     const handleLoadMore = useCallback(() => {
         setVisibleCount(prev => prev + ITEMS_PER_PAGE);
@@ -694,6 +701,67 @@ const InterviewPrepModern = () => {
                 isDeleting={isDeleting}
             />
 
+            {/* Generate More Modal */}
+            <AnimatePresence>
+                {generateModal.isOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-[rgb(var(--bg-card))] w-full max-w-md rounded-xl shadow-2xl border border-[rgb(var(--border))]"
+                        >
+                            <div className="p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center">
+                                        <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-[rgb(var(--text-primary))]">Generate Questions</h3>
+                                        <p className="text-xs text-[rgb(var(--text-muted))]">AI will create new questions for you</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 mb-6">
+                                    <div>
+                                        <label className="text-xs font-bold text-[rgb(var(--text-muted))] uppercase tracking-wider mb-2 block">
+                                            Specific Topic (Optional)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={generateModal.topic}
+                                            onChange={(e) => setGenerateModal(prev => ({ ...prev, topic: e.target.value }))}
+                                            placeholder="e.g. React Hooks, System Design, SQL Joins..."
+                                            className="w-full bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-lg px-4 py-2.5 text-sm text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))]/50 outline-none"
+                                            autoFocus
+                                        />
+                                        <p className="mt-2 text-[10px] text-[rgb(var(--text-muted))]">
+                                            Leave empty to generate random questions based on the session main title.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3 justify-end">
+                                    <button
+                                        onClick={() => setGenerateModal({ isOpen: false, topic: '' })}
+                                        className="px-4 py-2 rounded-lg text-sm font-medium text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-body-alt))] transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={confirmGenerateMore}
+                                        className="px-4 py-2 rounded-lg text-sm font-medium bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white shadow-lg shadow-[rgb(var(--accent))]/20 transition-all flex items-center gap-2"
+                                    >
+                                        <Sparkles className="w-4 h-4" />
+                                        Generate
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
             <div className="min-h-screen bg-[rgb(var(--bg-body))]">
                 <div className="w-full py-4 sm:py-6">
                     {/* ==================== HEADER SECTION ==================== */}
@@ -847,64 +915,69 @@ const InterviewPrepModern = () => {
                         animate="show"
                         className="space-y-6 px-3 sm:px-4 md:px-6"
                     >
-                        {Object.entries(
-                            visibleQuestions.reduce((acc, qa) => {
-                                const category = qa.category || 'General';
-                                if (!acc[category]) acc[category] = [];
-                                acc[category].push(qa);
-                                return acc;
-                            }, {})
-                        ).map(([category, questions], groupIndex) => {
-                            // Filter out pending questions for general view (unless owner)
+                        {(() => {
+                            let questionCounter = 0;
+                            return Object.entries(
+                                visibleQuestions.reduce((acc, qa) => {
+                                    const category = qa.category || 'General';
+                                    if (!acc[category]) acc[category] = [];
+                                    acc[category].push(qa);
+                                    return acc;
+                                }, {})
+                            ).map(([category, questions], groupIndex) => {
+                                // Filter out pending questions for general view (unless owner or requester)
+                                const displayQuestions = questions.filter(q => {
+                                    if (q.status === 'pending') {
+                                        const isRequester = user && (q.requestedBy === user._id || q.requestedBy === user.userId || q.requestedBy === user.id);
+                                        return isCreator || isRequester;
+                                    }
+                                    return q.status !== 'rejected';
+                                });
+                                if (displayQuestions.length === 0) return null;
 
-                            // Filter out pending questions for general view (unless owner or requester)
-                            const displayQuestions = questions.filter(q => {
-                                if (q.status === 'pending') {
-                                    const isRequester = user && (q.requestedBy === user._id || q.requestedBy === user.userId || q.requestedBy === user.id);
-                                    return isCreator || isRequester;
-                                }
-                                return q.status !== 'rejected';
-                            });
-                            if (displayQuestions.length === 0) return null;
+                                return (
+                                    <div key={groupIndex} className="space-y-3 sm:space-y-4">
+                                        <div className="flex items-center gap-2 pb-2 border-b border-[rgb(var(--border-subtle))]">
+                                            <h2 className="text-xl font-bold text-[rgb(var(--accent))]">
+                                                {category}
+                                            </h2>
+                                            <span className="text-sm text-[rgb(var(--text-muted))]">
+                                                ({displayQuestions.length})
+                                            </span>
+                                        </div>
+                                        {displayQuestions.map((qa, index) => {
+                                            // Calculate global index for correct state tracking
+                                            const globalIndex = session.qna.indexOf(qa);
+                                            questionCounter++; // Increment counter for display
 
-                            return (
-                                <div key={groupIndex} className="space-y-3 sm:space-y-4">
-                                    <div className="flex items-center gap-2 pb-2 border-b border-[rgb(var(--border-subtle))]">
-                                        <h2 className="text-xl font-bold text-[rgb(var(--accent))]">
-                                            {category}
-                                        </h2>
-                                        <span className="text-sm text-[rgb(var(--text-muted))]">
-                                            ({displayQuestions.length})
-                                        </span>
+                                            return (
+                                                <QuestionCard
+                                                    key={globalIndex}
+                                                    question={qa.question}
+                                                    answer={qa.answerParts}
+                                                    category={qa.category}
+                                                    index={globalIndex}
+                                                    displayNumber={questionCounter} // 👈 Pass sequential number
+                                                    isStarred={starredQuestions[globalIndex]}
+                                                    isExpanded={expandedAll}
+                                                    onToggleStar={handleToggleStar}
+                                                    onRegenerate={handleRegenerate}
+                                                    onEdit={handleEdit}
+                                                    onShare={handleShare}
+                                                    onCopyAnswer={handleCopyAnswer}
+                                                    onDelete={handleDelete}
+                                                    canDelete={isCreator || user?.role === 'admin'}
+                                                    status={qa.status}
+                                                    isCreator={isCreator}
+                                                    onApprove={handleApprove}
+                                                    onReject={handleReject}
+                                                />
+                                            );
+                                        })}
                                     </div>
-                                    {displayQuestions.map((qa, index) => {
-                                        // Calculate global index for correct state tracking
-                                        const globalIndex = session.qna.indexOf(qa);
-                                        return (
-                                            <QuestionCard
-                                                key={globalIndex}
-                                                question={qa.question}
-                                                answer={qa.answerParts}
-                                                index={globalIndex}
-                                                isStarred={starredQuestions[globalIndex]}
-                                                isExpanded={expandedAll}
-                                                onToggleStar={handleToggleStar}
-                                                onRegenerate={handleRegenerate}
-                                                onEdit={handleEdit}
-                                                onShare={handleShare}
-                                                onCopyAnswer={handleCopyAnswer}
-                                                onDelete={handleDelete}
-                                                canDelete={isCreator || user?.role === 'admin'}
-                                                status={qa.status}
-                                                isCreator={isCreator}
-                                                onApprove={handleApprove}
-                                                onReject={handleReject}
-                                            />
-                                        );
-                                    })}
-                                </div>
-                            );
-                        })}
+                                );
+                            });
+                        })()}
                     </motion.div>
 
                     {/* ==================== LOAD MORE / GENERATE MORE ==================== */}

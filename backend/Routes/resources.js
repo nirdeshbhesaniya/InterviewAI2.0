@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Resource = require('../Models/Resource');
+const Resource = require('../models/Resource');
 const { authenticateToken, identifyUser } = require('../middlewares/auth');
 
 // Get all resources with filters
@@ -116,6 +116,15 @@ router.post('/', authenticateToken, async (req, res) => {
             });
         }
 
+        // Validate branch and semester are non-empty arrays (or convert single to array if needed for robustness)
+        const branchArray = Array.isArray(branch) ? branch : [branch];
+        const semesterArray = Array.isArray(semester) ? semester : [semester];
+
+        if (branchArray.length === 0 || semesterArray.length === 0) {
+            return res.status(400).json({ message: 'At least one branch and semester must be selected' });
+        }
+
+
         // Validate URL based on type
         if (type === 'video') {
             const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
@@ -134,13 +143,13 @@ router.post('/', authenticateToken, async (req, res) => {
             description,
             type,
             url,
-            branch,
+            branch: branchArray,
             subject,
-            semester,
+            semester: semesterArray,
             uploadedBy: req.user._id,
             uploadedByName: req.user.fullName || 'Anonymous',
             tags: tags || [],
-            status: req.user.role === 'admin' ? 'approved' : 'pending'
+            status: (req.user.role === 'admin' || req.user.role === 'owner') ? 'approved' : 'pending'
         });
 
         await resource.save();
@@ -164,8 +173,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
             return res.status(404).json({ message: 'Resource not found' });
         }
 
-        // Check if user is the owner or admin
-        if (resource.uploadedBy.toString() !== req.user.userId && req.user.role !== 'admin') {
+        // Check if user is the owner (creator) or admin/owner (role)
+        if (resource.uploadedBy.toString() !== req.user.userId && req.user.role !== 'admin' && req.user.role !== 'owner') {
             return res.status(403).json({ message: 'You can only update your own resources' });
         }
 
@@ -278,7 +287,7 @@ router.get('/user/my-uploads', authenticateToken, async (req, res) => {
 // ADMIN: Get all pending resources
 router.get('/admin/pending', authenticateToken, async (req, res) => {
     try {
-        if (req.user.role !== 'admin') {
+        if (req.user.role !== 'admin' && req.user.role !== 'owner') {
             return res.status(403).json({ message: 'Access denied' });
         }
 
@@ -296,7 +305,7 @@ router.get('/admin/pending', authenticateToken, async (req, res) => {
 // ADMIN: Update resource status (Approve/Reject)
 router.patch('/:id/status', authenticateToken, async (req, res) => {
     try {
-        if (req.user.role !== 'admin') {
+        if (req.user.role !== 'admin' && req.user.role !== 'owner') {
             return res.status(403).json({ message: 'Access denied' });
         }
 

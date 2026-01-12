@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { createChatbotChain } = require('../utils/langchain-chains');
+const { checkFeatureEnabled } = require('../middlewares/featureAuth');
+const { identifyUser } = require('../middlewares/auth');
+const { logAIUsage } = require('../utils/aiLogger');
 
 // Store chat sessions in memory (use Redis in production)
 const chatSessions = new Map();
@@ -20,7 +23,7 @@ setInterval(() => {
 }, 600000); // Every 10 minutes
 
 // POST /api/chatbot/ask
-router.post('/ask', async (req, res) => {
+router.post('/ask', checkFeatureEnabled('ai_chatbot'), identifyUser, async (req, res) => {
     try {
         const { message, context = 'general', sessionId = 'default' } = req.body;
 
@@ -46,6 +49,18 @@ router.post('/ask', async (req, res) => {
         const response = await chatChain.invoke({
             input: message
         });
+
+        // Log AI Usage
+        // Check if user info is passed? 'ask' endpoint body often doesn't have it unless auth middleware is used.
+        // This middleware is `checkFeatureEnabled` only.
+        // We need auth middleware to get req.user.
+        // If not authenticated, we can't log userId.
+        // But let's check headers or body for 'userId' or 'userEmail' just in case client sends it?
+        // Or updated route to use 'authenticateToken'?
+        // For now, only log if req.user exists.
+        if (req.user) {
+            logAIUsage(req.user._id, 'openrouter', 'gpt-4o-mini', 'success');
+        }
 
         res.json({
             success: true,

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../Models/User');
-const Interview = require('../Models/Interview'); // 👈 Import Interview model
+const User = require('../models/User');
+const Interview = require('../models/Interview'); // 👈 Import Interview model
 const bcrypt = require('bcryptjs');
 const upload = require('../middlewares/upload');
 const { uploadToCloudinary } = require('../utils/cloudinary');
@@ -474,9 +474,9 @@ router.post('/toggle-2fa', authenticateUser, async (req, res) => {
 router.get('/stats', authenticateUser, async (req, res) => {
     try {
         // Import models
-        const Interview = require('../Models/Interview');
-        const MCQTest = require('../Models/MCQTest');
-        const Note = require('../Models/Note');
+        const Interview = require('../models/Interview');
+        const MCQTest = require('../models/MCQTest');
+        const Note = require('../models/Note');
 
         // Get actual statistics from database
         const [interviewCount, mcqCount, notesCount] = await Promise.all([

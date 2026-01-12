@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
-const Interview = require('../Models/Interview');
-const User = require('../Models/User');
+const Interview = require('../models/Interview');
+const User = require('../models/User');
 const {
   createInterviewQAChain,
   createAnswerChain,
@@ -12,7 +12,9 @@ const {
 const { createInterviewPrepWorkflow } = require('../utils/langgraph-workflows');
 const { sendOTPEmail } = require('../utils/emailService');
 const { authenticateToken, identifyUser } = require('../middlewares/auth');
-const Notification = require('../Models/Notification');
+const Notification = require('../models/Notification');
+const { checkFeatureEnabled } = require('../middlewares/featureAuth');
+const { logAIUsage } = require('../utils/aiLogger');
 
 // GET pending approvals for the logged-in user (creator)
 router.get('/data/pending-approvals', authenticateToken, async (req, res) => {
@@ -226,7 +228,7 @@ router.post('/check-duplicates', async (req, res) => {
 });
 
 // CREATE card using LangChain
-router.post('/', async (req, res) => {
+router.post('/', checkFeatureEnabled('ai_interview_generation'), async (req, res) => {
   const { title, tag, initials, experience, desc, color, creatorEmail } = req.body;
 
   if (!title || !tag || !initials || !experience || !desc || !creatorEmail) {
@@ -244,6 +246,13 @@ router.post('/', async (req, res) => {
       experience,
       numberOfQuestions: 5
     });
+
+    // Log AI Usage
+    if (creatorEmail) {
+      User.findOne({ email: creatorEmail }).then(user => {
+        if (user) logAIUsage(user._id, 'openrouter', 'gpt-4o-mini', 'success');
+      }).catch(err => console.error('Error logging usage:', err));
+    }
 
     // Parse the response
     const parsedQuestions = result.questions;
@@ -290,7 +299,7 @@ router.post('/', async (req, res) => {
 });
 
 // CREATE card using LangGraph Workflow (with validation)
-router.post('/workflow', async (req, res) => {
+router.post('/workflow', checkFeatureEnabled('ai_interview_generation'), async (req, res) => {
   const { title, tag, initials, experience, desc, color, creatorEmail } = req.body;
 
   if (!title || !tag || !initials || !experience || !desc || !creatorEmail) {
@@ -309,6 +318,13 @@ router.post('/workflow', async (req, res) => {
       description: desc,
       needsRegeneration: []
     });
+
+    // Log AI Usage
+    if (creatorEmail) {
+      User.findOne({ email: creatorEmail }).then(user => {
+        if (user) logAIUsage(user._id, 'openrouter', 'gpt-4o-mini', 'success');
+      }).catch(err => console.error('Error logging usage:', err));
+    }
 
     if (result.error) {
       throw new Error(result.error);
@@ -369,7 +385,7 @@ router.delete('/:sessionId', async (req, res) => {
 });
 
 // PATCH regenerate a single question's answer using LangChain
-router.patch('/regenerate/:sessionId/:index', async (req, res) => {
+router.patch('/regenerate/:sessionId/:index', checkFeatureEnabled('ai_interview_generation'), async (req, res) => {
   try {
     const { sessionId, index } = req.params;
     const card = await Interview.findOne({ sessionId });
@@ -415,6 +431,7 @@ router.patch('/edit/:sessionId/:index', async (req, res) => {
 
     if (question) card.qna[index].question = question;
     if (answerParts) card.qna[index].answerParts = answerParts;
+    if (req.body.category) card.qna[index].category = req.body.category;
 
     await card.save();
     res.json(card.qna[index]);
@@ -425,7 +442,7 @@ router.patch('/edit/:sessionId/:index', async (req, res) => {
 });
 
 // POST to generate more QnA using LangChain
-router.post('/generate-more/:sessionId', async (req, res) => {
+router.post('/generate-more/:sessionId', checkFeatureEnabled('ai_interview_generation'), async (req, res) => {
   try {
     const { sessionId } = req.params;
     const session = await Interview.findOne({ sessionId });
@@ -437,8 +454,22 @@ router.post('/generate-more/:sessionId', async (req, res) => {
     const responseText = await moreQuestionsChain.invoke({
       title: session.title,
       tag: session.tag,
-      experience: session.experience
+      experience: session.experience,
+      topic: req.body.topic // Pass specific topic if provided
     });
+
+    // Log AI Usage
+    // Note: generate-more route uses 'checkFeatureEnabled' but currently doesn't have 'authenticateToken'
+    // But let's check if we can get user from somewhere or just skip if no user.
+    // 'checkFeatureEnabled' doesn't authenticate.
+    // However, usually detailed generation routes are protected. This one might need auth.
+    // For now, safe check.
+    // Log AI Usage
+    if (session && session.creatorEmail) {
+      User.findOne({ email: session.creatorEmail }).then(user => {
+        if (user) logAIUsage(user._id, 'openrouter', 'gpt-4o-mini', 'success');
+      }).catch(err => console.error('Error logging usage:', err));
+    }
 
     // Parse the response
     const parsedQuestions = parseInterviewResponse(responseText);
@@ -446,6 +477,7 @@ router.post('/generate-more/:sessionId', async (req, res) => {
     // Transform the output
     const generatedQnA = parsedQuestions.map((q) => ({
       question: q.question,
+      category: req.body.topic || 'General', // Use specific topic as category
       answerParts: parseAnswerIntoParts(q.answer)
     }));
 
@@ -460,7 +492,7 @@ router.post('/generate-more/:sessionId', async (req, res) => {
 });
 
 // POST ask endpoint - generate answer for a question
-router.post('/ask', async (req, res) => {
+router.post('/ask', checkFeatureEnabled('ai_interview_generation'), async (req, res) => {
   try {
     const { question, title, tag, experience, sessionId, index } = req.body;
 
@@ -494,7 +526,7 @@ router.post('/ask', async (req, res) => {
 });
 
 // POST summarize using LangChain
-router.post('/summarize', async (req, res) => {
+router.post('/summarize', checkFeatureEnabled('ai_interview_generation'), async (req, res) => {
   try {
     const { text } = req.body;
 

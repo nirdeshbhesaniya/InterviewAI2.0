@@ -9,7 +9,8 @@ import {
     User,
     Copy,
     Check,
-    Sparkles
+    Sparkles,
+    X
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -28,10 +29,12 @@ const ChatbotWindow = () => {
         isMinimized,
         minimizeChatbot,
         expandChatbot,
+        closeChatbot, // Added closeChatbot
     } = useContext(ChatbotContext);
 
     const [inputMessage, setInputMessage] = useState('');
     const [copiedMessageId, setCopiedMessageId] = useState(null);
+    const [isFullScreen, setIsFullScreen] = useState(false);
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
 
@@ -87,6 +90,12 @@ const ChatbotWindow = () => {
         });
     };
 
+    const toggleFullScreen = () => {
+        setIsFullScreen(!isFullScreen);
+        // If minimizing, ensure it's not minimized
+        if (isMinimized) expandChatbot();
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -96,15 +105,19 @@ const ChatbotWindow = () => {
                 animate={{
                     opacity: 1,
                     scale: 1,
-                    y: 0,
-                    height: isMinimized ? '60px' : '600px',
-                    width: window.innerWidth < 768 ? '95vw' : '400px'
+                    y: isFullScreen ? 0 : 0,
+                    x: isFullScreen ? 0 : 0,
+                    height: isFullScreen ? '100vh' : (isMinimized ? '60px' : '600px'),
+                    width: isFullScreen ? '100vw' : (window.innerWidth < 768 ? '95vw' : '400px'),
+                    borderRadius: isFullScreen ? 0 : '0.75rem',
+                    bottom: isFullScreen ? 0 : '1.5rem',
+                    right: isFullScreen ? 0 : '1.5rem',
                 }}
                 exit={{ opacity: 0, scale: 0.8, y: 50 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="fixed bottom-6 right-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] rounded-xl shadow-card z-40 flex flex-col overflow-hidden"
+                className={`fixed z-50 flex flex-col overflow-hidden bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] shadow-card ${!isFullScreen && 'rounded-xl'}`}
                 style={{
-                    maxHeight: '80vh',
+                    maxHeight: isFullScreen ? '100vh' : '80vh',
                     minHeight: isMinimized ? '60px' : '400px'
                 }}
             >
@@ -123,11 +136,25 @@ const ChatbotWindow = () => {
                     </div>
 
                     <div className="flex items-center space-x-2">
+                        {/* Full Screen Toggle (Desktop Only) */}
+                        <div className="hidden md:block">
+                            <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={toggleFullScreen}
+                                className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 transition-colors mr-1"
+                                title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
+                            >
+                                {isFullScreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                            </motion.button>
+                        </div>
+
                         <motion.button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={isMinimized ? expandChatbot : minimizeChatbot}
                             className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
+                            title={isMinimized ? "Expand" : "Minimize"}
                         >
                             {isMinimized ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
                         </motion.button>
@@ -137,8 +164,19 @@ const ChatbotWindow = () => {
                             whileTap={{ scale: 0.9 }}
                             onClick={clearChat}
                             className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
+                            title="Clear Chat"
                         >
                             <RotateCcw size={16} />
+                        </motion.button>
+
+                        <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={closeChatbot}
+                            className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 transition-colors hover:bg-red-500/20"
+                            title="Close"
+                        >
+                            <X size={16} />
                         </motion.button>
                     </div>
                 </div>
@@ -147,7 +185,7 @@ const ChatbotWindow = () => {
                     <>
                         {/* Messages Area */}
                         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[rgb(var(--bg-body))]">
-                            {messages.length === 1 && (
+                            {messages.length === 0 && (
                                 <div className="space-y-3">
                                     <div className="text-center text-sm text-[rgb(var(--text-muted))] mb-4">
                                         <Sparkles className="inline-block w-4 h-4 mr-1" />
@@ -179,7 +217,7 @@ const ChatbotWindow = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
                                 >
-                                    <div className={`max-w-[85%] ${message.isBot ? 'order-2' : 'order-1'}`}>
+                                    <div className={`max-w-[85%] ${message.isBot ? 'order-2' : 'order-1'} ${isFullScreen && 'text-lg'}`}>
                                         <div
                                             className={`rounded-lg p-3 ${message.isBot
                                                 ? 'bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))]'
@@ -187,7 +225,7 @@ const ChatbotWindow = () => {
                                                 } ${message.isError ? 'border-red-300 bg-red-50' : ''}`}
                                         >
                                             {message.isBot ? (
-                                                <div className="prose prose-sm max-w-none">
+                                                <div className={`prose max-w-none ${isFullScreen ? 'prose-lg' : 'prose-sm'}`}>
                                                     <ReactMarkdown
                                                         remarkPlugins={[remarkGfm]}
                                                         components={{
@@ -214,7 +252,7 @@ const ChatbotWindow = () => {
                                                     </ReactMarkdown>
                                                 </div>
                                             ) : (
-                                                <p className="text-sm">{message.text}</p>
+                                                <p className={isFullScreen ? 'text-base' : 'text-sm'}>{message.text}</p>
                                             )}
 
                                             <div className="flex items-center justify-between mt-2">
@@ -242,11 +280,11 @@ const ChatbotWindow = () => {
 
                                     <div className={`${message.isBot ? 'order-1 mr-2' : 'order-2 ml-2'} flex-shrink-0`}>
                                         <Icon3D
-                                            size="sm"
+                                            size={isFullScreen ? "md" : "sm"}
                                             color={message.isBot ? 'secondary' : 'primary'}
                                             animated={false}
                                         >
-                                            {message.isBot ? <Bot size={16} /> : <User size={16} />}
+                                            {message.isBot ? <Bot size={isFullScreen ? 24 : 16} /> : <User size={isFullScreen ? 24 : 16} />}
                                         </Icon3D>
                                     </div>
                                 </motion.div>

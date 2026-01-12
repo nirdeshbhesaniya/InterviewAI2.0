@@ -1,70 +1,30 @@
-const { ChatOpenAI } = require('@langchain/openai');
 const { PromptTemplate, ChatPromptTemplate } = require('@langchain/core/prompts');
 const { StringOutputParser, StructuredOutputParser } = require('@langchain/core/output_parsers');
 const { z } = require('zod');
+const FailoverChatModel = require('./FailoverChatModel');
 
-// Detect if using OpenRouter
+// ------------------------------------------------------------------
+// NEW CONFIGURATION reusing Failover Logic
+// ------------------------------------------------------------------
+
+// Shared instance or factory could be used, but separate instances allow different metadata
+const chatModel = new FailoverChatModel({ featureType: 'general' });
+
+const qaModel = new FailoverChatModel({ featureType: 'interview' });
+
+const chatbotModel = new FailoverChatModel({ featureType: 'chatbot' });
+
+const mcqModel = new FailoverChatModel({ featureType: 'mcq' });
+
+// ------------------------------------------------------------------
+// OLD CONFIGURATION (Kept for reference or direct usage if needed)
+/*
+const { ChatOpenAI } = require('@langchain/openai');
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const isOpenRouter = OPENAI_API_KEY?.startsWith('sk-or-v1');
-
-// Initialize LangChain OpenAI client
-const chatModel = new ChatOpenAI({
-  openAIApiKey: OPENAI_API_KEY,
-  modelName: isOpenRouter ? 'openai/gpt-4o-mini' : 'gpt-4o-mini',
-  temperature: 0.7,
-  maxTokens: 1500, // Added safety limit
-  configuration: isOpenRouter ? {
-    baseURL: 'https://openrouter.ai/api/v1',
-    defaultHeaders: {
-      'HTTP-Referer': 'https://interview-ai.app',
-      'X-Title': 'Interview AI'
-    }
-  } : {}
-});
-
-// Create different model instances for different use cases
-const qaModel = new ChatOpenAI({
-  openAIApiKey: OPENAI_API_KEY,
-  modelName: isOpenRouter ? 'openai/gpt-4o-mini' : 'gpt-4o-mini',
-  temperature: 0.7,
-  maxTokens: 2000, // Limit response size for Q&A
-  configuration: isOpenRouter ? {
-    baseURL: 'https://openrouter.ai/api/v1',
-    defaultHeaders: {
-      'HTTP-Referer': 'https://interview-ai.app',
-      'X-Title': 'Interview AI'
-    }
-  } : {}
-});
-
-const chatbotModel = new ChatOpenAI({
-  openAIApiKey: OPENAI_API_KEY,
-  modelName: isOpenRouter ? 'openai/gpt-4o-mini' : 'gpt-4o-mini',
-  temperature: 0.8,
-  maxTokens: 2000, // Added safety limit to prevent 402 errors
-  configuration: isOpenRouter ? {
-    baseURL: 'https://openrouter.ai/api/v1',
-    defaultHeaders: {
-      'HTTP-Referer': 'https://interview-ai.app',
-      'X-Title': 'Interview AI'
-    }
-  } : {}
-});
-
-// Optimized model for fast MCQ generation
-const mcqModel = new ChatOpenAI({
-  openAIApiKey: OPENAI_API_KEY,
-  modelName: isOpenRouter ? 'openai/gpt-4o-mini' : 'gpt-4o-mini',
-  temperature: 0.7,
-  maxTokens: 12000, // Increased for batch generation
-  configuration: isOpenRouter ? {
-    baseURL: 'https://openrouter.ai/api/v1',
-    defaultHeaders: {
-      'HTTP-Referer': 'https://interview-ai.app',
-      'X-Title': 'Interview AI'
-    }
-  } : {}
-});
+const chatModel = new ChatOpenAI({...});
+...
+*/
+// ------------------------------------------------------------------
 
 // Output Parsers
 const stringParser = new StringOutputParser();

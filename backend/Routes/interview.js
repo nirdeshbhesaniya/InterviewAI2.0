@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
-const Interview = require('../Models/Interview');
-const User = require('../Models/User');
+const Interview = require('../models/Interview');
+const User = require('../models/User');
 const { generateInterviewQuestions, generateAnswer, generateMoreQuestions, summarizeText } = require('../utils/gemini');
 const { sendOTPEmail } = require('../utils/emailService');
 

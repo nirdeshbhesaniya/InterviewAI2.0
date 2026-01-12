@@ -11,13 +11,14 @@ import {
   Shield,
   Bell,
   ChevronDown,
-  Edit3,
-  Camera,
-  BookOpen,
-  Library,
   Code,
   Moon,
-  Sun
+  Sun,
+  FileQuestion, // Added
+  Camera,
+  Edit3,
+  BookOpen,
+  Library
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from '../../../utils/axiosInstance';
@@ -148,7 +149,7 @@ const Header = ({ onLoginClick }) => {
             >
               Dashboard
             </motion.button>
-            {user?.role === 'admin' && (
+            {(user?.role === 'admin' || user?.role === 'owner') && (
               <motion.button
                 onClick={() => navigate('/admin')}
                 className={`${location.pathname.startsWith('/admin') ? 'text-red-600 font-bold' : 'text-red-500 hover:text-red-600'} font-medium transition-colors duration-200`}
@@ -162,7 +163,14 @@ const Header = ({ onLoginClick }) => {
               className={`${isActive('/mcq-test')} font-medium transition-colors duration-200`}
               whileHover={{ y: -2 }}
             >
-              MCQ Tests
+              AI Tests
+            </motion.button>
+            <motion.button
+              onClick={() => navigate('/mcq-test/practice')}
+              className={`${isActive('/mcq-test/practice')} font-medium transition-colors duration-200`}
+              whileHover={{ y: -2 }}
+            >
+              Practice Tests
             </motion.button>
             <motion.button
               onClick={() => navigate('/codebase')}
@@ -378,7 +386,7 @@ const Header = ({ onLoginClick }) => {
                 <Bot className="w-5 h-5 mb-1" />
                 <span className="text-[10px] leading-tight">Dashboard</span>
               </motion.button>
-              {user?.role === 'admin' && (
+              {(user?.role === 'admin' || user?.role === 'owner') && (
                 <motion.button
                   onClick={() => navigate('/admin')}
                   className="flex flex-col items-center py-2 px-1.5 text-red-500 hover:text-red-600 transition-colors min-w-0"
@@ -394,7 +402,15 @@ const Header = ({ onLoginClick }) => {
                 whileTap={{ scale: 0.95 }}
               >
                 <Shield className="w-5 h-5 mb-1" />
-                <span className="text-[10px] leading-tight">MCQ</span>
+                <span className="text-[10px] leading-tight">AI MCQ</span>
+              </motion.button>
+              <motion.button
+                onClick={() => navigate('/mcq-test/practice')}
+                className="flex flex-col items-center py-2 px-1.5 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors min-w-0"
+                whileTap={{ scale: 0.95 }}
+              >
+                <FileQuestion className="w-5 h-5 mb-1" />
+                <span className="text-[10px] leading-tight">Practice</span>
               </motion.button>
               <motion.button
                 onClick={() => navigate('/codebase')}
@@ -423,8 +439,9 @@ const Header = ({ onLoginClick }) => {
             </div>
           </div>
         </div>
-      )}
-    </header>
+      )
+      }
+    </header >
   );
 };
 

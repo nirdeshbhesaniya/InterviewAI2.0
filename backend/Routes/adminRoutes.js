@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../Models/User');
-const Interview = require('../Models/Interview');
+const User = require('../models/User');
+const Interview = require('../models/Interview');
 const { authenticateToken } = require('../middlewares/auth');
 
-// Middleware to check if user is admin
+// Middleware to check if user is admin or owner
 const requireAdmin = (req, res, next) => {
-    if (req.user && req.user.role === 'admin') {
+    if (req.user && (req.user.role === 'admin' || req.user.role === 'owner')) {
         next();
     } else {
-        res.status(403).json({ message: 'Access denied. Admin rights required.' });
+        res.status(403).json({ message: 'Access denied. Admin or Owner rights required.' });
     }
 };
 
@@ -75,10 +75,33 @@ router.put('/users/:userId', async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Prevent demoting self if admin
-        if (user._id.toString() === req.user._id.toString() && updates.role && updates.role !== 'admin') {
-            return res.status(400).json({ message: 'Cannot remove your own admin privileges' });
+        const requester = req.user;
+
+        // Role Management Rules:
+        // 1. Only 'owner' can change ANY user's role to/from 'admin'.
+        // 2. Admins cannot change roles at all.
+        // 3. Admins cannot modify other admins or the owner.
+
+        if (updates.role) {
+            // Check if role is changing
+            if (updates.role !== user.role) {
+                if (requester.role !== 'owner') {
+                    return res.status(403).json({ message: 'Only the Owner can change user roles.' });
+                }
+
+                // Owner cannot demote themselves (unless transferring ownership, but let's block simple demotion)
+                if (user._id.toString() === requester._id.toString() && updates.role !== 'owner') {
+                    return res.status(400).json({ message: 'Cannot demote yourself from Owner.' });
+                }
+            }
         }
+
+        // General Profile Updates Limitation for Admins:
+        // Admins should not be able to edit other Admins or Owner
+        if (requester.role === 'admin' && (user.role === 'admin' || user.role === 'owner') && user._id.toString() !== requester._id.toString()) {
+            return res.status(403).json({ message: 'Admins cannot edit other Admins or the Owner.' });
+        }
+
 
         // Allowed fields to update
         const allowedUpdates = ['fullName', 'email', 'role', 'bio', 'location', 'website', 'linkedin', 'github'];
@@ -234,7 +257,7 @@ router.delete('/notes/:id', async (req, res) => {
         // For safety/cleanliness, I'll use mongoose.model if I can't confirm the file path, 
         // but I should add the import.
         // Let's assume the file is '../Models/Note'.
-        const Note = require('../Models/Note');
+        const Note = require('../models/Note');
         const note = await Note.findByIdAndDelete(id);
 
         if (!note) {
@@ -252,7 +275,7 @@ router.delete('/notes/:id', async (req, res) => {
 router.delete('/resources/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const Resource = require('../Models/Resource');
+        const Resource = require('../models/Resource');
         const resource = await Resource.findByIdAndDelete(id);
 
         if (!resource) {
@@ -263,6 +286,69 @@ router.delete('/resources/:id', async (req, res) => {
     } catch (err) {
         console.error('Error deleting resource:', err);
         res.status(500).json({ message: 'Failed to delete resource' });
+    }
+});
+
+// CREATE Practice Test (Admin)
+router.post('/practice-tests', async (req, res) => {
+    try {
+        const { title, description, topic, difficulty, questions, isPublished } = req.body;
+        const PracticeTest = require('../models/PracticeTest');
+
+        const newTest = new PracticeTest({
+            title,
+            description,
+            topic,
+            difficulty,
+            questions, // Array of { question, options, correctAnswer, explanation }
+            createdBy: req.user._id,
+            isPublished: isPublished !== undefined ? isPublished : true
+        });
+
+        await newTest.save();
+        res.status(201).json({ message: 'Practice test created successfully', test: newTest });
+    } catch (err) {
+        console.error('Error creating practice test:', err);
+        res.status(500).json({ message: 'Failed to create practice test', error: err.message });
+    }
+});
+
+// UPDATE Practice Test (Admin)
+router.put('/practice-tests/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updates = req.body;
+        const PracticeTest = require('../models/PracticeTest');
+
+        const test = await PracticeTest.findByIdAndUpdate(id, updates, { new: true });
+
+        if (!test) {
+            return res.status(404).json({ message: 'Practice test not found' });
+        }
+
+        res.json({ message: 'Practice test updated successfully', test });
+    } catch (err) {
+        console.error('Error updating practice test:', err);
+        res.status(500).json({ message: 'Failed to update practice test' });
+    }
+});
+
+// DELETE Practice Test (Admin)
+router.delete('/practice-tests/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const PracticeTest = require('../models/PracticeTest');
+
+        const test = await PracticeTest.findByIdAndDelete(id);
+
+        if (!test) {
+            return res.status(404).json({ message: 'Practice test not found' });
+        }
+
+        res.json({ message: 'Practice test deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting practice test:', err);
+        res.status(500).json({ message: 'Failed to delete practice test' });
     }
 });
 

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Note = require('../Models/Note');
+const Note = require('../models/Note');
 const { authenticateToken, identifyUser } = require('../middlewares/auth');
 
 // Get all notes (global view with optional filters)
@@ -194,7 +194,7 @@ router.put('/:id', async (req, res) => {
         // Ideally we should use req.user from middleware if available.
 
         // Assuming the frontend sends the current user's email/id as 'userId' in the body
-        if (note.userId !== userId && req.body.role !== 'admin' && req.user?.role !== 'admin') {
+        if (note.userId !== userId && req.body.role !== 'admin' && req.user?.role !== 'admin' && req.user?.role !== 'owner') {
             // We'll trust req.user.role from the middleware if it exists.
             // If middleware isn't populating req.user for this route, we might rely on frontend 'role' but that is insecure.
             // Looking at the file, 'identifyUser' is used in GET but not explicitly PUT? 

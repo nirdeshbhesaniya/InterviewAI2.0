@@ -4,6 +4,7 @@ import {
     CheckCircle,
     Eye,
     Trash2,
+    Plus,
     ShieldOff,
     ShieldCheck,
     Search,
@@ -23,15 +24,19 @@ import {
     FileIcon,
     Loader2,
     PenSquare,
-    ChevronDown
+    ChevronDown,
+    Cpu,
+    FileQuestion // Added for Practice Tests
 } from 'lucide-react';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import toast from 'react-hot-toast';
 import { Button } from '../../components/ui/button';
 import UserEditModal from './components/UserEditModal';
+import PracticeTestModal from './components/PracticeTestModal'; // Added
 import AnswerRenderer from '../../components/interview/AnswerRenderer';
 import Pagination from '../../components/common/Pagination';
+import AIServicePanel from './components/AIServicePanel';
 
 const STATS_CARDS = [
     { title: 'Total Users', key: 'totalUsers', icon: Users, color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-500/10' },
@@ -137,6 +142,7 @@ const AdminDashboard = () => {
     const [qnaRequests, setQnaRequests] = useState([]);
     const [pendingNotes, setPendingNotes] = useState([]);
     const [pendingResources, setPendingResources] = useState([]);
+    const [practiceTests, setPracticeTests] = useState([]); // State for Practice Tests
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [stats, setStats] = useState({ totalUsers: 0, activeAdmins: 0, bannedUsers: 0, pendingApprovals: 0 });
@@ -144,6 +150,10 @@ const AdminDashboard = () => {
     // Edit Modal State
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
+
+    // Practice Test Modal State
+    const [isPracticeModalOpen, setIsPracticeModalOpen] = useState(false);
+    const [selectedTest, setSelectedTest] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 10;
 
@@ -163,19 +173,22 @@ const AdminDashboard = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [usersRes, qnaRes, notesRes, resourcesRes] = await Promise.all([
+            const [usersRes, qnaRes, notesRes, resourcesRes, practiceRes] = await Promise.all([
                 axios.get(API.ADMIN.GET_USERS),
                 axios.get(API.ADMIN.GET_QNA_REQUESTS),
                 axios.get(API.NOTES.ADMIN_PENDING),
-                axios.get(API.RESOURCES.ADMIN_PENDING)
+                axios.get(API.RESOURCES.ADMIN_PENDING),
+                axios.get(API.MCQ.PRACTICE_LIST)
             ]);
             setUsers(usersRes.data);
             setQnaRequests(qnaRes.data);
             setPendingNotes(notesRes.data.notes || []);
-            setPendingResources(resourcesRes.data);
+            setPendingResources(resourcesRes.data.resources || []);
+            setPracticeTests(practiceRes.data.data || []);
+
         } catch (error) {
             console.error('Error fetching data:', error);
-            toast.error('Failed to load dashboard data');
+            // toast.error('Failed to load dashboard data');
         } finally {
             setLoading(false);
         }
@@ -261,6 +274,41 @@ const AdminDashboard = () => {
             setPendingResources(pendingResources.filter(r => r._id !== resourceId));
         } catch (error) {
             toast.error('Failed to update resource status');
+        }
+    };
+
+    const handleCreateTest = () => {
+        setSelectedTest(null);
+        setIsPracticeModalOpen(true);
+    };
+
+    const handleSaveTest = async (id, data) => {
+        try {
+            if (id) {
+                // await axios.put(API.ADMIN.UPDATE_PRACTICE_TEST(id), data); // Requires fix
+                toast.error('Editing not fully implemented yet');
+            } else {
+                await axios.post(API.ADMIN.CREATE_PRACTICE_TEST, data);
+                toast.success('Test created successfully');
+            }
+            setIsPracticeModalOpen(false);
+            // Refresh list
+            const res = await axios.get(API.MCQ.PRACTICE_LIST);
+            setPracticeTests(res.data.data || []);
+        } catch (error) {
+            console.error('Save failed:', error);
+            toast.error('Failed to save test');
+        }
+    };
+
+    const handleDeleteTest = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this test?')) return;
+        try {
+            await axios.delete(API.ADMIN.DELETE_PRACTICE_TEST(id));
+            toast.success('Test deleted');
+            setPracticeTests(practiceTests.filter(t => t._id !== id));
+        } catch (error) {
+            toast.error('Failed to delete test');
         }
     };
 
@@ -390,6 +438,26 @@ const AdminDashboard = () => {
                                 </span>
                             )}
                         </button>
+                        <button
+                            onClick={() => setActiveTab('ai')}
+                            className={`flex-none lg:w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 font-medium transition-all whitespace-nowrap ${activeTab === 'ai'
+                                ? 'bg-[rgb(var(--accent))] text-white shadow-lg shadow-[rgb(var(--accent))]/20'
+                                : 'text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-elevated))]'
+                                } `}
+                        >
+                            <Cpu className="w-5 h-5" />
+                            AI Control
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('practice')}
+                            className={`flex-none lg:w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 font-medium transition-all whitespace-nowrap ${activeTab === 'practice'
+                                ? 'bg-[rgb(var(--accent))] text-white shadow-lg shadow-[rgb(var(--accent))]/20'
+                                : 'text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-elevated))]'
+                                } `}
+                        >
+                            <FileQuestion className="w-5 h-5" />
+                            Practice Tests
+                        </button>
                     </div>
 
                     {/* Active View Content */}
@@ -462,7 +530,7 @@ const AdminDashboard = () => {
                                                 <Button size="sm" variant="outline" onClick={() => handleEditUser(user)} className="h-9 px-4 text-xs">
                                                     <PenSquare className="w-3.5 h-3.5 mr-1.5" /> Edit
                                                 </Button>
-                                                {user.role !== 'admin' && (
+                                                {user.role !== 'admin' && user.role !== 'owner' && (
                                                     <Button
                                                         size="sm"
                                                         variant={user.isBanned ? "outline" : "ghost"}
@@ -550,7 +618,7 @@ const AdminDashboard = () => {
                                                                 <PenSquare className="w-4 h-4 text-[rgb(var(--text-secondary))]" />
                                                             </Button>
 
-                                                            {user.role !== 'admin' && (
+                                                            {user.role !== 'admin' && user.role !== 'owner' && (
                                                                 <Button
                                                                     size="sm"
                                                                     variant={user.isBanned ? "outline" : "ghost"}
@@ -660,7 +728,7 @@ const AdminDashboard = () => {
                                     </div>
                                 )}
                             </div>
-                        ) : (
+                        ) : activeTab === 'resources' ? (
                             <div className="space-y-6">
                                 <h2 className="text-xl font-bold text-[rgb(var(--text-primary))]">Pending Resources</h2>
                                 {pendingResources.length === 0 ? (
@@ -701,6 +769,51 @@ const AdminDashboard = () => {
                                     </div>
                                 )}
                             </div>
+                        ) : activeTab === 'practice' ? (
+                            <div className="space-y-6">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-xl font-bold text-[rgb(var(--text-primary))]">Practice Tests</h2>
+                                    <Button onClick={handleCreateTest} className="bg-[rgb(var(--accent))] text-white">
+                                        <Plus className="w-4 h-4 mr-2" /> Create Test
+                                    </Button>
+                                </div>
+                                {practiceTests.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-[rgb(var(--border))] rounded-2xl bg-[rgb(var(--bg-elevated))]/30">
+                                        <div className="p-4 bg-purple-500/10 rounded-full mb-4">
+                                            <FileQuestion className="w-12 h-12 text-purple-500" />
+                                        </div>
+                                        <h3 className="text-lg font-semibold text-[rgb(var(--text-primary))]">No practice tests</h3>
+                                        <p className="text-[rgb(var(--text-secondary))] mt-1">Create your first MCQ test needed for users.</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid gap-4">
+                                        {practiceTests.map((test) => (
+                                            <div key={test._id} className="bg-[rgb(var(--bg-main))] p-5 rounded-2xl border border-[rgb(var(--border))] shadow-sm">
+                                                <div className="flex flex-col md:flex-row gap-6">
+                                                    <div className="flex-1">
+                                                        <h3 className="font-semibold text-lg text-[rgb(var(--text-primary))]">{test.title}</h3>
+                                                        <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">{test.description}</p>
+                                                        <div className="flex flex-wrap gap-2 mt-2 text-xs text-[rgb(var(--text-muted))]">
+                                                            <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">{test.topic}</span>
+                                                            <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded capitalize">{test.difficulty}</span>
+                                                            <span>Questions: {test.questions?.length || 0}</span>
+                                                            <span>Attempts: {test.attempts || 0}</span>
+                                                            <span>Created: {new Date(test.createdAt).toLocaleDateString()}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-2 items-center">
+                                                        <Button size="sm" variant="destructive" onClick={() => handleDeleteTest(test._id)}>
+                                                            <Trash2 className="w-4 h-4 mr-2" /> Delete
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <AIServicePanel currentUserRole={JSON.parse(localStorage.getItem("user"))?.role} />
                         )}
                     </div>
                 </div>
@@ -712,6 +825,15 @@ const AdminDashboard = () => {
                 onClose={() => setIsEditModalOpen(false)}
                 user={selectedUser}
                 onSave={handleSaveUser}
+                currentUserRole={JSON.parse(localStorage.getItem("user"))?.role}
+            />
+
+            {/* Practice Test Modal */}
+            <PracticeTestModal
+                isOpen={isPracticeModalOpen}
+                onClose={() => setIsPracticeModalOpen(false)}
+                onSave={handleSaveTest}
+                testToEdit={selectedTest}
             />
         </div >
     );

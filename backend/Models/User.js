@@ -14,7 +14,7 @@ const sessionSchema = new mongoose.Schema({
 const userSchema = new mongoose.Schema({
   fullName: String,
   email: { type: String, unique: true },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  role: { type: String, enum: ['user', 'admin', 'owner'], default: 'user' },
   isBanned: { type: Boolean, default: false },
   password: String,
   photo: String, // image filename or URL

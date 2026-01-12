@@ -20,7 +20,7 @@ const resourceSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    branch: {
+    branch: [{
         type: String,
         required: true,
         enum: [
@@ -37,16 +37,16 @@ const resourceSchema = new mongoose.Schema({
             'interview',
             'all'
         ]
-    },
+    }],
     subject: {
         type: String,
         required: true,
         trim: true
     },
-    semester: {
+    semester: [{
         type: String,
         required: true
-    },
+    }],
     uploadedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

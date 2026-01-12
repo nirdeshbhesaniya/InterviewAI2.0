@@ -12,6 +12,7 @@ import AddQuestionPage from './pages/InterviewPrep/AddQuestionPage';
 import ContactSupportPage from './pages/ContactSupportPage';
 import MCQTest from './pages/MCQTest/MCQTest';
 import TestHistoryPage from './pages/MCQTest/TestHistoryPage';
+import PracticeTestsPage from './pages/MCQTest/PracticeTestsPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPageNew from './pages/SettingsPageNew';
 import NotificationsPageNew from './pages/NotificationsPageNew';
@@ -66,6 +67,22 @@ const App = () => {
                 />
                 <Route
                   path="/mcq-test"
+                  element={
+                    <ProtectedRoute>
+                      <MCQTest />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/mcq-test/practice"
+                  element={
+                    <ProtectedRoute>
+                      <PracticeTestsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/mcq-test/practice/:testId"
                   element={
                     <ProtectedRoute>
                       <MCQTest />
