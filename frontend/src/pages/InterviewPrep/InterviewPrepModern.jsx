@@ -37,7 +37,6 @@ import { API } from '../../utils/apiPaths';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ChevronDown,
-
     Copy,
     Moon,
     Sun,
@@ -93,7 +92,16 @@ const QuestionCard = ({
     isStarred,
     isExpanded,
     onToggleStar,
-    // ... (props)
+    onRegenerate,
+    onEdit,
+    onCopyAnswer,
+    onDelete,
+    canDelete,
+    onShare,
+    status,
+    isCreator,
+    onApprove,
+    onReject
 }) => {
     const [isOpen, setIsOpen] = useState(isExpanded);
 

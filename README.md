@@ -199,10 +199,12 @@
 #### 🎯 Features
 - ✅ Session-based organization
 - ✅ Multiple question types (text + code)
-- ✅ Markdown support in answers
-- ✅ Syntax highlighting for code blocks
-- ✅ Export to PDF functionality
-- ✅ Share sessions with others
+- ✅ Markdown support in answers with Syntax Highlighting
+- ✅ Modern Responsive UI with Dark/Light mode
+- ✅ Export to Markdown functionality
+- ✅ Share sessions and deep-link to questions
+- ✅ Admin controls (Approve/Reject/Delete)
+- ✅ Star/Mark important questions
 
 **Key Files:**
 - `frontend/src/pages/InterviewPrep/InterviewPrepModern.jsx`
@@ -384,6 +386,33 @@
 **Key Files:**
 - `frontend/src/pages/ContactSupportPage.jsx`
 - `backend/Routes/support_new.js`
+
+---
+
+### 11. 🛡️ Admin & Control Panel
+
+#### 👮 User Management
+- **View All Users**: List, filter, and search users
+- **Ban/Unban**: Restrict access for specific users
+- **Role Management**: Owner can manage Admin roles
+- **Delete User**: Soft delete and ban functionality
+
+#### 🤖 AI Control Center
+- **Dashboard**: Visual usage statistics (OpenAI vs OpenRouter)
+- **Status Monitoring**: Health check for multiple AI providers
+- **Key Management**: Lock/Unlock specific API keys (Owner only)
+- **Feature Toggles**: Enable/Disable specific AI features globally
+- **Logs**: View detailed AI transaction logs (who used what model, tokens, cost)
+
+#### 📝 Content Moderation
+- **Q&A Approval**: Review and approve/reject user-submitted questions
+- **Practice Test Management**: Create and manage official practice tests
+- **Content Deletion**: Admin override to delete any note, resource, or session
+
+**Key Files:**
+- `backend/Routes/adminRoutes.js`
+- `backend/Routes/aiRoutes.js`
+- `frontend/src/pages/Admin/` (implied)
 
 ---
 
@@ -734,6 +763,41 @@
 | POST | `/contact` | Submit support request | ❌ |
 | GET | `/tickets` | Get user tickets | ✅ |
 | GET | `/ticket/:id` | Get specific ticket | ✅ |
+
+---
+
+### 👮 Admin & Owner Routes
+**Base:** `/api/admin`
+**File:** `backend/Routes/adminRoutes.js`
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/users` | Get all users | ✅ (Admin/Owner) |
+| PUT | `/users/:userId` | Update user details | ✅ (Admin/Owner) |
+| DELETE | `/users/:userId` | Delete user (Soft delete + Ban) | ✅ (Admin/Owner) |
+| PATCH | `/users/:userId/ban` | Ban/Unban user | ✅ (Admin/Owner) |
+| GET | `/qna-requests` | Get pending Q&A approvals | ✅ (Admin/Owner) |
+| POST | `/approve-all-qna` | Approve all pending Q&A | ✅ (Admin/Owner) |
+| DELETE | `/interviews/:id` | Delete interview session | ✅ (Admin/Owner) |
+| DELETE | `/notes/:id` | Delete any note | ✅ (Admin/Owner) |
+| DELETE | `/resources/:id` | Delete any resource | ✅ (Admin/Owner) |
+| POST | `/practice-tests` | Create practice test | ✅ (Admin/Owner) |
+| PUT | `/practice-tests/:id` | Update practice test | ✅ (Admin/Owner) |
+| DELETE | `/practice-tests/:id` | Delete practice test | ✅ (Admin/Owner) |
+
+---
+
+### 🤖 AI Management Routes
+**Base:** `/api/ai`
+**File:** `backend/Routes/aiRoutes.js`
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/dashboard` | Get AI usage stats & health | ✅ (Admin/Owner) |
+| GET | `/logs` | Get detailed AI transaction logs | ✅ (Admin/Owner) |
+| POST | `/control` | Lock/Unlock API keys | ✅ (Owner) |
+| GET | `/features` | Get AI feature flags | ✅ (Admin/Owner) |
+| POST | `/features/toggle` | Enable/Disable AI features | ✅ (Owner) |
 
 ---
 
