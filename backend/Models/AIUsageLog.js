@@ -25,7 +25,9 @@ const aiUsageLogSchema = new mongoose.Schema({
         provider: String,
         model: String,
         status: String,
-        tokens: Number
+        tokens: Number,
+        requestType: { type: String, default: 'GENERAL' }, // e.g., MCQ_GENERATION, CHATBOT
+        usageDetails: { type: mongoose.Schema.Types.Mixed } // Flexible object for extra data (topic, etc)
     }]
 }, {
     timestamps: true

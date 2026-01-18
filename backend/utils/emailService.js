@@ -1,12 +1,13 @@
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
+
 dotenv.config();
 
 /**
  * Modern Email Service for Interview AI
  * Uses Nodemailer with Brevo SMTP (smtp-relay.brevo.com)
  * 
- * Includes rich, responsive email templates (Dark Gradient Theme).
+ * Includes rich, responsive email templates (Professional Light Theme).
  */
 
 // Global Transporter
@@ -48,7 +49,7 @@ const sendEmail = async ({ to, subject, html, text, from, replyTo }) => {
       subject,
       html,
       text: text || html.replace(/<[^>]*>?/gm, ''), // Basic fallback
-      replyTo
+      replyTo,
     };
 
     const info = await mailTransport.sendMail(mailOptions);
@@ -64,11 +65,17 @@ const sendEmail = async ({ to, subject, html, text, from, replyTo }) => {
 // RICH HTML TEMPLATES
 // ==========================================
 
+const APP_URL = process.env.APP_URL || 'https://interviewai.tech';
+// Ideally, this should point to a live URL. 
+// Since the domain might not be active, we recommend hosting the logo on a service like Imgur for testing, 
+// or understanding it will be broken locally until deployment.
+const LOGO_URL = `${APP_URL}/images/logo.png`;
+
 /**
- * Base Email Template - Responsive and matches AI Tech Dark Gradient theme
+ * Base Email Template - Professional Light Theme
  */
 const getEmailTemplate = (content, options = {}) => {
-  const { title = 'Interview AI', headerGradient = true } = options;
+  const { title = 'Interview AI' } = options;
 
   return `
 <!DOCTYPE html>
@@ -76,7 +83,6 @@ const getEmailTemplate = (content, options = {}) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>${title}</title>
   <!--[if mso]>
   <style type="text/css">
@@ -84,98 +90,55 @@ const getEmailTemplate = (content, options = {}) => {
   </style>
   <![endif]-->
 </head>
-<body style="margin: 0; padding: 0; background-color: #0B0F1A; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+<body style="margin: 0; padding: 0; background-color: #F3F4F6; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
   
   <!-- Email Container -->
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #0B0F1A; padding: 20px 0;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F3F4F6; padding: 40px 0;">
     <tr>
       <td align="center">
         
         <!-- Main Content Card -->
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #111827; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); border: 1px solid #E5E7EB;">
           
-          ${headerGradient ? `
-          <!-- Header with Gradient -->
+          <!-- Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #6366F1 0%, #22D3EE 50%, #F97316 100%); padding: 40px 30px; text-align: center;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                <tr>
-                  <td align="center">
-                    <!-- Logo/Icon -->
-                    <div style="display: inline-block; background: rgba(255,255,255,0.15); padding: 16px; border-radius: 50%; margin-bottom: 16px; backdrop-filter: blur(10px);">
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2L2 7V12C2 17.5 5.8 22.7 12 24C18.2 22.7 22 17.5 22 12V7L12 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="12" cy="12" r="3" stroke="white" stroke-width="2"/>
-                      </svg>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td align="center">
-                    <h1 style="color: #F9FAFB; margin: 0; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                      Interview AI
-                    </h1>
-                  </td>
-                </tr>
-              </table>
+            <td style="padding: 40px 48px; text-align: center; border-bottom: 1px solid #F3F4F6;">
+                <!-- Logo with fallback styling -->
+                <img src="${LOGO_URL}" alt="Interview AI" width="180" style="display: block; margin: 0 auto; max-width: 100%; height: auto; font-family: sans-serif; font-size: 24px; font-weight: bold; color: #2563EB;" />
             </td>
           </tr>
-          ` : ''}
           
           <!-- Content Area -->
           <tr>
-            <td style="padding: 40px 30px; color: #E5E7EB;">
+            <td style="padding: 40px 48px; color: #374151; font-size: 16px; line-height: 1.6;">
               ${content}
             </td>
           </tr>
           
           <!-- Footer -->
           <tr>
-            <td style="background-color: #0B0F1A; padding: 30px; text-align: center; border-top: 1px solid #1F2937;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                <tr>
-                  <td align="center">
-                    <p style="color: #9CA3AF; margin: 0 0 12px 0; font-size: 14px;">
-                      This email was sent by <strong style="color: #E5E7EB;">Interview AI</strong>
-                    </p>
-                    <p style="color: #6B7280; margin: 0 0 16px 0; font-size: 12px;">
-                      Your AI-powered interview preparation platform
-                    </p>
-                    
-                    <!-- Social Links / Quick Actions -->
-                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 16px auto 0;">
-                      <tr>
-                        <td style="padding: 0 8px;">
-                          <a href="${process.env.APP_URL || 'http://localhost:5173'}/settings" style="color: #6366F1; text-decoration: none; font-size: 13px; font-weight: 500;">⚙️ Settings</a>
-                        </td>
-                        <td style="padding: 0 8px; color: #374151;">•</td>
-                        <td style="padding: 0 8px;">
-                          <a href="${process.env.APP_URL || 'http://localhost:5173'}/contact-support" style="color: #6366F1; text-decoration: none; font-size: 13px; font-weight: 500;">💬 Support</a>
-                        </td>
-                        <td style="padding: 0 8px; color: #374151;">•</td>
-                        <td style="padding: 0 8px;">
-                          <a href="${process.env.APP_URL || 'http://localhost:5173'}" style="color: #6366F1; text-decoration: none; font-size: 13px; font-weight: 500;">🏠 Dashboard</a>
-                        </td>
-                      </tr>
-                    </table>
-                    
-                    <p style="color: #6B7280; margin: 20px 0 0 0; font-size: 11px;">
-                      © ${new Date().getFullYear()} Interview AI. All rights reserved.
-                    </p>
-                  </td>
-                </tr>
-              </table>
+            <td style="background-color: #F9FAFB; padding: 32px 48px; text-align: center; border-top: 1px solid #E5E7EB;">
+              <p style="color: #6B7280; margin: 0 0 16px 0; font-size: 14px;">
+                © ${new Date().getFullYear()} <strong>Interview AI</strong>. All rights reserved.
+              </p>
+              
+              <div style="margin-bottom: 20px;">
+                <a href="${APP_URL}" style="color: #6B7280; text-decoration: none; margin: 0 10px; font-size: 13px;">Dashboard</a>
+                <a href="${APP_URL}/settings" style="color: #6B7280; text-decoration: none; margin: 0 10px; font-size: 13px;">Settings</a>
+                <a href="${APP_URL}/contact-support" style="color: #6B7280; text-decoration: none; margin: 0 10px; font-size: 13px;">Support</a>
+              </div>
+
+              <p style="color: #9CA3AF; margin: 0; font-size: 12px; line-height: 1.5;">
+                You are receiving this email because you signed up for Interview AI.<br>
+                If you did not request this, please ignore it or <a href="#" style="color: #9CA3AF; text-decoration: underline;">unsubscribe</a>.
+              </p>
             </td>
           </tr>
           
         </table>
         
         <!-- Spacer for mobile -->
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-          <tr>
-            <td height="20"></td>
-          </tr>
-        </table>
+        <div style="height: 40px; line-height: 40px;">&nbsp;</div>
         
       </td>
     </tr>
@@ -188,571 +151,263 @@ const getEmailTemplate = (content, options = {}) => {
 
 const getOTPEmailContent = (otp) => {
   return `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td align="center">
-          <h2 style="color: #F9FAFB; margin: 0 0 16px 0; font-size: 24px; font-weight: 600;">
-            🔐 Password Reset Request
-          </h2>
-          <p style="color: #9CA3AF; margin: 0 0 32px 0; font-size: 16px; line-height: 1.6;">
-            Use the verification code below to reset your password securely
-          </p>
-        </td>
-      </tr>
+    <div style="text-align: center;">
+      <h2 style="color: #111827; margin: 0 0 16px 0; font-size: 24px; font-weight: 700;">
+        Reset Your Password
+      </h2>
+      <p style="color: #4B5563; margin: 0 0 32px 0; font-size: 16px;">
+        Use the code below to verify your identity and securely reset your password.
+      </p>
       
-      <!-- OTP Box -->
-      <tr>
-        <td align="center">
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(145deg, #1F2933, #111827); border: 2px dashed #374151; border-radius: 12px; margin: 24px 0;">
-            <tr>
-              <td style="padding: 32px 48px; text-align: center;">
-                <p style="color: #9CA3AF; margin: 0 0 12px 0; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px;">
-                  Verification Code
-                </p>
-                <div style="background: linear-gradient(135deg, #6366F1 0%, #22D3EE 50%, #F97316 100%); padding: 20px 32px; border-radius: 8px; display: inline-block;">
-                  <p style="color: #F9FAFB; margin: 0; font-size: 36px; font-weight: 900; letter-spacing: 8px; font-family: 'Courier New', monospace; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                    ${otp}
-                  </p>
-                </div>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      
-      <!-- Warning Notice -->
-      <tr>
-        <td>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(249, 115, 22, 0.1)); border-left: 4px solid #F97316; border-radius: 8px; margin: 24px 0;">
-            <tr>
-              <td style="padding: 20px;">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td width="32" valign="top">
-                      <span style="font-size: 24px;">⚠️</span>
-                    </td>
-                    <td style="padding-left: 12px;">
-                      <h4 style="color: #FACC15; margin: 0 0 8px 0; font-size: 15px; font-weight: 600;">
-                        Important Security Notice
-                      </h4>
-                      <p style="color: #E5E7EB; margin: 0; font-size: 14px; line-height: 1.6;">
-                        This verification code <strong>expires in 10 minutes</strong>. Never share this code with anyone. If you didn't request this reset, please ignore this email and secure your account.
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      
-      <!-- Help Section -->
-      <tr>
-        <td align="center" style="padding-top: 32px; border-top: 1px solid #1F2937; margin-top: 32px;">
-          <p style="color: #9CA3AF; margin: 0 0 16px 0; font-size: 14px;">
-            Need help? Our support team is here for you
-          </p>
-          <a href="mailto:${process.env.SUPPORT_EMAIL || process.env.EMAIL_USER || 'support@interviewai.tech'}" style="display: inline-block; background: linear-gradient(135deg, #6366F1, #22D3EE); color: #F9FAFB; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">
-            📧 Contact Support
-          </a>
-        </td>
-      </tr>
-    </table>
+      <div style="background: #EFF6FF; border: 1px dashed #BFDBFE; border-radius: 8px; padding: 24px; display: inline-block; margin-bottom: 32px;">
+        <span style="font-family: 'Courier New', monospace; font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #2563EB; display: block;">
+            ${otp}
+        </span>
+      </div>
+
+      <div style="text-align: left; background: #FFF7ED; border-left: 4px solid #F97316; padding: 16px; border-radius: 4px;">
+        <p style="margin: 0; color: #9A3412; font-size: 14px;">
+            <strong>Security Notice:</strong> This code expires in 10 minutes. Do not share it with anyone.
+        </p>
+      </div>
+    </div>
   `;
 };
 
 const getRegistrationOTPEmailContent = (otp, fullName) => {
   return `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td align="center">
-          <h2 style="color: #F9FAFB; margin: 0 0 16px 0; font-size: 24px; font-weight: 600;">
-            ✨ Welcome to Interview AI!
-          </h2>
-          <p style="color: #9CA3AF; margin: 0 0 8px 0; font-size: 16px; line-height: 1.6;">
-            Hi ${fullName}, you're almost there!
-          </p>
-          <p style="color: #9CA3AF; margin: 0 0 32px 0; font-size: 16px; line-height: 1.6;">
-            Verify your email address to complete your registration
-          </p>
-        </td>
-      </tr>
-      
-      <!-- OTP Box -->
-      <tr>
-        <td align="center">
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(145deg, #1F2933, #111827); border: 2px dashed #374151; border-radius: 12px; margin: 24px 0;">
-            <tr>
-              <td style="padding: 32px 48px; text-align: center;">
-                <p style="color: #9CA3AF; margin: 0 0 12px 0; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px;">
-                  Your Verification Code
-                </p>
-                <div style="background: linear-gradient(135deg, #6366F1 0%, #22D3EE 50%, #F97316 100%); padding: 24px 40px; border-radius: 12px; display: inline-block; box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);">
-                  <p style="color: #F9FAFB; margin: 0; font-size: 48px; font-weight: 900; letter-spacing: 12px; font-family: 'Courier New', monospace; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                    ${otp}
-                  </p>
-                </div>
-                <p style="color: #6B7280; margin: 16px 0 0 0; font-size: 13px;">
-                  Enter this code to verify your email
-                </p>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      
-      <!-- Info Notice -->
-      <tr>
-        <td>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(34, 211, 238, 0.1)); border-left: 4px solid #22D3EE; border-radius: 8px; margin: 24px 0;">
-            <tr>
-              <td style="padding: 20px;">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td width="32" valign="top">
-                      <span style="font-size: 24px;">🛡️</span>
-                    </td>
-                    <td style="padding-left: 12px;">
-                      <h4 style="color: #22D3EE; margin: 0 0 8px 0; font-size: 15px; font-weight: 600;">
-                        Quick & Secure
-                      </h4>
-                      <p style="color: #E5E7EB; margin: 0; font-size: 14px; line-height: 1.6;">
-                        This code <strong>expires in 10 minutes</strong>. Keep it confidential and don't share it with anyone. If you didn't create an account, you can safely ignore this email.
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      
-      <!-- What's Next Section -->
-      <tr>
-        <td>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(145deg, #1F2933, #111827); border-radius: 12px; border: 1px solid #374151; margin: 24px 0;">
-            <tr>
-              <td style="padding: 24px;">
-                <h3 style="color: #F9FAFB; margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">
-                  🎯 What's Next?
-                </h3>
-                <ul style="color: #E5E7EB; margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.8;">
-                  <li style="margin-bottom: 8px;">Complete your email verification</li>
-                  <li style="margin-bottom: 8px;">Set up your interview preparation profile</li>
-                  <li style="margin-bottom: 8px;">Start practicing with AI-powered mock interviews</li>
-                  <li>Access premium learning resources and MCQ tests</li>
-                </ul>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      
-      <!-- Help Section -->
-      <tr>
-        <td align="center" style="padding-top: 32px; border-top: 1px solid #1F2937; margin-top: 32px;">
-          <p style="color: #9CA3AF; margin: 0 0 16px 0; font-size: 14px;">
-            Having trouble? We're here to help!
-          </p>
-          <a href="mailto:${process.env.SUPPORT_EMAIL || process.env.EMAIL_USER || 'support@interviewai.tech'}" style="display: inline-block; background: linear-gradient(135deg, #6366F1, #22D3EE); color: #F9FAFB; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">
-            📧 Contact Support
-          </a>
-        </td>
-      </tr>
-    </table>
+    <div style="text-align: center;">
+      <h2 style="color: #111827; margin: 0 0 12px 0; font-size: 24px; font-weight: 700;">
+        Welcome to Interview AI! 👋
+      </h2>
+      <p style="color: #4B5563; margin: 0 0 32px 0; font-size: 16px;">
+        Hi ${fullName}, please verify your email address to get started.
+      </p>
+
+      <div style="background: #F0FDF4; border: 1px dashed #BBF7D0; border-radius: 8px; padding: 32px; margin-bottom: 32px;">
+        <span style="font-family: 'Courier New', monospace; font-size: 36px; font-weight: 700; letter-spacing: 12px; color: #059669; display: block;">
+            ${otp}
+        </span>
+        <p style="margin: 12px 0 0 0; color: #065F46; font-size: 13px; font-weight: 500;">
+            VERIFICATION CODE
+        </p>
+      </div>
+
+      <p style="color: #6B7280; font-size: 14px; margin-bottom: 0;">
+        If you didn't create an account with us, you can safely delete this email.
+      </p>
+    </div>
   `;
 };
 
 const getNotificationEmailContent = (title, message, action, actionUrl) => {
   return `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td align="center">
-          <div style="display: inline-block; background: linear-gradient(135deg, #6366F1, #22D3EE); padding: 16px; border-radius: 50%; margin-bottom: 20px;">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <h2 style="color: #F9FAFB; margin: 0 0 16px 0; font-size: 24px; font-weight: 600;">
-            ${title}
-          </h2>
-        </td>
-      </tr>
+    <div>
+      <h2 style="color: #111827; margin: 0 0 20px 0; font-size: 22px; font-weight: 700;">
+        ${title}
+      </h2>
       
-      <!-- Message Content --> 
-      
-      <tr>
-        <td>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #1F2933; border-radius: 12px; border: 1px solid #374151; margin: 24px 0;">
-            <tr>
-              <td style="padding: 28px;">
-                <p style="color: #E5E7EB; margin: 0; font-size: 15px; line-height: 1.8; white-space: pre-line;">
-                  ${message}
-                </p>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      
+      <div style="background: #F9FAFB; padding: 24px; border-radius: 8px; border-left: 4px solid #3B82F6; margin-bottom: 32px;">
+        <p style="margin: 0; color: #374151; font-size: 15px; line-height: 1.7; white-space: pre-line;">
+            ${message}
+        </p>
+      </div>
+
       ${action && actionUrl ? `
-      <!-- Action Button -->
-      <tr>
-        <td align="center" style="padding: 24px 0;">
-          <a href="${actionUrl}" style="display: inline-block; background: linear-gradient(135deg, #F97316, #FB7185); color: #F9FAFB; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; box-shadow: 0 12px 30px rgba(249, 115, 22, 0.35); transition: all 0.3s;">
-            ${action} →
-          </a>
-        </td>
-      </tr>
+        <div style="text-align: center; margin: 32px 0;">
+            <a href="${actionUrl}" style="display: inline-block; background-color: #2563EB; color: #FFFFFF; font-weight: 600; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-size: 15px;">
+                ${action}
+            </a>
+        </div>
       ` : ''}
-      
-      <!-- Settings Link -->
-      <tr>
-        <td align="center" style="padding-top: 32px; border-top: 1px solid #1F2937;">
-          <p style="color: #9CA3AF; margin: 0 0 12px 0; font-size: 13px;">
-            Manage your notification preferences
-          </p>
-          <a href="${process.env.APP_URL || 'http://localhost:5173'}/settings" style="color: #6366F1; text-decoration: none; font-weight: 500; font-size: 14px;">
-            ⚙️ Notification Settings
-          </a>
-        </td>
-      </tr>
-    </table>
+
+      <p style="color: #6B7280; font-size: 13px; border-top: 1px solid #E5E7EB; padding-top: 20px; margin-top: 32px;">
+        Manage your notification preferences in <a href="${APP_URL}/settings" style="color: #2563EB;">Settings</a>.
+      </p>
+    </div>
   `;
 };
 
 const getWelcomeEmailContent = (fullName) => {
   return `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <!-- Hero Section -->
-      <tr>
-        <td align="center">
-          <div style="display: inline-block; background: linear-gradient(135deg, #6366F1, #22D3EE); padding: 20px; border-radius: 50%; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <circle cx="12" cy="7" r="4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <h2 style="color: #F9FAFB; margin: 0 0 12px 0; font-size: 32px; font-weight: 700;">
-            Welcome to Interview AI! 🎉
-          </h2>
-          <p style="color: #9CA3AF; margin: 0 0 32px 0; font-size: 18px; line-height: 1.6;">
-            Hi ${fullName}, we're excited to have you on board!
-          </p>
-        </td>
-      </tr>
+    <div>
+      <h2 style="color: #111827; margin: 0 0 20px 0; font-size: 24px; font-weight: 700;">
+        Welcome aboard, ${fullName}! 🚀
+      </h2>
+      <p style="color: #374151; margin-bottom: 24px;">
+        We're thrilled to have you join <strong>Interview AI</strong>. You've taken the first step towards mastering your technical interviews.
+      </p>
       
-      <!-- Welcome Message -->
-      <tr>
-        <td>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(145deg, #1F2933, #111827); border-radius: 16px; border: 1px solid #374151; margin: 24px 0;">
-            <tr>
-              <td style="padding: 32px;">
-                <p style="color: #E5E7EB; margin: 0 0 20px 0; font-size: 16px; line-height: 1.8;">
-                  You've just joined thousands of developers preparing for their dream careers with AI-powered interview preparation tools.
-                </p>
-                <p style="color: #E5E7EB; margin: 0; font-size: 16px; line-height: 1.8;">
-                  Get ready to ace your interviews with personalized practice sessions, real-time feedback, and comprehensive learning resources!
-                </p>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      
-      <!-- Features Grid -->
-      <tr>
-        <td>
-          <h3 style="color: #F9FAFB; margin: 32px 0 20px 0; font-size: 20px; font-weight: 600; text-align: center;">
-            What you can do with Interview AI:
-          </h3>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-            <tr>
-              <td width="50%" style="padding: 8px;">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(34, 211, 238, 0.1)); border: 1px solid #374151; border-radius: 12px; height: 100%;">
-                  <tr>
-                    <td style="padding: 20px;">
-                      <span style="font-size: 32px;">💬</span>
-                      <h4 style="color: #22D3EE; margin: 12px 0 8px 0; font-size: 16px; font-weight: 600;">
-                        AI Interview Practice
-                      </h4>
-                      <p style="color: #9CA3AF; margin: 0; font-size: 14px; line-height: 1.6;">
-                        Practice with AI-powered mock interviews tailored to your role
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-              <td width="50%" style="padding: 8px;">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(251, 113, 133, 0.1)); border: 1px solid #374151; border-radius: 12px; height: 100%;">
-                  <tr>
-                    <td style="padding: 20px;">
-                      <span style="font-size: 32px;">📝</span>
-                      <h4 style="color: #F97316; margin: 12px 0 8px 0; font-size: 16px; font-weight: 600;">
-                        MCQ Tests
-                      </h4>
-                      <p style="color: #9CA3AF; margin: 0; font-size: 14px; line-height: 1.6;">
-                        Test your knowledge with topic-specific multiple choice questions
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-            <tr>
-              <td width="50%" style="padding: 8px;">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(234, 179, 8, 0.1)); border: 1px solid #374151; border-radius: 12px; height: 100%;">
-                  <tr>
-                    <td style="padding: 20px;">
-                      <span style="font-size: 32px;">💻</span>
-                      <h4 style="color: #22C55E; margin: 12px 0 8px 0; font-size: 16px; font-weight: 600;">
-                        Code Execution
-                      </h4>
-                      <p style="color: #9CA3AF; margin: 0; font-size: 14px; line-height: 1.6;">
-                        Write and execute code in multiple programming languages
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-              <td width="50%" style="padding: 8px;">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1)); border: 1px solid #374151; border-radius: 12px; height: 100%;">
-                  <tr>
-                    <td style="padding: 20px;">
-                      <span style="font-size: 32px;">📚</span>
-                      <h4 style="color: #A855F7; margin: 12px 0 8px 0; font-size: 16px; font-weight: 600;">
-                        Learning Resources
-                      </h4>
-                      <p style="color: #9CA3AF; margin: 0; font-size: 14px; line-height: 1.6;">
-                        Access curated study materials and community resources
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      
-      <!-- Call to Action -->
-      <tr>
-        <td align="center" style="padding: 40px 0 24px 0;">
-          <a href="${process.env.APP_URL || 'http://localhost:5173'}/dashboard" style="display: inline-block; background: linear-gradient(135deg, #6366F1, #22D3EE); color: #F9FAFB; padding: 16px 48px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4); transition: all 0.3s;">
-            🚀 Start Your Journey
-          </a>
-        </td>
-      </tr>
-      
-      <!-- Tips Section -->
-      <tr>
-        <td>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(249, 115, 22, 0.1)); border-left: 4px solid #F59E0B; border-radius: 8px; margin: 24px 0;">
-            <tr>
-              <td style="padding: 24px;">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td width="40" valign="top">
-                      <span style="font-size: 28px;">💡</span>
-                    </td>
-                    <td style="padding-left: 12px;">
-                      <h4 style="color: #FACC15; margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">
-                        Pro Tips to Get Started:
-                      </h4>
-                      <ul style="color: #E5E7EB; margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.8;">
-                        <li style="margin-bottom: 8px;">Complete your profile to personalize your experience</li>
-                        <li style="margin-bottom: 8px;">Start with a practice interview to gauge your current level</li>
-                        <li style="margin-bottom: 8px;">Take MCQ tests regularly to reinforce your knowledge</li>
-                        <li>Join our community and share resources with fellow learners</li>
-                      </ul>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      
-      <!-- Support Section -->
-      <tr>
-        <td align="center" style="padding-top: 32px; border-top: 1px solid #1F2937; margin-top: 32px;">
-          <p style="color: #9CA3AF; margin: 0 0 16px 0; font-size: 14px;">
-            Questions? We're here to help! 🤝
-          </p>
-          <a href="mailto:${process.env.SUPPORT_EMAIL || process.env.EMAIL_USER || 'support@interviewai.tech'}" style="display: inline-block; background: transparent; border: 2px solid #6366F1; color: #6366F1; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
-            📧 Contact Support
-          </a>
-        </td>
-      </tr>
-      
-      <!-- Footer Message -->
-      <tr>
-        <td align="center" style="padding-top: 32px;">
-          <p style="color: #6B7280; margin: 0; font-size: 13px; line-height: 1.6;">
-            We're thrilled to be part of your interview preparation journey.<br>
-            Let's make your next interview your best one yet! 💪
-          </p>
-        </td>
-      </tr>
-    </table>
+      <p style="color: #374151; margin-bottom: 32px;">
+        Unlock your full potential with our comprehensive suite of tools:
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 40px;">
+        <!-- AI Mock Interviews -->
+        <div style="background: #F9FAFB; padding: 20px; border-radius: 8px; border: 1px solid #E5E7EB;">
+            <div style="font-size: 24px; margin-bottom: 8px;">🤖</div>
+            <h3 style="margin: 0 0 8px 0; color: #111827; font-size: 16px; font-weight: 600;">AI Mock Interviews</h3>
+            <p style="margin: 0; color: #6B7280; font-size: 13px;">Practice real-time conversations with our advanced AI interviewer.</p>
+        </div>
+        
+        <!-- MCQ Tests -->
+        <div style="background: #F9FAFB; padding: 20px; border-radius: 8px; border: 1px solid #E5E7EB;">
+            <div style="font-size: 24px; margin-bottom: 8px;">📝</div>
+            <h3 style="margin: 0 0 8px 0; color: #111827; font-size: 16px; font-weight: 600;">MCQ Tests</h3>
+            <p style="margin: 0; color: #6B7280; font-size: 13px;">Test your knowledge across 15+ technical topics with instant results.</p>
+        </div>
+
+        <!-- Code Compiler -->
+        <div style="background: #F9FAFB; padding: 20px; border-radius: 8px; border: 1px solid #E5E7EB;">
+            <div style="font-size: 24px; margin-bottom: 8px;">💻</div>
+            <h3 style="margin: 0 0 8px 0; color: #111827; font-size: 16px; font-weight: 600;">Online Compiler</h3>
+            <p style="margin: 0; color: #6B7280; font-size: 13px;">Write and run code in multiple languages directly in your browser.</p>
+        </div>
+
+        <!-- AI Chatbot -->
+        <div style="background: #F9FAFB; padding: 20px; border-radius: 8px; border: 1px solid #E5E7EB;">
+            <div style="font-size: 24px; margin-bottom: 8px;">💬</div>
+            <h3 style="margin: 0 0 8px 0; color: #111827; font-size: 16px; font-weight: 600;">AI Assistant</h3>
+            <p style="margin: 0; color: #6B7280; font-size: 13px;">Get instant answers to your technical doubts anytime.</p>
+        </div>
+
+        <!-- Study Notes -->
+        <div style="background: #F9FAFB; padding: 20px; border-radius: 8px; border: 1px solid #E5E7EB;">
+            <div style="font-size: 24px; margin-bottom: 8px;">📓</div>
+            <h3 style="margin: 0 0 8px 0; color: #111827; font-size: 16px; font-weight: 600;">Study Notes</h3>
+            <p style="margin: 0; color: #6B7280; font-size: 13px;">Create, organize, and share your preparation notes.</p>
+        </div>
+
+        <!-- Learning Resources -->
+        <div style="background: #F9FAFB; padding: 20px; border-radius: 8px; border: 1px solid #E5E7EB;">
+            <div style="font-size: 24px; margin-bottom: 8px;">📚</div>
+            <h3 style="margin: 0 0 8px 0; color: #111827; font-size: 16px; font-weight: 600;">Resources</h3>
+            <p style="margin: 0; color: #6B7280; font-size: 13px;">Access curated learning materials and cheat sheets.</p>
+        </div>
+      </div>
+
+      <div style="text-align: center;">
+        <a href="${APP_URL}/dashboard" style="display: inline-block; background-color: #2563EB; color: #FFFFFF; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 16px; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);">
+            Go to Dashboard
+        </a>
+      </div>
+    </div>
   `;
 };
 
 const getSupportEmailToTeam = (name, email, subject, category, priority, message) => {
   const priorityColors = {
-    urgent: '#EF4444',
-    high: '#F97316',
-    normal: '#22D3EE',
-    low: '#9CA3AF'
+    urgent: { bg: '#FEF2F2', text: '#DC2626' },
+    high: { bg: '#FFF7ED', text: '#EA580C' },
+    normal: { bg: '#EFF6FF', text: '#2563EB' },
+    low: { bg: '#F3F4F6', text: '#4B5563' }
   };
 
-  const priorityColor = priorityColors[priority] || priorityColors.normal;
+  const pStyle = priorityColors[priority] || priorityColors.normal;
 
   return `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td>
-          <h2 style="color: #F9FAFB; margin: 0 0 24px 0; font-size: 22px; font-weight: 600; border-bottom: 2px solid #F97316; padding-bottom: 12px;">
-            🎫 New Support Request
-          </h2>
-        </td>
-      </tr>
+    <div>
+      <h2 style="color: #111827; margin: 0 0 24px 0; font-size: 20px; font-weight: 700; border-bottom: 2px solid #E5E7EB; padding-bottom: 12px;">
+        🎫 New Support Request
+      </h2>
       
       <!-- Priority Badge -->
-      <tr>
-        <td style="padding-bottom: 20px;">
-          <span style="display: inline-block; background: ${priorityColor}; color: #F9FAFB; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-            ${priority} Priority
-          </span>
-          <span style="display: inline-block; background: #1F2933; color: #22D3EE; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; margin-left: 8px;">
-            ${category}
-          </span>
-        </td>
-      </tr>
+      <div style="margin-bottom: 20px;">
+        <span style="display: inline-block; background: ${pStyle.bg}; color: ${pStyle.text}; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase;">
+          ${priority} Priority
+        </span>
+        <span style="display: inline-block; background: #F3F4F6; color: #374151; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; margin-left: 8px;">
+          ${category}
+        </span>
+      </div>
       
       <!-- Contact Info -->
-      <tr>
-        <td>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #1F2933; border-radius: 12px; border: 1px solid #374151; margin: 16px 0;">
-            <tr>
-              <td style="padding: 24px;">
-                <h3 style="color: #22D3EE; margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">
-                  📋 Contact Information
-                </h3>
-                <table role="presentation" width="100%" cellpadding="8" cellspacing="0" border="0">
-                  <tr>
-                    <td width="120" style="color: #9CA3AF; font-size: 14px;"><strong>Name:</strong></td>
-                    <td style="color: #E5E7EB; font-size: 14px;">${name}</td>
-                  </tr>
-                  <tr>
-                    <td style="color: #9CA3AF; font-size: 14px;"><strong>Email:</strong></td>
-                    <td style="color: #E5E7EB; font-size: 14px;"><a href="mailto:${email}" style="color: #6366F1; text-decoration: none;">${email}</a></td>
-                  </tr>
-                  <tr>
-                    <td style="color: #9CA3AF; font-size: 14px;"><strong>Time:</strong></td>
-                    <td style="color: #E5E7EB; font-size: 14px;">${new Date().toLocaleString()}</td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
+      <div style="background: #F9FAFB; border-radius: 8px; border: 1px solid #E5E7EB; margin-bottom: 24px;">
+          <div style="padding: 16px; border-bottom: 1px solid #E5E7EB;">
+            <h3 style="color: #111827; margin: 0; font-size: 14px; font-weight: 600;">📋 Contact Information</h3>
+          </div>
+          <div style="padding: 16px;">
+            <table role="presentation" width="100%" cellpadding="4" cellspacing="0" border="0">
+                <tr>
+                    <td width="100" style="color: #6B7280; font-size: 13px;">Name:</td>
+                    <td style="color: #111827; font-size: 13px; font-weight: 500;">${name}</td>
+                </tr>
+                <tr>
+                    <td style="color: #6B7280; font-size: 13px;">Email:</td>
+                    <td style="color: #111827; font-size: 13px; font-weight: 500;">
+                        <a href="mailto:${email}" style="color: #2563EB; text-decoration: none;">${email}</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="color: #6B7280; font-size: 13px;">Time:</td>
+                    <td style="color: #111827; font-size: 13px;">${new Date().toLocaleString()}</td>
+                </tr>
+            </table>
+          </div>
+      </div>
       
       <!-- Subject -->
-      <tr>
-        <td style="padding: 16px 0;">
-          <h3 style="color: #22D3EE; margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">
-            📌 Subject
-          </h3>
-          <div style="background: #111827; padding: 16px; border-left: 4px solid #F97316; border-radius: 6px;">
-            <p style="color: #F9FAFB; margin: 0; font-size: 15px; font-weight: 500;">
-              ${subject}
-            </p>
-          </div>
-        </td>
-      </tr>
+      <div style="margin-bottom: 24px;">
+        <h3 style="color: #374151; margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">
+          Subject
+        </h3>
+        <div style="background: #FFFFFF; padding: 12px 16px; border: 1px solid #E5E7EB; border-radius: 6px; color: #111827; font-weight: 500;">
+          ${subject}
+        </div>
+      </div>
       
       <!-- Message -->
-      <tr>
-        <td style="padding: 16px 0;">
-          <h3 style="color: #22D3EE; margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">
-            💬 Message
-          </h3>
-          <div style="background: #111827; padding: 24px; border-radius: 8px; border: 1px solid #374151;">
-            <p style="color: #E5E7EB; margin: 0; font-size: 14px; line-height: 1.8; white-space: pre-line;">
-              ${message}
-            </p>
-          </div>
-        </td>
-      </tr>
-    </table>
+      <div>
+        <h3 style="color: #374151; margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">
+          Message
+        </h3>
+        <div style="background: #F9FAFB; padding: 20px; border-radius: 8px; border: 1px solid #E5E7EB;">
+          <p style="color: #374151; margin: 0; font-size: 14px; line-height: 1.6; white-space: pre-line;">
+            ${message}
+          </p>
+        </div>
+      </div>
+    </div>
   `;
 };
 
 const getSupportAutoReply = (name, subject, category, priority, aiResponse, userMessage) => {
   return `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td>
-          <h2 style="color: #F9FAFB; margin: 0 0 16px 0; font-size: 24px; font-weight: 600;">
-            Hello ${name}! 👋
-          </h2>
-          <p style="color: #9CA3AF; margin: 0 0 32px 0; font-size: 15px; line-height: 1.6;">
-            Thank you for contacting Interview AI support. We've received your message and our AI assistant has prepared an initial response for you.
-          </p>
-        </td>
-      </tr>
+    <div>
+      <h2 style="color: #111827; margin: 0 0 16px 0; font-size: 24px; font-weight: 700;">
+        Hello ${name}! 👋
+      </h2>
+      <p style="color: #4B5563; margin: 0 0 24px 0; font-size: 15px; line-height: 1.6;">
+        Thank you for contacting Interview AI support. We've received your message and our AI assistant has prepared an initial response for you.
+      </p>
       
       <!-- AI Response -->
-      <tr>
-        <td>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(145deg, #1F2933, #111827); border: 1px solid #374151; border-radius: 12px; margin: 20px 0;">
-            <tr>
-              <td style="padding: 28px;">
-                <div style="margin-bottom: 20px;">
-                  <span style="display: inline-block; background: linear-gradient(135deg, #6366F1, #22D3EE); color: #F9FAFB; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-                    🤖 AI Assistant Response
-                  </span>
-                </div>
-                <div style="color: #E5E7EB; font-size: 15px; line-height: 1.8; white-space: pre-line;">
-                  ${aiResponse}
-                </div>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
+      <div style="background: #F0F9FF; border: 1px solid #BAE6FD; border-radius: 8px; margin-bottom: 32px;">
+        <div style="padding: 20px;">
+          <div style="margin-bottom: 12px;">
+            <span style="display: inline-block; background: #E0F2FE; color: #0284C7; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+              🤖 AI Assistant Response
+            </span>
+          </div>
+          <div style="color: #334155; font-size: 15px; line-height: 1.7; white-space: pre-line;">
+            ${aiResponse}
+          </div>
+        </div>
+      </div>
       
       <!-- Request Summary -->
-      <tr>
-        <td style="padding-top: 24px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #0B0F1A; border: 1px solid #1F2937; border-radius: 8px;">
-            <tr>
-              <td style="padding: 20px;">
-                <h4 style="color: #22D3EE; margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">
-                  📝 Your Request Summary
-                </h4>
-                <table role="presentation" width="100%" cellpadding="6" cellspacing="0" border="0">
-                  <tr>
-                    <td width="100" style="color: #9CA3AF; font-size: 13px;">Subject:</td>
-                    <td style="color: #E5E7EB; font-size: 13px;">${subject}</td>
-                  </tr>
-                  <tr>
-                    <td style="color: #9CA3AF; font-size: 13px;">Category:</td>
-                    <td style="color: #E5E7EB; font-size: 13px;">${category}</td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
+      <div style="background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px;">
+         <h4 style="color: #374151; margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">
+           📝 Your Request Summary
+         </h4>
+         <p style="margin: 0 0 8px 0; font-size: 13px;">
+            <strong style="color: #6B7280;">Subject:</strong> <span style="color: #111827;">${subject}</span>
+         </p>
+         <p style="margin: 0; font-size: 13px;">
+            <strong style="color: #6B7280;">Category:</strong> <span style="color: #111827;">${category}</span>
+         </p>
+      </div>
+    </div>
   `;
 };
 

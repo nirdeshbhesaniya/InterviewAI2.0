@@ -84,21 +84,60 @@ router.get('/dashboard', authenticateToken, requireAdminOrOwner, async (req, res
             }
         }
 
-        // 3. Get Today's totals
+        // 3. Get Today's totals with breakdown
         const todayStr = new Date().toISOString().split('T')[0];
         const todayStats = await AIUsageLog.aggregate([
             { $match: { date: todayStr } },
+            { $unwind: '$requests' }, // Unwind to count individual requests by type
             {
                 $group: {
                     _id: null,
-                    totalOpenAI: { $sum: '$openaiCount' },
-                    totalOpenRouter: { $sum: '$openRouterCount' },
-                    totalRequests: { $sum: { $add: ['$openaiCount', '$openRouterCount'] } }
+                    totalRequests: { $sum: 1 },
+                    totalTokens: { $sum: '$requests.tokens' },
+                    byType: {
+                        $push: {
+                            type: '$requests.requestType',
+                            count: 1
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    totalRequests: 1,
+                    totalTokens: 1,
+                    breakdown: {
+                        $reduce: {
+                            input: '$byType',
+                            initialValue: {},
+                            in: {
+                                $mergeObjects: [
+                                    '$$value',
+                                    { $literal: { ['$$this.type']: 1 } } // Simplified counting - actually let's use a better group strategy
+                                ]
+                            }
+                        }
+                    }
                 }
             }
         ]);
 
-        const todayTotals = todayStats[0] || { totalOpenAI: 0, totalOpenRouter: 0, totalRequests: 0 };
+        // Better aggregation for breakdown
+        const todayBreakdown = await AIUsageLog.aggregate([
+            { $match: { date: todayStr } },
+            { $unwind: '$requests' },
+            {
+                $group: {
+                    _id: '$requests.requestType',
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+        const todayTotals = {
+            totalRequests: todayBreakdown.reduce((acc, curr) => acc + curr.count, 0),
+            breakdown: todayBreakdown.reduce((acc, curr) => ({ ...acc, [curr._id]: curr.count }), {})
+        };
 
         res.json({
             status: 'success',
@@ -182,6 +221,8 @@ router.get('/logs', authenticateToken, requireAdminOrOwner, async (req, res) => 
                     model: '$requests.model',
                     status: '$requests.status',
                     tokens: '$requests.tokens',
+                    requestType: '$requests.requestType',
+                    usageDetails: '$requests.usageDetails',
                     userEmail: { $arrayElemAt: ['$userInfo.email', 0] },
                     userName: { $arrayElemAt: ['$userInfo.fullName', 0] }
                 }

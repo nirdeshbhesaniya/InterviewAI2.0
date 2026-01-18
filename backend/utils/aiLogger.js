@@ -8,7 +8,7 @@ const AIUsageLog = require('../models/AIUsageLog');
  * @param {string} status - 'success' or 'failed'
  * @param {number} tokens - Estimated tokens (optional)
  */
-const logAIUsage = async (userId, provider, model, status, tokens = 0) => {
+const logAIUsage = async (userId, provider, model, status, tokens = 0, requestType = 'GENERAL', usageDetails = {}) => {
     if (!userId) return;
 
     const date = new Date().toISOString().split('T')[0];
@@ -27,6 +27,8 @@ const logAIUsage = async (userId, provider, model, status, tokens = 0) => {
                         model,
                         status,
                         tokens,
+                        requestType,
+                        usageDetails,
                         timestamp: new Date()
                     }
                 }

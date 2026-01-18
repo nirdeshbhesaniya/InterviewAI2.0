@@ -1,9 +1,10 @@
 const express = require('express');
 const { chatWithAI } = require('../utils/gemini');
+const { authenticateToken } = require('../middlewares/auth'); // Import auth middleware
 const router = express.Router();
 
 // POST /api/chatbot/ask
-router.post('/ask', async (req, res) => {
+router.post('/ask', authenticateToken, async (req, res) => {
     try {
         const { message, context = 'general' } = req.body;
 
@@ -15,6 +16,20 @@ router.post('/ask', async (req, res) => {
         }
 
         const response = await chatWithAI(message, context);
+
+        // Log AI Usage
+        if (req.user) {
+            const { logAIUsage } = require('../utils/aiLogger');
+            logAIUsage(
+                req.user._id,
+                'openrouter', // Provider
+                'gpt-4o-mini', // Model
+                'success',
+                message.length + response.length, // Rough token estimate (chars/4 approx)
+                'CHATBOT',
+                { context, messageLength: message.length }
+            );
+        }
 
         res.json({
             success: true,

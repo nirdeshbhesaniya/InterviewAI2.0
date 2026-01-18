@@ -29,6 +29,13 @@ The response should be the email body content only, starting with a greeting and
 
   try {
     const aiResponse = await chatWithAI(aiPrompt, 'support');
+
+    // Log AI Usage (we might not have a userId here if it's a public contact form, but if we do...)
+    // Since support requests can be from "guest" users, we might need to handle logging without a userId or find a way to attribute it.
+    // However, existing logAIUsage requires userId. 
+    // For now we will skip logging if no user context is available, or we could use a specific "system user" ID.
+    // Let's check where this is called. It's called from /contact.
+
     return aiResponse.replace(/[*#`_]/g, ''); // Remove markdown formatting
   } catch (error) {
     console.error('AI auto-reply generation failed:', error);

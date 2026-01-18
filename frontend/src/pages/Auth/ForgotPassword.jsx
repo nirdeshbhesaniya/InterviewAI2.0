@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Mail, ArrowLeft, Eye, EyeOff, Bot, Shield } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Mail, ArrowLeft, Eye, EyeOff, Bot, Shield, RefreshCw } from 'lucide-react';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import { toast } from 'react-hot-toast';
@@ -7,7 +7,8 @@ import { motion } from 'framer-motion';
 
 const ForgotPassword = ({ onNavigate }) => {
   const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
+  // OTP state as array for split input (6 digits for password reset)
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [resetToken, setResetToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -15,6 +16,27 @@ const ForgotPassword = ({ onNavigate }) => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [step, setStep] = useState(1); // 1: Email, 2: OTP, 3: New Password
   const [loading, setLoading] = useState(false);
+
+  // Refs for OTP inputs
+  const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null), useRef(null), useRef(null)];
+
+  // Timer logic for OTP step
+  const [timer, setTimer] = useState(0);
+
+  useEffect(() => {
+    if (timer > 0) {
+      const interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [timer]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const handleSendOTP = async (e) => {
     e.preventDefault();
@@ -24,6 +46,7 @@ const ForgotPassword = ({ onNavigate }) => {
       const res = await axios.post(API.FORGOT_PASSWORD, { email });
       toast.success(res.data.message);
       setStep(2);
+      setTimer(600); // Start 10 min timer
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to send OTP');
     } finally {
@@ -31,17 +54,69 @@ const ForgotPassword = ({ onNavigate }) => {
     }
   };
 
+  // Handle OTP Input Changes
+  const handleOtpChange = (index, value) => {
+    if (value && !/^\d$/.test(value)) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    // Auto-focus next input
+    if (value && index < 5) {
+      inputRefs[index + 1].current?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      inputRefs[index - 1].current?.focus();
+    }
+    // Handle paste
+    if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      navigator.clipboard.readText().then((text) => {
+        const digits = text.replace(/\D/g, '').slice(0, 6).split('');
+        const newOtp = [...otp];
+        digits.forEach((digit, i) => {
+          if (i < 6) newOtp[i] = digit;
+        });
+        setOtp(newOtp);
+        // Focus last filled input
+        const lastIndex = Math.min(digits.length, 5);
+        inputRefs[lastIndex].current?.focus();
+      });
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text');
+    const digits = pastedData.replace(/\D/g, '').slice(0, 6).split('');
+    const newOtp = [...otp];
+    digits.forEach((digit, i) => {
+      if (i < 6) newOtp[i] = digit;
+    });
+    setOtp(newOtp);
+    const lastIndex = Math.min(digits.length, 5);
+    inputRefs[lastIndex].current?.focus();
+  };
+
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
-    if (!otp) return toast.error('Please enter the OTP');
+    const otpString = otp.join('');
+    if (otpString.length !== 6) return toast.error('Please enter complete 6-digit OTP');
     setLoading(true);
     try {
-      const res = await axios.post(API.VERIFY_OTP, { email, otp });
+      const res = await axios.post(API.VERIFY_OTP, { email, otp: otpString });
       toast.success(res.data.message);
       setResetToken(res.data.resetToken);
       setStep(3);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Invalid OTP');
+      // Clear OTP on error
+      setOtp(['', '', '', '', '', '']);
+      inputRefs[0].current?.focus();
     } finally {
       setLoading(false);
     }
@@ -69,31 +144,6 @@ const ForgotPassword = ({ onNavigate }) => {
 
   return (
     <div className="w-full max-w-[380px] sm:max-w-[420px] mx-auto px-3 sm:px-0">
-      {/* Header with Bot Icon */}
-      {/* <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8"
-      >
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="relative">
-            <Bot className="w-12 h-12 text-[rgb(var(--accent))] drop-shadow-lg" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-[rgb(var(--accent))] rounded-full animate-pulse"></div>
-          </div>
-          <h1 className="text-3xl font-bold text-[rgb(var(--text-primary))]">
-            Interview<span className="bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 bg-clip-text text-transparent">AI</span>
-          </h1>
-        </div>
-        <h2 className="text-2xl font-bold text-[rgb(var(--text-primary))] mb-2 flex items-center justify-center gap-2">
-          <Shield className="w-6 h-6 text-blue-500" /> Reset Password
-        </h2>
-        <p className="text-sm text-[rgb(var(--text-muted))]">
-          {step === 1 && 'Enter your email to receive a verification code'}
-          {step === 2 && 'Enter the 6-digit OTP sent to your email'}
-          {step === 3 && 'Create a new password'}
-        </p>
-      </motion.div> */}
-
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -137,27 +187,57 @@ const ForgotPassword = ({ onNavigate }) => {
 
         {step === 2 && (
           <form onSubmit={handleVerifyOTP} className="space-y-3.5 sm:space-y-4">
-            <input
-              type="text"
-              placeholder="Enter 6-digit OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              maxLength={6}
-              className="w-full rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg-body-alt))] py-2.5 px-4 text-center text-base tracking-widest text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
-              required
-            />
+
+            <div className="text-center mb-4">
+              <h3 className="text-base font-semibold text-[rgb(var(--text-primary))]">Enter Verification Code</h3>
+              <p className="text-xs text-[rgb(var(--text-muted))] mt-1">We sent a 6-digit code to {email}</p>
+            </div>
+
+            {/* Split OTP Inputs */}
+            <div className="flex justify-center gap-2 sm:gap-3">
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={inputRefs[index]}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleOtpChange(index, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                  onPaste={handlePaste}
+                  className="w-10 h-10 sm:w-12 sm:h-12 text-center text-lg sm:text-lg font-bold bg-[rgb(var(--bg-body-alt))] border-2 border-[rgb(var(--border))] rounded-lg text-[rgb(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition"
+                  disabled={loading}
+                />
+              ))}
+            </div>
+
+            {/* Timer */}
+            <div className="text-center">
+              {timer > 0 ? (
+                <p className="text-xs text-[rgb(var(--text-muted))]">
+                  Code expires in <span className="font-semibold text-[rgb(var(--accent))]">{formatTime(timer)}</span>
+                </p>
+              ) : (
+                <p className="text-xs text-red-500 font-semibold">⚠️ Code expired</p>
+              )}
+            </div>
+
             <motion.button
               type="submit"
-              disabled={loading}
+              disabled={loading || otp.join('').length !== 6}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
-              className="w-full py-2.5 rounded-lg text-sm transition font-bold tracking-wide shadow-lg bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white disabled:opacity-60"
+              className={`w-full py-2.5 rounded-lg text-sm transition font-bold tracking-wide shadow-lg text-white disabled:opacity-60 ${loading || otp.join('').length !== 6 ? 'bg-[rgb(var(--text-muted))]/50 cursor-not-allowed' : 'bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))]'}`}
             >
               {loading ? 'Verifying...' : 'Verify OTP'}
             </motion.button>
             <button
               type="button"
-              onClick={() => setStep(1)}
+              onClick={() => {
+                setStep(1);
+                setOtp(['', '', '', '', '', '']);
+              }}
               className="flex items-center justify-center gap-1 text-xs text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] transition-colors w-full"
             >
               <ArrowLeft className="w-3 h-3" /> Back to Email

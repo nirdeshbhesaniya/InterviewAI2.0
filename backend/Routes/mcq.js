@@ -299,38 +299,38 @@ function getGrade(score) {
 async function sendResultsEmail(userInfo, results, topic) {
     const { name, email } = userInfo;
 
-    // Helper function to format text with code highlighting
+    // Help format text
     const formatForEmail = (text) => {
         return text
-            .replace(/```(\w+)?\n([\s\S]*?)```/g, '<div style="background: #1F2937; border-left: 4px solid #6366F1; padding: 15px; margin: 12px 0; font-family: \'Courier New\', monospace; font-size: 13px; overflow-x: auto; border-radius: 6px;"><pre style="margin: 0; white-space: pre-wrap; color: #E5E7EB;">$2</pre></div>')
-            .replace(/`([^`]+)`/g, '<code style="background: #1F2937; color: #22D3EE; padding: 3px 6px; border-radius: 4px; font-family: \'Courier New\', monospace; font-size: 13px;">$1</code>')
+            .replace(/```(\w+)?\n([\s\S]*?)```/g, '<div style="background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 6px; padding: 12px; margin: 10px 0; font-family: \'Courier New\', monospace; font-size: 13px; color: #1F2937; overflow-x: auto;"><pre style="margin: 0; white-space: pre-wrap;">$2</pre></div>')
+            .replace(/`([^`]+)`/g, '<code style="background: #E5E7EB; color: #EF4444; padding: 2px 6px; border-radius: 4px; font-family: \'Courier New\', monospace; font-size: 13px;">$1</code>')
             .replace(/\n/g, '<br>');
     };
 
     // Build detailed results HTML
     const detailedResultsHTML = results.detailedResults.map((result, index) => `
-        <div style="border: 1px solid ${result.isCorrect ? '#16a34a' : '#dc2626'}; margin: 20px 0; padding: 20px; border-radius: 8px; background: ${result.isCorrect ? '#0f2419' : '#2d0f0f'};">
+        <div style="border: 1px solid ${result.isCorrect ? '#D1FAE5' : '#FECACA'}; margin: 20px 0; padding: 20px; border-radius: 8px; background: ${result.isCorrect ? '#ECFDF5' : '#FEF2F2'};">
             <div style="margin-bottom: 15px;">
-                <p style="margin: 0 0 12px 0; font-weight: bold; font-size: 16px; color: #F9FAFB;">Q${result.questionNumber}</p>
-                <div style="margin: 10px 0; line-height: 1.8; color: #E5E7EB;">${formatForEmail(result.question)}</div>
+                <p style="margin: 0 0 12px 0; font-weight: bold; font-size: 16px; color: #111827;">Q${result.questionNumber}</p>
+                <div style="margin: 10px 0; line-height: 1.6; color: #374151;">${formatForEmail(result.question)}</div>
             </div>
             
-            <div style="background: #111827; padding: 15px; border-radius: 6px; margin: 15px 0; border: 1px solid #1F2937;">
-                <p style="margin: 0 0 10px 0; font-weight: 600; color: #9CA3AF;">Your Answer:</p>
-                <div style="margin: 5px 0; padding: 10px; background: #1F2937; border-radius: 4px; color: #F9FAFB; border-left: 3px solid #6366F1;">${formatForEmail(result.userAnswer)}</div>
+            <div style="background: #FFFFFF; padding: 15px; border-radius: 6px; margin: 15px 0; border: 1px solid #E5E7EB;">
+                <p style="margin: 0 0 10px 0; font-weight: 600; color: #6B7280; font-size: 13px; text-transform: uppercase;">Your Answer:</p>
+                <div style="margin: 5px 0; padding: 10px; background: #F9FAFB; border-radius: 4px; color: #1F2937; border-left: 3px solid ${result.isCorrect ? '#10B981' : '#6366F1'};">${formatForEmail(result.userAnswer)}</div>
                 
-                <p style="margin: 20px 0 10px 0; font-weight: 600; color: #9CA3AF;">Correct Answer:</p>
-                <div style="margin: 5px 0; padding: 10px; background: #1F2937; border-radius: 4px; color: #F9FAFB; border-left: 3px solid #22D3EE;">${formatForEmail(result.correctAnswer)}</div>
+                <p style="margin: 20px 0 10px 0; font-weight: 600; color: #6B7280; font-size: 13px; text-transform: uppercase;">Correct Answer:</p>
+                <div style="margin: 5px 0; padding: 10px; background: #F9FAFB; border-radius: 4px; color: #1F2937; border-left: 3px solid #10B981;">${formatForEmail(result.correctAnswer)}</div>
             </div>
             
-            <p style="margin: 15px 0 10px 0; font-weight: bold; color: ${result.isCorrect ? '#4ade80' : '#f87171'}; font-size: 15px;">
+            <p style="margin: 15px 0 10px 0; font-weight: bold; color: ${result.isCorrect ? '#059669' : '#DC2626'}; font-size: 15px;">
                 ${result.isCorrect ? '✅ Correct' : '❌ Incorrect'}
             </p>
             
             ${result.explanation ? `
-                <div style="margin: 15px 0 0 0; padding: 15px; background: #1F2937; border-left: 4px solid #6366F1; border-radius: 6px;">
-                    <p style="margin: 0 0 8px 0; font-weight: 600; color: #22D3EE;">💡 Explanation:</p>
-                    <div style="color: #E5E7EB; line-height: 1.8;">${formatForEmail(result.explanation)}</div>
+                <div style="margin: 15px 0 0 0; padding: 15px; background: #EFF6FF; border-left: 4px solid #3B82F6; border-radius: 6px;">
+                    <p style="margin: 0 0 8px 0; font-weight: 600; color: #1E40AF;">💡 Explanation:</p>
+                    <div style="color: #1E3A8A; line-height: 1.6; font-size: 14px;">${formatForEmail(result.explanation)}</div>
                 </div>
             ` : ''}
         </div>
@@ -338,35 +338,35 @@ async function sendResultsEmail(userInfo, results, topic) {
 
     // Main content
     const emailContent = `
-        <div style="padding: 20px;">
-            <h2 style="color: #F9FAFB; margin-top: 0; font-size: 24px;">Hello ${name}! 👋</h2>
+        <div>
+            <h2 style="color: #111827; margin-top: 0; font-size: 24px;">Hello ${name}! 👋</h2>
             
-            <div style="background: linear-gradient(135deg, #1F2937 0%, #111827 100%); padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 5px solid #6366F1;">
-                <h3 style="color: #22D3EE; margin-top: 0; font-size: 20px;">📊 Test Summary</h3>
-                <table style="width: 100%; color: #E5E7EB; border-spacing: 0;">
-                    <tr><td style="padding: 8px 0;"><strong style="color: #9CA3AF;">Topic:</strong></td><td style="padding: 8px 0;">${topic}</td></tr>
-                    <tr><td style="padding: 8px 0;"><strong style="color: #9CA3AF;">Total Questions:</strong></td><td style="padding: 8px 0;">${results.totalQuestions}</td></tr>
-                    <tr><td style="padding: 8px 0;"><strong style="color: #9CA3AF;">Correct Answers:</strong></td><td style="padding: 8px 0;">${results.correctAnswers}</td></tr>
-                    <tr><td style="padding: 8px 0;"><strong style="color: #9CA3AF;">Score:</strong></td><td style="padding: 8px 0; font-size: 20px; font-weight: bold; color: ${results.score >= 70 ? '#4ade80' : results.score >= 50 ? '#fbbf24' : '#f87171'};">${results.score}%</td></tr>
-                    <tr><td style="padding: 8px 0;"><strong style="color: #9CA3AF;">Grade:</strong></td><td style="padding: 8px 0; font-weight: bold; color: #22D3EE;">${results.grade}</td></tr>
-                    <tr><td style="padding: 8px 0;"><strong style="color: #9CA3AF;">Time Taken:</strong></td><td style="padding: 8px 0;">${Math.floor(results.timeSpent / 60)}m ${results.timeSpent % 60}s</td></tr>
-                    <tr><td style="padding: 8px 0;"><strong style="color: #9CA3AF;">Test Date:</strong></td><td style="padding: 8px 0;">${new Date(results.timestamp).toLocaleString()}</td></tr>
+            <div style="background: #F9FAFB; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 5px solid #3B82F6; border: 1px solid #E5E7EB;">
+                <h3 style="color: #111827; margin-top: 0; font-size: 20px;">📊 Test Summary</h3>
+                <table style="width: 100%; color: #374151; border-spacing: 0;">
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;"><strong style="color: #6B7280;">Topic:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;">${topic}</td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;"><strong style="color: #6B7280;">Total Questions:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;">${results.totalQuestions}</td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;"><strong style="color: #6B7280;">Correct Answers:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;">${results.correctAnswers}</td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;"><strong style="color: #6B7280;">Score:</strong></td><td style="padding: 8px 0; font-size: 20px; font-weight: bold; color: ${results.score >= 70 ? '#059669' : results.score >= 50 ? '#D97706' : '#DC2626'}; border-bottom: 1px solid #F3F4F6;">${results.score}%</td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;"><strong style="color: #6B7280;">Grade:</strong></td><td style="padding: 8px 0; font-weight: bold; color: #111827; border-bottom: 1px solid #F3F4F6;">${results.grade}</td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;"><strong style="color: #6B7280;">Time Taken:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;">${Math.floor(results.timeSpent / 60)}m ${results.timeSpent % 60}s</td></tr>
+                    <tr><td style="padding: 8px 0;"><strong style="color: #6B7280;">Test Date:</strong></td><td style="padding: 8px 0;">${new Date(results.timestamp).toLocaleString()}</td></tr>
                 </table>
             </div>
             
-            <div style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); padding: 20px; border-radius: 8px; margin: 25px 0;">
-                <h3 style="color: #FFFFFF; margin-top: 0; font-size: 18px;">🤖 AI Feedback</h3>
-                <p style="line-height: 1.8; color: #E0E7FF; white-space: pre-line; margin: 0;">${results.aiFeedback}</p>
+            <div style="background: #EFF6FF; padding: 20px; border-radius: 8px; margin: 25px 0; border: 1px solid #BFDBFE;">
+                <h3 style="color: #1E40AF; margin-top: 0; font-size: 18px;">🤖 AI Feedback</h3>
+                <p style="line-height: 1.6; color: #1E3A8A; white-space: pre-line; margin: 0;">${results.aiFeedback}</p>
             </div>
             
             <div style="margin: 30px 0;">
-                <h3 style="color: #F9FAFB; font-size: 22px; margin-bottom: 20px;">📝 Detailed Results</h3>
+                <h3 style="color: #111827; font-size: 22px; margin-bottom: 20px;">📝 Detailed Results</h3>
                 ${detailedResultsHTML}
             </div>
             
-            <div style="text-align: center; margin-top: 40px; padding: 25px; background: linear-gradient(135deg, #1F2937 0%, #111827 100%); border-radius: 8px; border: 1px solid #374151;">
-                <p style="margin: 0 0 15px 0; color: #E5E7EB; font-size: 16px;">🚀 Want to improve your skills?</p>
-                <p style="margin: 0; color: #9CA3AF;">Visit <strong style="background: linear-gradient(135deg, #22D3EE, #6366F1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Interview AI</strong> for more practice tests!</p>
+            <div style="text-align: center; margin-top: 40px; padding: 25px; background: #F9FAFB; border-radius: 8px; border: 1px solid #E5E7EB;">
+                <p style="margin: 0 0 15px 0; color: #374151; font-size: 16px;">🚀 Want to improve your skills?</p>
+                <p style="margin: 0; color: #6B7280;">Visit <a href="https://interviewai.tech" style="color: #2563EB; font-weight: bold; text-decoration: none;">Interview AI</a> for more practice tests!</p>
             </div>
         </div>
     `;
@@ -439,8 +439,26 @@ router.post('/generate', checkFeatureEnabled('ai_mcq_generation'), async (req, r
             // Log AI Usage (if userId available from request body? userEmail is there)
             // But we need userId. We can query User by email.
             if (userEmail) {
-                // Async background lookup to avoid slowing response
-                // usage logging temporarily disabled
+                // Async background lookup to log usage
+                try {
+                    const User = require('../models/User'); // Ensure User model is available
+                    const user = await User.findOne({ email: userEmail });
+                    if (user) {
+                        const { logAIUsage } = require('../utils/aiLogger');
+                        // Log as MCQ_GENERATION
+                        logAIUsage(
+                            user._id,
+                            'openrouter', // provider (assuming default or you can get from gemini.js result if modified)
+                            'gpt-4o-mini', // model (assuming default)
+                            'success',
+                            numberOfQuestions * 50, // rough token estimate
+                            'MCQ_GENERATION',
+                            { topic, difficulty, numberOfQuestions }
+                        );
+                    }
+                } catch (logErr) {
+                    console.error('Error logging AI usage:', logErr);
+                }
             }
         }
 

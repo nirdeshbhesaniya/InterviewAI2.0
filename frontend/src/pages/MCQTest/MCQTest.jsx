@@ -201,10 +201,6 @@ const MCQTest = () => {
                     fullscreenExits: fullscreenWarnings,
                     tabSwitches: tabSwitchWarnings
                 },
-                securityWarnings: {
-                    fullscreenExits: fullscreenWarnings,
-                    tabSwitches: tabSwitchWarnings
-                },
                 practiceTestId: testId, // Include practiceTestId if available
                 saveHistory: !testId // Do not save history for practice tests, save for AI tests
             };
