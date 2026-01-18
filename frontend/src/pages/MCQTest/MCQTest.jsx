@@ -15,6 +15,49 @@ import { Clock, CheckCircle, XCircle, Award, Mail, Brain, Timer, BookOpen, Setti
 import { ButtonLoader } from '../../components/ui/Loader';
 import { useParams } from 'react-router-dom';
 
+const getLanguageFromTopic = (topic) => {
+    if (!topic) return 'javascript';
+    const lowerTopic = topic.toLowerCase();
+
+    const languageMap = {
+        'python': 'python',
+        'java': 'java',
+        'c++': 'cpp',
+        'cpp': 'cpp',
+        'c#': 'csharp',
+        'csharp': 'csharp',
+        'javascript': 'javascript',
+        'js': 'javascript',
+        'react': 'javascript', // React usually uses JSX/JS
+        'node': 'javascript',
+        'node.js': 'javascript',
+        'typescript': 'typescript',
+        'ts': 'typescript',
+        'html': 'html',
+        'css': 'css',
+        'sql': 'sql',
+        'database': 'sql',
+        'go': 'go',
+        'golang': 'go',
+        'rust': 'rust',
+        'swift': 'swift',
+        'kotlin': 'kotlin',
+        'ruby': 'ruby',
+        'php': 'php',
+        'shell': 'bash',
+        'bash': 'bash'
+    };
+
+    // Check for exact matches or if the topic contains the key
+    for (const [key, value] of Object.entries(languageMap)) {
+        if (lowerTopic.includes(key)) {
+            return value;
+        }
+    }
+
+    return 'javascript'; // Default
+};
+
 const MCQTest = () => {
     const { user } = useContext(UserContext);
     const { setIsTestActive } = useTestMode();
@@ -1082,11 +1125,11 @@ const MCQTest = () => {
                                                         <div className="mt-4 rounded-lg overflow-hidden border border-[rgb(var(--border))]">
                                                             <div className="bg-[#0f0f0f] px-3 py-1.5 border-b border-white/10 flex items-center justify-between">
                                                                 <span className="text-xs text-gray-400 font-mono">
-                                                                    {formData.topic?.toLowerCase().includes('python') ? 'Python' : 'JavaScript'}
+                                                                    {getLanguageFromTopic(formData.topic)}
                                                                 </span>
                                                             </div>
                                                             <SyntaxHighlighter
-                                                                language={formData.topic?.toLowerCase().includes('python') ? 'python' : 'javascript'}
+                                                                language={getLanguageFromTopic(formData.topic).toLowerCase()}
                                                                 style={tomorrow}
                                                                 customStyle={{ margin: 0, borderRadius: 0 }}
                                                             >
@@ -1383,6 +1426,22 @@ const MCQTest = () => {
                                             <ReactMarkdown components={components}>
                                                 {questions[currentQuestion]?.question}
                                             </ReactMarkdown>
+                                            {questions[currentQuestion]?.codeSnippet && (
+                                                <div className="mt-4 rounded-lg overflow-hidden border border-[rgb(var(--border))]">
+                                                    <div className="bg-[#0f0f0f] px-3 py-1.5 border-b border-white/10 flex items-center justify-between">
+                                                        <span className="text-xs text-gray-400 font-mono">
+                                                            {getLanguageFromTopic(formData.topic)}
+                                                        </span>
+                                                    </div>
+                                                    <SyntaxHighlighter
+                                                        language={getLanguageFromTopic(formData.topic).toLowerCase()}
+                                                        style={tomorrow}
+                                                        customStyle={{ margin: 0, borderRadius: 0 }}
+                                                    >
+                                                        {questions[currentQuestion].codeSnippet}
+                                                    </SyntaxHighlighter>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
@@ -1648,7 +1707,27 @@ const MCQTest = () => {
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-[rgb(var(--text-secondary))] mb-4">{result.question}</p>
+                                <div className="prose prose-sm max-w-none text-[rgb(var(--text-secondary))] mb-4">
+                                    <ReactMarkdown components={components}>
+                                        {result.question}
+                                    </ReactMarkdown>
+                                    {(result.codeSnippet || questions[index]?.codeSnippet) && (
+                                        <div className="mt-4 rounded-lg overflow-hidden border border-[rgb(var(--border))]">
+                                            <div className="bg-[#0f0f0f] px-3 py-1.5 border-b border-white/10 flex items-center justify-between">
+                                                <span className="text-xs text-gray-400 font-mono">
+                                                    {getLanguageFromTopic(formData.topic)}
+                                                </span>
+                                            </div>
+                                            <SyntaxHighlighter
+                                                language={getLanguageFromTopic(formData.topic).toLowerCase()}
+                                                style={tomorrow}
+                                                customStyle={{ margin: 0, borderRadius: 0 }}
+                                            >
+                                                {result.codeSnippet || questions[index]?.codeSnippet}
+                                            </SyntaxHighlighter>
+                                        </div>
+                                    )}
+                                </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                     <div className="bg-[rgb(var(--bg-card))] p-3 rounded-lg border border-[rgb(var(--border-subtle))]">
@@ -1937,6 +2016,22 @@ const MCQTest = () => {
                                                         <ReactMarkdown components={components}>
                                                             {q.question}
                                                         </ReactMarkdown>
+                                                        {q.codeSnippet && (
+                                                            <div className="mt-4 rounded-lg overflow-hidden border border-[rgb(var(--border))]">
+                                                                <div className="bg-[#0f0f0f] px-3 py-1.5 border-b border-white/10 flex items-center justify-between">
+                                                                    <span className="text-xs text-gray-400 font-mono">
+                                                                        {getLanguageFromTopic(formData.topic)}
+                                                                    </span>
+                                                                </div>
+                                                                <SyntaxHighlighter
+                                                                    language={getLanguageFromTopic(formData.topic).toLowerCase()}
+                                                                    style={tomorrow}
+                                                                    customStyle={{ margin: 0, borderRadius: 0 }}
+                                                                >
+                                                                    {q.codeSnippet}
+                                                                </SyntaxHighlighter>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
 

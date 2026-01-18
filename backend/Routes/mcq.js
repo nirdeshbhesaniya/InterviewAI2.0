@@ -440,10 +440,7 @@ router.post('/generate', checkFeatureEnabled('ai_mcq_generation'), async (req, r
             // But we need userId. We can query User by email.
             if (userEmail) {
                 // Async background lookup to avoid slowing response
-                if (user) {
-                    // Check if AI generation is enabled before logging
-                    // logAIUsage(user._id, 'openrouter', 'gpt-4o-mini', 'success');
-                }
+                // usage logging temporarily disabled
             }
         }
 
