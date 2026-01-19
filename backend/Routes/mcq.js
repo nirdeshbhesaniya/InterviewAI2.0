@@ -918,6 +918,14 @@ router.get('/practice-tests', async (req, res) => {
         // specific filter if needed (e.g. search, difficulty) - strictly published only
         const filter = { isPublished: true };
 
+        if (req.query.search) {
+            filter.$or = [
+                { title: { $regex: req.query.search, $options: 'i' } },
+                { description: { $regex: req.query.search, $options: 'i' } },
+                { topic: { $regex: req.query.search, $options: 'i' } }
+            ];
+        }
+
         const totalTests = await PracticeTest.countDocuments(filter);
         const totalPages = Math.ceil(totalTests / limit);
 

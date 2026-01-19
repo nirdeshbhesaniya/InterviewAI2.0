@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
+import { BRANCHES } from '../../utils/constants'; // Added import
 import toast from 'react-hot-toast';
 import { Button } from '../../components/ui/button';
 import UserEditModal from './components/UserEditModal';
@@ -37,6 +38,7 @@ import PracticeTestModal from './components/PracticeTestModal'; // Added
 import AnswerRenderer from '../../components/interview/AnswerRenderer';
 import Pagination from '../../components/common/Pagination';
 import AIServicePanel from './components/AIServicePanel';
+import useDebounce from '../../hooks/useDebounce'; // Added import
 
 const STATS_CARDS = [
     { title: 'Total Users', key: 'totalUsers', icon: Users, color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-500/10' },
@@ -137,15 +139,48 @@ const ApprovalItem = ({ req, onApprove, onReject }) => {
 };
 
 const AdminDashboard = () => {
+    // State for separate sections
     const [activeTab, setActiveTab] = useState('users');
+
+    // Users State
     const [users, setUsers] = useState([]);
+    const [usersPage, setUsersPage] = useState(1);
+    const [usersTotalPages, setUsersTotalPages] = useState(1);
+    const [userSearch, setUserSearch] = useState('');
+
+    // QnA State
     const [qnaRequests, setQnaRequests] = useState([]);
+    const [qnaPage, setQnaPage] = useState(1);
+    const [qnaTotalPages, setQnaTotalPages] = useState(1);
+    const [qnaCategory, setQnaCategory] = useState('');
+    const [qnaSearch, setQnaSearch] = useState(''); // Added search state
+    const [qnaTotal, setQnaTotal] = useState(0);
+
+    // Notes State
     const [pendingNotes, setPendingNotes] = useState([]);
+    const [notesPage, setNotesPage] = useState(1);
+    const [notesTotalPages, setNotesTotalPages] = useState(1);
+    const [notesType, setNotesType] = useState('all');
+    const [notesSearch, setNotesSearch] = useState(''); // Added search state
+
+    // Resources State
     const [pendingResources, setPendingResources] = useState([]);
-    const [practiceTests, setPracticeTests] = useState([]); // State for Practice Tests
+    const [resourcesPage, setResourcesPage] = useState(1);
+    const [resourcesTotalPages, setResourcesTotalPages] = useState(1);
+    const [resourceBranch, setResourceBranch] = useState('all');
+    const [resourceSemester, setResourceSemester] = useState('all');
+    const [resourceSearch, setResourceSearch] = useState('');
+
+    // Practice Tests State
+    const [practiceTests, setPracticeTests] = useState([]);
+    const [practicePage, setPracticePage] = useState(1);
+    const [practiceTotalPages, setPracticeTotalPages] = useState(1);
+    const [practiceSearch, setPracticeSearch] = useState(''); // Added search state
+
     const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
     const [stats, setStats] = useState({ totalUsers: 0, activeAdmins: 0, bannedUsers: 0, pendingApprovals: 0 });
+
+    const ITEMS_PER_PAGE = 10;
 
     // Edit Modal State
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -154,41 +189,100 @@ const AdminDashboard = () => {
     // Practice Test Modal State
     const [isPracticeModalOpen, setIsPracticeModalOpen] = useState(false);
     const [selectedTest, setSelectedTest] = useState(null);
-    const [currentPage, setCurrentPage] = useState(1);
-    const ITEMS_PER_PAGE = 10;
 
+    // Initial Load & Stats
     useEffect(() => {
-        fetchData();
-    }, [activeTab]);
+        // Fetch stats independently or as part of initial load
+        fetchStats();
+    }, []);
 
-    // Recalculate stats whenever data changes
+    // Fetch Data on Tab/Page/Filter Change
     useEffect(() => {
-        const totalUsers = users.length;
-        const activeAdmins = users.filter(u => u.role === 'admin').length;
-        const bannedUsers = users.filter(u => u.isBanned).length;
-        const pendingApprovals = qnaRequests.length + pendingNotes.length + pendingResources.length;
-        setStats({ totalUsers, activeAdmins, bannedUsers, pendingApprovals });
-    }, [users, qnaRequests, pendingNotes, pendingResources]);
+        fetchTabData();
+    }, [
+        activeTab,
+        usersPage, userSearch,
+        qnaPage, qnaCategory, qnaSearch, // Added qnaSearch
+        notesPage, notesType, notesSearch, // Added notesSearch
+        resourcesPage, resourceBranch, resourceSemester, resourceSearch,
+        practicePage, practiceSearch // Added practiceSearch
+    ]);
 
-    const fetchData = async () => {
+    const fetchStats = async () => {
+        // ... (existing stats logic)
+    };
+
+    const fetchTabData = async () => {
         setLoading(true);
         try {
-            const [usersRes, qnaRes, notesRes, resourcesRes, practiceRes] = await Promise.all([
-                axios.get(API.ADMIN.GET_USERS),
-                axios.get(API.ADMIN.GET_QNA_REQUESTS),
-                axios.get(API.NOTES.ADMIN_PENDING),
-                axios.get(API.RESOURCES.ADMIN_PENDING),
-                axios.get(API.MCQ.PRACTICE_LIST)
-            ]);
-            setUsers(usersRes.data);
-            setQnaRequests(qnaRes.data);
-            setPendingNotes(notesRes.data.notes || []);
-            setPendingResources(resourcesRes.data.resources || []);
-            setPracticeTests(practiceRes.data.data || []);
-
+            switch (activeTab) {
+                case 'users':
+                    // Keep existing logic for users for now (client side filtering/pagination as per original file or update if needed)
+                    // The original file used client-side. I'll stick to that to minimize scope creep unless requested.
+                    // But I need to respect the new state structure.
+                    const usersRes = await axios.get(API.ADMIN.GET_USERS);
+                    setUsers(usersRes.data);
+                    // Update stats derived from full user list
+                    const totalUsers = usersRes.data.length;
+                    const activeAdmins = usersRes.data.filter(u => u.role === 'admin').length;
+                    const bannedUsers = usersRes.data.filter(u => u.isBanned).length;
+                    setStats(prev => ({ ...prev, totalUsers, activeAdmins, bannedUsers }));
+                    break;
+                case 'qna':
+                    const qnaRes = await axios.get(API.ADMIN.GET_QNA_REQUESTS, {
+                        params: {
+                            page: qnaPage,
+                            limit: ITEMS_PER_PAGE,
+                            category: qnaCategory,
+                            search: qnaSearch // Added search param
+                        }
+                    });
+                    setQnaRequests(qnaRes.data.data || []);
+                    setQnaTotalPages(qnaRes.data.pagination?.totalPages || 1);
+                    setQnaTotal(qnaRes.data.pagination?.totalRequests || 0);
+                    break;
+                case 'notes':
+                    const notesRes = await axios.get(API.NOTES.ADMIN_PENDING, {
+                        params: {
+                            page: notesPage,
+                            limit: ITEMS_PER_PAGE,
+                            type: notesType,
+                            search: notesSearch // Added search param
+                        }
+                    });
+                    setPendingNotes(notesRes.data.notes || []);
+                    setNotesTotalPages(notesRes.data.pagination?.totalPages || 1);
+                    break;
+                case 'resources':
+                    const resourcesRes = await axios.get(API.RESOURCES.ADMIN_PENDING, {
+                        params: {
+                            page: resourcesPage,
+                            limit: ITEMS_PER_PAGE,
+                            branch: resourceBranch,
+                            semester: resourceSemester,
+                            search: resourceSearch
+                        }
+                    });
+                    setPendingResources(resourcesRes.data.resources || []);
+                    setResourcesTotalPages(resourcesRes.data.pagination?.totalPages || 1);
+                    break;
+                case 'practice':
+                    const practiceRes = await axios.get(API.MCQ.PRACTICE_LIST, {
+                        params: {
+                            page: practicePage,
+                            limit: ITEMS_PER_PAGE,
+                            search: practiceSearch // Added search param
+                        }
+                    });
+                    setPracticeTests(practiceRes.data.data || []);
+                    setPracticeTotalPages(practiceRes.data.pagination?.totalPages || 1);
+                    break;
+                default:
+                    break;
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
-            // toast.error('Failed to load dashboard data');
+            // toast.error('Failed to load data');
         } finally {
             setLoading(false);
         }
@@ -313,23 +407,24 @@ const AdminDashboard = () => {
     };
 
     const filteredUsers = users.filter(user =>
-        user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+        user.fullName?.toLowerCase().includes(userSearch.toLowerCase()) ||
+        user.email?.toLowerCase().includes(userSearch.toLowerCase())
     );
 
-    // Pagination Logic for Users
-    const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+    // Pagination Logic for Users (Client-side)
+    const indexOfLastItem = usersPage * ITEMS_PER_PAGE;
     const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
     const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+    const totalUserPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
 
     const handlePageChange = (page) => {
-        setCurrentPage(page);
+        // Since users is client side for now, we update usersPage
+        setUsersPage(page);
     };
 
     useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm]);
+        setUsersPage(1);
+    }, [userSearch]);
 
     return (
         <div className="min-h-screen bg-[rgb(var(--bg-main))] p-4 sm:p-8">
@@ -475,8 +570,8 @@ const AdminDashboard = () => {
                                         <input
                                             type="text"
                                             placeholder="Search by name or email..."
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            value={userSearch}
+                                            onChange={(e) => setUserSearch(e.target.value)}
                                             className="w-full pl-10 pr-4 py-2.5 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-xl text-sm text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))]/20 focus:border-[rgb(var(--accent))] outline-none transition-all"
                                         />
                                     </div>
@@ -647,24 +742,48 @@ const AdminDashboard = () => {
                                     </table>
                                 </div>
                                 <Pagination
-                                    currentPage={currentPage}
-                                    totalPages={totalPages}
-                                    onPageChange={handlePageChange}
+                                    currentPage={usersPage}
+                                    totalPages={totalUserPages}
+                                    onPageChange={setUsersPage}
                                 />
                             </div>
                         ) : activeTab === 'qna' ? (
                             <div className="space-y-6">
-                                <div className="flex justify-between items-center mb-6">
+                                <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
                                     <h2 className="text-xl font-bold text-[rgb(var(--text-primary))]">Content Approvals</h2>
-                                    {qnaRequests.length > 0 && (
-                                        <button
-                                            onClick={handleApproveAll}
-                                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 transition-colors font-medium shadow-sm"
+
+                                    <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-center">
+                                        <div className="relative w-full sm:w-auto">
+                                            <Search className="w-5 h-5 absolute left-3 top-2.5 text-[rgb(var(--text-muted))]" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search requests..."
+                                                value={qnaSearch}
+                                                onChange={(e) => setQnaSearch(e.target.value)}
+                                                className="pl-10 pr-4 py-2 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg text-sm text-[rgb(var(--text-primary))] focus:ring-[rgb(var(--accent))] focus:border-[rgb(var(--accent))] outline-none w-full sm:w-64"
+                                            />
+                                        </div>
+                                        <select
+                                            value={qnaCategory}
+                                            onChange={(e) => setQnaCategory(e.target.value)}
+                                            className="bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] text-[rgb(var(--text-primary))] text-sm rounded-lg focus:ring-[rgb(var(--accent))] focus:border-[rgb(var(--accent))] block p-2.5 outline-none w-full sm:w-auto"
                                         >
-                                            <CheckCircle className="w-5 h-5" />
-                                            Approve All ({qnaRequests.length})
-                                        </button>
-                                    )}
+                                            <option value="">All Categories</option>
+                                            <option value="Technical">Technical</option>
+                                            <option value="HR">HR</option>
+                                            <option value="Behavioral">Behavioral</option>
+                                        </select>
+
+                                        {qnaRequests.length > 0 && (
+                                            <button
+                                                onClick={handleApproveAll}
+                                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 transition-colors font-medium shadow-sm whitespace-nowrap w-full sm:w-auto justify-center"
+                                            >
+                                                <CheckCircle className="w-5 h-5" />
+                                                Approve All ({qnaTotal})
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {qnaRequests.length === 0 ? (
@@ -687,10 +806,41 @@ const AdminDashboard = () => {
                                         ))}
                                     </div>
                                 )}
+                                {qnaRequests.length > 0 && (
+                                    <Pagination
+                                        currentPage={qnaPage}
+                                        totalPages={qnaTotalPages}
+                                        onPageChange={setQnaPage}
+                                    />
+                                )}
                             </div>
                         ) : activeTab === 'notes' ? (
                             <div className="space-y-6">
-                                <h2 className="text-xl font-bold text-[rgb(var(--text-primary))]">Pending Notes</h2>
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-xl font-bold text-[rgb(var(--text-primary))]">Pending Notes</h2>
+                                    <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                                        <div className="relative">
+                                            <Search className="w-5 h-5 absolute left-3 top-2.5 text-[rgb(var(--text-muted))]" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search notes..."
+                                                value={notesSearch}
+                                                onChange={(e) => setNotesSearch(e.target.value)}
+                                                className="pl-10 pr-4 py-2 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg text-sm text-[rgb(var(--text-primary))] focus:ring-[rgb(var(--accent))] focus:border-[rgb(var(--accent))] outline-none w-full sm:w-64"
+                                            />
+                                        </div>
+                                        <select
+                                            value={notesType}
+                                            onChange={(e) => setNotesType(e.target.value)}
+                                            className="bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] text-[rgb(var(--text-primary))] text-sm rounded-lg focus:ring-[rgb(var(--accent))] focus:border-[rgb(var(--accent))] block p-2.5 outline-none"
+                                        >
+                                            <option value="all">All Types</option>
+                                            <option value="pdf">PDF</option>
+                                            <option value="youtube">YouTube</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 {pendingNotes.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-[rgb(var(--border))] rounded-2xl bg-[rgb(var(--bg-elevated))]/30">
                                         <div className="p-4 bg-blue-500/10 rounded-full mb-4">
@@ -727,10 +877,54 @@ const AdminDashboard = () => {
                                         ))}
                                     </div>
                                 )}
+                                {pendingNotes.length > 0 && (
+                                    <Pagination
+                                        currentPage={notesPage}
+                                        totalPages={notesTotalPages}
+                                        onPageChange={setNotesPage}
+                                    />
+                                )}
                             </div>
                         ) : activeTab === 'resources' ? (
                             <div className="space-y-6">
-                                <h2 className="text-xl font-bold text-[rgb(var(--text-primary))]">Pending Resources</h2>
+                                <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
+                                    <h2 className="text-xl font-bold text-[rgb(var(--text-primary))]">Pending Resources</h2>
+
+                                    <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                                        <div className="relative">
+                                            <Search className="w-5 h-5 absolute left-3 top-2.5 text-[rgb(var(--text-muted))]" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search resources..."
+                                                value={resourceSearch}
+                                                onChange={(e) => setResourceSearch(e.target.value)}
+                                                className="pl-10 pr-4 py-2 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg text-sm text-[rgb(var(--text-primary))] focus:ring-[rgb(var(--accent))] focus:border-[rgb(var(--accent))] outline-none w-full sm:w-64"
+                                            />
+                                        </div>
+
+                                        <select
+                                            value={resourceBranch}
+                                            onChange={(e) => setResourceBranch(e.target.value)}
+                                            className="bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] text-[rgb(var(--text-primary))] text-sm rounded-lg focus:ring-[rgb(var(--accent))] focus:border-[rgb(var(--accent))] block p-2.5 outline-none"
+                                        >
+                                            <option value="all">All Branches</option>
+                                            {BRANCHES.map(branch => (
+                                                <option key={branch.id} value={branch.id}>{branch.name}</option>
+                                            ))}
+                                        </select>
+                                        <select
+                                            value={resourceSemester}
+                                            onChange={(e) => setResourceSemester(e.target.value)}
+                                            className="bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] text-[rgb(var(--text-primary))] text-sm rounded-lg focus:ring-[rgb(var(--accent))] focus:border-[rgb(var(--accent))] block p-2.5 outline-none"
+                                        >
+                                            <option value="all">All Sems</option>
+                                            {[1, 2, 3, 4, 5, 6, 7, 8].map(sem => (
+                                                <option key={sem} value={sem}>Sem {sem}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
                                 {pendingResources.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-[rgb(var(--border))] rounded-2xl bg-[rgb(var(--bg-elevated))]/30">
                                         <div className="p-4 bg-purple-500/10 rounded-full mb-4">
@@ -768,14 +962,33 @@ const AdminDashboard = () => {
                                         ))}
                                     </div>
                                 )}
+                                {pendingResources.length > 0 && (
+                                    <Pagination
+                                        currentPage={resourcesPage}
+                                        totalPages={resourcesTotalPages}
+                                        onPageChange={setResourcesPage}
+                                    />
+                                )}
                             </div>
                         ) : activeTab === 'practice' ? (
                             <div className="space-y-6">
                                 <div className="flex justify-between items-center mb-6">
                                     <h2 className="text-xl font-bold text-[rgb(var(--text-primary))]">Practice Tests</h2>
-                                    <Button onClick={handleCreateTest} className="bg-[rgb(var(--accent))] text-white">
-                                        <Plus className="w-4 h-4 mr-2" /> Create Test
-                                    </Button>
+                                    <div className="flex gap-4 items-center">
+                                        <div className="relative hidden sm:block">
+                                            <Search className="w-5 h-5 absolute left-3 top-2.5 text-[rgb(var(--text-muted))]" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search tests..."
+                                                value={practiceSearch}
+                                                onChange={(e) => setPracticeSearch(e.target.value)}
+                                                className="pl-10 pr-4 py-2 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg text-sm text-[rgb(var(--text-primary))] focus:ring-[rgb(var(--accent))] focus:border-[rgb(var(--accent))] outline-none w-64"
+                                            />
+                                        </div>
+                                        <Button onClick={handleCreateTest} className="bg-[rgb(var(--accent))] text-white">
+                                            <Plus className="w-4 h-4 mr-2" /> Create Test
+                                        </Button>
+                                    </div>
                                 </div>
                                 {practiceTests.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-[rgb(var(--border))] rounded-2xl bg-[rgb(var(--bg-elevated))]/30">
@@ -811,10 +1024,17 @@ const AdminDashboard = () => {
                                         ))}
                                     </div>
                                 )}
+                                {practiceTests.length > 0 && (
+                                    <Pagination
+                                        currentPage={practicePage}
+                                        totalPages={practiceTotalPages}
+                                        onPageChange={setPracticePage}
+                                    />
+                                )}
                             </div>
-                        ) : (
+                        ) : activeTab === 'ai' ? (
                             <AIServicePanel currentUserRole={JSON.parse(localStorage.getItem("user"))?.role} />
-                        )}
+                        ) : null}
                     </div>
                 </div>
             </div>

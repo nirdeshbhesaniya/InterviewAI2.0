@@ -284,18 +284,54 @@ router.get('/user/my-uploads', authenticateToken, async (req, res) => {
     }
 });
 
-// ADMIN: Get all pending resources
+// ADMIN: Get all pending resources with pagination
 router.get('/admin/pending', authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'admin' && req.user.role !== 'owner') {
             return res.status(403).json({ message: 'Access denied' });
         }
 
-        const resources = await Resource.find({ status: 'pending' })
-            .populate('uploadedBy', 'name email')
-            .sort({ createdAt: -1 });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        const { branch, semester, search } = req.query;
 
-        res.json(resources);
+        const query = { status: 'pending' };
+
+        if (branch && branch !== 'all') {
+            query.branch = branch;
+        }
+
+        if (semester && semester !== 'all') {
+            query.semester = semester;
+        }
+
+        if (search) {
+            query.$or = [
+                { title: { $regex: search, $options: 'i' } },
+                { subject: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } },
+                { tags: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const totalResources = await Resource.countDocuments(query);
+        const resources = await Resource.find(query)
+            .populate('uploadedBy', 'name email')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        res.json({
+            success: true, // Ensuring consistent response format
+            resources,
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(totalResources / limit),
+                totalResources,
+                hasMore: page * limit < totalResources
+            }
+        });
     } catch (error) {
         console.error('Error fetching pending resources:', error);
         res.status(500).json({ message: 'Failed to fetch pending resources', error: error.message });

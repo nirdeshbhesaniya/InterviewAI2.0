@@ -374,15 +374,45 @@ router.get('/user/:userId', async (req, res) => {
     }
 });
 
-// ADMIN: Get all pending notes
+// ADMIN: Get all pending notes with pagination and filtering
 router.get('/admin/pending', async (req, res) => {
     try {
-        // ideally check for admin role here if we had middleware, 
-        // but for now we'll just expose the endpoint and trust the frontend/admin panel to use it
-        // A better approach would be to add auth middleware to this specific route if possible
-        const notes = await Note.find({ status: 'pending' }).sort({ createdAt: -1 });
-        res.json({ success: true, notes });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        const { type, search } = req.query;
+
+        const query = { status: 'pending' };
+
+        if (type && type !== 'all') {
+            query.type = type;
+        }
+
+        if (search) {
+            query.$or = [
+                { title: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const totalNotes = await Note.countDocuments(query);
+        const notes = await Note.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        res.json({
+            success: true,
+            notes,
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(totalNotes / limit),
+                totalNotes,
+                hasMore: page * limit < totalNotes
+            }
+        });
     } catch (error) {
+        console.error('Error fetching pending notes:', error);
         res.status(500).json({ success: false, message: 'Failed to fetch pending notes' });
     }
 });

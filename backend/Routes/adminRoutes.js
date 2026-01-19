@@ -127,31 +127,91 @@ router.put('/users/:userId', async (req, res) => {
 // GET pending Q&A requests (Global view for admin)
 router.get('/qna-requests', async (req, res) => {
     try {
-        // Find all interviews that have at least one pending question
-        const interviews = await Interview.find({ 'qna.status': 'pending' });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        const { category } = req.query;
 
-        let pendingRequests = [];
-        for (const interview of interviews) {
-            const pendingParams = interview.qna.filter(q => q.status === 'pending');
-            for (const q of pendingParams) {
-                // Fetch requester details if needed (optional)
-                const requester = await User.findById(q.requestedBy).select('fullName email photo');
+        // Build Aggregation Pipeline
+        const pipeline = [
+            // 1. Match interviews with at least one pending question
+            { $match: { 'qna.status': 'pending' } },
+            // 2. Unwind qna array to process individual questions
+            { $unwind: '$qna' },
+            // 3. Match only pending questions and optional category filter
+            {
+                $match: {
+                    'qna.status': 'pending',
+                    ...(category ? { 'qna.category': category } : {})
+                }
+            },
+            // 4. Lookup user details (requester)
+            {
+                $lookup: {
+                    from: 'users', // Collection name for User model
+                    localField: 'qna.requestedBy',
+                    foreignField: '_id',
+                    as: 'requester'
+                }
+            },
+            // 5. Unwind requester (preserve if missing, though it shouldn't be)
+            { $unwind: { path: '$requester', preserveNullAndEmptyArrays: true } },
+            // 6. Search Match (if provided)
+            ...(req.query.search ? [{
+                $match: {
+                    $or: [
+                        { 'qna.question': { $regex: req.query.search, $options: 'i' } },
+                        { 'qna.category': { $regex: req.query.search, $options: 'i' } },
+                        { 'requester.fullName': { $regex: req.query.search, $options: 'i' } },
+                        { 'requester.email': { $regex: req.query.search, $options: 'i' } }
+                    ]
+                }
+            }] : []),
+            // 7. Sort by creation date (newest first)
+            { $sort: { 'qna.createdAt': -1 } }
+        ];
 
-                pendingRequests.push({
-                    interviewId: interview._id,
-                    sessionId: interview.sessionId,
-                    interviewTitle: interview.title,
-                    qnaId: q._id,
-                    question: q.question,
-                    answerParts: q.answerParts,
-                    category: q.category,
-                    requestedBy: requester || { _id: q.requestedBy },
-                    createdAt: q.createdAt
-                });
+        // Get Total Count for Pagination (before skip/limit)
+        const countPipeline = [...pipeline, { $count: 'total' }];
+        const countResult = await Interview.aggregate(countPipeline);
+        const total = countResult.length > 0 ? countResult[0].total : 0;
+
+        // Apply Pagination
+        pipeline.push({ $skip: skip });
+        pipeline.push({ $limit: limit });
+
+        // Project final shape
+        pipeline.push({
+            $project: {
+                interviewId: '$_id',
+                sessionId: '$sessionId',
+                interviewTitle: '$title',
+                qnaId: '$qna._id',
+                question: '$qna.question',
+                answerParts: '$qna.answerParts',
+                category: '$qna.category',
+                requestedBy: {
+                    _id: '$requester._id',
+                    fullName: '$requester.fullName',
+                    email: '$requester.email',
+                    photo: '$requester.photo'
+                },
+                createdAt: '$qna.createdAt'
             }
-        }
+        });
 
-        res.json(pendingRequests);
+        const pendingRequests = await Interview.aggregate(pipeline);
+
+        res.json({
+            success: true,
+            data: pendingRequests,
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(total / limit),
+                totalRequests: total,
+                hasMore: page * limit < total
+            }
+        });
 
     } catch (err) {
         console.error('Error fetching Q&A requests:', err);
