@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FileQuestion, Clock, ArrowRight, BookOpen, BarChart2 } from 'lucide-react';
+import { FileQuestion, Clock, ArrowRight, BookOpen, BarChart2, ChevronLeft, ChevronRight } from 'lucide-react';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import { Button } from '../../components/ui/button';
@@ -11,12 +11,22 @@ const PracticeTestsPage = () => {
     const navigate = useNavigate();
     const [tests, setTests] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const TESTS_PER_PAGE = 9;
 
     useEffect(() => {
         const fetchTests = async () => {
+            setLoading(true); // Ensure loading state shows on page change
             try {
-                const res = await axios.get(API.MCQ.PRACTICE_LIST);
-                setTests(res.data.data || []);
+                const res = await axios.get(`${API.MCQ.PRACTICE_LIST}?page=${currentPage}&limit=${TESTS_PER_PAGE}`);
+                if (res.data.pagination) {
+                    setTests(res.data.data || []);
+                    setTotalPages(res.data.pagination.totalPages);
+                } else {
+                    // Fallback for non-paginated response (if any)
+                    setTests(res.data.data || []);
+                }
             } catch (error) {
                 console.error('Error fetching practice tests:', error);
                 toast.error('Failed to load practice tests');
@@ -25,10 +35,17 @@ const PracticeTestsPage = () => {
             }
         };
         fetchTests();
-    }, []);
+    }, [currentPage]); // Re-fetch when page changes
 
     const handleStartTest = (testId) => {
         navigate(`/mcq-test/practice/${testId}`);
+    };
+
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setCurrentPage(newPage);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     };
 
     if (loading) {
@@ -69,57 +86,100 @@ const PracticeTestsPage = () => {
                         <p className="text-[rgb(var(--text-secondary))] mt-2">Check back later for new tests.</p>
                     </div>
                 ) : (
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {tests.map((test, index) => (
-                            <motion.div
-                                key={test._id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                className="bg-[rgb(var(--bg-card))] rounded-2xl border border-[rgb(var(--border))] overflow-hidden hover:shadow-lg transition-all hover:border-[rgb(var(--accent))]/50 group"
-                            >
-                                <div className="p-6 space-y-4">
-                                    <div className="flex justify-between items-start">
-                                        <div className="px-3 py-1 bg-[rgb(var(--bg-elevated))] rounded-full text-xs font-medium text-[rgb(var(--text-secondary))] uppercase tracking-wider">
-                                            {test.topic}
-                                        </div>
-                                        <span className={`px-2 py-0.5 rounded text-xs font-medium capitalize 
+                    <div className="space-y-8">
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {tests.map((test, index) => (
+                                <motion.div
+                                    key={test._id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    className="bg-[rgb(var(--bg-card))] rounded-2xl border border-[rgb(var(--border))] overflow-hidden hover:shadow-lg transition-all hover:border-[rgb(var(--accent))]/50 group"
+                                >
+                                    <div className="p-6 space-y-4">
+                                        <div className="flex justify-between items-start">
+                                            <div className="px-3 py-1 bg-[rgb(var(--bg-elevated))] rounded-full text-xs font-medium text-[rgb(var(--text-secondary))] uppercase tracking-wider">
+                                                {test.topic}
+                                            </div>
+                                            <span className={`px-2 py-0.5 rounded text-xs font-medium capitalize 
                                             ${test.difficulty === 'easy' ? 'bg-green-500/10 text-green-500' :
-                                                test.difficulty === 'hard' ? 'bg-red-500/10 text-red-500' :
-                                                    'bg-yellow-500/10 text-yellow-500'}`}>
-                                            {test.difficulty}
-                                        </span>
-                                    </div>
-
-                                    <div>
-                                        <h3 className="text-xl font-bold text-[rgb(var(--text-primary))] group-hover:text-[rgb(var(--accent))] transition-colors">
-                                            {test.title}
-                                        </h3>
-                                        <p className="text-[rgb(var(--text-secondary))] text-sm mt-2 line-clamp-2">
-                                            {test.description}
-                                        </p>
-                                    </div>
-
-                                    <div className="pt-4 border-t border-[rgb(var(--border))] flex items-center justify-between text-sm text-[rgb(var(--text-secondary))]">
-                                        <div className="flex items-center gap-2">
-                                            <BookOpen className="w-4 h-4" />
-                                            <span>{test.questions.length || 0} Questions</span>
+                                                    test.difficulty === 'hard' ? 'bg-red-500/10 text-red-500' :
+                                                        'bg-yellow-500/10 text-yellow-500'}`}>
+                                                {test.difficulty}
+                                            </span>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <BarChart2 className="w-4 h-4" />
-                                            <span>{test.attempts || 0} Attempts</span>
-                                        </div>
-                                    </div>
 
-                                    <Button
-                                        onClick={() => handleStartTest(test._id)}
-                                        className="w-full bg-[rgb(var(--bg-elevated))] hover:bg-[rgb(var(--accent))] hover:text-white text-[rgb(var(--text-primary))] transition-all group-hover:shadow-lg group-hover:shadow-[rgb(var(--accent))]/20"
-                                    >
-                                        Start Practice <ArrowRight className="w-4 h-4 ml-2" />
-                                    </Button>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-[rgb(var(--text-primary))] group-hover:text-[rgb(var(--accent))] transition-colors">
+                                                {test.title}
+                                            </h3>
+                                            <p className="text-[rgb(var(--text-secondary))] text-sm mt-2 line-clamp-2">
+                                                {test.description}
+                                            </p>
+                                        </div>
+
+                                        <div className="pt-4 border-t border-[rgb(var(--border))] flex items-center justify-between text-sm text-[rgb(var(--text-secondary))]">
+                                            <div className="flex items-center gap-2">
+                                                <BookOpen className="w-4 h-4" />
+                                                <span>{test.questions.length || 0} Questions</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <BarChart2 className="w-4 h-4" />
+                                                <span>{test.attempts || 0} Attempts</span>
+                                            </div>
+                                        </div>
+
+                                        <Button
+                                            onClick={() => handleStartTest(test._id)}
+                                            className="w-full bg-[rgb(var(--bg-elevated))] hover:bg-[rgb(var(--accent))] hover:text-white text-[rgb(var(--text-primary))] transition-all group-hover:shadow-lg group-hover:shadow-[rgb(var(--accent))]/20"
+                                        >
+                                            Start Practice <ArrowRight className="w-4 h-4 ml-2" />
+                                        </Button>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+
+                        {/* Pagination Controls */}
+                        {totalPages > 1 && (
+                            <div className="flex justify-center items-center gap-4 pt-8">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className="h-10 w-10 border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))] hover:text-white disabled:opacity-50 transition-colors"
+                                >
+                                    <ChevronLeft className="w-5 h-5" />
+                                </Button>
+
+                                <div className="flex items-center gap-2">
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                        <button
+                                            key={page}
+                                            onClick={() => handlePageChange(page)}
+                                            className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors
+                                                ${currentPage === page
+                                                    ? 'bg-[rgb(var(--accent))] text-white shadow-lg shadow-[rgb(var(--accent))]/25'
+                                                    : 'bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-card))] hover:text-[rgb(var(--text-primary))]'
+                                                }`}
+                                        >
+                                            {page}
+                                        </button>
+                                    ))}
                                 </div>
-                            </motion.div>
-                        ))}
+
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                    className="h-10 w-10 border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))] hover:text-white disabled:opacity-50 transition-colors"
+                                >
+                                    <ChevronRight className="w-5 h-5" />
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

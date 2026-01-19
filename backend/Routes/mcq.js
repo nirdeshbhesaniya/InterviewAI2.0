@@ -906,18 +906,36 @@ router.delete('/test/:testId', async (req, res) => {
     }
 });
 
-// GET all published Practice Tests
+// GET all published Practice Tests with Pagination
 router.get('/practice-tests', async (req, res) => {
     try {
-        const PracticeTest = require('../models/PracticeTest');
-        const tests = await PracticeTest.find({ isPublished: true })
-            .select('title description topic difficulty questions.length attempts createdAt')
-            .sort({ createdAt: -1 });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 9; // Default to 9 (3x3 grid)
+        const skip = (page - 1) * limit;
 
-        // Return structured as existing API styles
+        const PracticeTest = require('../models/PracticeTest');
+
+        // specific filter if needed (e.g. search, difficulty) - strictly published only
+        const filter = { isPublished: true };
+
+        const totalTests = await PracticeTest.countDocuments(filter);
+        const totalPages = Math.ceil(totalTests / limit);
+
+        const tests = await PracticeTest.find(filter)
+            .select('title description topic difficulty questions.length attempts createdAt')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
         res.json({
             success: true,
-            data: tests
+            data: tests,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalTests,
+                hasMore: page < totalPages
+            }
         });
     } catch (err) {
         console.error('Error fetching practice tests:', err);
