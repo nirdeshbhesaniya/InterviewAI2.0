@@ -3,7 +3,8 @@
  * Run with: node backend/test-email.js
  */
 
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const {
     sendOTPEmail,
     sendNotificationEmail,
@@ -14,8 +15,18 @@ const {
 // ========================================
 // CONFIGURATION
 // ========================================
-// Use environment variable or fallback to the sender email
-const TEST_EMAIL = process.env.TEST_EMAIL || process.env.EMAIL_USER;
+// ========================================
+// CONFIGURATION
+// ========================================
+// 1. RECIPIENT EMAIL (Hardcoded for testing)
+const TEST_EMAIL = 'nirdeshbhesaniya@gmail.com';
+
+// 2. MANUAL API KEY (Optional - if you don't want to use .env)
+const MANUAL_BREVO_API_KEY = ''; // Paste your xkeysib-... key here
+
+if (MANUAL_BREVO_API_KEY) {
+    process.env.BREVO_API_KEY = MANUAL_BREVO_API_KEY;
+}
 
 // ========================================
 // Test Functions
@@ -141,18 +152,16 @@ async function runAllTests() {
     console.log('='.repeat(60));
 
     // Check configuration
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-        console.error('\n❌ ERROR: Email credentials not configured!');
+    if (!process.env.BREVO_API_KEY) {
+        console.error('\n❌ ERROR: BREVO_API_KEY not configured!');
         console.error('\nPlease set the following in your .env file:');
-        console.error('  EMAIL_USER=your-email@gmail.com');
-        console.error('  EMAIL_PASS=your-app-specific-password');
-        console.error('\nSee EMAIL_SETUP_GUIDE.md for instructions.');
+        console.error('  BREVO_API_KEY=your-brevo-api-key');
         process.exit(1);
     }
 
     console.log('\n📋 Configuration:');
-    console.log('  Email User:', process.env.EMAIL_USER);
-    console.log('  Email Service:', process.env.EMAIL_SERVICE || 'gmail (default)');
+    console.log('  Email User:', process.env.EMAIL_USER || 'Default Sender');
+    console.log('  Email Service: Brevo API (HTTP)');
     console.log('  Test Email:', TEST_EMAIL);
     console.log('  App URL:', process.env.APP_URL || 'http://localhost:5173 (default)');
 

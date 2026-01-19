@@ -1,66 +1,75 @@
-const nodemailer = require('nodemailer');
+const axios = require('axios');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
 /**
  * Modern Email Service for Interview AI
- * Uses Nodemailer with Brevo SMTP (smtp-relay.brevo.com)
+ * Uses Brevo REST API (HTTP) via Axios
  * 
  * Includes rich, responsive email templates (Professional Light Theme).
  */
 
-// Global Transporter
-let transporter = null;
-
-const createTransporter = () => {
-  if (transporter) return transporter;
-
-  if (!process.env.BREVO_SMTP_USER || !process.env.BREVO_SMTP_KEY) {
-    console.warn('⚠️ Brevo SMTP credentials missing by default. Using fallback if available.');
-  }
-
-  // Use Brevo Credentials from .env
-  transporter = nodemailer.createTransport({
-    host: 'smtp-relay.brevo.com',
-    port: 587,
-    secure: false, // true for 465, false for 587
-    auth: {
-      user: process.env.BREVO_SMTP_USER,
-      pass: process.env.BREVO_SMTP_KEY,
-    },
-    connectionTimeout: 10000, // 👈 ADD THIS
-    greetingTimeout: 10000,   // 👈 ADD THIS
-    socketTimeout: 10000,     // 👈 ADD THIS
-  });
-
-  return transporter;
-};
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
 /**
  * Centralized Email Sender Util
  */
 const sendEmail = async ({ to, subject, html, text, from, replyTo }) => {
   try {
-    const mailTransport = createTransporter();
-    // Use configured From address, or fallback to a professional format
-    const sender = from || process.env.EMAIL_FROM || 'Interview AI <noreply@interviewai.tech>';
+    const apiKey = process.env.BREVO_API_KEY;
 
-    const mailOptions = {
-      from: sender,
-      to,
-      subject,
-      html,
-      text: text || html.replace(/<[^>]*>?/gm, ''), // Basic fallback
-      replyTo,
+    if (!apiKey) {
+      console.warn('⚠️ BREVO_API_KEY is missing. Email will not be sent.');
+      return { success: false, error: 'Configuration missing' };
+    }
+
+    // Use configured From address, or fallback to a professional format
+    const senderName = 'Interview AI';
+    const senderEmail = 'noreply@interviewai.tech';
+
+    // Parse 'from' if it contains name and email "Name <email>"
+    let finalSender = { name: senderName, email: senderEmail };
+    if (from) {
+      const match = from.match(/(.*?)\s*<(.*?)>/);
+      if (match) {
+        finalSender = { name: match[1].trim(), email: match[2].trim() };
+      } else {
+        finalSender = { email: from };
+      }
+    }
+
+    const payload = {
+      sender: finalSender,
+      to: [{ email: to }],
+      subject: subject,
+      htmlContent: html,
+      textContent: text || html.replace(/<[^>]*>?/gm, ''), // Basic fallback
     };
 
-    const info = await mailTransport.sendMail(mailOptions);
-    console.log(`✅ Email sent to ${to} | MsgID: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
+    if (replyTo) {
+      payload.replyTo = { email: replyTo };
+    }
+
+    const response = await axios.post(BREVO_API_URL, payload, {
+      headers: {
+        'accept': 'application/json',
+        'api-key': apiKey,
+        'content-type': 'application/json'
+      },
+      timeout: 10000 // 10 seconds timeout
+    });
+
+    console.log(`✅ Email sent to ${to} | MsgID: ${response.data.messageId}`);
+    return { success: true, messageId: response.data.messageId };
   } catch (error) {
-    console.error(`❌ Failed to send email to ${to}:`, error.message);
-    throw error;
+    if (error.response) {
+      console.error(`❌ Failed to send email to ${to}: [${error.response.status}]`, JSON.stringify(error.response.data));
+    } else {
+      console.error(`❌ Failed to send email to ${to}:`, error.message);
+    }
+    // Do NOT throw error, just return failure
+    return { success: false, error: error.message };
   }
 };
 
@@ -505,7 +514,7 @@ exports.getWelcomeEmailContent = getWelcomeEmailContent;
 exports.getRegistrationOTPEmailContent = getRegistrationOTPEmailContent;
 
 exports.getServiceInfo = () => ({
-  service: 'Brevo SMTP (With Rich Templates)',
+  service: 'Brevo API (HTTP)',
   isProduction: process.env.NODE_ENV === 'production',
-  configured: !!(process.env.BREVO_SMTP_USER && process.env.BREVO_SMTP_KEY)
+  configured: !!process.env.BREVO_API_KEY
 });
