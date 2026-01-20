@@ -18,7 +18,9 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
     useEffect(() => {
         if (isOpen) {
             if (testToEdit) {
-                setFormData(testToEdit);
+                // Sanitize questions to remove nulls
+                const sanitizedQuestions = (testToEdit.questions || []).filter(q => q);
+                setFormData({ ...testToEdit, questions: sanitizedQuestions });
                 setStep(1);
             } else {
                 setFormData({
@@ -95,7 +97,12 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
             }
         }
 
-        await onSave(testToEdit ? testToEdit._id : null, formData);
+        const payload = {
+            ...formData,
+            timeLimit: Math.max(formData.questions.length * 2, 5) // Auto-calc: 2 min per question, min 5 mins
+        };
+
+        await onSave(testToEdit ? testToEdit._id : null, payload);
     };
 
     if (!isOpen) return null;
@@ -187,74 +194,77 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
                             </div>
                         ) : (
                             <div className="space-y-6">
-                                {formData.questions.map((q, qIndex) => (
-                                    <div key={qIndex} className="bg-[rgb(var(--bg-elevated))] p-4 rounded-xl border border-[rgb(var(--border))] relative group">
-                                        <button
-                                            onClick={() => removeQuestion(qIndex)}
-                                            className="absolute top-4 right-4 text-red-500 hover:bg-red-500/10 p-1.5 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                                            title="Remove Question"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                {formData.questions.map((q, qIndex) => {
+                                    if (!q) return null;
+                                    return (
+                                        <div key={qIndex} className="bg-[rgb(var(--bg-elevated))] p-4 rounded-xl border border-[rgb(var(--border))] relative group">
+                                            <button
+                                                onClick={() => removeQuestion(qIndex)}
+                                                className="absolute top-4 right-4 text-red-500 hover:bg-red-500/10 p-1.5 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                title="Remove Question"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
 
-                                        <div className="mb-4 pr-10">
-                                            <label className="text-xs font-semibold text-[rgb(var(--text-muted))] uppercase mb-1 block">Question {qIndex + 1}</label>
-                                            <textarea
-                                                value={q.question}
-                                                onChange={(e) => updateQuestion(qIndex, 'question', e.target.value)}
-                                                className="w-full px-3 py-2 bg-[rgb(var(--bg-main))] border border-[rgb(var(--border))] rounded-lg focus:ring-1 focus:ring-[rgb(var(--accent))] outline-none text-[rgb(var(--text-primary))] text-sm"
-                                                placeholder="Enter question text..."
-                                                rows={2}
-                                            />
-                                        </div>
+                                            <div className="mb-4 pr-10">
+                                                <label className="text-xs font-semibold text-[rgb(var(--text-muted))] uppercase mb-1 block">Question {qIndex + 1}</label>
+                                                <textarea
+                                                    value={q.question}
+                                                    onChange={(e) => updateQuestion(qIndex, 'question', e.target.value)}
+                                                    className="w-full px-3 py-2 bg-[rgb(var(--bg-main))] border border-[rgb(var(--border))] rounded-lg focus:ring-1 focus:ring-[rgb(var(--accent))] outline-none text-[rgb(var(--text-primary))] text-sm"
+                                                    placeholder="Enter question text..."
+                                                    rows={2}
+                                                />
+                                            </div>
 
-                                        <div className="mb-4 pr-10">
-                                            <label className="text-xs font-semibold text-[rgb(var(--text-muted))] uppercase mb-1 block">Code Snippet (Optional)</label>
-                                            <textarea
-                                                value={q.codeSnippet || ''}
-                                                onChange={(e) => updateQuestion(qIndex, 'codeSnippet', e.target.value)}
-                                                className="w-full px-3 py-2 bg-[rgb(var(--bg-main))] border border-[rgb(var(--border))] rounded-lg focus:ring-1 focus:ring-[rgb(var(--accent))] outline-none text-[rgb(var(--text-primary))] font-mono text-sm"
-                                                placeholder="// Paste your code here..."
-                                                rows={3}
-                                            />
-                                        </div>
+                                            <div className="mb-4 pr-10">
+                                                <label className="text-xs font-semibold text-[rgb(var(--text-muted))] uppercase mb-1 block">Code Snippet (Optional)</label>
+                                                <textarea
+                                                    value={q.codeSnippet || ''}
+                                                    onChange={(e) => updateQuestion(qIndex, 'codeSnippet', e.target.value)}
+                                                    className="w-full px-3 py-2 bg-[rgb(var(--bg-main))] border border-[rgb(var(--border))] rounded-lg focus:ring-1 focus:ring-[rgb(var(--accent))] outline-none text-[rgb(var(--text-primary))] font-mono text-sm"
+                                                    placeholder="// Paste your code here..."
+                                                    rows={3}
+                                                />
+                                            </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                                            {q.options.map((opt, oIndex) => (
-                                                <div key={oIndex} className="flex items-center gap-2">
-                                                    <input
-                                                        type="radio"
-                                                        name={`correct-${qIndex}`}
-                                                        checked={q.correctAnswer === oIndex}
-                                                        onChange={() => updateQuestion(qIndex, 'correctAnswer', oIndex)}
-                                                        className="w-4 h-4 text-[rgb(var(--accent))] focus:ring-[rgb(var(--accent))]"
-                                                    />
-                                                    <input
-                                                        type="text"
-                                                        value={opt}
-                                                        onChange={(e) => updateOption(qIndex, oIndex, e.target.value)}
-                                                        className={`flex-1 px-3 py-1.5 bg-[rgb(var(--bg-main))] border rounded-lg outline-none text-sm transition-colors ${q.correctAnswer === oIndex
-                                                            ? 'border-green-500/50 ring-1 ring-green-500/20'
-                                                            : 'border-[rgb(var(--border))] focus:border-[rgb(var(--accent))]'
-                                                            }`}
-                                                        placeholder={`Option ${String.fromCharCode(65 + oIndex)}`}
-                                                    />
-                                                </div>
-                                            ))}
-                                        </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                                                {q.options.map((opt, oIndex) => (
+                                                    <div key={oIndex} className="flex items-center gap-2">
+                                                        <input
+                                                            type="radio"
+                                                            name={`correct-${qIndex}`}
+                                                            checked={q.correctAnswer === oIndex}
+                                                            onChange={() => updateQuestion(qIndex, 'correctAnswer', oIndex)}
+                                                            className="w-4 h-4 text-[rgb(var(--accent))] focus:ring-[rgb(var(--accent))]"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={opt}
+                                                            onChange={(e) => updateOption(qIndex, oIndex, e.target.value)}
+                                                            className={`flex-1 px-3 py-1.5 bg-[rgb(var(--bg-main))] border rounded-lg outline-none text-sm transition-colors ${q.correctAnswer === oIndex
+                                                                ? 'border-green-500/50 ring-1 ring-green-500/20'
+                                                                : 'border-[rgb(var(--border))] focus:border-[rgb(var(--accent))]'
+                                                                }`}
+                                                            placeholder={`Option ${String.fromCharCode(65 + oIndex)}`}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
 
-                                        <div>
-                                            <label className="text-xs font-semibold text-[rgb(var(--text-muted))] uppercase mb-1 block">Explanation (Optional)</label>
-                                            <textarea
-                                                value={q.explanation}
-                                                onChange={(e) => updateQuestion(qIndex, 'explanation', e.target.value)}
-                                                className="w-full px-3 py-2 bg-[rgb(var(--bg-main))] border border-[rgb(var(--border))] rounded-lg focus:ring-1 focus:ring-[rgb(var(--accent))] outline-none text-[rgb(var(--text-primary))] text-sm"
-                                                placeholder="Explain why the correct answer is right..."
-                                                rows={1}
-                                            />
+                                            <div>
+                                                <label className="text-xs font-semibold text-[rgb(var(--text-muted))] uppercase mb-1 block">Explanation (Optional)</label>
+                                                <textarea
+                                                    value={q.explanation}
+                                                    onChange={(e) => updateQuestion(qIndex, 'explanation', e.target.value)}
+                                                    className="w-full px-3 py-2 bg-[rgb(var(--bg-main))] border border-[rgb(var(--border))] rounded-lg focus:ring-1 focus:ring-[rgb(var(--accent))] outline-none text-[rgb(var(--text-primary))] text-sm"
+                                                    placeholder="Explain why the correct answer is right..."
+                                                    rows={1}
+                                                />
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>

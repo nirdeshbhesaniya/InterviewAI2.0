@@ -124,7 +124,7 @@ const PracticeTestsManagement = () => {
                                     <div className="flex items-center gap-4 text-xs text-[rgb(var(--text-muted))]">
                                         <div className="flex items-center gap-1.5 bg-[rgb(var(--bg-elevated))] px-2 py-1 rounded-md">
                                             <Clock className="w-3.5 h-3.5" />
-                                            {test.timeLimit} mins
+                                            {test.timeLimit || (test.questions?.length || 0) * 2} mins
                                         </div>
                                         <span>Created: {new Date(test.createdAt).toLocaleDateString()}</span>
                                     </div>
@@ -166,7 +166,7 @@ const PracticeTestsManagement = () => {
                 isOpen={isPracticeModalOpen}
                 onClose={() => setIsPracticeModalOpen(false)}
                 onSave={handleSaveTest}
-                initialData={selectedTest}
+                testToEdit={selectedTest}
             />
         </div>
     );

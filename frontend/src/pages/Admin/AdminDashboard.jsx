@@ -15,6 +15,7 @@ import {
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import toast from 'react-hot-toast';
+import { useUser } from '../../context/UserContext';
 
 // Import extracted components
 import UserManagement from './components/UserManagement';
@@ -33,6 +34,7 @@ const STATS_CARDS = [
 ];
 
 const AdminDashboard = () => {
+    const { user } = useUser();
     // State for separate sections
     const [activeTab, setActiveTab] = useState('users');
     const [stats, setStats] = useState({ totalUsers: 0, activeAdmins: 0, bannedUsers: 0, pendingApprovals: 0 });
@@ -82,7 +84,7 @@ const AdminDashboard = () => {
             case 'resources':
                 return <PendingResources />;
             case 'ai':
-                return <AIServicePanel />;
+                return <AIServicePanel currentUserRole={user?.role} />;
             case 'practice':
                 return <PracticeTestsManagement />;
             case 'notifications':
