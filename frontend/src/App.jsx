@@ -15,7 +15,7 @@ import TestHistoryPage from './pages/MCQTest/TestHistoryPage';
 import PracticeTestsPage from './pages/MCQTest/PracticeTestsPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPageNew from './pages/SettingsPageNew';
-import NotificationsPageNew from './pages/NotificationsPageNew';
+import NotificationPage from './pages/InterviewPrep/NotificationPage';
 import NotesPage from './pages/NotesPage';
 import ResourcesPage from './pages/ResourcesPage';
 
@@ -141,7 +141,7 @@ const App = () => {
                   path="/notifications"
                   element={
                     <ProtectedRoute>
-                      <NotificationsPageNew />
+                      <NotificationPage />
                     </ProtectedRoute>
                   }
                 />

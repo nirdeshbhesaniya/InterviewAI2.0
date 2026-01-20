@@ -83,7 +83,10 @@ const resourceSchema = new mongoose.Schema({
 });
 
 // Index for faster queries
-resourceSchema.index({ branch: 1, semester: 1, subject: 1 });
+// Separate indexes for array fields to avoid parallel array indexing error
+resourceSchema.index({ branch: 1 });
+resourceSchema.index({ semester: 1 });
+resourceSchema.index({ subject: 1 });
 resourceSchema.index({ uploadedBy: 1 });
 
 module.exports = mongoose.model('Resource', resourceSchema);

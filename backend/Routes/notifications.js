@@ -1,31 +1,130 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Notification = require('../models/Notification');
 const UserSettings = require('../models/UserSettings');
+const User = require('../models/User'); // Import User model
 const { sendNotificationEmail } = require('../utils/emailService');
 
-// GET all notifications for a user
+// GET all notifications for a user (Individual + Broadcasts)
 router.get('/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
         const { limit = 50, skip = 0, unreadOnly = false } = req.query;
 
-        const query = { userId };
-        if (unreadOnly === 'true') {
-            query.read = false;
+        // Validate userId format
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ success: false, message: 'Invalid user ID format' });
         }
 
-        const notifications = await Notification.find(query)
+        // Fetch user to check role (for 'all_admins' targeting)
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Base query for individual notifications
+        const individualQuery = { userId };
+
+        // Base query for broadcast notifications
+        const broadcastQuery = {
+            recipientType: { $in: ['all', 'broadcast'] }, // Support both legacy/new enum if needed, but strict enum is 'broadcast' implies targetAudience
+            isActive: true
+            // Add audience check below
+        };
+
+        // Construct complex query using $or
+        const matchConditions = [
+            { userId: userId }, // Individual
+            {
+                recipientType: { $in: ['all', 'broadcast'] },
+                isActive: true,
+                targetAudience: 'all'
+            }
+        ];
+
+        if (user.role === 'admin' || user.role === 'owner') {
+            matchConditions.push({
+                recipientType: { $in: ['all', 'broadcast'] },
+                isActive: true,
+                targetAudience: 'admins'
+            });
+        }
+
+        // If unreadOnly requested
+        // Individual: read = false
+        // Broadcast: userId NOT in readBy
+        let finalQuery = { $or: matchConditions };
+
+        if (unreadOnly === 'true') {
+            finalQuery = {
+                $or: matchConditions.map(cond => {
+                    // For individual (userId exists)
+                    if (cond.userId) return { ...cond, read: false };
+                    // For broadcast (recipientType exists)
+                    return { ...cond, readBy: { $ne: userId } };
+                })
+            };
+        }
+
+        // We can't easily sort mixed types if we fetch separately, so we use one query
+        // But 'read' field vs 'readBy' array makes simple sort hard if we want "read status" to be consistent?
+        // No, we just want list of notifications sorted by date.
+
+        // Revised Strategy: Just fetch all matching candidates, then process unread logic if needed?
+        // No, unreadOnly filter is common.
+        // Let's rely on the $or construction above.
+
+        const notifications = await Notification.find(finalQuery)
             .sort({ createdAt: -1 })
             .limit(parseInt(limit))
             .skip(parseInt(skip));
 
-        const unreadCount = await Notification.countDocuments({ userId, read: false });
-        const totalCount = await Notification.countDocuments({ userId });
+        // Calculate counts
+        // 1. Individual Unread
+        const individualUnread = await Notification.countDocuments({ userId, read: false });
+
+        // 2. Broadcast Unread
+        const broadcastMatch = {
+            recipientType: { $in: ['all', 'broadcast'] },
+            isActive: true,
+            readBy: { $ne: userId },
+            $or: [{ targetAudience: 'all' }]
+        };
+        if (user.role === 'admin' || user.role === 'owner') {
+            broadcastMatch.$or.push({ targetAudience: 'admins' });
+        }
+        const broadcastUnread = await Notification.countDocuments(broadcastMatch);
+
+        const unreadCount = individualUnread + broadcastUnread;
+
+        // Total Count (Individual + Broadcasts relevant to user)
+        const totalIndividual = await Notification.countDocuments({ userId });
+        const totalBroadcastMatch = {
+            recipientType: { $in: ['all', 'broadcast'] },
+            isActive: true,
+            $or: [{ targetAudience: 'all' }]
+        };
+        if (user.role === 'admin' || user.role === 'owner') {
+            totalBroadcastMatch.$or.push({ targetAudience: 'admins' });
+        }
+        const totalBroadcast = await Notification.countDocuments(totalBroadcastMatch);
+        const totalCount = totalIndividual + totalBroadcast;
+
+        // Map notifications to add a virtual 'isRead' property for the frontend
+        const mappedNotifications = notifications.map(notif => {
+            const n = notif.toObject();
+            if (n.recipientType === 'individual' || n.userId) {
+                n.isRead = n.read;
+            } else {
+                n.isRead = n.readBy && n.readBy.some(id => id.toString() === userId);
+            }
+            return n;
+        });
 
         res.json({
             success: true,
-            notifications,
+            notifications: mappedNotifications,
             unreadCount,
             totalCount
         });
@@ -35,7 +134,7 @@ router.get('/:userId', async (req, res) => {
     }
 });
 
-// POST create new notification
+// POST create new notification (Individual only - kept for legacy/user actions)
 router.post('/', async (req, res) => {
     try {
         const { userId, type, title, message, action, actionUrl, metadata } = req.body;
@@ -50,6 +149,7 @@ router.post('/', async (req, res) => {
         // Create notification
         const notification = new Notification({
             userId,
+            recipientType: 'individual', // Explicitly set
             type: type || 'info',
             title,
             message,
@@ -70,7 +170,6 @@ router.post('/', async (req, res) => {
                 await notification.save();
             } catch (emailError) {
                 console.error('Email notification failed:', emailError);
-                // Don't fail the request if email fails
             }
         }
 
@@ -89,48 +188,107 @@ router.patch('/mark-read', async (req, res) => {
     try {
         const { notificationIds, userId, markAll = false } = req.body;
 
-        let result;
-        if (markAll && userId) {
-            result = await Notification.updateMany(
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'userId is required' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+        if (markAll) {
+            // 1. Mark individual as read
+            await Notification.updateMany(
                 { userId, read: false },
                 { $set: { read: true } }
             );
-        } else if (notificationIds && Array.isArray(notificationIds)) {
-            result = await Notification.updateMany(
-                { _id: { $in: notificationIds } },
-                { $set: { read: true } }
+
+            // 2. Mark relevant broadcasts as read (push to readBy)
+            const broadcastQuery = {
+                recipientType: { $in: ['all', 'broadcast'] },
+                isActive: true,
+                readBy: { $ne: userId },
+                $or: [{ targetAudience: 'all' }]
+            };
+            if (user.role === 'admin' || user.role === 'owner') {
+                broadcastQuery.$or.push({ targetAudience: 'admins' });
+            }
+
+            await Notification.updateMany(
+                broadcastQuery,
+                { $addToSet: { readBy: userId } }
             );
-        } else {
-            return res.status(400).json({
-                success: false,
-                message: 'Either notificationIds or userId with markAll=true required'
-            });
+
+            return res.json({ success: true, message: 'All notifications marked as read' });
         }
 
-        res.json({
-            success: true,
-            modifiedCount: result.modifiedCount
+        if (notificationIds && Array.isArray(notificationIds) && notificationIds.length > 0) {
+            // Processing mixed types is tricky with updateMany in one go if logic differs
+            // So we split by type
+
+            // Find types
+            const notifs = await Notification.find({ _id: { $in: notificationIds } });
+
+            const individualIds = [];
+            const broadcastIds = [];
+
+            notifs.forEach(n => {
+                if (n.recipientType === 'individual' || n.userId) {
+                    individualIds.push(n._id);
+                } else {
+                    broadcastIds.push(n._id);
+                }
+            });
+
+            if (individualIds.length > 0) {
+                await Notification.updateMany(
+                    { _id: { $in: individualIds } },
+                    { $set: { read: true } }
+                );
+            }
+
+            if (broadcastIds.length > 0) {
+                await Notification.updateMany(
+                    { _id: { $in: broadcastIds } },
+                    { $addToSet: { readBy: userId } }
+                );
+            }
+
+            return res.json({ success: true, message: 'Notifications marked as read' });
+        }
+
+        return res.status(400).json({
+            success: false,
+            message: 'Either notificationIds or markAll=true required'
         });
+
     } catch (error) {
         console.error('Mark read error:', error);
         res.status(500).json({ success: false, message: 'Failed to mark notifications as read' });
     }
 });
 
-// DELETE notification(s)
+// DELETE notification(s) - Only allows deleting individual notifications from user's view
+// Users generally cannot delete "Broadcasts" from the DB, only "hide" them (which is equivalent to reading/ignoring? Or separate ignoredBy?)
+// For now, delete will only work for individual notifications.
 router.delete('/', async (req, res) => {
     try {
         const { notificationIds, userId, deleteAll = false } = req.body;
 
         let result;
         if (deleteAll && userId) {
+            // Only delete individual notifications
             result = await Notification.deleteMany({ userId });
         } else if (notificationIds && Array.isArray(notificationIds)) {
-            result = await Notification.deleteMany({ _id: { $in: notificationIds } });
+            // Only delete if it belongs to user (Security check implicit by query)
+            // But we must also check it's NOT a broadcast. Broadcasts shouldn't be deleted by users.
+            result = await Notification.deleteMany({
+                _id: { $in: notificationIds },
+                userId: { $exists: true } // Only legacy/individual
+            });
         } else {
             return res.status(400).json({
                 success: false,
-                message: 'Either notificationIds or userId with deleteAll=true required'
+                message: 'Invalid delete request'
             });
         }
 
@@ -146,36 +304,44 @@ router.delete('/', async (req, res) => {
 
 // GET notification stats
 router.get('/stats/:userId', async (req, res) => {
+    // ... Implement logic similar to GET /:userId for unification if needed, 
+    // but for now keeping it simple or deprecated.
+    // Let's update it to be correct count at least.
     try {
         const { userId } = req.params;
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ success: false });
 
-        const stats = await Notification.aggregate([
-            { $match: { userId } },
-            {
-                $group: {
-                    _id: '$type',
-                    count: { $sum: 1 }
-                }
-            }
-        ]);
+        // Count Individual
+        const indTotal = await Notification.countDocuments({ userId });
+        const indUnread = await Notification.countDocuments({ userId, read: false });
 
-        const totalCount = await Notification.countDocuments({ userId });
-        const unreadCount = await Notification.countDocuments({ userId, read: false });
+        // Count Broadcast
+        const broadcastMatch = {
+            recipientType: { $in: ['all', 'broadcast'] },
+            isActive: true,
+            $or: [{ targetAudience: 'all' }]
+        };
+        if (user.role === 'admin' || user.role === 'owner') {
+            broadcastMatch.$or.push({ targetAudience: 'admins' });
+        }
+
+        // We can't efficiently count "total" separately from "unread" for broadcast easily without complex queries?
+        // Actually we can.
+        const broadTotal = await Notification.countDocuments(broadcastMatch);
+
+        const broadUnreadMatch = { ...broadcastMatch, readBy: { $ne: userId } };
+        const broadUnread = await Notification.countDocuments(broadUnreadMatch);
 
         res.json({
             success: true,
             stats: {
-                total: totalCount,
-                unread: unreadCount,
-                byType: stats.reduce((acc, item) => {
-                    acc[item._id] = item.count;
-                    return acc;
-                }, {})
+                total: indTotal + broadTotal,
+                unread: indUnread + broadUnread
             }
         });
     } catch (error) {
-        console.error('Get notification stats error:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch notification stats' });
+        res.status(500).json({ success: false });
     }
 });
 

@@ -23,6 +23,30 @@ const notificationSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    // Extended fields for Broadcast support
+    recipientType: {
+        type: String,
+        enum: ['individual', 'broadcast'],
+        default: 'individual'
+    },
+    targetAudience: {
+        type: String,
+        enum: ['all', 'admins', 'none'],
+        default: 'none'
+    },
+    // For broadcast messages, we track who has read them here
+    readBy: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
     action: {
         type: String,
         default: null
@@ -46,5 +70,6 @@ const notificationSchema = new mongoose.Schema({
 // Index for faster queries
 notificationSchema.index({ userId: 1, createdAt: -1 });
 notificationSchema.index({ userId: 1, read: 1 });
+notificationSchema.index({ recipientType: 1, targetAudience: 1, isActive: 1 }); // For fetching broadcasts
 
 module.exports = mongoose.model('Notification', notificationSchema);

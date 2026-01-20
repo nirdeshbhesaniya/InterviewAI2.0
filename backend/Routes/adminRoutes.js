@@ -412,4 +412,100 @@ router.delete('/practice-tests/:id', async (req, res) => {
     }
 });
 
+// POST Create Notification (Owner Only)
+router.post('/notifications/create', async (req, res) => {
+    try {
+        // Strict Owner Check
+        if (req.user.role !== 'owner') {
+            return res.status(403).json({ message: 'Only the Owner can create broadcast notifications.' });
+        }
+
+        const { title, message, recipientType, recipientId, isEmailSent } = req.body;
+        const Notification = require('../models/Notification');
+        const { sendNotificationEmail } = require('../utils/emailService');
+
+        if (!title || !message || !recipientType) {
+            return res.status(400).json({ message: 'Title, message, and recipientType are required.' });
+        }
+
+        let notificationData = {
+            title,
+            message,
+            recipientType,
+            createdBy: req.user._id,
+            isActive: true,
+            emailSent: isEmailSent || false
+        };
+
+        if (recipientType === 'user' || recipientType === 'admin') {
+            if (!recipientId) return res.status(400).json({ message: 'Recipient ID required for specific user/admin.' });
+            notificationData.recipientType = 'individual';
+            notificationData.userId = recipientId; // Legacy support
+            notificationData.targetAudience = 'none';
+        } else if (recipientType === 'all') {
+            notificationData.recipientType = 'broadcast';
+            notificationData.targetAudience = 'all';
+        } else if (recipientType === 'all_admins') {
+            notificationData.recipientType = 'broadcast';
+            notificationData.targetAudience = 'admins';
+        }
+
+        const notification = new Notification(notificationData);
+        await notification.save();
+
+        // Handle Email Sending
+        if (isEmailSent) {
+            // Async execution to not block response
+            (async () => {
+                try {
+                    if (recipientType === 'user' || recipientType === 'admin') {
+                        // Fetch email
+                        const targetUser = await User.findById(recipientId);
+                        if (targetUser && targetUser.preferences?.emailNotifications !== false) {
+                            await sendNotificationEmail(targetUser.email, title, message);
+                        }
+                    } else {
+                        // Broadcast Email
+                        let query = {};
+                        if (recipientType === 'all_admins') {
+                            query.role = { $in: ['admin', 'owner'] };
+                        } else if (recipientType === 'all') {
+                            // Fetch all users? Be careful.
+                            // For now, let's limit or chunk.
+                            // query is empty {}
+                        }
+
+                        // We only send to those who have email enabled
+                        query['preferences.emailNotifications'] = { $ne: false };
+
+                        // Limit to avoid explosion? 
+                        const users = await User.find(query, 'email');
+
+                        console.log(`Sending broadcast email to ${users.length} users...`);
+
+                        // Send in chunks or sequentially
+                        // Use a simple loop for now (SendGrid/Brevo usually handles rate limits, but we should be careful)
+                        for (const u of users) {
+                            try {
+                                await sendNotificationEmail(u.email, title, message);
+                            } catch (e) {
+                                console.error(`Failed to send email to ${u.email}`, e.message);
+                            }
+                        }
+                        console.log('Broadcast emails sent.');
+                    }
+                } catch (emailErr) {
+                    console.error('Error in email sending task:', emailErr);
+                }
+            })();
+        }
+
+        res.status(201).json({ message: 'Notification created successfully', notification });
+
+    } catch (err) {
+        console.error('Error creating notification:', err);
+        res.status(500).json({ message: 'Failed to create notification' });
+    }
+});
+
 module.exports = router;

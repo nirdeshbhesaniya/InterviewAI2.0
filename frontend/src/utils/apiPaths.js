@@ -77,6 +77,7 @@ export const API = {
     CREATE_PRACTICE_TEST: `${API_BASE_URL}/admin/practice-tests`,
     UPDATE_PRACTICE_TEST: (id) => `${API_BASE_URL}/admin/practice-tests/${id}`,
     DELETE_PRACTICE_TEST: (id) => `${API_BASE_URL}/admin/practice-tests/${id}`,
+    CREATE_NOTIFICATION: `${API_BASE_URL}/admin/notifications/create`,
   },
   NOTIFICATIONS: {
     GET_ALL: (userId) => `${API_BASE_URL}/notifications/${userId}`,
