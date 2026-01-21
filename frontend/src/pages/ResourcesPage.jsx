@@ -266,7 +266,7 @@ const ResourcesPage = () => {
                 return;
             }
 
-            if (user.role === 'admin') {
+            if (user.role === 'admin' || user.role === 'owner') {
                 await axios.delete(API.ADMIN.DELETE_RESOURCE(resourceId), {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -613,7 +613,7 @@ const ResourcesPage = () => {
                                                             <span className="hidden sm:inline">Download</span>
                                                             <span className="sm:hidden">Get</span>
                                                         </Button>
-                                                        {(isOwner || user.role === 'admin') && (
+                                                        {(isOwner || user.role === 'admin' || user.role === 'owner') && (
                                                             <>
                                                                 <Button
                                                                     onClick={() => handleDelete(resource._id)}

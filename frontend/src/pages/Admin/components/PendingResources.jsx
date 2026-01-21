@@ -105,7 +105,7 @@ const PendingResources = () => {
                                     <div className="flex items-center gap-2 mb-2">
                                         <h3 className="text-lg font-semibold text-[rgb(var(--text-primary))] line-clamp-1">{resource.subject}</h3>
                                         <span className="px-2 py-0.5 rounded-full bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] text-xs font-medium border border-[rgb(var(--accent))]/20">
-                                            {resource.branch} • Sem {resource.semester}
+                                            {resource.branch} • Sem:  {resource.semester}
                                         </span>
                                     </div>
                                     <div className="text-sm text-[rgb(var(--text-secondary))] mb-3">

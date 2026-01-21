@@ -319,7 +319,7 @@ const UploadResourceModal = ({ isOpen, onClose, onUpload, selectedBranch, initia
                                     {/* Type Selection */}
                                     <div className="flex gap-4 mb-6">
                                         {[
-                                            { value: 'pdf', label: 'PDF', icon: FileText },
+                                            { value: 'pdf', label: 'Drive', icon: FileText },
                                             { value: 'video', label: 'Video', icon: Video },
                                             { value: 'link', label: 'Link', icon: LinkIcon }
                                         ].map(type => {

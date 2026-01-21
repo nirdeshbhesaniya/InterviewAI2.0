@@ -95,19 +95,34 @@ const PendingNotes = () => {
                                             {note.type}
                                         </span>
                                     </div>
-                                    {note.content && (
-                                        <p className="text-sm text-[rgb(var(--text-secondary))] mb-3 line-clamp-2">{note.content}</p>
+                                    {note.description && (
+                                        <p className="text-sm text-[rgb(var(--text-secondary))] mb-3 line-clamp-2">{note.description}</p>
                                     )}
                                     <div className="flex items-center gap-4 text-xs text-[rgb(var(--text-muted))]">
                                         <span className="flex items-center gap-1.5">
                                             <UserCheck className="w-3.5 h-3.5" />
-                                            {note.createdBy?.fullName || 'Unknown User'}
+                                            {note.userName || 'Unknown User'}
                                         </span>
                                         <span>•</span>
                                         <span>{new Date(note.createdAt).toLocaleDateString()}</span>
                                     </div>
                                 </div>
                                 <div className="flex gap-2 shrink-0">
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-9 px-3 border-[rgb(var(--border))] hover:bg-[rgb(var(--bg-elevated))]"
+                                        onClick={() => window.open(note.link, '_blank')}
+                                        title="View Content"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            {note.type === 'youtube' ? (
+                                                <span className="text-red-500 font-bold text-xs">YT</span>
+                                            ) : (
+                                                <span className="text-blue-500 font-bold text-xs">PDF</span>
+                                            )}
+                                        </div>
+                                    </Button>
                                     <Button
                                         size="sm"
                                         className="h-9 px-3 bg-green-600 hover:bg-green-700 text-white border-0 shadow-sm"

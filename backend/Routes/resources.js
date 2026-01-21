@@ -55,7 +55,7 @@ router.get('/', identifyUser, async (req, res) => {
 
         const total = await Resource.countDocuments(finalQuery);
         const resources = await Resource.find(finalQuery)
-            .populate('uploadedBy', 'name email')
+            .populate('uploadedBy', 'fullName email')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
@@ -317,7 +317,7 @@ router.get('/admin/pending', authenticateToken, async (req, res) => {
 
         const totalResources = await Resource.countDocuments(query);
         const resources = await Resource.find(query)
-            .populate('uploadedBy', 'name email')
+            .populate('uploadedBy', 'fullName email')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);

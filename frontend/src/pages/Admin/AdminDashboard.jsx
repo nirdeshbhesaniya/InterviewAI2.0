@@ -48,26 +48,34 @@ const AdminDashboard = () => {
     const fetchStats = async () => {
         setLoading(true);
         try {
-            // Stats fetching logic - assuming we still want a global overview.
-            // Some of this might duplicate calls in sub-components if they also fetch on mount,
-            // but stats are usually lightweight.
-            // Using same endpoints to get counts.
-            const [usersRes, qnaRes] = await Promise.all([
+            const [usersRes, qnaRes, notesRes, resourcesRes] = await Promise.all([
                 axios.get(API.ADMIN.GET_USERS),
-                axios.get(API.ADMIN.GET_QNA_REQUESTS)
+                axios.get(API.ADMIN.GET_QNA_REQUESTS, { params: { limit: 1 } }),
+                axios.get(API.NOTES.ADMIN_PENDING, { params: { limit: 1 } }),
+                axios.get(API.RESOURCES.ADMIN_PENDING, { params: { limit: 1 } })
             ]);
 
             const totalUsers = usersRes.data.length;
             const activeAdmins = usersRes.data.filter(u => u.role === 'admin').length;
             const bannedUsers = usersRes.data.filter(u => u.isBanned).length;
 
-            // QnA pagination result handling
-            const pendingApprovals = qnaRes.data.pagination?.totalRequests || qnaRes.data.totalRequests || 0;
+            const pendingQnA = qnaRes.data.pagination?.totalRequests || qnaRes.data.totalRequests || 0;
+            const pendingNotes = notesRes.data.pagination?.totalNotes || notesRes.data.totalNotes || 0;
+            const pendingResources = resourcesRes.data.pagination?.totalResources || resourcesRes.data.totalResources || 0;
 
-            setStats({ totalUsers, activeAdmins, bannedUsers, pendingApprovals });
+            const pendingApprovals = pendingQnA + pendingNotes + pendingResources;
+
+            setStats({
+                totalUsers,
+                activeAdmins,
+                bannedUsers,
+                pendingApprovals,
+                pendingQnA,
+                pendingNotes,
+                pendingResources
+            });
         } catch (error) {
             console.error('Error fetching stats:', error);
-            // toast.error('Failed to load dashboard stats');
         } finally {
             setLoading(false);
         }
@@ -156,12 +164,12 @@ const AdminDashboard = () => {
                         >
                             <FileText className="w-5 h-5" />
                             Approvals
-                            {(stats.pendingApprovals > 0) && (
+                            {(stats.pendingQnA > 0) && (
                                 <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${activeTab === 'qna'
                                     ? 'bg-white/20 text-white'
                                     : 'bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))]'
                                     }`}>
-                                    {stats.pendingApprovals}
+                                    {stats.pendingQnA}
                                 </span>
                             )}
                         </button>
@@ -174,6 +182,14 @@ const AdminDashboard = () => {
                         >
                             <FileIcon className="w-5 h-5" />
                             Notes
+                            {(stats.pendingNotes > 0) && (
+                                <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${activeTab === 'notes'
+                                    ? 'bg-white/20 text-white'
+                                    : 'bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))]'
+                                    }`}>
+                                    {stats.pendingNotes}
+                                </span>
+                            )}
                         </button>
                         <button
                             onClick={() => setActiveTab('resources')}
@@ -184,6 +200,14 @@ const AdminDashboard = () => {
                         >
                             <BookOpen className="w-5 h-5" />
                             Resources
+                            {(stats.pendingResources > 0) && (
+                                <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${activeTab === 'resources'
+                                    ? 'bg-white/20 text-white'
+                                    : 'bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))]'
+                                    }`}>
+                                    {stats.pendingResources}
+                                </span>
+                            )}
                         </button>
                         <button
                             onClick={() => setActiveTab('ai')}

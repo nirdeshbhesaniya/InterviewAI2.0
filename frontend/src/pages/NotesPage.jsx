@@ -132,7 +132,7 @@ const NotesPage = () => {
         }
 
         try {
-            if (user.role === 'admin') {
+            if (user.role === 'admin' || user.role === 'owner') {
                 await axios.delete(API.ADMIN.DELETE_NOTE(noteId));
             } else {
                 await axios.delete(API.NOTES.DELETE(noteId), {
@@ -401,7 +401,7 @@ const NotesPage = () => {
                                                 )}
                                             </div>
 
-                                            {(note.userId === user.email || user.role === 'admin') && (
+                                            {(note.userId === user.email || user.role === 'admin' || user.role === 'owner') && (
                                                 <div className="flex items-center gap-1">
                                                     <button
                                                         onClick={() => handleEditNote(note)}

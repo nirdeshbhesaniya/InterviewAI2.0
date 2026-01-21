@@ -974,7 +974,7 @@ const InterviewPrepModern = () => {
                                                     onShare={handleShare}
                                                     onCopyAnswer={handleCopyAnswer}
                                                     onDelete={handleDelete}
-                                                    canDelete={isCreator || user?.role === 'admin'}
+                                                    canDelete={isCreator || user?.role === 'admin' || user?.role === 'owner'}
                                                     status={qa.status}
                                                     isCreator={isCreator}
                                                     onApprove={handleApprove}

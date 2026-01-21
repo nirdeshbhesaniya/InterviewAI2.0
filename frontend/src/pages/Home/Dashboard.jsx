@@ -98,7 +98,7 @@ export const Dashboard = () => {
   const confirmDelete = async () => {
     try {
       const userRole = JSON.parse(localStorage.getItem("user"))?.role;
-      if (userRole === 'admin') {
+      if (userRole === 'admin' || userRole === 'owner') {
         await axios.delete(API.ADMIN.DELETE_INTERVIEW(selectedCardId));
       } else {
         await axios.delete(API.INTERVIEW.DELETE(selectedCardId));
