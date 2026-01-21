@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../../../context/UserContext';
 import {
   BrainCircuit,
   Sparkles,
@@ -19,15 +20,24 @@ import {
 } from 'lucide-react';
 import AIAnimatedBackground from './AIAnimatedBackground';
 
-const HeroSection = () => {
+const HeroSection = ({ onLoginClick }) => {
   const navigate = useNavigate();
+  const { user } = useContext(UserContext);
 
   const handleGetStarted = () => {
-    navigate('/dashboard');
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      onLoginClick?.();
+    }
   };
 
   const handleGoCodebase = () => {
-    navigate('/codebase');
+    if (user) {
+      navigate('/codebase');
+    } else {
+      onLoginClick?.();
+    }
   };
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Activity,
@@ -46,27 +46,98 @@ const AIServicePanel = ({ currentUserRole }) => {
     const [features, setFeatures] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
 
+    // Logs State
+    const [logFilters, setLogFilters] = useState({ search: '', provider: 'all', status: 'all' });
+    const [logPagination, setLogPagination] = useState({ page: 1, limit: 10, totalPages: 1, totalCount: 0 });
+    const searchTimeoutRef = useRef(null);
+
     useEffect(() => {
         fetchData();
     }, []);
 
+    // Effect to refetch logs when page changes
+    // We intentionally don't put logFilters in dependency array to avoid double fetch with debounce
+    // handled in the change handler or separate effect
+    useEffect(() => {
+        fetchLogs(logPagination.page, logFilters);
+    }, [logPagination.page]);
+
     const fetchData = async () => {
         setRefreshing(true);
         try {
-            const [statsRes, logsRes, featuresRes] = await Promise.all([
+            const [statsRes, featuresRes] = await Promise.all([
                 axios.get(API_PATH.DASHBOARD),
-                axios.get(API_PATH.LOGS + '?limit=50'),
                 axios.get(API_PATH.FEATURES)
             ]);
             setStats(statsRes.data);
-            setLogs(logsRes.data.logs);
             setFeatures(featuresRes.data.features);
+
+            // Initial logs fetch is handled by the useEffect above or explicit call
+            await fetchLogs(logPagination.page, logFilters);
+
         } catch (error) {
             console.error('Failed to fetch AI stats:', error);
             toast.error('Failed to load AI dashboard data');
         } finally {
             setLoading(false);
             setRefreshing(false);
+        }
+    };
+
+    const fetchLogs = async (page, filters) => {
+        try {
+            const query = new URLSearchParams({
+                page,
+                limit: logPagination.limit,
+                search: filters.search,
+                provider: filters.provider,
+                status: filters.status
+            }).toString();
+
+            const res = await axios.get(`${API_PATH.LOGS}?${query}`);
+            if (res.data.status === 'success') {
+                setLogs(res.data.logs);
+                if (res.data.pagination) {
+                    setLogPagination(prev => ({
+                        ...prev,
+                        page: res.data.pagination.page,
+                        totalPages: res.data.pagination.totalPages,
+                        totalCount: res.data.pagination.totalCount
+                    }));
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch logs:', error);
+            toast.error('Failed to load transaction logs');
+        }
+    };
+
+    const handleLogFilterChange = (key, value) => {
+        const newFilters = { ...logFilters, [key]: value };
+        setLogFilters(newFilters);
+        // Reset to page 1 and fetch immediately (debouncing can be added for search if needed)
+        // For search, we might want a small delay, but for dropdowns immediate is fine.
+        if (key === 'search') {
+            // Simple debounce could be done here or use a useEffect
+            // For now, let's just fetch (or use a timeout ref if we wanted strict debounce)
+            // To prevent UI lag, typically we set state then fetch.
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+            searchTimeoutRef.current = setTimeout(() => {
+                setLogPagination(prev => ({ ...prev, page: 1 }));
+                fetchLogs(1, newFilters);
+            }, 500);
+        } else {
+            setLogPagination(prev => ({ ...prev, page: 1 }));
+            fetchLogs(1, newFilters);
+        }
+    };
+
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= logPagination.totalPages) {
+            setLogPagination(prev => ({ ...prev, page: newPage }));
+            // useEffect will trigger fetch
         }
     };
 
@@ -429,10 +500,40 @@ const AIServicePanel = ({ currentUserRole }) => {
 
             {/* Recent Logs Logs */}
             <div className="bg-[rgb(var(--bg-card))] rounded-2xl border border-[rgb(var(--border))] shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))]">
+                <div className="px-6 py-4 border-b border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))] flex flex-col sm:flex-row justify-between items-center gap-4">
                     <h3 className="font-semibold text-[rgb(var(--text-primary))]">Recent Transactions</h3>
+
+                    {/* Filters */}
+                    <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                        <input
+                            type="text"
+                            placeholder="Search user or email..."
+                            className="bg-[rgb(var(--bg-input))] border border-[rgb(var(--border))] text-[rgb(var(--text-primary))] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]"
+                            value={logFilters.search}
+                            onChange={(e) => handleLogFilterChange('search', e.target.value)}
+                        />
+                        <select
+                            className="bg-[rgb(var(--bg-input))] border border-[rgb(var(--border))] text-[rgb(var(--text-primary))] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]"
+                            value={logFilters.provider}
+                            onChange={(e) => handleLogFilterChange('provider', e.target.value)}
+                        >
+                            <option value="all">All Providers</option>
+                            <option value="openRouter">OpenRouter</option>
+                            <option value="openai">OpenAI</option>
+                        </select>
+                        <select
+                            className="bg-[rgb(var(--bg-input))] border border-[rgb(var(--border))] text-[rgb(var(--text-primary))] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]"
+                            value={logFilters.status}
+                            onChange={(e) => handleLogFilterChange('status', e.target.value)}
+                        >
+                            <option value="all">All Status</option>
+                            <option value="success">Success</option>
+                            <option value="failed">Failed</option>
+                        </select>
+                    </div>
                 </div>
-                <div className="overflow-x-auto max-h-[400px]">
+
+                <div className="overflow-x-auto max-h-[500px]">
                     <table className="w-full text-left">
                         <thead className="bg-[rgb(var(--bg-elevated))]/50 sticky top-0 z-10 backdrop-blur-sm">
                             <tr>
@@ -480,12 +581,39 @@ const AIServicePanel = ({ currentUserRole }) => {
                             {logs.length === 0 && (
                                 <tr>
                                     <td colSpan="5" className="px-6 py-8 text-center text-[rgb(var(--text-muted))]">
-                                        No recent logs found.
+                                        No transactions found matching your filters.
                                     </td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="px-6 py-4 border-t border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))]/50 flex justify-between items-center">
+                    <div className="text-sm text-[rgb(var(--text-muted))]">
+                        Page {logPagination.page} of {logPagination.totalPages || 1} <span className="mx-1">•</span> Total {logPagination.totalCount} records
+                    </div>
+                    <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={logPagination.page === 1}
+                            onClick={() => handlePageChange(logPagination.page - 1)}
+                            className="bg-transparent border-[rgb(var(--border))]"
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={logPagination.page >= logPagination.totalPages}
+                            onClick={() => handlePageChange(logPagination.page + 1)}
+                            className="bg-transparent border-[rgb(var(--border))]"
+                        >
+                            Next
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>

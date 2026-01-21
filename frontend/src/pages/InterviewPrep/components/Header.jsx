@@ -168,7 +168,7 @@ const Header = ({ onLoginClick }) => {
           {/* Navigation Menu - Desktop */}
           <nav className="hidden lg:flex items-center space-x-8">
             <motion.button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => user ? navigate('/dashboard') : onLoginClick?.()}
               className={`${isActive('/dashboard')} font-medium transition-colors duration-200`}
               whileHover={{ y: -2 }}
             >
@@ -184,39 +184,38 @@ const Header = ({ onLoginClick }) => {
               </motion.button>
             )}
             <motion.button
-              onClick={() => navigate('/mcq-test')}
+              onClick={() => user ? navigate('/mcq-test') : onLoginClick?.()}
               className={`${isActive('/mcq-test')} font-medium transition-colors duration-200`}
               whileHover={{ y: -2 }}
             >
               AI Tests
             </motion.button>
             <motion.button
-              onClick={() => navigate('/mcq-test/practice')}
+              onClick={() => user ? navigate('/mcq-test/practice') : onLoginClick?.()}
               className={`${isActive('/mcq-test/practice')} font-medium transition-colors duration-200`}
               whileHover={{ y: -2 }}
             >
               Practice Tests
             </motion.button>
             <motion.button
-              onClick={() => navigate('/codebase')}
+              onClick={() => user ? navigate('/codebase') : onLoginClick?.()}
               className={`${isActive('/codebase')} font-medium transition-colors duration-200`}
               whileHover={{ y: -2 }}
             >
               Code Editor
             </motion.button>
             <motion.button
-              onClick={() => navigate('/notes')}
+              onClick={() => user ? navigate('/notes') : onLoginClick?.()}
               className={`flex items-center gap-2 ${isActive('/notes')} font-medium transition-colors duration-200`}
               whileHover={{ y: -2 }}
             >
               Notes
             </motion.button>
             <motion.button
-              onClick={() => navigate('/resources')}
+              onClick={() => user ? navigate('/resources') : onLoginClick?.()}
               className={`flex items-center gap-2 ${isActive('/resources')} font-medium transition-colors duration-200`}
               whileHover={{ y: -2 }}
             >
-
               Resources
             </motion.button>
           </nav>

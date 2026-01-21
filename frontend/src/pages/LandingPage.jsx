@@ -174,7 +174,7 @@ const LandingPage = () => {
 
       {/* Hero Section with Enhanced Mobile Design */}
 
-      <HeroSection />
+      <HeroSection onLoginClick={openModal} />
 
       {/* MCQ Test Highlight Section */}
       <section className="px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-br from-[rgb(var(--accent))] via-[#4F46E5] to-[rgb(var(--accent-hover))] relative overflow-hidden">
@@ -324,7 +324,16 @@ const LandingPage = () => {
                     y: -8,
                     transition: { duration: 0.3 }
                   }}
-                  className="group relative bg-white dark:bg-[rgb(var(--bg-card))] p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-[rgb(var(--border))] shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden"
+                  onClick={() => {
+                    if (feature.link && feature.link !== '#') {
+                      if (user || localStorage.getItem('user')) {
+                        navigate(feature.link);
+                      } else {
+                        openModal();
+                      }
+                    }
+                  }}
+                  className="group relative bg-white dark:bg-[rgb(var(--bg-card))] p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-[rgb(var(--border))] shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden cursor-pointer"
                 >
                   {/* Gradient Background Effect */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 dark:group-hover:opacity-10 transition-opacity duration-500`} />
@@ -347,15 +356,6 @@ const LandingPage = () => {
 
                     {/* Always Visible Learn More Link */}
                     <button
-                      onClick={() => {
-                        if (feature.link && feature.link !== '#') {
-                          if (user || localStorage.getItem('user')) {
-                            navigate(feature.link);
-                          } else {
-                            openModal();
-                          }
-                        }
-                      }}
                       className="inline-flex items-center text-purple-600 dark:text-purple-400 font-semibold text-sm sm:text-base hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-300 group/link"
                     >
                       <span>Learn more</span>

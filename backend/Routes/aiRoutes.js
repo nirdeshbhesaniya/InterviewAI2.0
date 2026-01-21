@@ -190,22 +190,32 @@ router.get('/logs', authenticateToken, requireAdminOrOwner, async (req, res) => 
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
+        const search = req.query.search || '';
+        const providerFilter = req.query.provider || '';
+        const statusFilter = req.query.status || '';
+
         const skip = (page - 1) * limit;
 
-        // We need to unwind the 'requests' array from AIUsageLog to show individual transactions
-        // However, 'requests' array inside documents can get large, so standard find() on log documents 
-        // returns grouped data. 
-        // The user wants "relevant info show on owner".
-        // A simple approach is to fetch the most recent AIUsageLog documents and flatten them in JS, 
-        // but for pagination that's tricky.
-        // Better approach: Use aggregation to unwind and sort by timestamp.
+        // Base match for requests array fields (optimize by filtering before lookup if possible)
+        let requestMatch = {};
+        if (providerFilter && providerFilter !== 'all') {
+            requestMatch['requests.provider'] = providerFilter;
+        }
+        if (statusFilter && statusFilter !== 'all') {
+            requestMatch['requests.status'] = statusFilter;
+        }
 
-        const logs = await AIUsageLog.aggregate([
-            { $match: {} }, // Match all (can filter by date if needed for perf)
+        const stats = await AIUsageLog.aggregate([
+            // 1. Unwind to work with individual requests
             { $unwind: '$requests' },
+
+            // 2. Filter requests based on provider/status
+            { $match: requestMatch },
+
+            // 3. Sort by timestamp descending (newest first)
             { $sort: { 'requests.timestamp': -1 } },
-            { $skip: skip },
-            { $limit: limit },
+
+            // 4. Join with User data
             {
                 $lookup: {
                     from: 'users',
@@ -214,29 +224,59 @@ router.get('/logs', authenticateToken, requireAdminOrOwner, async (req, res) => 
                     as: 'userInfo'
                 }
             },
+            { $unwind: { path: '$userInfo', preserveNullAndEmptyArrays: true } },
+
+            // 5. Search Filter (if search query exists)
+            ...(search ? [{
+                $match: {
+                    $or: [
+                        { 'userInfo.fullName': { $regex: search, $options: 'i' } },
+                        { 'userInfo.email': { $regex: search, $options: 'i' } },
+                        // Optional: Search by model or request type
+                        { 'requests.model': { $regex: search, $options: 'i' } }
+                    ]
+                }
+            }] : []),
+
+            // 6. Facet for Pagination and Data
             {
-                $project: {
-                    timestamp: '$requests.timestamp',
-                    provider: '$requests.provider',
-                    model: '$requests.model',
-                    status: '$requests.status',
-                    tokens: '$requests.tokens',
-                    requestType: '$requests.requestType',
-                    usageDetails: '$requests.usageDetails',
-                    userEmail: { $arrayElemAt: ['$userInfo.email', 0] },
-                    userName: { $arrayElemAt: ['$userInfo.fullName', 0] }
+                $facet: {
+                    metadata: [{ $count: "total" }],
+                    data: [
+                        { $skip: skip },
+                        { $limit: limit },
+                        {
+                            $project: {
+                                timestamp: '$requests.timestamp',
+                                provider: '$requests.provider',
+                                model: '$requests.model',
+                                status: '$requests.status',
+                                tokens: '$requests.tokens',
+                                requestType: '$requests.requestType',
+                                usageDetails: '$requests.usageDetails',
+                                userEmail: '$userInfo.email',
+                                userName: '$userInfo.fullName'
+                            }
+                        }
+                    ]
                 }
             }
         ]);
 
-        // Get total count (approximation for performance)
-        // Calculating total unwound documents is expensive. Let's just return what we have or cap it.
-        // For a dashboard, infinite scroll or "load more" is often better, or just "Recent 100".
-        // We'll return the page data.
+        const result = stats[0];
+        const logs = result.data;
+        const totalCount = result.metadata[0] ? result.metadata[0].total : 0;
+        const totalPages = Math.ceil(totalCount / limit);
 
         res.json({
             status: 'success',
-            logs
+            logs,
+            pagination: {
+                page,
+                limit,
+                totalCount,
+                totalPages
+            }
         });
 
     } catch (error) {
