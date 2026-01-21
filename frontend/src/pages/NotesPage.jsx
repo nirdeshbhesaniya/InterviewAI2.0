@@ -44,15 +44,24 @@ const NotesPage = () => {
         tags: ''
     });
 
+    const [totalNotes, setTotalNotes] = useState(0);
+
     useEffect(() => {
         setCurrentPage(1);
-        fetchNotes();
-    }, [filter]);
+        fetchNotes(1);
+    }, [filter, searchQuery]);
 
-    const fetchNotes = async () => {
+    useEffect(() => {
+        fetchNotes(currentPage);
+    }, [currentPage]);
+
+    const fetchNotes = async (page = 1) => {
         try {
             setLoading(true);
-            let params = {};
+            let params = {
+                limit: ITEMS_PER_PAGE,
+                skip: (page - 1) * ITEMS_PER_PAGE
+            };
 
             if (filter === 'pdf' || filter === 'youtube') {
                 params.type = filter;
@@ -68,6 +77,7 @@ const NotesPage = () => {
 
             if (response.data.success) {
                 setNotes(response.data.notes);
+                setTotalNotes(response.data.totalCount || 0);
             }
         } catch (error) {
             console.error('Error fetching notes:', error);
@@ -79,14 +89,11 @@ const NotesPage = () => {
 
     const handleSearch = () => {
         setCurrentPage(1);
-        fetchNotes();
+        fetchNotes(1);
     };
 
     // Pagination Logic
-    const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
-    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
-    const currentNotes = notes.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(notes.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(totalNotes / ITEMS_PER_PAGE);
 
     const handlePageChange = (page) => {
         setCurrentPage(page);
@@ -369,134 +376,150 @@ const NotesPage = () => {
                         </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                        <AnimatePresence>
-                            {currentNotes.map((note) => (
-                                <motion.div
-                                    key={note._id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                    className="bg-[rgb(var(--bg-card))] rounded-xl shadow-lg hover:shadow-xl hover:shadow-[rgb(var(--accent))]/10 transition-all duration-300 overflow-hidden border border-[rgb(var(--border-subtle))]"
-                                >
-                                    {/* Card Header */}
-                                    <div className={`p-3 sm:p-4 ${note.type === 'pdf'
-                                        ? 'bg-gradient-to-r from-[rgb(var(--accent))] to-[#22D3EE]'
-                                        : 'bg-gradient-to-r from-[#F97316] to-[#FB7185]'
-                                        }`}>
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex items-center gap-2 text-white">
-                                                {note.type === 'pdf' ? (
-                                                    <FileText size={20} className="sm:w-6 sm:h-6" />
-                                                ) : (
-                                                    <Youtube size={20} className="sm:w-6 sm:h-6" />
-                                                )}
-                                                <span className="font-bold text-xs sm:text-sm uppercase tracking-wide">
-                                                    {note.type}
-                                                </span>
-                                                {note.status === 'pending' && (
-                                                    <span className="ml-2 px-2 py-0.5 bg-yellow-400 text-yellow-900 text-[10px] uppercase font-bold rounded-full shadow-sm">
-                                                        Pending
+                    <>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                            <AnimatePresence>
+                                {notes.map((note) => (
+                                    <motion.div
+                                        key={note._id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -20 }}
+                                        className="bg-[rgb(var(--bg-card))] rounded-xl shadow-lg hover:shadow-xl hover:shadow-[rgb(var(--accent))]/10 transition-all duration-300 overflow-hidden border border-[rgb(var(--border-subtle))]"
+                                    >
+                                        {/* Card Header */}
+                                        <div className={`p-3 sm:p-4 ${note.type === 'pdf'
+                                            ? 'bg-gradient-to-r from-[rgb(var(--accent))] to-[#22D3EE]'
+                                            : 'bg-gradient-to-r from-[#F97316] to-[#FB7185]'
+                                            }`}>
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex items-center gap-2 text-white">
+                                                    {note.type === 'pdf' ? (
+                                                        <FileText size={20} className="sm:w-6 sm:h-6" />
+                                                    ) : (
+                                                        <Youtube size={20} className="sm:w-6 sm:h-6" />
+                                                    )}
+                                                    <span className="font-bold text-xs sm:text-sm uppercase tracking-wide">
+                                                        {note.type}
                                                     </span>
+                                                    {note.status === 'pending' && (
+                                                        <span className="ml-2 px-2 py-0.5 bg-yellow-400 text-yellow-900 text-[10px] uppercase font-bold rounded-full shadow-sm">
+                                                            Pending
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {(note.userId === user.email || user.role === 'admin' || user.role === 'owner') && (
+                                                    <div className="flex items-center gap-1">
+                                                        <button
+                                                            onClick={() => handleEditNote(note)}
+                                                            className="p-1.5 sm:p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
+                                                        >
+                                                            <Edit2 size={16} className="sm:w-[18px] sm:h-[18px]" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteNote(note._id)}
+                                                            className="p-1.5 sm:p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
+                                                        >
+                                                            <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </div>
+                                        </div>
 
-                                            {(note.userId === user.email || user.role === 'admin' || user.role === 'owner') && (
-                                                <div className="flex items-center gap-1">
-                                                    <button
-                                                        onClick={() => handleEditNote(note)}
-                                                        className="p-1.5 sm:p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
-                                                    >
-                                                        <Edit2 size={16} className="sm:w-[18px] sm:h-[18px]" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteNote(note._id)}
-                                                        className="p-1.5 sm:p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
-                                                    >
-                                                        <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
-                                                    </button>
+                                        {/* Card Body */}
+                                        <div className="p-4 sm:p-5">
+                                            <h3 className="text-lg sm:text-xl font-bold text-[rgb(var(--text-primary))] mb-2 line-clamp-2">
+                                                {note.title}
+                                            </h3>
+
+                                            {note.description && (
+                                                <p className="text-[rgb(var(--text-secondary))] text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-3">
+                                                    {note.description}
+                                                </p>
+                                            )}
+
+                                            {/* Tags */}
+                                            {note.tags && note.tags.length > 0 && (
+                                                <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+                                                    {note.tags.map((tag, index) => (
+                                                        <span
+                                                            key={index}
+                                                            className="px-2 py-0.5 sm:py-1 bg-[rgb(var(--accent))]/20 text-[rgb(var(--accent))] text-xs rounded-full font-semibold"
+                                                        >
+                                                            #{tag}
+                                                        </span>
+                                                    ))}
                                                 </div>
                                             )}
-                                        </div>
-                                    </div>
 
-                                    {/* Card Body */}
-                                    <div className="p-4 sm:p-5">
-                                        <h3 className="text-lg sm:text-xl font-bold text-[rgb(var(--text-primary))] mb-2 line-clamp-2">
-                                            {note.title}
-                                        </h3>
-
-                                        {note.description && (
-                                            <p className="text-[rgb(var(--text-secondary))] text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-3">
-                                                {note.description}
-                                            </p>
-                                        )}
-
-                                        {/* Tags */}
-                                        {note.tags && note.tags.length > 0 && (
-                                            <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
-                                                {note.tags.map((tag, index) => (
-                                                    <span
-                                                        key={index}
-                                                        className="px-2 py-0.5 sm:py-1 bg-[rgb(var(--accent))]/20 text-[rgb(var(--accent))] text-xs rounded-full font-semibold"
-                                                    >
-                                                        #{tag}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {/* Meta Info */}
-                                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-[rgb(var(--text-muted))] mb-3 sm:mb-4">
-                                            <div className="flex items-center gap-1">
-                                                <User size={12} className="sm:w-[14px] sm:h-[14px]" />
-                                                <span className="truncate max-w-[120px] sm:max-w-none">{note.userName}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <Calendar size={12} className="sm:w-[14px] sm:h-[14px]" />
-                                                <span>{moment(note.createdAt).fromNow()}</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Actions */}
-                                        <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-[rgb(var(--border-subtle))]">
-                                            <div className="flex items-center gap-3 sm:gap-4">
-                                                <button
-                                                    onClick={() => handleLikeNote(note._id)}
-                                                    className={`flex items-center gap-1 transition-colors ${isLikedByUser(note)
-                                                        ? 'text-pink-500'
-                                                        : 'text-[rgb(var(--text-muted))] hover:text-pink-500'
-                                                        }`}
-                                                >
-                                                    <Heart
-                                                        size={16}
-                                                        className="sm:w-[18px] sm:h-[18px]"
-                                                        fill={isLikedByUser(note) ? 'currentColor' : 'none'}
-                                                    />
-                                                    <span className="text-xs sm:text-sm font-semibold">
-                                                        {note.likes.length}
-                                                    </span>
-                                                </button>
-
-                                                <div className="flex items-center gap-1 text-[rgb(var(--text-muted))]">
-                                                    <Eye size={16} className="sm:w-[18px] sm:h-[18px]" />
-                                                    <span className="text-xs sm:text-sm font-semibold">{note.views}</span>
+                                            {/* Meta Info */}
+                                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-[rgb(var(--text-muted))] mb-3 sm:mb-4">
+                                                <div className="flex items-center gap-1">
+                                                    <User size={12} className="sm:w-[14px] sm:h-[14px]" />
+                                                    <span className="truncate max-w-[120px] sm:max-w-none">{note.userName}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <Calendar size={12} className="sm:w-[14px] sm:h-[14px]" />
+                                                    <span>{moment(note.createdAt).fromNow()}</span>
                                                 </div>
                                             </div>
 
-                                            <button
-                                                onClick={() => openLink(note.link, note._id)}
-                                                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg font-semibold hover:shadow-md hover:shadow-[rgb(var(--accent))]/30 transition-all text-xs sm:text-sm"
-                                            >
-                                                <span>Open</span>
-                                                <ExternalLink size={14} className="sm:w-4 sm:h-4" />
-                                            </button>
+                                            {/* Actions */}
+                                            <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-[rgb(var(--border-subtle))]">
+                                                <div className="flex items-center gap-3 sm:gap-4">
+                                                    <button
+                                                        onClick={() => handleLikeNote(note._id)}
+                                                        className={`flex items-center gap-1 transition-colors ${isLikedByUser(note)
+                                                            ? 'text-pink-500'
+                                                            : 'text-[rgb(var(--text-muted))] hover:text-pink-500'
+                                                            }`}
+                                                    >
+                                                        <Heart
+                                                            size={16}
+                                                            className="sm:w-[18px] sm:h-[18px]"
+                                                            fill={isLikedByUser(note) ? 'currentColor' : 'none'}
+                                                        />
+                                                        <span className="text-xs sm:text-sm font-semibold">
+                                                            {note.likes.length}
+                                                        </span>
+                                                    </button>
+
+                                                    <div className="flex items-center gap-1 text-[rgb(var(--text-muted))]">
+                                                        <Eye size={16} className="sm:w-[18px] sm:h-[18px]" />
+                                                        <span className="text-xs sm:text-sm font-semibold">{note.views}</span>
+                                                    </div>
+                                                </div>
+
+                                                <button
+                                                    onClick={() => openLink(note.link, note._id)}
+                                                    className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg font-semibold hover:shadow-md hover:shadow-[rgb(var(--accent))]/30 transition-all text-xs sm:text-sm"
+                                                >
+                                                    <span>Open</span>
+                                                    <ExternalLink size={14} className="sm:w-4 sm:h-4" />
+                                                </button>
+                                            </div>
+
+
+
                                         </div>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
-                    </div>
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+                        </div>
+
+                        {/* Pagination */}
+                        {!loading && notes.length > 0 && (
+                            <div className="mt-8 pb-4">
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    onPageChange={handlePageChange}
+                                />
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 

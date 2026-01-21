@@ -184,6 +184,12 @@ router.put('/:id', authenticateToken, async (req, res) => {
         delete updates.views; // Prevent manipulating view count
 
         Object.assign(resource, updates);
+
+        // If not admin/owner, revert status to pending for approval
+        if (req.user.role !== 'admin' && req.user.role !== 'owner') {
+            resource.status = 'pending';
+        }
+
         await resource.save();
 
         res.json({

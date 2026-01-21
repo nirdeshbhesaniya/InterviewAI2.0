@@ -418,8 +418,8 @@ router.patch('/regenerate/:sessionId/:index', checkFeatureEnabled('ai_interview_
   }
 });
 
-// PATCH to manually edit a QnA block
-router.patch('/edit/:sessionId/:index', async (req, res) => {
+// PATCH to manually edit a QnA block (Protected)
+router.patch('/edit/:sessionId/:index', authenticateToken, async (req, res) => {
   try {
     const { sessionId, index } = req.params;
     const { question, answerParts } = req.body;
@@ -429,9 +429,32 @@ router.patch('/edit/:sessionId/:index', async (req, res) => {
       return res.status(404).json({ message: 'QnA not found' });
     }
 
+    // Check permissions (Owner or Admin)
+    const isCreator = card.creatorEmail === req.user.email;
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isCreator && !isAdmin) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
     if (question) card.qna[index].question = question;
     if (answerParts) card.qna[index].answerParts = answerParts;
     if (req.body.category) card.qna[index].category = req.body.category;
+
+    // Revert to pending if not admin (User requirement: Owner still needs approval)
+    if (!isAdmin) {
+      card.qna[index].status = 'pending';
+    } else {
+      // If admin edits, ensure it's approved (or keep as is? Let's assume approved)
+      // If it was already approved, it stays approved. 
+      // If it was pending and admin edits, maybe they want it approved? 
+      // For safety, let's explicit approved if admin, or just don't touch if authenticated as admin.
+      // Actually, if admin edits, they probably approve it implicitly. 
+      // But let's just NOT set it to pending.
+      if (card.qna[index].status === 'pending') {
+        card.qna[index].status = 'approved';
+      }
+    }
 
     await card.save();
     res.json(card.qna[index]);

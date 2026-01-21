@@ -173,9 +173,9 @@ router.post('/', async (req, res) => {
 });
 
 // Update note (only by creator)
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
     try {
-        const { userId, title, description, tags } = req.body;
+        const { title, description, tags, userId } = req.body;
 
         const note = await Note.findById(req.params.id);
 
@@ -186,20 +186,20 @@ router.put('/:id', async (req, res) => {
             });
         }
 
-        // Check if user is the creator or admin
-        // Note: Notes stores userId as email string in some cases, verify this matches your auth implementation
-        const isOwner = note.userId === userId || note.userEmail === userId;
-        // If userId passed in body is email, we can check directly. 
-        // However, safest relies on the auth middleware user object if available, but here we use the body userId as passed from frontend
-        // Ideally we should use req.user from middleware if available.
+        // Check if user is the creator or admin/owner
+        // Allow if:
+        // 1. User is the creator (note.userId matches req.user.email/id)
+        // 2. User has 'admin' role
+        // 3. User has 'owner' role
 
-        // Assuming the frontend sends the current user's email/id as 'userId' in the body
-        if (note.userId !== userId && req.body.role !== 'admin' && req.user?.role !== 'admin' && req.user?.role !== 'owner') {
-            // We'll trust req.user.role from the middleware if it exists.
-            // If middleware isn't populating req.user for this route, we might rely on frontend 'role' but that is insecure.
-            // Looking at the file, 'identifyUser' is used in GET but not explicitly PUT? 
-            // Wait, the route doesn't have 'authenticateToken' in the snippet I saw?
-            // Ah, I need to check if 'authenticateToken' is on the PUT route.
+        // Note: note.userId might be email or ObjectId depending on how it was saved.
+        // req.user from authenticateToken usually has { userId, email, role ... }
+        // Let's check both ID and Email match for creator check to be safe
+
+        const isCreator = note.userId === req.user.email || note.userId === req.user.userId || note.userEmail === req.user.email;
+        const isAdminOrOwner = req.user.role === 'admin' || req.user.role === 'owner';
+
+        if (!isCreator && !isAdminOrOwner) {
             return res.status(403).json({
                 success: false,
                 message: 'You can only edit your own notes'
@@ -210,6 +210,11 @@ router.put('/:id', async (req, res) => {
         if (title) note.title = title;
         if (description !== undefined) note.description = description;
         if (tags) note.tags = tags;
+
+        // If not admin/owner, revert status to pending for approval
+        if (!isAdminOrOwner) {
+            note.status = 'pending';
+        }
 
         await note.save();
 
@@ -229,10 +234,8 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete note (only by creator)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
     try {
-        const { userId } = req.body;
-
         const note = await Note.findById(req.params.id);
 
         if (!note) {
@@ -242,8 +245,11 @@ router.delete('/:id', async (req, res) => {
             });
         }
 
-        // Check if user is the creator
-        if (note.userId !== userId) {
+        // Check if user is the creator or admin/owner
+        const isCreator = note.userId === req.user.email || note.userId === req.user.userId || note.userEmail === req.user.email;
+        const isAdminOrOwner = req.user.role === 'admin' || req.user.role === 'owner';
+
+        if (!isCreator && !isAdminOrOwner) {
             return res.status(403).json({
                 success: false,
                 message: 'You can only delete your own notes'
