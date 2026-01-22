@@ -2,62 +2,17 @@ const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const Interview = require('../models/Interview');
+const Notification = require('../models/Notification');
 const User = require('../models/User');
 const { generateInterviewQuestions, generateAnswer, generateMoreQuestions, summarizeText } = require('../utils/gemini');
 const { sendOTPEmail } = require('../utils/emailService');
 
 // GET all cards
-// GET all cards
-router.get('/', async (req, res) => {
-  try {
-    const cards = await Interview.find().sort({ createdAt: -1 });
-    res.json(cards);
-  } catch (err) {
-    console.error("Error fetching interview cards:", err);
-    res.status(500).json({ message: 'Failed to fetch cards' });
-  }
-});
-
-// GET single card
-router.get('/:sessionId', async (req, res) => {
-  try {
-    const card = await Interview.findOne({ sessionId: req.params.sessionId });
-    if (!card) return res.status(404).json({ message: 'Card not found' });
-    res.json(card);
-  } catch {
-    res.status(500).json({ message: 'Failed to fetch card' });
-  }
-});
-
-// const requireAuth = (req, res, next) => {
-//   const user = User.email; // or get from Clerk, JWT, etc.
-//   if (!user || !user.email) {
-//     return res.status(401).json({ message: 'Unauthorized' });
-//   }
-//   next();
-// };
-
-// CHECK DUPLICATES
-router.post('/check-duplicates', async (req, res) => {
-  try {
-    const { title } = req.body;
-    if (!title) return res.status(400).json({ message: 'Title is required' });
-
-    // Case-insensitive regex search
-    const duplicates = await Interview.find({
-      title: { $regex: new RegExp(title, 'i') }
-    }).select('sessionId title creatorDetails createdAt initials color tag').limit(5);
-
-    res.json(duplicates);
-  } catch (err) {
-    console.error('Error checking duplicates:', err);
-    res.status(500).json({ message: 'Failed to check duplicates' });
-  }
-});
+// ...
 
 // CREATE card
 router.post('/', async (req, res) => {
-  const { title, tag, initials, experience, desc, color, creatorEmail } = req.body;
+  const { title, tag, initials, experience, desc, color, creatorEmail, requestApproval } = req.body;
   // const creatorEmail = req.user?.email; // <- Get from auth middleware
   console.log('Creating interview card with:', creatorEmail);
 
@@ -67,14 +22,6 @@ router.post('/', async (req, res) => {
 
   try {
     const sessionId = uuidv4();
-    const aiQuestions = await generateInterviewQuestions(title, tag, experience, desc);
-
-    const qna = aiQuestions.map((q) => ({
-      question: q.question,
-      answerParts: Array.isArray(q.answerParts)
-        ? q.answerParts.filter(p => p.type && p.content)
-        : []
-    }));
 
     // Fetch creator details
     const user = await User.findOne({ email: creatorEmail });
@@ -86,9 +33,56 @@ router.post('/', async (req, res) => {
       bio: user.bio,
       location: user.location,
       website: user.website,
-      linkedin: user.linkedin,
+      linkedin: user.linkedin, // Fixed typo from 'linedin' if any
       github: user.github
     } : {};
+
+    if (requestApproval) {
+      // Create Pending Session
+      const newCard = new Interview({
+        sessionId,
+        title,
+        tag,
+        initials,
+        experience,
+        desc,
+        color,
+        creatorEmail,
+        creatorDetails,
+        status: 'pending',
+        qna: [] // No QnA yet
+      });
+
+      await newCard.save();
+
+      // Notify Admins
+      await Notification.create({
+        userId: 'admin', // Placeholder, targetAudience handles delivery
+        type: 'info',
+        title: 'New Session Request',
+        message: `${creatorDetails.fullName || creatorEmail} requested a new session: "${title}"`,
+        recipientType: 'broadcast',
+        targetAudience: 'admins',
+        action: 'review_session',
+        actionUrl: `/admin/dashboard`, // Update as needed
+        metadata: { sessionId, type: 'session_request' }
+      });
+
+      return res.status(201).json({ message: 'Request sent to admin', session: newCard });
+    }
+
+    // Normal Creation (Direct AI Generation) - Only if NOT requesting approval
+    // NOTE: In the new flow, duplicates MUST request approval. 
+    // This path is for non-duplicates or if we allow direct creation for some users.
+
+    const aiQuestions = await generateInterviewQuestions(title, tag, experience, desc);
+
+    const qna = aiQuestions.map((q) => ({
+      question: q.question,
+      answerParts: Array.isArray(q.answerParts)
+        ? q.answerParts.filter(p => p.type && p.content)
+        : []
+    }));
 
     const newCard = new Interview({
       sessionId,
@@ -99,7 +93,8 @@ router.post('/', async (req, res) => {
       desc,
       color,
       creatorEmail: creatorEmail,
-      creatorDetails, // 👈 Save details
+      creatorDetails,
+      status: 'approved',
       qna
     });
 
@@ -108,6 +103,100 @@ router.post('/', async (req, res) => {
   } catch (err) {
     console.error('Error creating interview card:', err);
     res.status(500).json({ message: 'Failed to create card' });
+  }
+});
+
+// INITIALIZE Session (Generate QnA for approved session)
+router.post('/initialize/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const session = await Interview.findOne({ sessionId });
+
+    if (!session) return res.status(404).json({ message: 'Session not found' });
+    if (session.status !== 'approved') return res.status(400).json({ message: 'Session not approved' });
+    if (session.qna && session.qna.length > 0) return res.status(400).json({ message: 'Session already initialized' });
+
+    console.log(`Initializing session ${sessionId}...`);
+    const aiQuestions = await generateInterviewQuestions(session.title, session.tag, session.experience, session.desc);
+
+    const qna = aiQuestions.map((q) => ({
+      question: q.question,
+      answerParts: Array.isArray(q.answerParts)
+        ? q.answerParts.filter(p => p.type && p.content)
+        : []
+    }));
+
+    session.qna = qna;
+    await session.save();
+
+    res.status(200).json({ message: 'Session initialized', session });
+  } catch (err) {
+    console.error('Error initializing session:', err);
+    res.status(500).json({ message: 'Failed to initialize session' });
+  }
+});
+
+// APPROVE Session
+router.post('/approve-session/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const session = await Interview.findOne({ sessionId });
+
+    if (!session) return res.status(404).json({ message: 'Session not found' });
+
+    session.status = 'approved';
+    await session.save();
+
+    // Notify User
+    const user = await User.findOne({ email: session.creatorEmail });
+    if (user) {
+      await Notification.create({
+        userId: user._id,
+        type: 'success',
+        title: 'Session Request Accepted',
+        message: `Admin accepted your request for "${session.title}". You can now create the content.`,
+        action: 'view_session',
+        actionUrl: `/interview/${sessionId}`, // Or wherever user sees pending sessions
+        metadata: { sessionId }
+      });
+    }
+
+    res.status(200).json({ message: 'Session approved', session });
+  } catch (err) {
+    console.error('Error approving session:', err);
+    res.status(500).json({ message: 'Failed to approve session' });
+  }
+});
+
+// REJECT Session
+router.post('/reject-session/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const session = await Interview.findOne({ sessionId });
+
+    if (!session) return res.status(404).json({ message: 'Session not found' });
+
+    session.status = 'rejected';
+    await session.save();
+
+    // Notify User
+    const user = await User.findOne({ email: session.creatorEmail });
+    if (user) {
+      await Notification.create({
+        userId: user._id,
+        type: 'error',
+        title: 'Session Request Rejected',
+        message: `Admin rejected your request for "${session.title}".`,
+        action: 'view_session',
+        actionUrl: `/interview/${sessionId}`,
+        metadata: { sessionId }
+      });
+    }
+
+    res.status(200).json({ message: 'Session rejected', session });
+  } catch (err) {
+    console.error('Error rejecting session:', err);
+    res.status(500).json({ message: 'Failed to reject session' });
   }
 });
 

@@ -229,7 +229,7 @@ router.post('/check-duplicates', async (req, res) => {
 
 // CREATE card using LangChain
 router.post('/', checkFeatureEnabled('ai_interview_generation'), async (req, res) => {
-  const { title, tag, initials, experience, desc, color, creatorEmail } = req.body;
+  const { title, tag, initials, experience, desc, color, creatorEmail, requestApproval } = req.body;
 
   if (!title || !tag || !initials || !experience || !desc || !creatorEmail) {
     return res.status(400).json({ message: 'All fields are required' });
@@ -237,6 +237,53 @@ router.post('/', checkFeatureEnabled('ai_interview_generation'), async (req, res
 
   try {
     const sessionId = uuidv4();
+
+    // Fetch creator details
+    const user = await User.findOne({ email: creatorEmail });
+    const creatorDetails = user ? {
+      fullName: user.fullName,
+      email: user.email,
+      photo: user.photo,
+      bio: user.bio,
+      location: user.location,
+      website: user.website,
+      linkedin: user.linkedin,
+      github: user.github
+    } : {};
+
+    // Handle Approval Request (Skip AI)
+    if (requestApproval) {
+      const newCard = new Interview({
+        sessionId,
+        title,
+        tag,
+        initials,
+        experience,
+        desc,
+        color,
+        creatorEmail,
+        creatorDetails,
+        status: 'pending',
+        qna: [] // No QnA yet
+      });
+
+      await newCard.save();
+
+      // Notify Admins
+      await Notification.create({
+        userId: 'admin', // Placeholder
+        type: 'info',
+        title: 'New Session Request',
+        message: `${creatorDetails.fullName || creatorEmail} requested a new session: "${title}"`,
+        recipientType: 'broadcast',
+        targetAudience: 'admins',
+        action: 'review_session',
+        actionUrl: `/admin/dashboard`,
+        metadata: { sessionId, type: 'session_request' }
+      });
+
+      return res.status(201).json({ message: 'Request sent to admin', session: newCard });
+    }
 
     // Use LangChain chain to generate Q&A
     const qaChain = await createInterviewQAChain();
@@ -255,7 +302,7 @@ router.post('/', checkFeatureEnabled('ai_interview_generation'), async (req, res
     }
 
     // Parse the response
-    const parsedQuestions = result.questions;
+    const parsedQuestions = result.questions || [];
 
     // Transform the structured output into the format expected by the database
     const qna = parsedQuestions.map((q) => ({
@@ -263,19 +310,6 @@ router.post('/', checkFeatureEnabled('ai_interview_generation'), async (req, res
       category: q.category || 'General',
       answerParts: parseAnswerIntoParts(q.answer)
     }));
-
-    // Fetch creator details
-    const user = await User.findOne({ email: creatorEmail });
-    const creatorDetails = user ? {
-      fullName: user.fullName,
-      email: user.email,
-      photo: user.photo,
-      bio: user.bio,
-      location: user.location,
-      website: user.website,
-      linkedin: user.linkedin,
-      github: user.github
-    } : {};
 
     const newCard = new Interview({
       sessionId,
@@ -287,6 +321,7 @@ router.post('/', checkFeatureEnabled('ai_interview_generation'), async (req, res
       color,
       creatorEmail,
       creatorDetails,
+      status: 'approved',
       qna
     });
 
@@ -783,5 +818,117 @@ router.delete('/:sessionId/questions/:qnaId', authenticateToken, async (req, res
   }
 });
 
+
+// INITIALIZE Session (Generate QnA for approved session)
+router.post('/initialize/:sessionId', checkFeatureEnabled('ai_interview_generation'), async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const session = await Interview.findOne({ sessionId });
+
+    if (!session) return res.status(404).json({ message: 'Session not found' });
+    if (session.status !== 'approved') return res.status(400).json({ message: 'Session not approved' });
+    if (session.qna && session.qna.length > 0) return res.status(400).json({ message: 'Session already initialized' });
+
+    console.log(`Initializing session ${sessionId}...`);
+
+    // Use LangChain chain to generate Q&A
+    const qaChain = await createInterviewQAChain();
+    const result = await qaChain.invoke({
+      title: session.title,
+      tag: session.tag,
+      experience: session.experience,
+      numberOfQuestions: 5
+    });
+
+    const parsedQuestions = result.questions || [];
+
+    const qna = parsedQuestions.map((q) => ({
+      question: q.question,
+      category: q.category || 'General',
+      answerParts: parseAnswerIntoParts(q.answer)
+    }));
+
+    session.qna = qna;
+    await session.save();
+
+    // Log AI Usage
+    if (session.creatorEmail) {
+      User.findOne({ email: session.creatorEmail }).then(user => {
+        if (user) logAIUsage(user._id, 'openrouter', 'gpt-4o-mini', 'success');
+      }).catch(err => console.error('Error logging usage:', err));
+    }
+
+    res.status(200).json({ message: 'Session initialized', session });
+  } catch (err) {
+    console.error('Error initializing session:', err);
+    res.status(500).json({ message: 'Failed to initialize session' });
+  }
+});
+
+// APPROVE Session
+router.post('/approve-session/:sessionId', authenticateToken, async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const session = await Interview.findOne({ sessionId });
+
+    if (!session) return res.status(404).json({ message: 'Session not found' });
+    if (req.user.role !== 'admin' && req.user.role !== 'owner') return res.status(403).json({ message: 'Unauthorized' });
+
+    session.status = 'approved';
+    await session.save();
+
+    // Notify User
+    const user = await User.findOne({ email: session.creatorEmail });
+    if (user) {
+      await Notification.create({
+        userId: user._id,
+        type: 'success',
+        title: 'Session Request Accepted',
+        message: `Admin accepted your request for "${session.title}". You can now create the content.`,
+        action: 'view_session',
+        actionUrl: `/interview-prep/${sessionId}`,
+        metadata: { sessionId }
+      });
+    }
+
+    res.status(200).json({ message: 'Session approved', session });
+  } catch (err) {
+    console.error('Error approving session:', err);
+    res.status(500).json({ message: 'Failed to approve session' });
+  }
+});
+
+// REJECT Session
+router.post('/reject-session/:sessionId', authenticateToken, async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const session = await Interview.findOne({ sessionId });
+
+    if (!session) return res.status(404).json({ message: 'Session not found' });
+    if (req.user.role !== 'admin' && req.user.role !== 'owner') return res.status(403).json({ message: 'Unauthorized' });
+
+    session.status = 'rejected';
+    await session.save();
+
+    // Notify User
+    const user = await User.findOne({ email: session.creatorEmail });
+    if (user) {
+      await Notification.create({
+        userId: user._id,
+        type: 'error',
+        title: 'Session Request Rejected',
+        message: `Admin rejected your request for "${session.title}".`,
+        action: 'view_session',
+        actionUrl: `/interview-prep/${sessionId}`,
+        metadata: { sessionId }
+      });
+    }
+
+    res.status(200).json({ message: 'Session rejected', session });
+  } catch (err) {
+    console.error('Error rejecting session:', err);
+    res.status(500).json({ message: 'Failed to reject session' });
+  }
+});
 
 module.exports = router;

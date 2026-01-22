@@ -42,6 +42,9 @@ export const API = {
     DELETE_QUESTION: (sessionId, qnaId) => `${API_BASE_URL}/interview/${sessionId}/questions/${qnaId}`,
     CHECK_DUPLICATES: `${API_BASE_URL}/interview/check-duplicates`,
     GET_PENDING_APPROVALS: `${API_BASE_URL}/interview/data/pending-approvals`,
+    APPROVE_SESSION: (sessionId) => `${API_BASE_URL}/interview/approve-session/${sessionId}`,
+    REJECT_SESSION: (sessionId) => `${API_BASE_URL}/interview/reject-session/${sessionId}`,
+    INITIALIZE: (sessionId) => `${API_BASE_URL}/interview/initialize/${sessionId}`,
   },
   CODE: {
     COMPILE: `${API_BASE_URL}/compile`
@@ -67,6 +70,7 @@ export const API = {
     GET_USERS: `${API_BASE_URL}/admin/users`,
     UPDATE_USER: (userId) => `${API_BASE_URL}/admin/users/${userId}`,
     BAN_USER: (userId) => `${API_BASE_URL}/admin/users/${userId}/ban`,
+    GET_PENDING_SESSIONS: `${API_BASE_URL}/admin/pending-sessions`,
     GET_QNA_REQUESTS: `${API_BASE_URL}/admin/qna-requests`,
     APPROVE_QNA: (sessionId, qnaId) => `${API_BASE_URL}/interview/approve-question/${sessionId}/${qnaId}`,
     REJECT_QNA: (sessionId, qnaId) => `${API_BASE_URL}/interview/reject-question/${sessionId}/${qnaId}`,

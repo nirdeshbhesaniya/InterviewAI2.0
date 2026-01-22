@@ -13,6 +13,7 @@ const InterviewSchema = new mongoose.Schema({
   experience: String,
   desc: String,
   color: String,
+  status: { type: String, enum: ['approved', 'pending', 'rejected'], default: 'approved' },
   qna: [
     {
       question: String,

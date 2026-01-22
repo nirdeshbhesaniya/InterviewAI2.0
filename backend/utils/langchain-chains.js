@@ -34,6 +34,8 @@ For each question:
 5. Add bullet points for key concepts`]
 ]);
 
+const { RunnableLambda } = require("@langchain/core/runnables");
+
 async function createInterviewQAChain() {
   const chain = RunnableSequence.from([
     {
@@ -45,6 +47,19 @@ async function createInterviewQAChain() {
     },
     interviewQAPrompt,
     qaModel.bind({ response_format: { type: "json_object" } }),
+    // Custom cleaning function to handle markdown blocks
+    new RunnableLambda({
+      func: (output) => {
+        // Output is AIMessage (or string depending on model). content property holds the string.
+        let text = typeof output === 'string' ? output : output.content;
+
+        // Strip markdown code blocks if present
+        if (text.trim().startsWith('```')) {
+          text = text.replace(/^```(json)?/, '').replace(/```$/, '').trim();
+        }
+        return text;
+      }
+    }),
     qaParser
   ]);
 

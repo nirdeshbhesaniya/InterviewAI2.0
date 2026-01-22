@@ -124,6 +124,20 @@ router.put('/users/:userId', async (req, res) => {
     }
 });
 
+// GET pending Sessions (Global view for admin)
+router.get('/pending-sessions', async (req, res) => {
+    try {
+        // Fetch sessions with status 'pending'
+        const pendingSessions = await Interview.find({ status: 'pending' })
+            .sort({ createdAt: -1 });
+
+        res.json(pendingSessions);
+    } catch (err) {
+        console.error('Error fetching pending sessions:', err);
+        res.status(500).json({ message: 'Failed to fetch pending sessions' });
+    }
+});
+
 // GET pending Q&A requests (Global view for admin)
 router.get('/qna-requests', async (req, res) => {
     try {
@@ -293,7 +307,8 @@ router.delete('/users/:userId', async (req, res) => {
 router.delete('/interviews/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const interview = await Interview.findByIdAndDelete(id);
+        // The id param here is actually the sessionId (UUID), not the _id
+        const interview = await Interview.findOneAndDelete({ sessionId: id });
 
         if (!interview) {
             return res.status(404).json({ message: 'Interview session not found' });

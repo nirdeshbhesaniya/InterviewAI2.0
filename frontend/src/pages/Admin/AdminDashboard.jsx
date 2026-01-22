@@ -10,7 +10,8 @@ import {
     Cpu,
     FileQuestion,
     Bell,
-    Loader2
+    Loader2,
+    LayoutDashboard
 } from 'lucide-react';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
@@ -25,6 +26,7 @@ import PendingResources from './components/PendingResources';
 import PracticeTestsManagement from './components/PracticeTestsManagement';
 import NotificationCenter from './components/NotificationCenter';
 import AIServicePanel from './components/AIServicePanel';
+import SessionApprovals from './components/SessionApprovals';
 
 const STATS_CARDS = [
     { title: 'Total Users', key: 'totalUsers', icon: Users, color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-500/10' },
@@ -48,11 +50,12 @@ const AdminDashboard = () => {
     const fetchStats = async () => {
         setLoading(true);
         try {
-            const [usersRes, qnaRes, notesRes, resourcesRes] = await Promise.all([
+            const [usersRes, qnaRes, notesRes, resourcesRes, sessionsRes] = await Promise.all([
                 axios.get(API.ADMIN.GET_USERS),
                 axios.get(API.ADMIN.GET_QNA_REQUESTS, { params: { limit: 1 } }),
                 axios.get(API.NOTES.ADMIN_PENDING, { params: { limit: 1 } }),
-                axios.get(API.RESOURCES.ADMIN_PENDING, { params: { limit: 1 } })
+                axios.get(API.RESOURCES.ADMIN_PENDING, { params: { limit: 1 } }),
+                axios.get(API.ADMIN.GET_PENDING_SESSIONS)
             ]);
 
             const totalUsers = usersRes.data.length;
@@ -62,8 +65,9 @@ const AdminDashboard = () => {
             const pendingQnA = qnaRes.data.pagination?.totalRequests || qnaRes.data.totalRequests || 0;
             const pendingNotes = notesRes.data.pagination?.totalNotes || notesRes.data.totalNotes || 0;
             const pendingResources = resourcesRes.data.pagination?.totalResources || resourcesRes.data.totalResources || 0;
+            const pendingSessionsCount = sessionsRes.data ? sessionsRes.data.length : 0;
 
-            const pendingApprovals = pendingQnA + pendingNotes + pendingResources;
+            const pendingApprovals = pendingQnA + pendingNotes + pendingResources + pendingSessionsCount;
 
             setStats({
                 totalUsers,
@@ -72,7 +76,8 @@ const AdminDashboard = () => {
                 pendingApprovals,
                 pendingQnA,
                 pendingNotes,
-                pendingResources
+                pendingResources,
+                pendingSessions: pendingSessionsCount
             });
         } catch (error) {
             console.error('Error fetching stats:', error);
@@ -85,6 +90,8 @@ const AdminDashboard = () => {
         switch (activeTab) {
             case 'users':
                 return <UserManagement />;
+            case 'sessions':
+                return <SessionApprovals />;
             case 'qna':
                 return <ContentApprovals />;
             case 'notes':
@@ -154,6 +161,24 @@ const AdminDashboard = () => {
                                 }`}
                         >
                             <Users className="w-5 h-5" /> All Users
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('sessions')}
+                            className={`flex-none lg:w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 font-medium transition-all whitespace-nowrap ${activeTab === 'sessions'
+                                ? 'bg-[rgb(var(--accent))] text-white shadow-lg shadow-[rgb(var(--accent))]/20'
+                                : 'text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-elevated))]'
+                                }`}
+                        >
+                            <LayoutDashboard className="w-5 h-5" />
+                            Sessions
+                            {(stats.pendingSessions > 0) && (
+                                <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${activeTab === 'sessions'
+                                    ? 'bg-white/20 text-white'
+                                    : 'bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))]'
+                                    }`}>
+                                    {stats.pendingSessions}
+                                </span>
+                            )}
                         </button>
                         <button
                             onClick={() => setActiveTab('qna')}

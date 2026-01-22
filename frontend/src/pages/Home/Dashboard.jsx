@@ -87,7 +87,10 @@ export const Dashboard = () => {
   }, []);
 
   const handleCreated = (sessionId) => {
-    navigate(`/interview-prep/${sessionId}`);
+    fetchCards();
+    if (sessionId) {
+      navigate(`/interview-prep/${sessionId}`);
+    }
   };
 
   const handleDeleteClick = (sessionId) => {
@@ -109,6 +112,21 @@ export const Dashboard = () => {
       fetchCards();
     } catch {
       toast.error("Failed to delete card");
+    }
+  };
+
+  const handleInitialize = async (e, sessionId) => {
+    e.stopPropagation();
+    const loadingToast = toast.loading("Generating Interview Content... This may take a moment.");
+    try {
+      await axios.post(API.INTERVIEW.INITIALIZE(sessionId));
+      toast.dismiss(loadingToast);
+      toast.success("Interview Content Generated! 🚀");
+      fetchCards();
+      navigate(`/interview-prep/${sessionId}`);
+    } catch (err) {
+      toast.dismiss(loadingToast);
+      toast.error(err?.response?.data?.message || "Failed to generate content");
     }
   };
 
@@ -292,18 +310,17 @@ export const Dashboard = () => {
               },
               {
                 icon: Clock,
-                label: 'Avg. Prep Time',
+                label: 'Total Prep Time',
                 value: (() => {
                   const totalQuestions = cards.reduce((acc, card) => acc + (card.qna?.length || 0), 0);
                   // Estimate: 5 mins per question
                   const totalMinutes = totalQuestions * 5;
-                  const avgMinutes = cards.length > 0 ? Math.round(totalMinutes / cards.length) : 0;
 
-                  if (avgMinutes < 60) return `${avgMinutes}m`;
-                  return `${(avgMinutes / 60).toFixed(1)}h`;
+                  if (totalMinutes < 60) return `${totalMinutes}m`;
+                  return `${(totalMinutes / 60).toFixed(1)}h`;
                 })(),
                 color: 'from-orange-500 to-red-500',
-                shortLabel: 'Avg Time'
+                shortLabel: 'Total Time'
               }
             ].map((stat, index) => (
               <motion.div
@@ -403,7 +420,15 @@ export const Dashboard = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                       whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                      onClick={() => navigate(`/interview-prep/${card.sessionId}`)}
+                      onClick={() => {
+                        if (card.status === 'pending' || card.status === 'rejected') return;
+                        if (!card.qna || card.qna.length === 0) {
+                          // Option to trigger initialize here too?
+                          // Let's rely on the button for clarity
+                          return;
+                        }
+                        navigate(`/interview-prep/${card.sessionId}`);
+                      }}
                     >
                       {/* Background Pattern */}
                       <div className="absolute inset-0 opacity-10">
@@ -425,35 +450,23 @@ export const Dashboard = () => {
                           </div>
                         </div>
 
-                        {/* Action Buttons - Always visible on mobile */}
-                        <div className="flex items-center gap-1 sm:gap-1">
+                        {/* Action Buttons */}
+                        {showDelete && (
                           <motion.button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate(`/interview-prep/${card.sessionId}`);
+                              handleDeleteClick(card.sessionId);
                             }}
-                            className="p-1.5 sm:p-2 bg-[rgb(var(--bg-card))] rounded-lg shadow-sm border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))] hover:text-[rgb(var(--accent))] transition-all"
+                            className="p-1.5 sm:p-2 bg-[rgb(var(--bg-card))] rounded-lg shadow-sm border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))] hover:text-red-500 transition-all"
                           >
-                            <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </motion.button>
-
-                          {showDelete && (
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteClick(card.sessionId);
-                              }}
-                              className="p-1.5 sm:p-2 bg-[rgb(var(--bg-card))] rounded-lg shadow-sm border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))] hover:text-red-500 transition-all"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            </motion.button>
-                          )}
-                        </div>
+                        )}
                       </div>
+
+
 
                       {/* Content - Mobile Optimized Typography */}
                       <div className="relative z-10">
@@ -483,6 +496,24 @@ export const Dashboard = () => {
                               +{(card.tag || '').split(',').filter(tag => tag.trim()).length - 3}
                             </Badge>
                           )}
+                        </div>
+
+                        {/* Status Actions (Moved to Bottom) */}
+                        <div className="flex items-center gap-2 mb-3">
+                          {card.status === 'pending' ? (
+                            <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30 w-full justify-center py-1">Pending Approval</Badge>
+                          ) : card.status === 'rejected' ? (
+                            <Badge className="bg-red-500/20 text-red-500 border-red-500/30 w-full justify-center py-1">Rejected</Badge>
+                          ) : (!card.qna || card.qna.length === 0) ? (
+                            <motion.button
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={(e) => handleInitialize(e, card.sessionId)}
+                              className="w-full py-1.5 bg-green-500 text-white rounded-lg shadow-sm hover:bg-green-600 transition-all text-xs font-bold animate-pulse flex items-center justify-center gap-2"
+                            >
+                              Create Now <div className="w-2 h-2 rounded-full bg-white animate-ping" />
+                            </motion.button>
+                          ) : null}
                         </div>
 
                         {/* Footer Stats */}
@@ -521,7 +552,11 @@ export const Dashboard = () => {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
-                      onClick={() => navigate(`/interview-prep/${card.sessionId}`)}
+                      onClick={() => {
+                        if (card.status === 'pending' || card.status === 'rejected') return;
+                        if (!card.qna || card.qna.length === 0) return;
+                        navigate(`/interview-prep/${card.sessionId}`);
+                      }}
                     >
                       <div className="flex items-start sm:items-center justify-between">
                         <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
@@ -575,17 +610,33 @@ export const Dashboard = () => {
                         </div>
 
                         <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4 flex-shrink-0">
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/interview-prep/${card.sessionId}`);
-                            }}
-                            className="p-1.5 sm:p-2 text-[rgb(var(--text-primary))] hover:text-[rgb(var(--accent))] hover:bg-[rgb(var(--accent))]/10 rounded-lg transition-all"
-                          >
-                            <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                          </motion.button>
+                          {/* Status Badges List View */}
+                          {card.status === 'pending' ? (
+                            <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">Pending</Badge>
+                          ) : card.status === 'rejected' ? (
+                            <Badge className="bg-red-500/20 text-red-500 border-red-500/30">Rejected</Badge>
+                          ) : (!card.qna || card.qna.length === 0) ? (
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={(e) => handleInitialize(e, card.sessionId)}
+                              className="px-3 py-1.5 bg-green-500 text-white rounded-lg shadow-sm hover:bg-green-600 transition-all text-xs font-bold"
+                            >
+                              Create Now
+                            </motion.button>
+                          ) : (
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/interview-prep/${card.sessionId}`);
+                              }}
+                              className="p-1.5 sm:p-2 text-[rgb(var(--text-primary))] hover:text-[rgb(var(--accent))] hover:bg-[rgb(var(--accent))]/10 rounded-lg transition-all"
+                            >
+                              <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            </motion.button>
+                          )}
 
                           {showDelete && (
                             <motion.button
@@ -613,23 +664,28 @@ export const Dashboard = () => {
               onPageChange={handlePageChange}
             />
           </>
-        )}
+        )
+        }
 
         {/* Modals */}
-        {modalOpen && (
-          <CreateCardModal
-            onClose={() => setModalOpen(false)}
-            onCreated={handleCreated}
-          />
-        )}
+        {
+          modalOpen && (
+            <CreateCardModal
+              onClose={() => setModalOpen(false)}
+              onCreated={handleCreated}
+            />
+          )
+        }
 
-        {creatorModalOpen && (
-          <CreatorInfoModal
-            isOpen={creatorModalOpen}
-            onClose={() => setCreatorModalOpen(false)}
-            creator={selectedCreator}
-          />
-        )}
+        {
+          creatorModalOpen && (
+            <CreatorInfoModal
+              isOpen={creatorModalOpen}
+              onClose={() => setCreatorModalOpen(false)}
+              creator={selectedCreator}
+            />
+          )
+        }
 
         {/* Enhanced Delete Confirmation Modal */}
         <AnimatePresence>
@@ -696,9 +752,10 @@ export const Dashboard = () => {
         >
           <PlusCircle className="w-6 h-6" />
         </motion.button>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 
 export default Dashboard;
+

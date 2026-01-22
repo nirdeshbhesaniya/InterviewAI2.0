@@ -16,19 +16,19 @@ class AIRouter {
      * @param {string} prompt - The input prompt
      * @param {object} metadata - { featureType, userId, isPremiumUser, systemPrompt }
      */
-    async generateText(prompt, metadata = {}) {
+    async generateText(prompt, metadata = {}, options = {}) {
         const { userId, isPremiumUser, featureType } = metadata;
 
         // 1. Try OpenRouter first
         try {
-            return await this._tryOpenRouter(prompt, metadata);
+            return await this._tryOpenRouter(prompt, metadata, options);
         } catch (orError) {
             console.warn('[AIRouter] OpenRouter failed, attempting fallback...', orError.message);
 
             // 2. Fallback to OpenAI if allowed
             if (await this._canUseOpenAI(userId, isPremiumUser)) {
                 try {
-                    return await this._tryOpenAI(prompt, metadata);
+                    return await this._tryOpenAI(prompt, metadata, options);
                 } catch (oaError) {
                     console.error('[AIRouter] OpenAI fallback also failed:', oaError.message);
                     throw new Error('AI service temporarily unavailable. Please try again later.');
@@ -42,13 +42,8 @@ class AIRouter {
     /**
      * Attempt generation using OpenRouter with automatic key rotation
      */
-    async _tryOpenRouter(prompt, metadata) {
+    async _tryOpenRouter(prompt, metadata, options = {}) {
         const systemPrompt = metadata.systemPrompt || "You are a helpful assistant.";
-
-        // Retry logic for multiple keys is handled here by just trying one best key? 
-        // Ideally we might want to try a couple if the first one fails immediately.
-        // For simplicity, we ask KeyManager for a key. If it fails, we report it and throw to trigger fallback.
-        // To make it more robust, we could loop here.
 
         let attempts = 0;
         const maxAttempts = 3; // Try up to 3 OpenRouter keys
@@ -58,17 +53,23 @@ class AIRouter {
             if (!apiKey) break; // No keys available
 
             try {
+                const requestBody = {
+                    model: options.model || 'openai/gpt-4o-mini',
+                    messages: [
+                        { role: 'system', content: systemPrompt },
+                        { role: 'user', content: prompt }
+                    ],
+                    temperature: options.temperature || 0.7,
+                    max_tokens: options.max_tokens || 4096
+                };
+
+                if (options.response_format) {
+                    requestBody.response_format = options.response_format;
+                }
+
                 const response = await axios.post(
                     'https://openrouter.ai/api/v1/chat/completions',
-                    {
-                        model: 'openai/gpt-4o-mini',
-                        messages: [
-                            { role: 'system', content: systemPrompt },
-                            { role: 'user', content: prompt }
-                        ],
-                        temperature: 0.7,
-                        max_tokens: 2000 // Safety limit
-                    },
+                    requestBody,
                     {
                         headers: {
                             'Authorization': `Bearer ${apiKey}`,
@@ -76,7 +77,7 @@ class AIRouter {
                             'X-Title': 'Interview AI',
                             'Content-Type': 'application/json'
                         },
-                        timeout: 30000 // 30s timeout
+                        timeout: 60000 // Increased timeout for larger generations
                     }
                 );
 
@@ -98,28 +99,35 @@ class AIRouter {
     /**
      * Attempt generation using direct OpenAI
      */
-    async _tryOpenAI(prompt, metadata) {
+    async _tryOpenAI(prompt, metadata, options = {}) {
         const apiKey = keyManager.getOpenAIKey();
         if (!apiKey) throw new Error('OpenAI not configured');
 
         const systemPrompt = metadata.systemPrompt || "You are a helpful assistant.";
 
+        const requestBody = {
+            model: options.model || 'gpt-4o-mini',
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: prompt }
+            ],
+            temperature: options.temperature || 0.7,
+            max_tokens: options.max_tokens || 4096
+        };
+
+        if (options.response_format) {
+            requestBody.response_format = options.response_format;
+        }
+
         const response = await axios.post(
             'https://api.openai.com/v1/chat/completions',
-            {
-                model: 'gpt-4o-mini',
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: prompt }
-                ],
-                temperature: 0.7
-            },
+            requestBody,
             {
                 headers: {
                     'Authorization': `Bearer ${apiKey}`,
                     'Content-Type': 'application/json'
                 },
-                timeout: 30000
+                timeout: 60000
             }
         );
 

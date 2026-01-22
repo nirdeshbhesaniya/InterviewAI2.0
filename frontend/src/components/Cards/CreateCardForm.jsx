@@ -24,12 +24,21 @@ const CreateCardModal = ({ onClose, onCreated }) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const createSession = async () => {
+  const createSession = async (requestApproval = false) => {
     setLoading(true);
     try {
-      const res = await axios.post(API.INTERVIEW.CREATE, form);
-      toast.success('🎉 Card created successfully!');
-      onCreated(res.data.sessionId);
+      const payload = { ...form, requestApproval };
+      const res = await axios.post(API.INTERVIEW.CREATE, payload);
+
+      if (requestApproval) {
+        toast.success('📝 Request sent to admin for approval!');
+        onCreated(null);
+        onClose(); // Explicitly close modal
+      } else {
+        toast.success('🎉 Card created successfully!');
+        onCreated(res.data.sessionId);
+        onClose(); // Explicitly close modal
+      }
     } catch (err) {
       toast.error(err?.response?.data?.message || '❌ Failed to create card');
       setLoading(false);
@@ -51,11 +60,11 @@ const CreateCardModal = ({ onClose, onCreated }) => {
       }
 
       // 2. If no duplicates, create immediately
-      await createSession();
+      await createSession(false);
     } catch (err) {
       console.error("Duplicate check failed:", err);
       // Fallback to creation if check fails
-      await createSession();
+      await createSession(false);
     }
   };
 
@@ -153,10 +162,10 @@ const CreateCardModal = ({ onClose, onCreated }) => {
                     Back to Edit
                   </motion.button>
                   <motion.button
-                    onClick={createSession}
+                    onClick={() => createSession(true)}
                     className="flex-1 py-2.5 rounded-xl bg-[rgb(var(--accent))] text-white font-medium hover:bg-[rgb(var(--accent-hover))] transition-colors shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
                   >
-                    <span>Create Anyway</span>
+                    <span>Request Approval</span>
                   </motion.button>
                 </div>
               </div>

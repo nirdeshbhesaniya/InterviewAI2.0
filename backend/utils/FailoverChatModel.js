@@ -52,10 +52,18 @@ class FailoverChatModel extends BaseChatModel {
         };
 
         try {
-            // 3. Call Router
-            const text = await aiRouter.generateText(userPrompt, metadata);
+            // 3. Prepare AI Router Options
+            const routerOptions = {
+                max_tokens: options.max_tokens,
+                response_format: options.response_format,
+                temperature: options.temperature,
+                model: options.model
+            };
 
-            // 4. Return formatted result
+            // 4. Call Router
+            const text = await aiRouter.generateText(userPrompt, metadata, routerOptions);
+
+            // 5. Return formatted result
             return {
                 generations: [
                     {
