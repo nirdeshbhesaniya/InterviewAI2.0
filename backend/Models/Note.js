@@ -62,6 +62,10 @@ const noteSchema = new mongoose.Schema({
         enum: ['pending', 'approved', 'rejected'],
         default: 'pending',
         index: true
+    },
+    pendingUpdates: {
+        type: Object,
+        default: null
     }
 }, {
     timestamps: true

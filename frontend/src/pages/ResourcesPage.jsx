@@ -10,6 +10,7 @@ import {
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import UploadResourceModal from '../components/ui/UploadResourceModal';
+import DuplicateContentModal from '../components/ui/DuplicateContentModal';
 import { Loader } from '../components/ui/Loader';
 import toast from 'react-hot-toast';
 import axios from '../utils/axiosInstance';
@@ -166,7 +167,14 @@ const ResourcesPage = () => {
             fetchResources(); // Refresh list
         } catch (error) {
             console.error('Error uploading resource:', error);
-            if (error.response?.status === 401 || error.response?.status === 403) {
+            if (error.response?.status === 409) {
+                // Duplicate found
+                setDuplicateResource(error.response.data.resource);
+                setShowDuplicateModal(true);
+                // setShowUploadModal(false); // Optional: keep upload modal open or close it. User said "not add it", implies flow stop.
+                // Converting user request: "show existing notes and resorces with view option... and show message due to exite already"
+                // The modal handles the view and message.
+            } else if (error.response?.status === 401 || error.response?.status === 403) {
                 toast.error('Authentication failed. Please logout and login again.');
             } else {
                 toast.error(error.response?.data?.message || 'Failed to upload resource');
@@ -207,6 +215,10 @@ const ResourcesPage = () => {
             toast.error(error.response?.data?.message || 'Failed to update resource');
         }
     };
+
+    const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+    const [duplicateResource, setDuplicateResource] = useState(null);
+
 
     const handleView = (resource) => {
         // Increment view count
@@ -662,6 +674,17 @@ const ResourcesPage = () => {
                     selectedBranch={selectedBranch}
                     initialData={editingResource}
                     isEditing={!!editingResource}
+                />
+
+                <DuplicateContentModal
+                    isOpen={showDuplicateModal}
+                    onClose={() => {
+                        setShowDuplicateModal(false);
+                        setDuplicateResource(null);
+                    }}
+                    existingItem={duplicateResource}
+                    type="resource"
+                    onView={handleView}
                 />
             </div>
         </div>

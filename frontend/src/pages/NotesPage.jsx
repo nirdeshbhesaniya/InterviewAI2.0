@@ -24,6 +24,7 @@ import {
 import toast from 'react-hot-toast';
 import moment from 'moment';
 import Pagination from '../components/common/Pagination';
+import DuplicateContentModal from '../components/ui/DuplicateContentModal';
 
 const NotesPage = () => {
     const { user } = useContext(UserContext);
@@ -45,6 +46,8 @@ const NotesPage = () => {
     });
 
     const [totalNotes, setTotalNotes] = useState(0);
+    const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+    const [duplicateNote, setDuplicateNote] = useState(null);
 
     useEffect(() => {
         setCurrentPage(1);
@@ -129,7 +132,12 @@ const NotesPage = () => {
             }
         } catch (error) {
             console.error('Error adding note:', error);
-            toast.error(error.response?.data?.message || 'Failed to add note');
+            if (error.response?.status === 409) {
+                setDuplicateNote(error.response.data.note);
+                setShowDuplicateModal(true);
+            } else {
+                toast.error(error.response?.data?.message || 'Failed to add note');
+            }
         }
     };
 
@@ -676,7 +684,18 @@ const NotesPage = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+
+            <DuplicateContentModal
+                isOpen={showDuplicateModal}
+                onClose={() => {
+                    setShowDuplicateModal(false);
+                    setDuplicateNote(null);
+                }}
+                existingItem={duplicateNote}
+                type="note"
+                onView={(item) => openLink(item.link, item._id)}
+            />
+        </div >
     );
 };
 

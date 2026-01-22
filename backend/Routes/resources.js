@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Resource = require('../models/Resource');
 const { authenticateToken, identifyUser } = require('../middlewares/auth');
+const { normalizeUrl, getVideoId } = require('../utils/urlHelper');
 
 // Get all resources with filters
 router.get('/', identifyUser, async (req, res) => {
@@ -54,11 +55,24 @@ router.get('/', identifyUser, async (req, res) => {
         const skip = (page - 1) * limit;
 
         const total = await Resource.countDocuments(finalQuery);
-        const resources = await Resource.find(finalQuery)
+        let resources = await Resource.find(finalQuery)
             .populate('uploadedBy', 'fullName email')
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .lean();
+
+        // Transform for creator view: show 'pending' if approved but has pending updates
+        if (req.user) {
+            resources = resources.map(resource => {
+                // Check if user is the creator
+                const isCreator = resource.uploadedBy && resource.uploadedBy._id.toString() === req.user._id.toString();
+                if (isCreator && resource.pendingUpdates) {
+                    return { ...resource, status: 'pending' };
+                }
+                return resource;
+            });
+        }
 
         res.json({
             success: true,
@@ -74,18 +88,30 @@ router.get('/', identifyUser, async (req, res) => {
 });
 
 // Get single resource by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', identifyUser, async (req, res) => {
     try {
-        const resource = await Resource.findById(req.params.id)
-            .populate('uploadedBy', 'name email');
+        let resource = await Resource.findById(req.params.id)
+            .populate('uploadedBy', 'name email')
+            .lean();
 
         if (!resource) {
             return res.status(404).json({ message: 'Resource not found' });
         }
 
-        // Increment views
-        resource.views += 1;
-        await resource.save();
+        // Transform for creator view
+        if (req.user) {
+            const isCreator = resource.uploadedBy && resource.uploadedBy._id.toString() === req.user._id.toString();
+            if (isCreator && resource.pendingUpdates) {
+                resource.status = 'pending';
+            }
+        }
+
+        // Increment views (manual update because findByIdAndUpdate skips hooks/logic, but simplest for lean)
+        // Since we used lean(), resource is a POJO. Does not track changes.
+        // We need to update views in DB separately.
+        await Resource.updateOne({ _id: req.params.id }, { $inc: { views: 1 } });
+        // Since we are returning the object, increment the view count in memory for display
+        resource.views = (resource.views || 0) + 1;
 
         res.json(resource);
     } catch (error) {
@@ -138,11 +164,36 @@ router.post('/', authenticateToken, async (req, res) => {
             }
         }
 
+        // Normalize URL for duplicate check and storage
+        const normalizedUrl = normalizeUrl(url);
+        const videoId = getVideoId(url);
+
+        // Check for duplicate URL
+        // If it's a YouTube video, search for the Video ID in any URL in the DB
+        let existingResource = null;
+        if (videoId) {
+            existingResource = await Resource.findOne({
+                url: { $regex: videoId }
+            });
+        }
+
+        // Fallback or non-youtube: check exact normalized URL match
+        if (!existingResource) {
+            existingResource = await Resource.findOne({ url: normalizedUrl });
+        }
+
+        if (existingResource) {
+            return res.status(409).json({
+                message: 'This resource link already exists in the database',
+                resource: existingResource
+            });
+        }
+
         const resource = new Resource({
             title,
             description,
             type,
-            url,
+            url: normalizedUrl,
             branch: branchArray,
             subject,
             semester: semesterArray,
@@ -174,7 +225,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
         }
 
         // Check if user is the owner (creator) or admin/owner (role)
-        if (resource.uploadedBy.toString() !== req.user.userId && req.user.role !== 'admin' && req.user.role !== 'owner') {
+        // Use req.user._id because req.user is a Mongoose document from auth middleware
+        if (resource.uploadedBy.toString() !== req.user._id.toString() && req.user.role !== 'admin' && req.user.role !== 'owner') {
             return res.status(403).json({ message: 'You can only update your own resources' });
         }
 
@@ -183,17 +235,35 @@ router.put('/:id', authenticateToken, async (req, res) => {
         delete updates.downloads; // Prevent manipulating download count
         delete updates.views; // Prevent manipulating view count
 
-        Object.assign(resource, updates);
+        const isAdminOrOwner = req.user.role === 'admin' || req.user.role === 'owner';
 
-        // If not admin/owner, revert status to pending for approval
-        if (req.user.role !== 'admin' && req.user.role !== 'owner') {
-            resource.status = 'pending';
+        if (isAdminOrOwner) {
+            Object.assign(resource, updates);
+        } else {
+            // Filter crucial fields for pendingUpdates to ensure safety
+            const allowedFields = ['title', 'description', 'type', 'url', 'branch', 'subject', 'semester', 'tags'];
+            const filteredUpdates = {};
+            Object.keys(updates).forEach(key => {
+                if (allowedFields.includes(key)) {
+                    filteredUpdates[key] = updates[key];
+                }
+            });
+
+            if (resource.status === 'approved') {
+                // Existing approved resource: Save to pendingUpdates
+                resource.pendingUpdates = filteredUpdates;
+            } else {
+                // Pending or Rejected: Update directly
+                Object.assign(resource, filteredUpdates);
+                resource.status = 'pending';
+                resource.pendingUpdates = null;
+            }
         }
 
         await resource.save();
 
         res.json({
-            message: 'Resource updated successfully',
+            message: isAdminOrOwner ? 'Resource updated successfully' : 'Update requested and pending approval',
             resource
         });
     } catch (error) {
@@ -212,7 +282,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
         }
 
         // Check if user is the owner
-        if (resource.uploadedBy.toString() !== req.user.userId) {
+        if (resource.uploadedBy.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: 'You can only delete your own resources' });
         }
 
@@ -280,8 +350,17 @@ router.post('/:id/like', authenticateToken, async (req, res) => {
 // Get user's uploaded resources (protected)
 router.get('/user/my-uploads', authenticateToken, async (req, res) => {
     try {
-        const resources = await Resource.find({ uploadedBy: req.user._id })
-            .sort({ createdAt: -1 });
+        let resources = await Resource.find({ uploadedBy: req.user._id })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        // Transform for creators
+        resources = resources.map(resource => {
+            if (resource.pendingUpdates) {
+                return { ...resource, status: 'pending' };
+            }
+            return resource;
+        });
 
         res.json(resources);
     } catch (error) {
@@ -302,7 +381,12 @@ router.get('/admin/pending', authenticateToken, async (req, res) => {
         const skip = (page - 1) * limit;
         const { branch, semester, search } = req.query;
 
-        const query = { status: 'pending' };
+        const query = {
+            $or: [
+                { status: 'pending' },
+                { pendingUpdates: { $ne: null } }
+            ]
+        };
 
         if (branch && branch !== 'all') {
             query.branch = branch;
@@ -361,7 +445,27 @@ router.patch('/:id/status', authenticateToken, async (req, res) => {
             return res.status(404).json({ message: 'Resource not found' });
         }
 
+        if (status === 'rejected' && resource.status === 'approved' && resource.pendingUpdates) {
+            // Rejecting an update to an existing approved resource: clear updates but keep resource approved
+            resource.pendingUpdates = null;
+            await resource.save();
+            return res.json({ message: 'Update rejected, original resource preserved', resource });
+        }
+
+        // Rejecting a new or pending resource: Remove from database
+        if (status === 'rejected' && resource.status === 'pending') {
+            await Resource.findByIdAndDelete(req.params.id);
+            return res.json({ message: 'Resource rejected and removed' });
+        }
+
         resource.status = status;
+
+        if (status === 'approved' && resource.pendingUpdates) {
+            Object.assign(resource, resource.pendingUpdates);
+            resource.pendingUpdates = null;
+        }
+        // No need for 'else if rejected' here as it's handled above
+
         await resource.save();
 
         res.json({ message: `Resource ${status} successfully`, resource });

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Note = require('../models/Note');
 const { authenticateToken, identifyUser } = require('../middlewares/auth');
+const { normalizeUrl, getVideoId } = require('../utils/urlHelper');
 
 // Get all notes (global view with optional filters)
 router.get('/', identifyUser, async (req, res) => {
@@ -56,10 +57,23 @@ router.get('/', identifyUser, async (req, res) => {
 
         const finalQuery = conditions.length > 0 ? { $and: conditions } : {};
 
-        const notes = await Note.find(finalQuery)
+        let notes = await Note.find(finalQuery)
             .sort({ createdAt: -1 })
             .limit(parseInt(limit))
-            .skip(parseInt(skip));
+            .skip(parseInt(skip))
+            .lean();
+
+        // Transform for creator view: show 'pending' if approved but has pending updates
+        if (req.user) {
+            notes = notes.map(note => {
+                // Check if user is the creator (fuzzy match due to legacy schema)
+                const isCreator = note.userId === req.user.email || note.userId === req.user.userId || note.userEmail === req.user.email;
+                if (isCreator && note.pendingUpdates) {
+                    return { ...note, status: 'pending' };
+                }
+                return note;
+            });
+        }
 
         const totalCount = await Note.countDocuments(finalQuery);
 
@@ -79,15 +93,23 @@ router.get('/', identifyUser, async (req, res) => {
 });
 
 // Get single note by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', identifyUser, async (req, res) => {
     try {
-        const note = await Note.findById(req.params.id);
+        let note = await Note.findById(req.params.id).lean();
 
         if (!note) {
             return res.status(404).json({
                 success: false,
                 message: 'Note not found'
             });
+        }
+
+        // Transform for creator view
+        if (req.user) {
+            const isCreator = note.userId === req.user.email || note.userId === req.user.userId || note.userEmail === req.user.email;
+            if (isCreator && note.pendingUpdates) {
+                note.status = 'pending';
+            }
         }
 
         res.json({
@@ -144,6 +166,30 @@ router.post('/', async (req, res) => {
             }
         }
 
+        // Normalize Link for duplicate check and storage
+        const normalizedLink = normalizeUrl(link);
+        const videoId = getVideoId(link);
+
+        // Check for duplicate Link
+        let existingNote = null;
+        if (videoId) {
+            existingNote = await Note.findOne({
+                link: { $regex: videoId }
+            });
+        }
+
+        if (!existingNote) {
+            existingNote = await Note.findOne({ link: normalizedLink });
+        }
+
+        if (existingNote) {
+            return res.status(409).json({
+                success: false,
+                message: 'This note link already exists in the database',
+                note: existingNote
+            });
+        }
+
         const note = new Note({
             userId,
             userName,
@@ -151,7 +197,7 @@ router.post('/', async (req, res) => {
             type,
             title,
             description: description || '',
-            link,
+            link: normalizedLink,
             tags: tags || []
         });
 
@@ -196,7 +242,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
         // req.user from authenticateToken usually has { userId, email, role ... }
         // Let's check both ID and Email match for creator check to be safe
 
-        const isCreator = note.userId === req.user.email || note.userId === req.user.userId || note.userEmail === req.user.email;
+        // Updated to use req.user._id.toString() or req.user.email since req.user is a Mongoose document
+        const isCreator = note.userId === req.user.email || note.userId === req.user._id.toString() || note.userEmail === req.user.email;
         const isAdminOrOwner = req.user.role === 'admin' || req.user.role === 'owner';
 
         if (!isCreator && !isAdminOrOwner) {
@@ -207,20 +254,34 @@ router.put('/:id', authenticateToken, async (req, res) => {
         }
 
         // Update fields
-        if (title) note.title = title;
-        if (description !== undefined) note.description = description;
-        if (tags) note.tags = tags;
-
-        // If not admin/owner, revert status to pending for approval
-        if (!isAdminOrOwner) {
-            note.status = 'pending';
+        if (isAdminOrOwner) {
+            if (title) note.title = title;
+            if (description !== undefined) note.description = description;
+            if (tags) note.tags = tags;
+            // Admin updates stay approved (or whatever status they were)
+        } else {
+            if (note.status === 'approved') {
+                // Existing approved note: Save to pendingUpdates so it stays visible
+                const updates = {};
+                if (title) updates.title = title;
+                if (description !== undefined) updates.description = description;
+                if (tags) updates.tags = tags;
+                note.pendingUpdates = updates;
+            } else {
+                // Pending or Rejected: Update directly and ensure status is pending
+                if (title) note.title = title;
+                if (description !== undefined) note.description = description;
+                if (tags) note.tags = tags;
+                note.status = 'pending';
+                note.pendingUpdates = null; // Clear checking updates since we updated main
+            }
         }
 
         await note.save();
 
         res.json({
             success: true,
-            message: 'Note updated successfully',
+            message: isAdminOrOwner ? 'Note updated successfully' : 'Update requested and pending approval',
             note
         });
     } catch (error) {
@@ -246,7 +307,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
         }
 
         // Check if user is the creator or admin/owner
-        const isCreator = note.userId === req.user.email || note.userId === req.user.userId || note.userEmail === req.user.email;
+        const isCreator = note.userId === req.user.email || note.userId === req.user._id.toString() || note.userEmail === req.user.email;
         const isAdminOrOwner = req.user.role === 'admin' || req.user.role === 'owner';
 
         if (!isCreator && !isAdminOrOwner) {
@@ -388,7 +449,12 @@ router.get('/admin/pending', async (req, res) => {
         const skip = (page - 1) * limit;
         const { type, search } = req.query;
 
-        const query = { status: 'pending' };
+        const query = {
+            $or: [
+                { status: 'pending' },
+                { pendingUpdates: { $ne: null } }
+            ]
+        };
 
         if (type && type !== 'all') {
             query.type = type;
@@ -424,15 +490,43 @@ router.get('/admin/pending', async (req, res) => {
 });
 
 // ADMIN: Update note status
-router.patch('/:id/status', async (req, res) => {
+router.patch('/:id/status', authenticateToken, async (req, res) => {
     try {
+        if (req.user.role !== 'admin' && req.user.role !== 'owner') {
+            return res.status(403).json({ success: false, message: 'Access denied' });
+        }
+
         const { status } = req.body;
         const note = await Note.findById(req.params.id);
         if (!note) return res.status(404).json({ success: false, message: 'Note not found' });
 
+        if (status === 'rejected' && note.status === 'approved' && note.pendingUpdates) {
+            // Rejecting an update to an existing approved note: clear updates but keep note approved
+            note.pendingUpdates = null;
+            await note.save();
+            return res.json({ success: true, message: 'Update rejected, original note preserved', note });
+        }
+
+        // Rejecting a new or pending note: Remove from database
+        if (status === 'rejected' && note.status === 'pending') {
+            await Note.findByIdAndDelete(req.params.id);
+            return res.json({ success: true, message: 'Note rejected and removed' });
+        }
+
         note.status = status;
+
+        // Apply pending updates if approved
+        if (status === 'approved' && note.pendingUpdates) {
+            const updates = note.pendingUpdates;
+            if (updates.title) note.title = updates.title;
+            if (updates.description) note.description = updates.description;
+            if (updates.tags) note.tags = updates.tags;
+            note.pendingUpdates = null;
+        }
+        // No need for 'else if rejected' here as it's handled above
+
         await note.save();
-        res.json({ success: true, message: `Note ${status}` });
+        res.json({ success: true, message: `Note ${status}`, note });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Failed to update status' });
     }

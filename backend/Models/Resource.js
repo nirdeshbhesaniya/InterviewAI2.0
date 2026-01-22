@@ -70,6 +70,10 @@ const resourceSchema = new mongoose.Schema({
         default: 'pending',
         index: true
     },
+    pendingUpdates: {
+        type: Object,
+        default: null
+    },
     likes: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
