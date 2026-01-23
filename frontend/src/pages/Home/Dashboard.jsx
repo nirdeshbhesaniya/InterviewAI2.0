@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   PlusCircle,
@@ -28,8 +28,10 @@ import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import Pagination from '../../components/common/Pagination';
+import { UserContext } from '../../context/UserContext';
 
 export const Dashboard = () => {
+  const { user } = useContext(UserContext);
   const [cards, setCards] = useState([]);
   const [filteredCards, setFilteredCards] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,7 +46,8 @@ export const Dashboard = () => {
   const ITEMS_PER_PAGE = 12;
   const navigate = useNavigate();
 
-  const userEmail = JSON.parse(localStorage.getItem("user"))?.email;
+  const userEmail = user?.email || JSON.parse(localStorage.getItem("user"))?.email;
+  const userRole = user?.role || JSON.parse(localStorage.getItem("user"))?.role;
 
   const gradients = [
     'from-primary/20 via-primary/10 to-bg-card',
@@ -94,24 +97,28 @@ export const Dashboard = () => {
   };
 
   const handleDeleteClick = (sessionId) => {
+    console.log('Delete clicked for session:', sessionId);
+    console.log('User role:', userRole);
+    console.log('User email:', userEmail);
     setSelectedCardId(sessionId);
     setConfirmModal(true);
   };
 
   const confirmDelete = async () => {
     try {
-      const userRole = JSON.parse(localStorage.getItem("user"))?.role;
+      // Use the userRole from component state/context
       if (userRole === 'admin' || userRole === 'owner') {
         await axios.delete(API.ADMIN.DELETE_INTERVIEW(selectedCardId));
       } else {
         await axios.delete(API.INTERVIEW.DELETE(selectedCardId));
       }
-      toast.success("Card deleted successfully");
+      toast.success("Session deleted successfully");
       setConfirmModal(false);
       setSelectedCardId(null);
       fetchCards();
-    } catch {
-      toast.error("Failed to delete card");
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error(error.response?.data?.message || "Failed to delete session");
     }
   };
 
@@ -406,11 +413,8 @@ export const Dashboard = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
                 {currentCards.map((card, index) => {
                   const gradient = gradients[index % gradients.length];
-
-                  // Check if user is admin (from local storage as fallback or context if available, 
-                  // but here we only have userEmail. Let's try to get role from localStorage safely)
-                  const userRole = JSON.parse(localStorage.getItem("user"))?.role;
-                  const showDelete = card.creatorEmail === userEmail || userRole === 'admin';
+                  // Check if user can delete: creator, admin, or owner
+                  const showDelete = card.creatorEmail === userEmail || userRole === 'admin' || userRole === 'owner';
 
                   return (
                     <motion.div
@@ -459,7 +463,8 @@ export const Dashboard = () => {
                               e.stopPropagation();
                               handleDeleteClick(card.sessionId);
                             }}
-                            className="p-1.5 sm:p-2 bg-[rgb(var(--bg-card))] rounded-lg shadow-sm border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))] hover:text-red-500 transition-all"
+                            title={card.creatorEmail === userEmail ? "Delete your session" : "Delete session (Admin)"}
+                            className="p-1.5 sm:p-2 bg-[rgb(var(--bg-card))] rounded-lg shadow-sm border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))] hover:text-red-500 hover:border-red-500 transition-all"
                           >
                             <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </motion.button>
@@ -520,10 +525,20 @@ export const Dashboard = () => {
                         <div className="flex items-center justify-between text-xs text-[rgb(var(--text-secondary))]">
                           <div
                             onClick={(e) => handleCreatorClick(e, card)}
-                            className="flex items-center gap-1 hover:text-[rgb(var(--accent))] cursor-pointer transition-colors"
+                            className="flex items-center gap-2 hover:text-[rgb(var(--accent))] cursor-pointer transition-colors group"
                           >
-                            <Users className="w-3 h-3" />
-                            <span>{card.creatorDetails?.fullName || 'Unknown'}</span>
+                            {card.creatorDetails?.photo ? (
+                              <img
+                                src={card.creatorDetails.photo}
+                                alt={card.creatorDetails.fullName}
+                                className="w-5 h-5 rounded-full object-cover border-2 border-[rgb(var(--border-subtle))] group-hover:border-[rgb(var(--accent))] transition-colors"
+                              />
+                            ) : (
+                              <div className="w-5 h-5 rounded-full bg-[rgb(var(--accent))]/20 flex items-center justify-center">
+                                <Users className="w-3 h-3" />
+                              </div>
+                            )}
+                            <span className="truncate max-w-[120px]">{card.creatorDetails?.fullName || 'Unknown'}</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <BookOpen className="w-3 h-3" />
@@ -542,8 +557,8 @@ export const Dashboard = () => {
               /* List View - Mobile Enhanced */
               <div className="space-y-3 sm:space-y-4">
                 {currentCards.map((card, index) => {
-                  const userRole = JSON.parse(localStorage.getItem("user"))?.role;
-                  const showDelete = card.creatorEmail === userEmail || userRole === 'admin';
+                  // Check if user can delete: creator, admin, or owner
+                  const showDelete = card.creatorEmail === userEmail || userRole === 'admin' || userRole === 'owner';
 
                   return (
                     <motion.div
@@ -590,9 +605,17 @@ export const Dashboard = () => {
                             <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-[rgb(var(--text-muted))]">
                               <span
                                 onClick={(e) => handleCreatorClick(e, card)}
-                                className="flex items-center gap-1 hover:text-[rgb(var(--accent))] cursor-pointer transition-colors"
+                                className="flex items-center gap-1.5 hover:text-[rgb(var(--accent))] cursor-pointer transition-colors group/creator"
                               >
-                                <Users className="w-3 h-3" />
+                                {card.creatorDetails?.photo ? (
+                                  <img
+                                    src={card.creatorDetails.photo}
+                                    alt={card.creatorDetails.fullName}
+                                    className="w-4 h-4 rounded-full object-cover border border-[rgb(var(--border-subtle))] group-hover/creator:border-[rgb(var(--accent))] transition-colors"
+                                  />
+                                ) : (
+                                  <Users className="w-3 h-3" />
+                                )}
                                 <span className="hidden sm:inline">{card.creatorDetails?.fullName || 'Unknown'}</span>
                                 <span className="sm:hidden">{(card.creatorDetails?.fullName || 'Unknown').split(' ')[0]}</span>
                               </span>
@@ -646,6 +669,7 @@ export const Dashboard = () => {
                                 e.stopPropagation();
                                 handleDeleteClick(card.sessionId);
                               }}
+                              title={card.creatorEmail === userEmail ? "Delete your session" : "Delete session (Admin)"}
                               className="p-1.5 sm:p-2 text-[rgb(var(--text-primary))] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
                             >
                               <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

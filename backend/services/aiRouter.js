@@ -23,7 +23,7 @@ class AIRouter {
         try {
             return await this._tryOpenRouter(prompt, metadata, options);
         } catch (orError) {
-            console.warn('[AIRouter] OpenRouter failed, attempting fallback...', orError.message);
+            console.warn('[AIRouter] OpenRouter failed, attempting fallback to OpenAI...', orError.message);
 
             // 2. Fallback to OpenAI if allowed
             if (await this._canUseOpenAI(userId, isPremiumUser)) {
@@ -168,7 +168,6 @@ class AIRouter {
                 { userId, date },
                 {
                     $inc: {
-                        openaiCount: provider === 'openai' ? 1 : 0,
                         openRouterCount: provider === 'openrouter' ? 1 : 0
                     },
                     $push: {

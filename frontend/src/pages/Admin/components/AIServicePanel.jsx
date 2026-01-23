@@ -289,7 +289,7 @@ const AIServicePanel = ({ currentUserRole }) => {
 
             {/* Status Overview Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Same as before ... OpenRouter Status */}
+                {/* OpenRouter Status */}
                 <div className="bg-[rgb(var(--bg-card))] p-5 rounded-2xl border border-[rgb(var(--border))] shadow-sm relative overflow-hidden">
                     <div className="flex justify-between items-start mb-4">
                         <div>
@@ -312,6 +312,32 @@ const AIServicePanel = ({ currentUserRole }) => {
                     </div>
                 </div>
 
+                {/* OpenAI Status */}
+                <div className="bg-[rgb(var(--bg-card))] p-5 rounded-2xl border border-[rgb(var(--border))] shadow-sm relative overflow-hidden">
+                    <div className="flex justify-between items-start mb-4">
+                        <div>
+                            <p className="text-sm font-medium text-[rgb(var(--text-muted))]">OpenAI Health</p>
+                            <h3 className="text-2xl font-bold text-[rgb(var(--text-primary))] mt-1">
+                                {systemStatus.openAI.available ? 'Active' : 'Inactive'}
+                            </h3>
+                            <p className="text-xs text-[rgb(var(--text-secondary))] mt-1">
+                                {systemStatus.openAI.keyMasked}
+                            </p>
+                        </div>
+                        <div className={`p-2 rounded-lg ${systemStatus.openAI.available ? 'bg-sky-500/10 text-sky-500' : 'bg-gray-500/10 text-gray-500'}`}>
+                            <Activity className="w-5 h-5" />
+                        </div>
+                    </div>
+                    {/* Status Bar */}
+                    <div className="w-full h-1.5 bg-[rgb(var(--bg-elevated))] rounded-full overflow-hidden">
+                        <div
+                            className={`h-full transition-all duration-500 ${systemStatus.openAI.available ? 'bg-sky-500 w-full' : 'bg-gray-500 w-0'}`}
+                        />
+                    </div>
+                </div>
+
+
+
                 {/* Usage Today */}
                 <div className="bg-[rgb(var(--bg-card))] p-5 rounded-2xl border border-[rgb(var(--border))] shadow-sm">
                     <div className="flex justify-between items-start mb-2">
@@ -325,34 +351,17 @@ const AIServicePanel = ({ currentUserRole }) => {
                             <Zap className="w-5 h-5" />
                         </div>
                     </div>
-                    <div className="flex items-center gap-4 text-xs mt-3">
+                    <div className="flex flex-col gap-1 text-xs mt-3">
                         <div className="flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-purple-500" />
                             <span className="text-[rgb(var(--text-secondary))]">OpenRouter: {todayTotals.totalOpenRouter}</span>
                         </div>
+
                         <div className="flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-sky-500" />
                             <span className="text-[rgb(var(--text-secondary))]">OpenAI: {todayTotals.totalOpenAI}</span>
                         </div>
                     </div>
-                </div>
-
-                {/* Fallback Status */}
-                <div className="bg-[rgb(var(--bg-card))] p-5 rounded-2xl border border-[rgb(var(--border))] shadow-sm">
-                    <div className="flex justify-between items-start mb-2">
-                        <div>
-                            <p className="text-sm font-medium text-[rgb(var(--text-muted))]">Fallback (OpenAI)</p>
-                            <h3 className={`text-xl font-bold mt-1 ${systemStatus.openAI.available ? 'text-green-500' : 'text-red-500'}`}>
-                                {systemStatus.openAI.available ? 'Ready' : 'Not Configured'}
-                            </h3>
-                        </div>
-                        <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
-                            <Shield className="w-5 h-5" />
-                        </div>
-                    </div>
-                    <p className="text-xs text-[rgb(var(--text-muted))] mt-2">
-                        Last resort provider if all OpenRouter keys fail.
-                    </p>
                 </div>
             </div>
 
@@ -396,6 +405,7 @@ const AIServicePanel = ({ currentUserRole }) => {
                                 dot={{ fill: '#a855f7', strokeWidth: 2 }}
                                 activeDot={{ r: 6, strokeWidth: 0 }}
                             />
+
                             <Line
                                 type="monotone"
                                 dataKey="openai"
@@ -410,12 +420,12 @@ const AIServicePanel = ({ currentUserRole }) => {
                 </div>
             </div>
 
-            {/* Keys Management */}
-            <div className="bg-[rgb(var(--bg-card))] rounded-2xl border border-[rgb(var(--border))] shadow-sm overflow-hidden">
+            {/* Keys Management - OpenRouter */}
+            <div className="bg-[rgb(var(--bg-card))] rounded-2xl border border-[rgb(var(--border))] shadow-sm overflow-hidden mb-6">
                 <div className="px-6 py-4 border-b border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))] flex justify-between items-center">
                     <h3 className="font-semibold text-[rgb(var(--text-primary))] flex items-center gap-2">
                         <Server className="w-5 h-5 text-[rgb(var(--accent))]" />
-                        Key Management
+                        OpenRouter Keys
                     </h3>
                     {currentUserRole === 'owner' && (
                         <span className="text-xs bg-yellow-500/10 text-yellow-600 px-2 py-1 rounded border border-yellow-500/20">
@@ -425,6 +435,7 @@ const AIServicePanel = ({ currentUserRole }) => {
                 </div>
 
                 <div className="overflow-x-auto">
+                    {/* ... Existing OpenRouter Table Body ... */}
                     <table className="w-full text-left">
                         <thead className="bg-[rgb(var(--bg-elevated))]/50">
                             <tr>
@@ -498,6 +509,8 @@ const AIServicePanel = ({ currentUserRole }) => {
                 </div>
             </div>
 
+
+
             {/* Recent Logs Logs */}
             <div className="bg-[rgb(var(--bg-card))] rounded-2xl border border-[rgb(var(--border))] shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))] flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -519,6 +532,7 @@ const AIServicePanel = ({ currentUserRole }) => {
                         >
                             <option value="all">All Providers</option>
                             <option value="openRouter">OpenRouter</option>
+
                             <option value="openai">OpenAI</option>
                         </select>
                         <select
@@ -559,6 +573,7 @@ const AIServicePanel = ({ currentUserRole }) => {
                                     <td className="px-6 py-3">
                                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${log.provider === 'openRouter'
                                             ? 'bg-purple-500/10 text-purple-600'
+
                                             : 'bg-blue-500/10 text-blue-600'
                                             }`}>
                                             {log.provider}

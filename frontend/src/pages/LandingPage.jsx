@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -77,7 +77,7 @@ const LandingPage = () => {
   const { user } = useContext(UserContext);
   const { setIsAuthModalOpen } = useContext(ChatbotContext);
   const navigate = useNavigate();
-  const testimonialsRef = useRef(null);
+
   const [stats, setStats] = useState({ totalUsers: '10K+' });
   const [feedbackList, setFeedbackList] = useState([]);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -170,20 +170,7 @@ const LandingPage = () => {
     return () => clearTimeout(timeout);
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (testimonialsRef.current) {
-        testimonialsRef.current.scrollBy({ left: 320, behavior: 'smooth' });
-        if (
-          testimonialsRef.current.scrollLeft + testimonialsRef.current.clientWidth >=
-          testimonialsRef.current.scrollWidth
-        ) {
-          testimonialsRef.current.scrollTo({ left: 0, behavior: 'smooth' });
-        }
-      }
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+
 
   if (loading) {
     return (
@@ -542,38 +529,7 @@ const LandingPage = () => {
             ))}
           </div>
 
-          {/* Scrolling Testimonials for Mobile */}
-          <div className="block lg:hidden">
-            <div
-              ref={testimonialsRef}
-              className="flex overflow-x-auto snap-x snap-mandatory space-x-6 pb-4 scrollbar-hide"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-              {testimonials.map((item, index) => (
-                <motion.div
-                  key={`mobile-${item.id}`}
-                  className="snap-start flex-shrink-0 w-[85vw] sm:w-[70vw] max-w-sm bg-[rgb(var(--bg-card))] rounded-xl shadow-lg p-6 border border-[rgb(var(--border-subtle))]"
-                  initial={{ opacity: 0, x: 50 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <img
-                      src={item.avatar}
-                      className="w-12 h-12 rounded-full object-cover"
-                      alt={item.name}
-                    />
-                    <div>
-                      <h4 className="font-semibold text-[rgb(var(--text-primary))]">{item.user?.fullName || item.name}</h4>
-                      <p className="text-sm text-primary">{item.user?.jobTitle || item.role || 'Verified User'}</p>
-                    </div>
-                  </div>
-                  <p className="text-[rgb(var(--text-secondary))] text-sm leading-relaxed">"{item.comment || item.feedback}"</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
+
 
           {/* Trust Indicators */}
           <motion.div

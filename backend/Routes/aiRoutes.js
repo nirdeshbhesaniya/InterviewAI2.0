@@ -47,6 +47,7 @@ router.get('/dashboard', authenticateToken, requireAdminOrOwner, async (req, res
                     _id: '$date',
                     totalOpenAI: { $sum: '$openaiCount' },
                     totalOpenRouter: { $sum: '$openRouterCount' },
+                    totalGemini: { $sum: '$geminiCount' },
                     uniqueUsers: { $addToSet: '$userId' } // Count unique users later
                 }
             },
@@ -72,6 +73,7 @@ router.get('/dashboard', authenticateToken, requireAdminOrOwner, async (req, res
                     date: dateStr,
                     openai: stat.totalOpenAI || 0,
                     openRouter: stat.totalOpenRouter || 0,
+                    gemini: stat.totalGemini || 0,
                     activeUsers: stat.uniqueUsers ? stat.uniqueUsers.length : 0
                 });
             } else {
@@ -79,6 +81,7 @@ router.get('/dashboard', authenticateToken, requireAdminOrOwner, async (req, res
                     date: dateStr,
                     openai: 0,
                     openRouter: 0,
+                    gemini: 0,
                     activeUsers: 0
                 });
             }
@@ -134,9 +137,25 @@ router.get('/dashboard', authenticateToken, requireAdminOrOwner, async (req, res
             }
         ]);
 
+        // Count today's usage by provider for summary cards
+        const todayProviderStats = await AIUsageLog.aggregate([
+            { $match: { date: todayStr } },
+            {
+                $group: {
+                    _id: null,
+                    openAI: { $sum: '$openaiCount' },
+                    openRouter: { $sum: '$openRouterCount' },
+                    gemini: { $sum: '$geminiCount' }
+                }
+            }
+        ]);
+
         const todayTotals = {
             totalRequests: todayBreakdown.reduce((acc, curr) => acc + curr.count, 0),
-            breakdown: todayBreakdown.reduce((acc, curr) => ({ ...acc, [curr._id]: curr.count }), {})
+            breakdown: todayBreakdown.reduce((acc, curr) => ({ ...acc, [curr._id]: curr.count }), {}),
+            totalOpenAI: todayProviderStats[0]?.openAI || 0,
+            totalOpenRouter: todayProviderStats[0]?.openRouter || 0,
+            totalGemini: todayProviderStats[0]?.gemini || 0
         };
 
         res.json({

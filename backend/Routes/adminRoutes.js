@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Interview = require('../models/Interview');
+const Notification = require('../models/Notification');
 const { authenticateToken } = require('../middlewares/auth');
 
 // Middleware to check if user is admin or owner
@@ -303,21 +304,115 @@ router.delete('/users/:userId', async (req, res) => {
     }
 });
 
-// DELETE interview session (Admin)
+// DELETE interview session (Admin/Owner) with creator notification
 router.delete('/interviews/:id', async (req, res) => {
     try {
         const { id } = req.params;
         // The id param here is actually the sessionId (UUID), not the _id
-        const interview = await Interview.findOneAndDelete({ sessionId: id });
+        const interview = await Interview.findOne({ sessionId: id });
 
         if (!interview) {
             return res.status(404).json({ message: 'Interview session not found' });
         }
 
+        // Notify the creator
+        const creator = await User.findOne({ email: interview.creatorEmail });
+        if (creator) {
+            await Notification.create({
+                userId: creator._id,
+                type: 'warning',
+                title: 'Session Deleted',
+                message: `Your interview session "${interview.title}" was deleted by an ${req.user.role === 'owner' ? 'owner' : 'administrator'}.`,
+                recipientType: 'individual'
+            });
+        }
+
+        await Interview.findOneAndDelete({ sessionId: id });
         res.json({ message: 'Interview session deleted successfully' });
     } catch (err) {
         console.error('Error deleting interview:', err);
         res.status(500).json({ message: 'Failed to delete interview session' });
+    }
+});
+
+// PUT Edit interview session metadata (Admin/Owner)
+router.put('/interviews/:sessionId', async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        const { title, tag, experience, desc, color, initials, status } = req.body;
+
+        const session = await Interview.findOne({ sessionId });
+        if (!session) {
+            return res.status(404).json({ message: 'Session not found' });
+        }
+
+        // Update fields if provided
+        if (title) session.title = title;
+        if (tag) session.tag = tag;
+        if (experience) session.experience = experience;
+        if (desc) session.desc = desc;
+        if (color) session.color = color;
+        if (initials) session.initials = initials;
+        if (status) session.status = status;
+
+        // Notify creator
+        const creator = await User.findOne({ email: session.creatorEmail });
+        if (creator) {
+            await Notification.create({
+                userId: creator._id,
+                type: 'info',
+                title: 'Session Updated',
+                message: `Your interview session "${session.title}" was edited by an ${req.user.role === 'owner' ? 'owner' : 'administrator'}.`,
+                recipientType: 'individual',
+                metadata: { sessionId }
+            });
+        }
+
+        await session.save();
+        res.json({ message: 'Session updated successfully', session });
+    } catch (err) {
+        console.error('Error updating session:', err);
+        res.status(500).json({ message: 'Failed to update session' });
+    }
+});
+
+// GET All sessions (Admin view)
+router.get('/interviews', async (req, res) => {
+    try {
+        const { status, page = 1, limit = 20, search } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
+        // Build query
+        const query = {};
+        if (status) query.status = status;
+        if (search) {
+            query.$or = [
+                { title: { $regex: search, $options: 'i' } },
+                { tag: { $regex: search, $options: 'i' } },
+                { creatorEmail: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const sessions = await Interview.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        const total = await Interview.countDocuments(query);
+
+        res.json({
+            success: true,
+            data: sessions,
+            pagination: {
+                currentPage: parseInt(page),
+                totalPages: Math.ceil(total / parseInt(limit)),
+                total,
+                hasMore: parseInt(page) * parseInt(limit) < total
+            }
+        });
+    } catch (err) {
+        console.error('Error fetching sessions:', err);
+        res.status(500).json({ message: 'Failed to fetch sessions' });
     }
 });
 

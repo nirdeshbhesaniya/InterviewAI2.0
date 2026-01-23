@@ -236,6 +236,25 @@ router.post('/', checkFeatureEnabled('ai_interview_generation'), async (req, res
   }
 
   try {
+    // Check for exact duplicates (same title, tag, and creator)
+    const exactDuplicate = await Interview.findOne({
+      title: { $regex: new RegExp(`^${title.trim()}$`, 'i') },
+      tag: { $regex: new RegExp(`^${tag.trim()}$`, 'i') },
+      creatorEmail
+    });
+
+    if (exactDuplicate) {
+      return res.status(409).json({
+        message: 'You have already created a session with this exact title and tag.',
+        duplicate: {
+          sessionId: exactDuplicate.sessionId,
+          title: exactDuplicate.title,
+          tag: exactDuplicate.tag,
+          createdAt: exactDuplicate.createdAt
+        }
+      });
+    }
+
     const sessionId = uuidv4();
 
     // Fetch creator details
@@ -408,14 +427,90 @@ router.post('/workflow', checkFeatureEnabled('ai_interview_generation'), async (
   }
 });
 
-// DELETE card
-router.delete('/:sessionId', async (req, res) => {
+// PUT Update Session Metadata (Protected - Admin, Owner, or Creator only)
+router.put('/session/:sessionId', authenticateToken, async (req, res) => {
   try {
-    const deleted = await Interview.findOneAndDelete({ sessionId: req.params.sessionId });
-    if (!deleted) return res.status(404).json({ message: 'Card not found' });
-    res.json({ message: 'Card deleted' });
-  } catch {
-    res.status(500).json({ message: 'Failed to delete card' });
+    const { sessionId } = req.params;
+    const { title, tag, experience, desc, color, initials } = req.body;
+
+    const session = await Interview.findOne({ sessionId });
+    if (!session) return res.status(404).json({ message: 'Session not found' });
+
+    // Check permissions: Admin, Owner, or Creator
+    const isAdmin = req.user.role === 'admin';
+    const isOwner = req.user.role === 'owner';
+    const isCreator = session.creatorEmail === req.user.email;
+
+    if (!isAdmin && !isOwner && !isCreator) {
+      return res.status(403).json({ message: 'Unauthorized. Only admin, owner, or session creator can edit this session.' });
+    }
+
+    // Update fields if provided
+    if (title) session.title = title;
+    if (tag) session.tag = tag;
+    if (experience) session.experience = experience;
+    if (desc) session.desc = desc;
+    if (color) session.color = color;
+    if (initials) session.initials = initials;
+
+    // If edited by non-creator admin/owner, optionally log or notify
+    if ((isAdmin || isOwner) && !isCreator) {
+      const creator = await User.findOne({ email: session.creatorEmail });
+      if (creator) {
+        await Notification.create({
+          userId: creator._id,
+          type: 'info',
+          title: 'Session Updated',
+          message: `Your interview session "${session.title}" was edited by an ${isOwner ? 'owner' : 'administrator'}.`,
+          recipientType: 'individual',
+          metadata: { sessionId }
+        });
+      }
+    }
+
+    await session.save();
+    res.json({ message: 'Session updated successfully', session });
+  } catch (err) {
+    console.error('Error updating session:', err);
+    res.status(500).json({ message: 'Failed to update session' });
+  }
+});
+
+// DELETE card (Protected - Admin, Owner, or Creator only)
+router.delete('/:sessionId', authenticateToken, async (req, res) => {
+  try {
+    const session = await Interview.findOne({ sessionId: req.params.sessionId });
+    if (!session) return res.status(404).json({ message: 'Session not found' });
+
+    // Check permissions: Admin, Owner, or Creator
+    const isAdmin = req.user.role === 'admin';
+    const isOwner = req.user.role === 'owner';
+    const isCreator = session.creatorEmail === req.user.email;
+
+    if (!isAdmin && !isOwner && !isCreator) {
+      return res.status(403).json({ message: 'Unauthorized. Only admin, owner, or session creator can delete this session.' });
+    }
+
+    await Interview.findOneAndDelete({ sessionId: req.params.sessionId });
+
+    // Notify creator if deleted by admin/owner
+    if ((isAdmin || isOwner) && !isCreator) {
+      const creator = await User.findOne({ email: session.creatorEmail });
+      if (creator) {
+        await Notification.create({
+          userId: creator._id,
+          type: 'warning',
+          title: 'Session Deleted',
+          message: `Your interview session "${session.title}" was deleted by an ${isOwner ? 'owner' : 'administrator'}.`,
+          recipientType: 'individual'
+        });
+      }
+    }
+
+    res.json({ message: 'Session deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting session:', err);
+    res.status(500).json({ message: 'Failed to delete session' });
   }
 });
 
@@ -453,46 +548,60 @@ router.patch('/regenerate/:sessionId/:index', checkFeatureEnabled('ai_interview_
   }
 });
 
-// PATCH to manually edit a QnA block (Protected)
+// PATCH to manually edit a QnA block (Protected - Admin, Owner, or Creator)
 router.patch('/edit/:sessionId/:index', authenticateToken, async (req, res) => {
   try {
     const { sessionId, index } = req.params;
-    const { question, answerParts } = req.body;
+    const { question, answerParts, category } = req.body;
 
     const card = await Interview.findOne({ sessionId });
     if (!card || !card.qna[index]) {
       return res.status(404).json({ message: 'QnA not found' });
     }
 
-    // Check permissions (Owner or Admin)
+    // Check permissions (Creator, Admin, or Owner)
     const isCreator = card.creatorEmail === req.user.email;
     const isAdmin = req.user.role === 'admin';
+    const isOwner = req.user.role === 'owner';
 
-    if (!isCreator && !isAdmin) {
-      return res.status(403).json({ message: 'Unauthorized' });
+    if (!isCreator && !isAdmin && !isOwner) {
+      return res.status(403).json({ message: 'Unauthorized. Only admin, owner, or session creator can edit Q&A.' });
     }
 
+    // Update fields
     if (question) card.qna[index].question = question;
     if (answerParts) card.qna[index].answerParts = answerParts;
-    if (req.body.category) card.qna[index].category = req.body.category;
+    if (category) card.qna[index].category = category;
 
-    // Revert to pending if not admin (User requirement: Owner still needs approval)
-    if (!isAdmin) {
+    // Status Management:
+    // - Admin/Owner: Auto-approve changes
+    // - Creator: Changes go to pending (unless they're already admin/owner)
+    if (isAdmin || isOwner) {
+      card.qna[index].status = 'approved';
+    } else if (isCreator) {
+      // Creator's edits need approval unless the Q&A was already approved
+      // If it's a new edit, set to pending
       card.qna[index].status = 'pending';
-    } else {
-      // If admin edits, ensure it's approved (or keep as is? Let's assume approved)
-      // If it was already approved, it stays approved. 
-      // If it was pending and admin edits, maybe they want it approved? 
-      // For safety, let's explicit approved if admin, or just don't touch if authenticated as admin.
-      // Actually, if admin edits, they probably approve it implicitly. 
-      // But let's just NOT set it to pending.
-      if (card.qna[index].status === 'pending') {
-        card.qna[index].status = 'approved';
-      }
+
+      // Notify admins of the edit
+      await Notification.create({
+        userId: 'admin',
+        type: 'info',
+        title: 'Q&A Edit Request',
+        message: `${req.user.fullName || req.user.email} edited a Q&A in "${card.title}"`,
+        recipientType: 'broadcast',
+        targetAudience: 'admins',
+        action: 'review_qna',
+        actionUrl: `/admin/qna-requests`,
+        metadata: { sessionId, qnaId: card.qna[index]._id }
+      });
     }
 
     await card.save();
-    res.json(card.qna[index]);
+    res.json({
+      message: (isAdmin || isOwner) ? 'Q&A updated and approved' : 'Q&A updated and sent for approval',
+      qna: card.qna[index]
+    });
   } catch (err) {
     console.error('Error updating QnA:', err);
     res.status(500).json({ message: 'Failed to update QnA' });
@@ -786,7 +895,7 @@ router.patch('/reject-question/:sessionId/:qnaId', authenticateToken, async (req
   }
 });
 
-// DELETE a specific question
+// DELETE a specific question (Protected - Admin, Owner, or Creator)
 router.delete('/:sessionId/questions/:qnaId', authenticateToken, async (req, res) => {
   try {
     const { sessionId, qnaId } = req.params;
@@ -794,13 +903,17 @@ router.delete('/:sessionId/questions/:qnaId', authenticateToken, async (req, res
 
     if (!session) return res.status(404).json({ message: 'Session not found' });
 
-    // Check permissions
+    // Check permissions: Admin, Owner, or Creator
     const isCreator = session.creatorEmail === req.user.email;
     const isAdmin = req.user.role === 'admin';
+    const isOwner = req.user.role === 'owner';
 
-    if (!isCreator && !isAdmin) {
-      return res.status(403).json({ message: 'Permission denied' });
+    if (!isCreator && !isAdmin && !isOwner) {
+      return res.status(403).json({ message: 'Unauthorized. Only admin, owner, or session creator can delete Q&A.' });
     }
+
+    // Find the question before deletion for notification
+    const questionToDelete = session.qna.find(q => q._id.toString() === qnaId);
 
     // Filter out the question
     const originalLength = session.qna.length;
@@ -811,6 +924,22 @@ router.delete('/:sessionId/questions/:qnaId', authenticateToken, async (req, res
     }
 
     await session.save();
+
+    // Notify creator if deleted by admin/owner
+    if ((isAdmin || isOwner) && !isCreator && questionToDelete) {
+      const creator = await User.findOne({ email: session.creatorEmail });
+      if (creator) {
+        await Notification.create({
+          userId: creator._id,
+          type: 'warning',
+          title: 'Q&A Deleted',
+          message: `A question "${questionToDelete.question.substring(0, 40)}..." was deleted from your session "${session.title}" by an ${isOwner ? 'owner' : 'administrator'}.`,
+          recipientType: 'individual',
+          metadata: { sessionId }
+        });
+      }
+    }
+
     res.json({ message: 'Question deleted successfully' });
   } catch (err) {
     console.error('Error deleting question:', err);
