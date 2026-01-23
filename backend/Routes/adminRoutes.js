@@ -408,6 +408,25 @@ router.put('/practice-tests/:id', async (req, res) => {
     }
 });
 
+// GET Single Practice Test (Admin - Full Details)
+router.get('/practice-tests/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const PracticeTest = require('../models/PracticeTest');
+
+        const test = await PracticeTest.findById(id);
+
+        if (!test) {
+            return res.status(404).json({ message: 'Practice test not found' });
+        }
+
+        res.json(test);
+    } catch (err) {
+        console.error('Error fetching practice test details:', err);
+        res.status(500).json({ message: 'Failed to fetch practice test details' });
+    }
+});
+
 // DELETE Practice Test (Admin)
 router.delete('/practice-tests/:id', async (req, res) => {
     try {

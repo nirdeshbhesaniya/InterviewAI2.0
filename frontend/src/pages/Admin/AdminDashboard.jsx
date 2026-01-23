@@ -11,7 +11,8 @@ import {
     FileQuestion,
     Bell,
     Loader2,
-    LayoutDashboard
+    LayoutDashboard,
+    MessageSquare
 } from 'lucide-react';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
@@ -27,6 +28,7 @@ import PracticeTestsManagement from './components/PracticeTestsManagement';
 import NotificationCenter from './components/NotificationCenter';
 import AIServicePanel from './components/AIServicePanel';
 import SessionApprovals from './components/SessionApprovals';
+import FeedbackManagement from './components/FeedbackManagement';
 
 const STATS_CARDS = [
     { title: 'Total Users', key: 'totalUsers', icon: Users, color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-500/10' },
@@ -104,6 +106,8 @@ const AdminDashboard = () => {
                 return <PracticeTestsManagement />;
             case 'notifications':
                 return <NotificationCenter />;
+            case 'feedback':
+                return <FeedbackManagement />;
             default:
                 return <UserManagement />;
         }
@@ -264,6 +268,16 @@ const AdminDashboard = () => {
                         >
                             <Bell className="w-5 h-5" />
                             Notifications
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('feedback')}
+                            className={`flex-none lg:w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 font-medium transition-all whitespace-nowrap ${activeTab === 'feedback'
+                                ? 'bg-[rgb(var(--accent))] text-white shadow-lg shadow-[rgb(var(--accent))]/20'
+                                : 'text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-elevated))]'
+                                }`}
+                        >
+                            <MessageSquare className="w-5 h-5" />
+                            Feedback
                         </button>
                     </div>
 

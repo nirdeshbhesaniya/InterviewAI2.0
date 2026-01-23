@@ -14,6 +14,15 @@ export const API = {
   FORGOT_PASSWORD: `${API_BASE_URL}/auth/forgot-password`,
   VERIFY_OTP: `${API_BASE_URL}/auth/verify-otp`,
   RESET_PASSWORD: `${API_BASE_URL}/auth/reset-password`,
+  PUBLIC: {
+    GET_STATS: `${API_BASE_URL}/public/stats`
+  },
+  FEEDBACK: {
+    CREATE: `${API_BASE_URL}/feedback`,
+    PUBLIC: `${API_BASE_URL}/feedback/public`,
+    ADMIN_GET_ALL: `${API_BASE_URL}/feedback/admin`,
+    ADMIN_UPDATE: (id) => `${API_BASE_URL}/feedback/admin/${id}`
+  },
   PROFILE: {
     GET: `${API_BASE_URL}/profile`,
     UPDATE: `${API_BASE_URL}/profile/update`,
@@ -80,6 +89,7 @@ export const API = {
     DELETE_RESOURCE: (id) => `${API_BASE_URL}/admin/resources/${id}`,
     CREATE_PRACTICE_TEST: `${API_BASE_URL}/admin/practice-tests`,
     UPDATE_PRACTICE_TEST: (id) => `${API_BASE_URL}/admin/practice-tests/${id}`,
+    GET_PRACTICE_TEST: (id) => `${API_BASE_URL}/admin/practice-tests/${id}`,
     DELETE_PRACTICE_TEST: (id) => `${API_BASE_URL}/admin/practice-tests/${id}`,
     CREATE_NOTIFICATION: `${API_BASE_URL}/admin/notifications/create`,
   },

@@ -26,6 +26,9 @@ import { APP_FEATURES } from '../utils/data';
 import { UserContext } from '../context/UserContext.jsx';
 import { ChatbotContext } from '../context/ChatBotContext.jsx';
 import HeroSection from './InterviewPrep/components/HeroSection';
+import FeedbackModal from '../components/Modals/FeedbackModal';
+import axios from 'axios';
+import { API } from '../utils/apiPaths';
 
 const testimonials = [
   {
@@ -75,6 +78,48 @@ const LandingPage = () => {
   const { setIsAuthModalOpen } = useContext(ChatbotContext);
   const navigate = useNavigate();
   const testimonialsRef = useRef(null);
+  const [stats, setStats] = useState({ totalUsers: '10K+' });
+  const [feedbackList, setFeedbackList] = useState([]);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await axios.get(API.PUBLIC.GET_STATS);
+        if (response.data.success) {
+          // Format number if needed, e.g., 1200 -> 1.2K+ could be done here, 
+          // but for now user likely wants the "real" number like "12,345"
+          // Or keep "10K+" logic if raw number is small? 
+          // Requirement says "Active Users count real from database".
+          // So let's use the formatted locale string or raw number.
+          const val = response.data.stats.totalUsers;
+          const formatted = val > 10000 ? (val / 1000).toFixed(1) + 'K+' : val.toLocaleString();
+          setStats({ totalUsers: formatted });
+        }
+      } catch (error) {
+        console.error('Failed to fetch public stats', error);
+      }
+    };
+    fetchStats();
+
+    const fetchFeedbacks = async () => {
+      try {
+        const response = await axios.get(API.FEEDBACK.PUBLIC);
+        if (response.data && response.data.length > 0) {
+          setFeedbackList(response.data);
+        } else {
+          // Fallback to static if no real feedback yet? 
+          // Or just use the static list defined at top as initial state? 
+          // Let's set it if we have data, otherwise keep empty array and we can conditionally render.
+          // But wait, the component iterates `testimonials` variable currently.
+          // I should modify the render to use `feedbackList.length > 0 ? feedbackList : testimonials`
+        }
+      } catch (error) {
+        console.error('Failed to fetch feedback', error);
+      }
+    };
+    fetchFeedbacks();
+  }, []);
 
   const openModal = () => {
     setShowModal(true);
@@ -174,7 +219,7 @@ const LandingPage = () => {
 
       {/* Hero Section with Enhanced Mobile Design */}
 
-      <HeroSection onLoginClick={openModal} />
+      <HeroSection onLoginClick={openModal} stats={stats} />
 
       {/* MCQ Test Highlight Section */}
       <section className="px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-br from-[rgb(var(--accent))] via-[#4F46E5] to-[rgb(var(--accent-hover))] relative overflow-hidden">
@@ -408,6 +453,23 @@ const LandingPage = () => {
               Join thousands of developers who have transformed their interview skills
             </p>
 
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                if (user || localStorage.getItem('user')) {
+                  setShowFeedbackModal(true);
+                } else {
+                  openModal();
+                }
+              }}
+              className="mt-8 px-6 py-2.5 bg-gradient-to-r from-[rgb(var(--accent))] to-purple-600 text-white rounded-xl font-medium shadow-lg shadow-purple-500/20 flex items-center gap-2 mx-auto"
+            >
+              <Star className="w-4 h-4 fill-current" />
+              Rate Your Experience
+            </motion.button>
+
+
             {/* Rating Display */}
             <div className="flex items-center justify-center gap-4 mt-8">
               <div className="flex items-center gap-1">
@@ -424,11 +486,10 @@ const LandingPage = () => {
             </div>
           </motion.div>
 
-          {/* Enhanced Testimonials Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {testimonials.map((item, index) => (
+            {(feedbackList.length > 0 ? feedbackList : testimonials).map((item, index) => (
               <motion.div
-                key={item.id}
+                key={item._id || item.id}
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -449,13 +510,13 @@ const LandingPage = () => {
                 {/* Testimonial Content */}
                 <div className="relative z-10">
                   <p className="text-[rgb(var(--text-secondary))] text-lg leading-relaxed mb-6 italic">
-                    "{item.feedback}"
+                    "{item.comment || item.feedback}"
                   </p>
 
                   {/* Rating */}
                   <div className="flex items-center gap-1 mb-4">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 text-[rgb(var(--accent))] fill-current" />
+                      <Star key={i} className={`w-4 h-4 ${i < (item.rating || 5) ? "text-[rgb(var(--accent))]" : "text-gray-300"} fill-current`} />
                     ))}
                   </div>
 
@@ -463,17 +524,17 @@ const LandingPage = () => {
                   <div className="flex items-center gap-4">
                     <div className="relative">
                       <img
-                        src={item.avatar}
+                        src={item.user?.photo || item.avatar || `https://ui-avatars.com/api/?name=${item.user?.fullName || item.name || 'User'}&background=random`}
                         className="w-14 h-14 rounded-full object-cover border-2 border-[rgb(var(--accent))]"
-                        alt={item.name}
+                        alt={item.user?.fullName || item.name}
                       />
                       <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[rgb(var(--accent))] rounded-full border-2 border-[rgb(var(--bg-card))] flex items-center justify-center">
                         <CheckCircle className="w-3 h-3 text-white" />
                       </div>
                     </div>
                     <div>
-                      <h4 className="font-bold text-[rgb(var(--text-primary))] text-lg">{item.name}</h4>
-                      <p className="text-[rgb(var(--accent))] font-medium">{item.role}</p>
+                      <h4 className="font-bold text-[rgb(var(--text-primary))] text-lg">{item.user?.fullName || item.name}</h4>
+                      <p className="text-[rgb(var(--accent))] font-medium">{item.user?.jobTitle || item.role || 'Verified User'}</p>
                     </div>
                   </div>
                 </div>
@@ -504,11 +565,11 @@ const LandingPage = () => {
                       alt={item.name}
                     />
                     <div>
-                      <h4 className="font-semibold text-[rgb(var(--text-primary))]">{item.name}</h4>
-                      <p className="text-sm text-primary">{item.role}</p>
+                      <h4 className="font-semibold text-[rgb(var(--text-primary))]">{item.user?.fullName || item.name}</h4>
+                      <p className="text-sm text-primary">{item.user?.jobTitle || item.role || 'Verified User'}</p>
                     </div>
                   </div>
-                  <p className="text-[rgb(var(--text-secondary))] text-sm leading-relaxed">"{item.feedback}"</p>
+                  <p className="text-[rgb(var(--text-secondary))] text-sm leading-relaxed">"{item.comment || item.feedback}"</p>
                 </motion.div>
               ))}
             </div>
@@ -523,7 +584,7 @@ const LandingPage = () => {
             className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 pt-16 border-t border-[rgb(var(--border-subtle))]"
           >
             {[
-              { icon: Users, label: "Active Users", value: "10,000+" },
+              { icon: Users, label: "Active Users", value: stats.totalUsers },
               { icon: Globe, label: "Countries", value: "50+" },
               { icon: Trophy, label: "Success Rate", value: "95%" },
               { icon: Shield, label: "Uptime", value: "99.9%" }
@@ -735,6 +796,11 @@ const LandingPage = () => {
           <SignUp onSwitch={toggleAuth} />
         )}
       </AuthModal>
+
+      <FeedbackModal
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+      />
 
       <Footer />
     </div>

@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../../context/UserContext';
@@ -19,10 +19,28 @@ import {
   Target
 } from 'lucide-react';
 import AIAnimatedBackground from './AIAnimatedBackground';
+import axios from '../../../utils/axiosInstance';
+import { API } from '../../../utils/apiPaths';
 
-const HeroSection = ({ onLoginClick }) => {
+const HeroSection = ({ onLoginClick, stats = { totalUsers: '10K+' } }) => {
   const navigate = useNavigate();
   const { user } = useContext(UserContext);
+  const [questionsSolved, setQuestionsSolved] = useState('50K+');
+
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      if (user) {
+        try {
+          const res = await axios.get(API.INTERVIEW.GET_ALL);
+          const totalQuestions = res.data.reduce((acc, card) => acc + (card.qna?.length || 0), 0);
+          setQuestionsSolved(totalQuestions.toString());
+        } catch (error) {
+          console.error('Failed to fetch user stats:', error);
+        }
+      }
+    };
+    fetchUserStats();
+  }, [user]);
 
   const handleGetStarted = () => {
     if (user) {
@@ -105,8 +123,8 @@ const HeroSection = ({ onLoginClick }) => {
                 ))}
               </div>
               <span className="text-gray-700 dark:text-white/90 text-sm sm:text-base lg:text-lg font-medium">
-                <span className="hidden sm:inline text-green-600 dark:text-green-500">Trusted by 10,000+ developers</span>
-                <span className="sm:hidden text-gray-900 dark:text-white">10k+ developers</span>
+                <span className="hidden sm:inline text-green-600 dark:text-green-500">Trusted by {stats.totalUsers} developers</span>
+                <span className="sm:hidden text-gray-900 dark:text-white">{stats.totalUsers} developers</span>
               </span>
             </div>
 
@@ -210,8 +228,8 @@ const HeroSection = ({ onLoginClick }) => {
           className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 max-w-5xl mx-auto"
         >
           {[
-            { number: "10K+", label: "Active Users", icon: Users, color: "from-purple-500 via-pink-500 to-rose-500", glow: "from-purple-500/30 to-pink-500/20" },
-            { number: "50K+", label: "Questions Solved", icon: FileCode, color: "from-cyan-500 via-blue-500 to-indigo-500", glow: "from-cyan-500/30 to-blue-500/20" },
+            { number: stats.totalUsers, label: "Active Users", icon: Users, color: "from-purple-500 via-pink-500 to-rose-500", glow: "from-purple-500/30 to-pink-500/20" },
+            { number: questionsSolved, label: "Questions Solved", icon: FileCode, color: "from-cyan-500 via-blue-500 to-indigo-500", glow: "from-cyan-500/30 to-blue-500/20" },
             { number: "95%", label: "Success Rate", icon: Trophy, color: "from-yellow-500 via-orange-500 to-red-500", glow: "from-yellow-500/30 to-orange-500/20" },
             { number: "24/7", label: "AI Support", icon: Bot, color: "from-emerald-500 via-teal-500 to-cyan-500", glow: "from-emerald-500/30 to-teal-500/20" }
           ].map((stat, index) => (

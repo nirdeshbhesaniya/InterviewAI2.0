@@ -79,6 +79,17 @@ const PracticeTestsManagement = () => {
         }
     };
 
+    const handleEditTest = async (id) => {
+        try {
+            const res = await axios.get(API.ADMIN.GET_PRACTICE_TEST(id));
+            setSelectedTest(res.data);
+            setIsPracticeModalOpen(true);
+        } catch (error) {
+            console.error('Error fetching test details:', error);
+            toast.error('Failed to load test details for editing');
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
@@ -134,7 +145,7 @@ const PracticeTestsManagement = () => {
                                     <Button
                                         size="sm"
                                         variant="outline"
-                                        onClick={() => { setSelectedTest(test); setIsPracticeModalOpen(true); }}
+                                        onClick={() => handleEditTest(test._id)}
                                         className="h-9 w-9 p-0 rounded-lg border-[rgb(var(--border))]"
                                     >
                                         <PenSquare className="w-4 h-4 text-[rgb(var(--text-secondary))]" />

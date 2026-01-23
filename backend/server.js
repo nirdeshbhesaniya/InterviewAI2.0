@@ -5,7 +5,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
-const authRoutes = require('./Routes/authRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
@@ -86,22 +86,24 @@ app.use('/api/auth', authRoutes);
 
 // Apply rate limiting specifically to login endpoint
 app.use('/api/auth/login', loginLimiter);
-app.use('/api/profile', require('./Routes/profileRoutes'));
+app.use('/api/profile', require('./routes/profileRoutes'));
 
 // LangChain-powered routes (new implementations with memory & structured outputs)
-app.use('/api/interview', require('./Routes/interview-langchain'));
-app.use('/api/chatbot', require('./Routes/chatbot-langchain'));
-app.use('/api/mcq', require('./Routes/mcq'));
+app.use('/api/interview', require('./routes/interview-langchain'));
+app.use('/api/chatbot', require('./routes/chatbot-langchain'));
+app.use('/api/mcq', require('./routes/mcq'));
 
 // Other routes
-app.use('/api/compile', require('./Routes/compile'));
-app.use('/api/support', require('./Routes/support_new'));
-app.use('/api/notifications', require('./Routes/notifications'));
-app.use('/api/settings', require('./Routes/settings'));
-app.use('/api/admin', require('./Routes/adminRoutes'));
-app.use('/api/notes', require('./Routes/notes'));
-app.use('/api/resources', require('./Routes/resources'));
-app.use('/api/ai', require('./Routes/aiRoutes'));
+app.use('/api/compile', require('./routes/compile'));
+app.use('/api/support', require('./routes/support_new'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/settings', require('./routes/settings'));
+app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/notes', require('./routes/notes'));
+app.use('/api/resources', require('./routes/resources'));
+app.use('/api/ai', require('./routes/aiRoutes'));
+app.use('/api/public', require('./Routes/publicRoutes'));
+app.use('/api/feedback', require('./Routes/feedbackRoutes'));
 
 // 404 handler
 app.use((req, res) => {
