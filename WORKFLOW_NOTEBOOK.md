@@ -351,18 +351,34 @@ Public-facing feedback system with administrative moderation.
 
 ```mermaid
 graph LR
-    classDef public fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
-    classDef secure fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
-    classDef feature fill:#fff9c4,stroke:#fbc02d,stroke-width:2px;
+
+    %% ========================
+    %% High-Contrast Class Styles
+    %% ========================
+
+    classDef public  fill:#E3F2FD,stroke:#0D47A1,stroke-width:2px,color:#000;
+    classDef secure  fill:#E8F5E9,stroke:#1B5E20,stroke-width:2px,color:#000;
+    classDef feature fill:#FFFDE7,stroke:#F57F17,stroke-width:2px,color:#000;
+
+
+    %% ========================
+    %% Flow
+    %% ========================
 
     User[User]:::public -->|Submit| API[POST /api/feedback]:::secure
+
     API --> DB[(Feedback Collection)]:::secure
-    
+
+
     Admin[Admin]:::secure -->|Review| DB
+
     Admin -->|Toggle Featured| DB
-    
+
+
     DB -->|Fetch Featured| Landing[Landing Page]:::feature
+
     Landing -->|Display| Public[Public Visitors]:::public
+
 ```
 
 **Features:**
@@ -378,24 +394,49 @@ High-level control over AI costs and system integrity.
 
 ```mermaid
 graph TD
-    classDef owner fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
-    classDef system fill:#eceff1,stroke:#455a64,stroke-width:2px;
-    classDef action fill:#ffccbc,stroke:#d84315,stroke-width:2px;
+
+    %% ========================
+    %% High-Contrast Class Styles
+    %% ========================
+
+    classDef owner  fill:#F3E5F5,stroke:#4A148C,stroke-width:2px,color:#000;
+    classDef system fill:#ECEFF1,stroke:#263238,stroke-width:2px,color:#000;
+    classDef action fill:#FFE0B2,stroke:#E65100,stroke-width:2px,color:#000;
+
+
+    %% ========================
+    %% Flow
+    %% ========================
 
     Owner[Owner]:::owner -->|View| Dash[AI Dashboard]:::system
+
     Dash --> Stats[Usage Stats & Costs]:::system
-    
+
+
     Owner -->|Action| Keys[API Key Control]:::action
+
     Keys -->|Lock/Unlock| OpenRouter[OpenRouter Keys]:::system
-    
+
+
     Owner -->|Action| Flags[Feature Toggles]:::action
+
     Flags -->|Enable/Disable| Service[AI Services]:::system
-    
+
+
+    %% ========================
+    %% Services Group
+    %% ========================
+
     subgraph Services
-    Service --> Interview[Interview Gen]
-    Service --> MCQ[MCQ Gen]
-    Service --> Chat[Chatbot]
+
+        Service --> Interview[Interview Gen]
+
+        Service --> MCQ[MCQ Gen]
+
+        Service --> Chat[Chatbot]
+
     end
+
 ```
 
 **Capabilities:**
