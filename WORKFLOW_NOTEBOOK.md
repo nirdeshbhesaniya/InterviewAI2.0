@@ -28,12 +28,17 @@ The system defines three primary roles with hierarchical permissions: **User**, 
 | View Resources/Notes | ✅ | ✅ | ✅ | |
 | Create Personal Notes | ✅ | ✅ | ✅ | |
 | Manage Public Resources | ❌ | ✅ | ✅ | Delete any resource |
+| **Feedback System** |
+| Submit Feedback | ✅ | ✅ | ✅ | |
+| Review/Feature Feedback| ❌ | ✅ | ✅ | Toggle "Featured" status |
 | **User Management** |
 | View All Users | ❌ | ✅ | ✅ | |
 | Ban/Unban User | ❌ | ✅ | ✅ | Cannot ban self or superior roles |
 | Delete User Account | ❌ | ✅ | ✅ | Soft delete + Session kill |
 | Change User Role | ❌ | ❌ | ✅ | Exclusive Owner privilege |
 | **System & Notifications** |
+| AI Dashboard | ❌ | ✅ | ✅ | View Usage & Costs |
+| AI Key Control | ❌ | ❌ | ✅ | Lock/Unlock specific provider keys |
 | Feature Flags (Lock AI) | ❌ | ❌ | ✅ | Owner "Kill Switch" |
 | Broadcast Notification | ❌ | ❌ | ✅ | Send to All or All Admins |
 
@@ -339,3 +344,117 @@ The system includes a dynamic configuration layer stored in `SystemSettings` to 
 4.  If `false`, returns `503 Service Unavailable` with message.
 
 ---
+
+### 7. 🗣️ Feedback & Review Workflow
+
+Public-facing feedback system with administrative moderation.
+
+```mermaid
+graph LR
+    classDef public fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef secure fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    classDef feature fill:#fff9c4,stroke:#fbc02d,stroke-width:2px;
+
+    User[User]:::public -->|Submit| API[POST /api/feedback]:::secure
+    API --> DB[(Feedback Collection)]:::secure
+    
+    Admin[Admin]:::secure -->|Review| DB
+    Admin -->|Toggle Featured| DB
+    
+    DB -->|Fetch Featured| Landing[Landing Page]:::feature
+    Landing -->|Display| Public[Public Visitors]:::public
+```
+
+**Features:**
+*   **Public Access**: `/api/feedback/public` displays featured reviews.
+*   **Moderation**: Admins can hide/show reviews and mark them as "Featured".
+*   **Fallback**: If no featured reviews exist, system may show high-rated recent ones.
+
+---
+
+### 8. 🧠 AI System Management (Owner Only)
+
+High-level control over AI costs and system integrity.
+
+```mermaid
+graph TD
+    classDef owner fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+    classDef system fill:#eceff1,stroke:#455a64,stroke-width:2px;
+    classDef action fill:#ffccbc,stroke:#d84315,stroke-width:2px;
+
+    Owner[Owner]:::owner -->|View| Dash[AI Dashboard]:::system
+    Dash --> Stats[Usage Stats & Costs]:::system
+    
+    Owner -->|Action| Keys[API Key Control]:::action
+    Keys -->|Lock/Unlock| OpenRouter[OpenRouter Keys]:::system
+    
+    Owner -->|Action| Flags[Feature Toggles]:::action
+    Flags -->|Enable/Disable| Service[AI Services]:::system
+    
+    subgraph Services
+    Service --> Interview[Interview Gen]
+    Service --> MCQ[MCQ Gen]
+    Service --> Chat[Chatbot]
+    end
+```
+
+**Capabilities:**
+*   **Dashboard**: View usage logs (`AIUsageLog`), token consumption, and system health.
+*   **Key Management**: Force disable specific API keys if compromised or over-budget.
+*   **Feature Flags**: detailed control over which AI modules are active.
+
+---
+
+### 9. 🆘 AI-Enhanced Support Workflow
+
+Email-based support system with Gemini-powered auto-responses.
+
+```mermaid
+sequenceDiagram
+    box "User" #e1f5fe
+        participant U as User
+    end
+    box "System" #fff3e0
+        participant API as API Layer
+        participant AI as Gemini AI
+    end
+    box "External" #e0e0e0
+        participant Mail as SendGrid/Email
+        participant Team as Support Team
+    end
+
+    U->>API: Submit Support Request (Name, Issue, Priority)
+    
+    par Internal Notification
+        API->>Mail: Send Full Details
+        Mail->>Team: Email Notification
+    and AI Auto-Reply
+        API->>AI: Generate Empathetic Response
+        AI-->>API: Auto-Reply Content
+        API->>Mail: Send Auto-Reply
+        Mail->>U: "We received your request..."
+    end
+```
+
+**Note**: The current system uses direct email processing. Support tickets are processed email and do not currently persist in a database for "Ticket Status" tracking in this version.
+
+---
+
+### 10. 🌍 Public Data Access
+
+Endpoints available without authentication for landing pages and marketing.
+
+```mermaid
+graph LR
+    Visitor[Visitor] -->|Request| API[Public API]
+    
+    API -->|GET /api/public/stats| Stats[User Counts]
+    API -->|GET /api/feedback/public| Reviews[Featured Reviews]
+    
+    Stats --> Landing[Landing Page Stats]
+    Reviews --> Testimonials[Testimonials Section]
+```
+
+**Scope:**
+*   Strictly read-only access.
+*   Limited to aggregated stats (Total Users) and curated content (Featured Feedback).

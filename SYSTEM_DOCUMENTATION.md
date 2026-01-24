@@ -387,6 +387,34 @@
 
 ---
 
+### 11. 🗣️ Feedback & Review System
+
+#### 🌟 Feedback Features
+- **Public API**: Fetch featured reviews for landing pages
+- **Admin Moderation**: Mark reviews as featured
+- **Rating System**: 5-star rating with comments
+- **Fallback Logic**: Auto-display high-rated reviews
+
+**Key Files:**
+- `backend/Routes/feedbackRoutes.js`
+- `backend/Models/FeedbackModel.js`
+
+---
+
+### 12. 🧠 AI System Management
+
+#### 🎛️ AI Admin Features
+- **Dashboard**: Usage statistics and cost monitoring
+- **Key Control**: Lock/Unlock specific AI provider keys (OpenRouter)
+- **Feature Flags**: Toggle specific AI features (Chat, Interview, MCQ)
+- **Security**: Owner-exclusive control
+
+**Key Files:**
+- `backend/Routes/aiRoutes.js`
+- `backend/models/AIUsageLog.js`
+
+---
+
 ## 🗄️ Database Models
 
 ### 👤 User Model
@@ -734,6 +762,43 @@
 | POST | `/contact` | Submit support request | ❌ |
 | GET | `/tickets` | Get user tickets | ✅ |
 | GET | `/ticket/:id` | Get specific ticket | ✅ |
+
+---
+
+### 📋 Feedback Routes
+**Base:** `/api/feedback`
+**File:** `backend/Routes/feedbackRoutes.js`
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/` | Submit feedback | ✅ |
+| GET | `/public` | Get featured feedback | ❌ |
+| GET | `/admin` | Get all feedback (Admin) | ✅ |
+| PATCH | `/admin/:id` | Update feedback status | ✅ |
+
+---
+
+### 🧠 AI Management Routes
+**Base:** `/api/ai`
+**File:** `backend/Routes/aiRoutes.js`
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/dashboard` | Get AI usage stats | ✅ (Admin/Owner) |
+| POST | `/control` | Lock/Unlock API keys | ✅ (Owner) |
+| GET | `/logs` | View AI transaction logs | ✅ (Admin/Owner) |
+| GET | `/features` | Get feature flag status | ✅ (Admin/Owner) |
+| POST | `/features/toggle`| Toggle AI features | ✅ (Owner) |
+
+---
+
+### 🌍 Public Routes
+**Base:** `/api/public`
+**File:** `backend/Routes/publicRoutes.js`
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/stats` | Get application statistics | ❌ |
 
 ---
 
