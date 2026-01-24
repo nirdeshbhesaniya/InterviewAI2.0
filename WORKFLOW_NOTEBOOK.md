@@ -80,38 +80,70 @@ The core feature allowing users to practice interviews with AI assistance.
 
 ```mermaid
 sequenceDiagram
+    autonumber
+
     participant U as User
     participant FE as Frontend
     participant API as Backend API
     participant DB as Database
-    participant AI as Gemini/LangChain
-    
-    U->>FE: Click "Create Request"
-    FE->>U: Show Modal (Title, Description, Tags)
-    U->>FE: Submit Details
-    FE->>API: POST /api/interview/create
-    API->>DB: Create Session (Status: Pending)
-    API-->>FE: Return Session ID
-    
-    U->>FE: Click "Generate Questions"
-    FE->>API: POST /api/interview/generate
-    
-    rect rgb(240, 240, 255)
-        Note right of API: Feature Flag Check
-        API->>DB: Check 'ai_interview_generation'
+    participant AI as AI Engine (OpenRouter / LangChain)
+
+    %% ========================
+    %% Create Interview Request
+    %% ========================
+
+    U ->> FE: Click "Create Request"
+    FE ->> U: Show Form Modal
+    U ->> FE: Submit Title, Description, Tags
+
+    FE ->> API: POST /api/interview/create
+    API ->> DB: Create Session (Status: Pending)
+    DB -->> API: Session Saved
+    API -->> FE: Return Session ID
+
+
+    %% ========================
+    %% Generate Questions
+    %% ========================
+
+    U ->> FE: Click "Generate Questions"
+    FE ->> API: POST /api/interview/generate
+
+
+    rect rgb(248,248,252)
+        Note right of API: Feature Flag Validation
+
+        API ->> DB: Check "ai_interview_generation"
+
         alt Feature Disabled
-            API-->>FE: 503 Service Unavailable
+            API -->> FE: 503 Service Unavailable
+            FE -->> U: Show Error Message
+
         else Feature Enabled
-            API->>AI: Prompt PromptTemplate
-            AI-->>API: JSON Questions List
-            API->>DB: Save Questions
-            API-->>FE: Return Questions
+            API ->> AI: Send Prompt Template
+            AI -->> API: Generated Questions (JSON)
+
+            API ->> DB: Store Questions
+            DB -->> API: Saved Successfully
+
+            API -->> FE: Return Questions
+            FE -->> U: Display Questions
         end
     end
 
-    U->>FE: Write/Code Answer
-    FE->>API: PUT /api/interview/answer
-    API->>DB: Update Answer Content
+
+    %% ========================
+    %% Submit Answers
+    %% ========================
+
+    U ->> FE: Write / Code Answer
+    FE ->> API: PUT /api/interview/answer
+
+    API ->> DB: Update Answer
+    DB -->> API: Update Confirmed
+
+    API -->> FE: Success Response
+    FE -->> U: Show "Answer Saved"
 ```
 
 **Permissions:**
@@ -127,24 +159,56 @@ Adaptive testing workflow with strict security monitoring.
 
 ```mermaid
 stateDiagram-v2
+    direction LR
+
+
     [*] --> Configuration
-    Configuration --> Generation: Select Topic & Difficulty
-    Generation --> TakingTest: AI Generates Questions
-    
+
+    Configuration --> Generation : Select Topic & Difficulty
+
+    Generation --> TakingTest : AI Generates Questions
+
+
+
     state TakingTest {
+
+        direction TB
+
+
         [*] --> Answering
-        Answering --> SecurityCheck: User Action
-        
+
+
+        Answering --> SecurityCheck
+
+
+
         state SecurityCheck {
+
+            direction TB
+
+
             [*] --> FullscreenVerify
-            FullscreenVerify --> Warning: Tab Switch / Exit Fullscreen
-            Warning --> AutoSubmit: > 3 Warnings
-            Warning --> Answering: Resume
+
+
+            FullscreenVerify --> Warning : Tab Switch / Exit Fullscreen
+
+
+            Warning --> AutoSubmit : > 3 Warnings
+
+            Warning --> Answering : Resume
+
         }
+
     }
-    
-    TakingTest --> ResultProcessing: Submit / Timeout / Violation
-    ResultProcessing --> [*]: Store Score & Analytics
+
+
+
+    TakingTest --> ResultProcessing : Submit / Timeout / Violation
+
+
+    ResultProcessing --> [*] : Store Score & Analytics
+
+
 ```
 
 **Constraints:**
@@ -160,24 +224,42 @@ The administrative workflow for managing user access and system integrity.
 
 ```mermaid
 graph LR
+
+    %% ========================
+    %% Owner Actions
+    %% ========================
     subgraph Owner Actions
         O[Owner] -->|Promote| A[Make Admin]
         O -->|Demote| U[Make User]
         O -->|Broadcast| N[Send System Notification]
     end
-    
+
+
+    %% ========================
+    %% Admin Actions
+    %% ========================
     subgraph Admin Actions
         AD[Admin] -->|Ban/Unban| B[User Account]
         AD -->|Delete| B
         AD -->|View| S[User Stats & Activity]
     end
-    
+
+
+    %% ========================
+    %% Account Status
+    %% ========================
     B -->|Banned| L[Login Blocked]
     B -->|Deleted| D[Data Soft Deleted]
-    
-    style O fill:#f9f,stroke:#333
-    style AD fill:#bbf,stroke:#333
-    style B fill:#ddd,stroke:#333
+
+
+    %% ========================
+    %% Node Styling (High Contrast)
+    %% ========================
+
+    style O  fill:#FFE0F0,stroke:#B03060,stroke-width:2px,color:#000
+    style AD fill:#E0ECFF,stroke:#4169E1,stroke-width:2px,color:#000
+    style B  fill:#F2F2F2,stroke:#555,stroke-width:2px,color:#000
+
 ```
 
 **Access Rules:**
