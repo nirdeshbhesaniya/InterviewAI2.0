@@ -5,7 +5,7 @@ const { authenticateToken, identifyUser } = require('../middlewares/auth');
 const { normalizeUrl, getVideoId } = require('../utils/urlHelper');
 
 // Get all resources with filters
-router.get('/', identifyUser, async (req, res) => {
+router.get('/', identifyUser, require('../middlewares/cache')(60), async (req, res) => {
     try {
         const { branch, type, semester, search } = req.query;
 
@@ -88,7 +88,7 @@ router.get('/', identifyUser, async (req, res) => {
 });
 
 // Get single resource by ID
-router.get('/:id', identifyUser, async (req, res) => {
+router.get('/:id', identifyUser, require('../middlewares/cache')(300), async (req, res) => {
     try {
         let resource = await Resource.findById(req.params.id)
             .populate('uploadedBy', 'name email')

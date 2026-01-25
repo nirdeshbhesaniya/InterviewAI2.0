@@ -90,7 +90,7 @@ const TestHistoryPage = () => {
             }
 
             return (
-                <code className="bg-white/10 text-gray-300 px-1.5 py-0.5 rounded text-sm font-mono border border-white/10" {...props}>
+                <code className="bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] px-1.5 py-0.5 rounded text-sm font-mono border border-[rgb(var(--accent))]/20 font-semibold" {...props}>
                     {cleanCode}
                 </code>
             );
@@ -317,82 +317,74 @@ const TestHistoryPage = () => {
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
 
-                                                    <div className="p-6 cursor-pointer" onClick={() => viewHistoryTest(test._id)}>
-                                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                                                            {/* Left Section */}
-                                                            <div className="flex-1">
-                                                                <div className="flex items-start gap-4">
-                                                                    <div className="w-12 h-12 rounded-xl bg-[rgb(var(--accent))] flex items-center justify-center flex-shrink-0">
-                                                                        <Brain className="w-6 h-6 text-white" />
-                                                                    </div>
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <div className="flex items-center gap-3 flex-wrap mb-2">
-                                                                            <h3 className="text-lg font-semibold text-[rgb(var(--text-primary))] group-hover:text-[rgb(var(--accent))] transition-colors">
-                                                                                {test.topic}
-                                                                            </h3>
-                                                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${performance.bg} ${performance.color}`}>
+                                                    <div className="p-5 sm:p-6 cursor-pointer" onClick={() => viewHistoryTest(test._id)}>
+                                                        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
+                                                            {/* Left Section - Test Info */}
+                                                            <div className="flex items-start gap-4 min-w-0">
+                                                                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[rgb(var(--accent))]/10 flex items-center justify-center flex-shrink-0 border border-[rgb(var(--accent))]/20">
+                                                                    <Brain className="w-6 h-6 sm:w-7 sm:h-7 text-[rgb(var(--accent))]" />
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
+                                                                        <h3 className="text-lg sm:text-xl font-bold text-[rgb(var(--text-primary))] group-hover:text-[rgb(var(--accent))] transition-colors truncate">
+                                                                            {test.topic}
+                                                                        </h3>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${performance.bg} ${performance.color} border-current opacity-90`}>
                                                                                 {performance.label}
                                                                             </span>
-                                                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${status.bg} ${status.color}`}>
+                                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${status.bg} ${status.color} border-current opacity-90`}>
                                                                                 {status.label}
                                                                             </span>
                                                                         </div>
-                                                                        <div className="flex flex-wrap items-center gap-4 text-sm text-[rgb(var(--text-muted))]">
-                                                                            <div className="flex items-center gap-1">
-                                                                                <Calendar className="w-4 h-4" />
-                                                                                {formatDate(test.completedAt || test.createdAt)}
-                                                                            </div>
-                                                                            <div className="flex items-center gap-1">
-                                                                                <Target className="w-4 h-4" />
-                                                                                {test.experience}
-                                                                            </div>
-                                                                            {test.specialization && (
-                                                                                <div className="flex items-center gap-1">
-                                                                                    <BookOpen className="w-4 h-4" />
-                                                                                    {test.specialization}
-                                                                                </div>
-                                                                            )}
+                                                                    </div>
+
+                                                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-1 gap-x-4 text-xs sm:text-sm text-[rgb(var(--text-secondary))]">
+                                                                        <div className="flex items-center gap-1.5">
+                                                                            <Calendar className="w-3.5 h-3.5 text-[rgb(var(--text-muted))]" />
+                                                                            <span className="truncate">{formatDate(test.completedAt || test.createdAt)}</span>
                                                                         </div>
+                                                                        <div className="flex items-center gap-1.5">
+                                                                            <Target className="w-3.5 h-3.5 text-[rgb(var(--text-muted))]" />
+                                                                            <span className="capitalize">{test.experience}</span>
+                                                                        </div>
+                                                                        {test.specialization && (
+                                                                            <div className="flex items-center gap-1.5">
+                                                                                <BookOpen className="w-3.5 h-3.5 text-[rgb(var(--text-muted))]" />
+                                                                                <span className="truncate">{test.specialization}</span>
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             </div>
 
                                                             {/* Right Section - Stats */}
-                                                            <div className="w-full lg:w-auto">
-                                                                <div className="grid grid-cols-4 gap-3 md:gap-4 lg:flex lg:gap-6">
-                                                                    <div className="text-center">
-                                                                        <div className="text-lg md:text-2xl font-bold text-[rgb(var(--text-primary))] mb-1">
-                                                                            {test.score.toFixed(1)}%
-                                                                        </div>
-                                                                        <div className="text-xs text-[rgb(var(--text-muted))]">Score</div>
+                                                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 xl:gap-8 border-t xl:border-t-0 border-[rgb(var(--border-subtle))] pt-4 xl:pt-0 mt-2 xl:mt-0 w-full xl:w-auto">
+                                                                <div className="grid grid-cols-4 gap-4 w-full sm:w-auto flex-1">
+                                                                    <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border-subtle))]">
+                                                                        <span className="text-xs text-[rgb(var(--text-muted))] uppercase tracking-wider font-semibold mb-1">Score</span>
+                                                                        <span className="text-lg font-bold text-[rgb(var(--text-primary))]">{test.score.toFixed(0)}%</span>
                                                                     </div>
-                                                                    <div className="text-center">
-                                                                        <div className="text-lg md:text-2xl font-bold text-green-400 mb-1">
-                                                                            {test.correctAnswers}
-                                                                        </div>
-                                                                        <div className="text-xs text-[rgb(var(--text-muted))]">Correct</div>
+                                                                    <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-green-500/5 border border-green-500/10">
+                                                                        <span className="text-xs text-green-500/80 uppercase tracking-wider font-semibold mb-1">Correct</span>
+                                                                        <span className="text-lg font-bold text-green-500">{test.correctAnswers}</span>
                                                                     </div>
-                                                                    <div className="text-center">
-                                                                        <div className="text-lg md:text-2xl font-bold text-red-400 mb-1">
-                                                                            {test.totalQuestions - test.correctAnswers}
-                                                                        </div>
-                                                                        <div className="text-xs text-[rgb(var(--text-muted))]">Wrong</div>
+                                                                    <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-red-500/5 border border-red-500/10">
+                                                                        <span className="text-xs text-red-500/80 uppercase tracking-wider font-semibold mb-1">Wrong</span>
+                                                                        <span className="text-lg font-bold text-red-500">{test.totalQuestions - test.correctAnswers}</span>
                                                                     </div>
-                                                                    <div className="text-center">
-                                                                        <div className="text-lg md:text-2xl font-bold text-blue-400 mb-1 flex items-center justify-center gap-1">
-                                                                            <Timer className="w-4 h-4 md:w-5 md:h-5" />
-                                                                            <span className="text-sm md:text-2xl">{Math.floor(test.timeSpent / 60)}m</span>
-                                                                        </div>
-                                                                        <div className="text-xs text-[rgb(var(--text-muted))]">Time</div>
+                                                                    <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-blue-500/5 border border-blue-500/10">
+                                                                        <span className="text-xs text-blue-500/80 uppercase tracking-wider font-semibold mb-1">Time</span>
+                                                                        <span className="text-lg font-bold text-blue-500">{Math.floor(test.timeSpent / 60)}m</span>
                                                                     </div>
                                                                 </div>
+
                                                                 <Button
-                                                                    variant="outline"
+                                                                    variant="ghost"
                                                                     size="sm"
-                                                                    className="hidden lg:flex bg-[rgb(var(--bg-card))] border-[rgb(var(--border-subtle))] hover:bg-[rgb(var(--bg-body-alt))] hover:border-[rgb(var(--accent))] text-[rgb(var(--text-primary))] mt-0 lg:mt-0"
+                                                                    className="hidden sm:flex text-[rgb(var(--accent))] hover:text-[rgb(var(--accent-hover))] hover:bg-[rgb(var(--accent))]/10 shrink-0"
                                                                 >
-                                                                    <Eye className="w-4 h-4 mr-2" />
-                                                                    View Details
+                                                                    View Details <Eye className="w-4 h-4 ml-2" />
                                                                 </Button>
                                                             </div>
                                                         </div>
@@ -533,70 +525,129 @@ const TestHistoryPage = () => {
                         <div className="space-y-4">
                             {selectedHistoryTest.questionsWithAnswers?.map((q, idx) => {
                                 const userAnswer = selectedHistoryTest.userAnswers?.[idx];
-                                const isCorrect = userAnswer === q.correctAnswer;
+                                // Check correctness with normalized logic
+                                let correctIndex = q.correctAnswer;
+                                if (typeof q.correctAnswer === 'string' && q.correctAnswer.length === 1) {
+                                    correctIndex = q.correctAnswer.toUpperCase().charCodeAt(0) - 65;
+                                }
+                                const isCorrect = userAnswer === correctIndex;
 
                                 return (
-                                    <Card key={idx} className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">
-                                        <div className="p-4 md:p-6">
-                                            <div className="flex items-start gap-3 md:gap-4 mb-4">
-                                                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${isCorrect ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                                                    {isCorrect ? <CheckCircle className="w-5 h-5 md:w-6 md:h-6" /> : <XCircle className="w-5 h-5 md:w-6 md:h-6" />}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <h4 className="text-sm md:text-base text-[rgb(var(--text-primary))] font-medium mb-3">
-                                                        Question {idx + 1}
-                                                    </h4>
-                                                    <div className="mb-3 md:mb-4 prose prose-sm prose-invert max-w-none">
-                                                        <ReactMarkdown components={components}>
-                                                            {q.question}
-                                                        </ReactMarkdown>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        {q.options?.map((option, optIdx) => {
-                                                            const isUserAnswer = userAnswer === optIdx;
-                                                            const isCorrectAnswer = q.correctAnswer === optIdx;
+                                    <Card key={idx} className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] overflow-hidden">
+                                        {/* Question Header */}
+                                        <div className="p-4 sm:p-5 border-b border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-body-alt))] flex items-center justify-between gap-4">
+                                            <h4 className="font-semibold text-[rgb(var(--text-primary))] flex items-center gap-2">
+                                                <span className="flex items-center justify-center w-6 h-6 rounded bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] text-xs font-bold">
+                                                    {idx + 1}
+                                                </span>
+                                                Question
+                                            </h4>
 
-                                                            return (
-                                                                <div
-                                                                    key={optIdx}
-                                                                    className={`p-2.5 md:p-3 rounded-lg border ${isCorrectAnswer
-                                                                        ? 'bg-green-500/10 border-green-500/50 text-green-400'
-                                                                        : isUserAnswer
-                                                                            ? 'bg-red-500/10 border-red-500/50 text-red-400'
-                                                                            : 'bg-[rgb(var(--bg-body-alt))] border-[rgb(var(--border-subtle))] text-[rgb(var(--text-secondary))]]'
-                                                                        }`}
-                                                                >
-                                                                    <div className="flex items-start md:items-center gap-2">
-                                                                        <span className="font-medium text-sm md:text-base flex-shrink-0">{String.fromCharCode(65 + optIdx)}.</span>
-                                                                        <span className="text-sm md:text-base flex-1">{option}</span>
-                                                                        {isCorrectAnswer && (
-                                                                            <span className="ml-auto text-xs font-medium flex-shrink-0">(Correct)</span>
-                                                                        )}
-                                                                        {isUserAnswer && !isCorrectAnswer && (
-                                                                            <span className="ml-auto text-xs font-medium flex-shrink-0">(Your Answer)</span>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                    {q.explanation && (
-                                                        <div className="mt-3 md:mt-4 p-3 md:p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                                                            <div className="flex items-start gap-2">
-                                                                <Brain className="w-4 h-4 md:w-5 md:h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                                                                <div className="flex-1 min-w-0">
-                                                                    <p className="text-xs md:text-sm font-medium text-blue-400 mb-1.5 md:mb-2">Explanation</p>
-                                                                    <div className="prose prose-sm prose-invert max-w-none">
-                                                                        <ReactMarkdown components={components}>
-                                                                            {q.explanation}
-                                                                        </ReactMarkdown>
-                                                                    </div>
+                                            <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 ${isCorrect
+                                                ? 'bg-green-500/10 text-green-500 border border-green-500/20'
+                                                : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
+                                                {isCorrect ? (
+                                                    <><CheckCircle className="w-3.5 h-3.5" /> Correct</>
+                                                ) : (
+                                                    <><XCircle className="w-3.5 h-3.5" /> Incorrect</>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="p-4 sm:p-6">
+                                            {/* Question Text */}
+                                            <div className="mb-6 prose prose-invert max-w-none text-[rgb(var(--text-primary))]">
+                                                <ReactMarkdown components={components}>
+                                                    {q.question}
+                                                </ReactMarkdown>
+                                            </div>
+
+                                            {/* Options Grid */}
+                                            {/* Options Grid */}
+                                            <div className="grid grid-cols-1 gap-3 mb-6">
+                                                {q.options?.map((option, optIdx) => {
+                                                    // Normalize correct answer to index if it's a letter (A, B, C, D)
+                                                    let correctIndex = q.correctAnswer;
+                                                    if (typeof q.correctAnswer === 'string' && q.correctAnswer.length === 1) {
+                                                        // A=65, so 'A'.charCodeAt(0) - 65 = 0
+                                                        correctIndex = q.correctAnswer.toUpperCase().charCodeAt(0) - 65;
+                                                    }
+
+                                                    const isUserAnswer = userAnswer === optIdx;
+                                                    const isCorrectAnswer = correctIndex === optIdx;
+
+                                                    // Determine styles based on state
+                                                    let containerStyle = "border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-body-alt))]/50 hover:bg-[rgb(var(--bg-body-alt))]";
+                                                    let icon = null;
+                                                    let statusText = null;
+
+                                                    if (isCorrectAnswer) {
+                                                        containerStyle = "border-green-500/50 bg-green-500/10 text-green-100 ring-1 ring-green-500/20";
+                                                        icon = <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />;
+                                                        statusText = <span className="text-xs font-semibold text-green-500 ml-2">Correct Answer</span>;
+                                                    } else if (isUserAnswer && !isCorrectAnswer) {
+                                                        containerStyle = "border-red-500/50 bg-red-500/10 text-red-100 ring-1 ring-red-500/20";
+                                                        icon = <XCircle className="w-4 h-4 text-red-500 shrink-0" />;
+                                                        statusText = <span className="text-xs font-semibold text-red-500 ml-2">Your Answer</span>;
+                                                    }
+
+                                                    return (
+                                                        <div
+                                                            key={optIdx}
+                                                            className={`relative p-3 sm:p-4 rounded-lg border transition-all ${containerStyle} flex items-start gap-3`}
+                                                        >
+                                                            <div className={`mt-0.5 flex-shrink-0 w-6 h-6 rounded-full border flex items-center justify-center text-xs font-medium 
+                                                                ${isCorrectAnswer ? 'border-green-500 text-green-500' :
+                                                                    (isUserAnswer ? 'border-red-500 text-red-500' : 'border-[rgb(var(--text-muted))] text-[rgb(var(--text-muted))]')}`}>
+                                                                {String.fromCharCode(65 + optIdx)}
+                                                            </div>
+                                                            <div className="flex-1 text-sm sm:text-base leading-relaxed overflow-hidden">
+                                                                {/* Use ReactMarkdown for options too, but strip outer paragraph margins if needed via components or CSS */}
+                                                                <div className="prose prose-sm prose-invert max-w-none [&>p]:mb-0 [&>p]:mt-0">
+                                                                    <ReactMarkdown components={components}>
+                                                                        {option}
+                                                                    </ReactMarkdown>
                                                                 </div>
                                                             </div>
+                                                            {icon && (
+                                                                <div className="flex flex-col items-end shrink-0 ml-2 gap-1">
+                                                                    {icon}
+                                                                </div>
+                                                            )}
+                                                            {statusText && (
+                                                                <div className="absolute top-2 right-2 md:static md:ml-auto">
+                                                                    {/* Simple indicator on mobile, detailed on desktop if needed, currently using icon mainly */}
+                                                                </div>
+                                                            )}
+                                                            {/* Desktop status label */}
+                                                            {(isCorrectAnswer || isUserAnswer) && (
+                                                                <div className="hidden sm:block shrink-0">
+                                                                    {statusText}
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                    )}
-                                                </div>
+                                                    );
+                                                })}
                                             </div>
+
+                                            {/* Explanation */}
+                                            {q.explanation && (
+                                                <div className="mt-6 pt-5 border-t border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-body-alt))]/30 -mx-4 sm:-mx-6 px-4 sm:px-6 pb-2">
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                                                            <Brain className="w-4 h-4 text-blue-400" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h5 className="text-sm font-semibold text-blue-400 mb-2">Explanation</h5>
+                                                            <div className="prose prose-sm prose-invert max-w-none text-[rgb(var(--text-secondary))]">
+                                                                <ReactMarkdown components={components}>
+                                                                    {q.explanation}
+                                                                </ReactMarkdown>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </Card>
                                 );

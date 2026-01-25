@@ -5,7 +5,7 @@ const { authenticateToken, identifyUser } = require('../middlewares/auth');
 const { normalizeUrl, getVideoId } = require('../utils/urlHelper');
 
 // Get all notes (global view with optional filters)
-router.get('/', identifyUser, async (req, res) => {
+router.get('/', identifyUser, require('../middlewares/cache')(60), async (req, res) => {
     try {
         const { type, userId, tags, search, limit = 50, skip = 0 } = req.query;
 
@@ -93,7 +93,7 @@ router.get('/', identifyUser, async (req, res) => {
 });
 
 // Get single note by ID
-router.get('/:id', identifyUser, async (req, res) => {
+router.get('/:id', identifyUser, require('../middlewares/cache')(300), async (req, res) => {
     try {
         let note = await Note.findById(req.params.id).lean();
 

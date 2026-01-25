@@ -306,9 +306,9 @@ const MCQTest = () => {
                 );
             }
 
-            // Inline code with dark theme
+            // Inline code with theme-aware styles
             return (
-                <code className="bg-[#1a1a1a] text-gray-300 px-2 py-1 rounded text-sm font-mono border border-white/10" {...props}>
+                <code className="bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] px-1.5 py-0.5 rounded text-sm font-mono border border-[rgb(var(--accent))]/20 font-semibold" {...props}>
                     {cleanCode}
                 </code>
             );

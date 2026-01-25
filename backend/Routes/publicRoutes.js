@@ -4,7 +4,7 @@ const User = require('../models/User');
 
 // GET /api/public/stats
 // Public endpoint to get application statistics
-router.get('/stats', async (req, res) => {
+router.get('/stats', require('../middlewares/cache')(600), async (req, res) => {
     try {
         // Count total users
         // Use estimatedDocumentCount for speed if large, or countDocuments for accuracy
