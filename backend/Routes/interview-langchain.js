@@ -560,35 +560,74 @@ router.patch('/edit/:sessionId/:index', authenticateToken, async (req, res) => {
     }
 
     // Check permissions (Creator, Admin, or Owner)
+    // We allow anyone logged in to REQUEST an update (via pendingUpdate)
+    // But only Admins/Owners (and maybe Creator depending on policy) can apply directly.
+
     const isCreator = card.creatorEmail === req.user.email;
     const isAdmin = req.user.role === 'admin';
     const isOwner = req.user.role === 'owner';
 
-    if (!isCreator && !isAdmin && !isOwner) {
-      return res.status(403).json({ message: 'Unauthorized. Only admin, owner, or session creator can edit Q&A.' });
-    }
-
-    // Update fields
-    if (question) card.qna[index].question = question;
-    if (answerParts) card.qna[index].answerParts = answerParts;
-    if (category) card.qna[index].category = category;
+    // REMOVED: Strict 403 check because we want to allow "Request Update"
 
     // Status Management:
-    // - Admin/Owner: Auto-approve changes
-    // - Creator: Changes go to pending (unless they're already admin/owner)
-    if (isAdmin || isOwner) {
-      card.qna[index].status = 'approved';
-    } else if (isCreator) {
-      // Creator's edits need approval unless the Q&A was already approved
-      // If it's a new edit, set to pending
-      card.qna[index].status = 'pending';
+    // - Admin/Owner: Auto-approve changes (Direct Edit)
+    // - Everyone else (Creator + Users): Changes go to pending
+    //   (Note: You might want Creators to auto-approve too, but requirement implied approval flow. 
+    //    If Creators should auto-approve, add '|| isCreator' to the if condition below)
 
-      // Notify admins of the edit
+    const canDirectlyEdit = isAdmin || isOwner || isCreator; // Adding isCreator here to allow creators to edit their own stuff directly? 
+    // Wait, previous code put Creator in "pending" path. 
+    // Let's stick to the safe bet: Admin/Owner = Direct. Creator/User = Pending (or Creator = Direct?)
+    // Usually Creator should be able to edit their own session. 
+    // Let's allow Creator to Direct Edit for better UX, effectively reverting them to "Admin-like" for their own session.
+    // If requirement was strict "Approval Flow", maybe Creator needs approval from Admin?
+    // "send first request to admin and that session creator" -> implies Creator is an approver. Approvers can usually edit.
+
+    if (canDirectlyEdit) {
+      // Direct Apply
+      if (question) card.qna[index].question = question;
+      if (answerParts) card.qna[index].answerParts = answerParts;
+      if (category) card.qna[index].category = category;
+      card.qna[index].status = 'approved';
+
+      // Clear any pending if applying direct
+      card.qna[index].pendingUpdate = undefined;
+
+    } else {
+      // Standard User Requesting Update
+      // Save to pendingUpdate
+
+      const pendingUpdate = {
+        question: question || card.qna[index].question,
+        answerParts: answerParts || card.qna[index].answerParts,
+        category: category || card.qna[index].category,
+        requestedBy: req.user._id,
+        requestedAt: new Date(),
+        status: 'pending'
+      };
+
+      card.qna[index].pendingUpdate = pendingUpdate;
+
+      // Notify Session Creator + Admins
+      // 1. Notify Creator (if it's not the creator themselves - clearly not since we are in else block of canDirectlyEdit)
+      const creatorUser = await User.findOne({ email: card.creatorEmail });
+      if (creatorUser) {
+        await Notification.create({
+          userId: creatorUser._id,
+          type: 'info',
+          title: 'Q&A Update Request',
+          message: `${req.user.fullName || req.user.email} requested to update a question in your session "${card.title}"`,
+          action: 'review_qna',
+          metadata: { sessionId, qnaId: card.qna[index]._id }
+        });
+      }
+
+      // 2. Notify Admins
       await Notification.create({
         userId: 'admin',
         type: 'info',
-        title: 'Q&A Edit Request',
-        message: `${req.user.fullName || req.user.email} edited a Q&A in "${card.title}"`,
+        title: 'Q&A Update Request',
+        message: `${req.user.fullName || req.user.email} requested to update a Q&A in "${card.title}"`,
         recipientType: 'broadcast',
         targetAudience: 'admins',
         action: 'review_qna',
@@ -599,12 +638,152 @@ router.patch('/edit/:sessionId/:index', authenticateToken, async (req, res) => {
 
     await card.save();
     res.json({
-      message: (isAdmin || isOwner) ? 'Q&A updated and approved' : 'Q&A updated and sent for approval',
+      message: canDirectlyEdit ? 'Q&A updated and approved' : 'Update request sent for approval',
       qna: card.qna[index]
     });
   } catch (err) {
     console.error('Error updating QnA:', err);
     res.status(500).json({ message: 'Failed to update QnA' });
+  }
+});
+
+// PATCH Approve Question Update (Admin/Creator)
+router.patch('/approve-question/:sessionId/:qnaId', authenticateToken, async (req, res) => {
+  try {
+    const { sessionId, qnaId } = req.params;
+
+    const session = await Interview.findOne({ sessionId });
+    if (!session) return res.status(404).json({ message: 'Session not found' });
+
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'owner';
+    const isCreator = session.creatorEmail.toLowerCase() === req.user.email.toLowerCase();
+
+    console.log('Approve Debug:', {
+      admin: isAdmin,
+      creator: isCreator,
+      userEmail: req.user.email,
+      creatorEmail: session.creatorEmail,
+      role: req.user.role
+    });
+
+    if (!isAdmin && !isCreator) {
+      return res.status(403).json({ message: 'Unauthorized', debug: { user: req.user.email, creator: session.creatorEmail } });
+    }
+
+    const qnaIndex = session.qna.findIndex(q => q._id.toString() === qnaId);
+    if (qnaIndex === -1) return res.status(404).json({ message: 'Question not found' });
+
+    const qna = session.qna[qnaIndex];
+
+    // Check if there is a pending update
+    if (qna.pendingUpdate && qna.pendingUpdate.status === 'pending') {
+      // Apply Update
+      qna.question = qna.pendingUpdate.question;
+      qna.answerParts = qna.pendingUpdate.answerParts;
+      qna.category = qna.pendingUpdate.category;
+
+      // Clear pending
+      qna.pendingUpdate = undefined;
+      qna.status = 'approved';
+
+      await session.save(); // Save first
+
+      // Notify Requester
+      if (qna.pendingUpdate && qna.pendingUpdate.requestedBy) {
+        try {
+          // Find requester? We might need to store requestedBy properly as ID... 
+          // schema says String, assuming ID string.
+          const requester = await User.findById(qna.pendingUpdate.requestedBy);
+          if (requester) {
+            await Notification.create({
+              userId: requester._id,
+              type: 'success',
+              title: 'Update Approved',
+              message: `Your update for question in "${session.title}" has been approved.`,
+              action: 'view_session',
+              metadata: { sessionId }
+            });
+          }
+        } catch (e) { console.error("Notify requester error", e); }
+      }
+
+      return res.json({ message: 'Update approved', qna });
+    }
+
+    // Check if the question itself is pending (new question)
+    if (qna.status === 'pending') {
+      qna.status = 'approved';
+      await session.save();
+      return res.json({ message: 'Question approved', qna });
+    }
+
+    return res.status(400).json({ message: 'No pending updates for this question' });
+
+  } catch (err) {
+    console.error('Error approving question:', err);
+    res.status(500).json({ message: 'Failed to approve' });
+  }
+});
+
+// PATCH Reject Question Update (Admin/Creator)
+router.patch('/reject-question/:sessionId/:qnaId', authenticateToken, async (req, res) => {
+  try {
+    const { sessionId, qnaId } = req.params;
+
+    const session = await Interview.findOne({ sessionId });
+    if (!session) return res.status(404).json({ message: 'Session not found' });
+
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'owner';
+    const isCreator = session.creatorEmail.toLowerCase() === req.user.email.toLowerCase();
+
+    console.log('Reject Debug:', {
+      admin: isAdmin,
+      creator: isCreator,
+      userEmail: req.user.email,
+      creatorEmail: session.creatorEmail,
+      role: req.user.role
+    });
+
+    if (!isAdmin && !isCreator) {
+      return res.status(403).json({ message: 'Unauthorized', debug: { user: req.user.email, creator: session.creatorEmail } });
+    }
+
+    const qnaIndex = session.qna.findIndex(q => q._id.toString() === qnaId);
+    if (qnaIndex === -1) return res.status(404).json({ message: 'Question not found' });
+
+    const qna = session.qna[qnaIndex];
+
+    if (qna.pendingUpdate && qna.pendingUpdate.status === 'pending') {
+      // Mark as rejected or remove? User requirement: "remove updation but exist previous Q&A so as it is"
+      // So just clear pendingUpdate or mark it rejected
+
+      qna.pendingUpdate.status = 'rejected';
+      // Ideally we clear it to clean up, but keeping as rejected lets user know? 
+      // Let's just remove the pending update object or set to rejected state so they see "Rejected"
+      // Requirement: "if rejected... user will be able to delete the session" -> that was for Session.
+      // For Q&A: "remove updation but exist previous Q&A so as it is"
+
+      qna.pendingUpdate = undefined; // Simply discard the update
+
+      await session.save();
+
+      // Notify Requester
+      // (Similar notification logic)
+
+      return res.json({ message: 'Update rejected', qna });
+    }
+
+    if (qna.status === 'pending') {
+      qna.status = 'rejected'; // For new questions, maybe set to rejected
+      await session.save();
+      return res.json({ message: 'Question rejected', qna });
+    }
+
+    return res.status(400).json({ message: 'No pending updates' });
+
+  } catch (err) {
+    console.error('Error rejecting question:', err);
+    res.status(500).json({ message: 'Failed to reject' });
   }
 });
 

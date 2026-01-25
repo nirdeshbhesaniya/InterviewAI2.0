@@ -101,7 +101,8 @@ const QuestionCard = ({
     status,
     isCreator,
     onApprove,
-    onReject
+    onReject,
+    pendingUpdate // 👈 Added pendingUpdate prop
 }) => {
     const [isOpen, setIsOpen] = useState(isExpanded);
 
@@ -157,12 +158,12 @@ const QuestionCard = ({
                     </div>
                 </button>
 
-                {/* Pending Status Banner */}
+                {/* Pending Status Banner (New Question) */}
                 {status === 'pending' && (
                     <div className="bg-yellow-50 dark:bg-yellow-900/10 px-4 py-2 border-y border-yellow-100 dark:border-yellow-900/30 flex items-center justify-between gap-4">
                         <div className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400 text-sm font-medium">
                             <Bot className="w-4 h-4" />
-                            <span>Pending Approval</span>
+                            <span>Pending Approval (New Question)</span>
                         </div>
                         {isCreator && (
                             <div className="flex items-center gap-2">
@@ -186,6 +187,20 @@ const QuestionCard = ({
                                 </button>
                             </div>
                         )}
+                    </div>
+                )}
+
+                {/* Pending Update Banner (Existing Question) */}
+                {pendingUpdate && (
+                    <div className="bg-blue-50 dark:bg-blue-900/10 px-4 py-2 border-y border-blue-100 dark:border-blue-900/30 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400 text-sm font-medium">
+                            <RefreshCcw className="w-4 h-4" />
+                            <span>Your Update is Pending Approval</span>
+                        </div>
+                        {/* Optional: Add Approve/Reject for Creator here too if they are viewing a user's update? 
+                             No, the requirement said "Requester can able to VIEW". 
+                             Creators viewing requests is handled via Admin dashboard usually, but if they see it here, 
+                             we might want to add controls. For now, strictly "Requester View". */}
                     </div>
                 )}
 
@@ -339,6 +354,160 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, isDeleting }) => 
     );
 };
 
+/**
+ * Edit Session Modal Component
+ */
+const EditSessionModal = ({ isOpen, onClose, session, onSave, isSaving }) => {
+    const [formData, setFormData] = useState({
+        title: '',
+        desc: '',
+        tag: '',
+        experience: '',
+        color: '',
+        initials: ''
+    });
+
+    useEffect(() => {
+        if (session) {
+            setFormData({
+                title: session.title || '',
+                desc: session.desc || '',
+                tag: session.tag || '',
+                experience: session.experience || '',
+                color: session.color || '#3B82F6',
+                initials: session.initials || ''
+            });
+        }
+    }, [session, isOpen]);
+
+    if (!isOpen) return null;
+
+    return (
+        <AnimatePresence>
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="bg-[rgb(var(--bg-card))] w-full max-w-2xl rounded-xl shadow-2xl border border-[rgb(var(--border))] max-h-[90vh] overflow-y-auto"
+                >
+                    <div className="p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-bold text-[rgb(var(--text-primary))]">Edit Session Details</h3>
+                            <button onClick={onClose} className="p-2 hover:bg-[rgb(var(--bg-body-alt))] rounded-full transition-colors">
+                                <Minimize2 className="w-5 h-5 rotate-45" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            {/* Title */}
+                            <div>
+                                <label className="block text-sm font-medium text-[rgb(var(--text-secondary))] mb-1">Title</label>
+                                <input
+                                    type="text"
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                    className="w-full bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-lg px-4 py-2.5 text-sm text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))]/50 outline-none"
+                                />
+                            </div>
+
+                            {/* Description */}
+                            <div>
+                                <label className="block text-sm font-medium text-[rgb(var(--text-secondary))] mb-1">Description</label>
+                                <textarea
+                                    value={formData.desc}
+                                    onChange={(e) => setFormData({ ...formData, desc: e.target.value })}
+                                    rows={3}
+                                    className="w-full bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-lg px-4 py-2.5 text-sm text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))]/50 outline-none resize-none"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Tags */}
+                                <div>
+                                    <label className="block text-sm font-medium text-[rgb(var(--text-secondary))] mb-1">Tags (comma separated)</label>
+                                    <input
+                                        type="text"
+                                        value={formData.tag}
+                                        onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+                                        className="w-full bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-lg px-4 py-2.5 text-sm text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))]/50 outline-none"
+                                    />
+                                </div>
+
+                                {/* Experience */}
+                                <div>
+                                    <label className="block text-sm font-medium text-[rgb(var(--text-secondary))] mb-1">Experience Level</label>
+                                    <select
+                                        value={formData.experience}
+                                        onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
+                                        className="w-full bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-lg px-4 py-2.5 text-sm text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))]/50 outline-none"
+                                    >
+                                        <option value="Beginner">Beginner</option>
+                                        <option value="Intermediate">Intermediate</option>
+                                        <option value="Advanced">Advanced</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Color */}
+                                <div>
+                                    <label className="block text-sm font-medium text-[rgb(var(--text-secondary))] mb-1">Theme Color</label>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="color"
+                                            value={formData.color}
+                                            onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                                            className="h-10 w-20 rounded cursor-pointer border-0 p-0"
+                                        />
+                                        <span className="text-sm text-[rgb(var(--text-muted))]">{formData.color}</span>
+                                    </div>
+                                </div>
+
+                                {/* Initials */}
+                                <div>
+                                    <label className="block text-sm font-medium text-[rgb(var(--text-secondary))] mb-1">Initials</label>
+                                    <input
+                                        type="text"
+                                        maxLength={2}
+                                        value={formData.initials}
+                                        onChange={(e) => setFormData({ ...formData, initials: e.target.value.toUpperCase() })}
+                                        className="w-full bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-lg px-4 py-2.5 text-sm text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))]/50 outline-none uppercase"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 justify-end mt-8">
+                            <button
+                                onClick={onClose}
+                                disabled={isSaving}
+                                className="px-5 py-2.5 rounded-lg font-medium text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-body-alt))] transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => onSave(formData)}
+                                disabled={isSaving}
+                                className="px-5 py-2.5 rounded-lg font-medium bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white shadow-lg shadow-[rgb(var(--accent))]/20 transition-all flex items-center gap-2"
+                            >
+                                {isSaving ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        <span>Saving...</span>
+                                    </>
+                                ) : (
+                                    <span>Save Changes</span>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        </AnimatePresence>
+    );
+};
+
 // ==================== MAIN COMPONENT ====================
 
 const InterviewPrepModern = () => {
@@ -349,7 +518,21 @@ const InterviewPrepModern = () => {
 
     // ==================== STATE ====================
     const [session, setSession] = useState(null);
-    const isCreator = session?.creatorEmail === user?.email;
+    const isCreator = session?.creatorEmail === user?.email; // Note: strict equality might be an issue if case differs
+
+    // DEBUG LOGS
+    useEffect(() => {
+        if (session && user) {
+            console.log('Permission Debug:', {
+                userEmail: user.email,
+                creatorEmail: session.creatorEmail,
+                role: user.role,
+                isCreator,
+                condition: (isCreator || user?.role === 'admin' || user?.role === 'owner')
+            });
+        }
+    }, [session, user, isCreator]);
+
     const [loading, setLoading] = useState(true);
     const [darkMode, setDarkMode] = useState(() => {
         return localStorage.getItem('interviewPrepTheme') === 'dark';
@@ -363,8 +546,10 @@ const InterviewPrepModern = () => {
     });
     const [isGenerating, setIsGenerating] = useState(false);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, index: null });
-    const [generateModal, setGenerateModal] = useState({ isOpen: false, topic: '' }); // 👈 New state for generate modal
+    const [generateModal, setGenerateModal] = useState({ isOpen: false, topic: '' });
+    const [editSessionModal, setEditSessionModal] = useState(false); // 👈 New state
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isSavingSession, setIsSavingSession] = useState(false); // 👈 New state
 
     // ==================== EFFECTS ====================
     useEffect(() => {
@@ -471,7 +656,8 @@ const InterviewPrepModern = () => {
                 answer: session.qna[index].answerParts,
                 category: session.qna[index].category,
                 index,
-                originalAnswer: session.qna[index].answerParts
+                originalAnswer: session.qna[index].answerParts,
+                isCreator // Pass isCreator to editor
             }
         });
     }, [session, sessionId, navigate]);
@@ -624,6 +810,25 @@ const InterviewPrepModern = () => {
         }
     }, [session, sessionId]);
 
+    const handleUpdateSession = useCallback(async (formData) => {
+        setIsSavingSession(true);
+        const toastId = toast.loading('Updating session...');
+        try {
+            const response = await axios.put(API.INTERVIEW.UPDATE_SESSION(sessionId), formData);
+            setSession(prev => ({
+                ...prev,
+                ...formData
+            }));
+            toast.success('Session updated successfully', { id: toastId });
+            setEditSessionModal(false);
+        } catch (error) {
+            console.error('Error updating session:', error);
+            toast.error('Failed to update session', { id: toastId });
+        } finally {
+            setIsSavingSession(false);
+        }
+    }, [sessionId]);
+
     // ==================== COMPUTED VALUES ====================
     const filteredQuestions = useMemo(() => {
         if (!session?.qna) return [];
@@ -632,8 +837,11 @@ const InterviewPrepModern = () => {
         let questions = session.qna.filter(q => {
             if (q.status === 'pending') {
                 const isRequester = user && (q.requestedBy === user._id || q.requestedBy === user.userId || q.requestedBy === user.id);
-                return isCreator || isRequester;
+                return isCreator || isRequester || user?.role === 'admin' || user?.role === 'owner';
             }
+            // For pending updates on approved questions, we still show the question (live version)
+            // But we might want to flag it if we implement that UI.
+            // For now, just ensure 'rejected' ones are hidden if not useful.
             return q.status !== 'rejected';
         });
 
@@ -707,6 +915,14 @@ const InterviewPrepModern = () => {
                 onClose={() => setDeleteModal({ isOpen: false, index: null })}
                 onConfirm={confirmDelete}
                 isDeleting={isDeleting}
+            />
+
+            <EditSessionModal
+                isOpen={editSessionModal}
+                onClose={() => setEditSessionModal(false)}
+                session={session}
+                onSave={handleUpdateSession}
+                isSaving={isSavingSession}
             />
 
             {/* Generate More Modal */}
@@ -860,6 +1076,17 @@ const InterviewPrepModern = () => {
 
                             {/* Right Side Actions */}
                             <div className="flex gap-2">
+                                {(isCreator || user?.role === 'admin' || user?.role === 'owner') && (
+                                    <button
+                                        onClick={() => setEditSessionModal(true)}
+                                        className="px-4 py-2 bg-[rgb(var(--bg-card-alt))] hover:bg-[rgb(var(--bg-card-alt))]/80 text-[rgb(var(--text-primary))] rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 border border-[rgb(var(--border))]"
+                                        aria-label="Edit Session"
+                                    >
+                                        <Edit2 className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Edit Info</span>
+                                    </button>
+                                )}
+
                                 <button
                                     onClick={() => navigate(`/interview-prep/${sessionId}/add`)}
                                     className="px-4 py-2 bg-[rgb(var(--primary))] hover:bg-[rgb(var(--primary))]/90 text-white rounded-lg text-sm font-medium shadow-lg transition-all duration-200 flex items-center gap-2"
@@ -958,11 +1185,18 @@ const InterviewPrepModern = () => {
                                             const globalIndex = session.qna.indexOf(qa);
                                             questionCounter++; // Increment counter for display
 
+                                            // Check for pending update for this user
+                                            const pendingUpdate = qa.pendingUpdate && qa.pendingUpdate.status === 'pending' ? qa.pendingUpdate : null;
+                                            const isUpdateRequester = user && pendingUpdate && (pendingUpdate.requestedBy === user._id || pendingUpdate.requestedBy === user.userId);
+
+                                            const displayQuestion = isUpdateRequester ? pendingUpdate.question : qa.question;
+                                            const displayAnswer = isUpdateRequester ? pendingUpdate.answerParts : qa.answerParts;
+
                                             return (
                                                 <QuestionCard
                                                     key={globalIndex}
-                                                    question={qa.question}
-                                                    answer={qa.answerParts}
+                                                    question={displayQuestion}
+                                                    answer={displayAnswer}
                                                     category={qa.category}
                                                     index={globalIndex}
                                                     displayNumber={questionCounter} // 👈 Pass sequential number
@@ -979,6 +1213,7 @@ const InterviewPrepModern = () => {
                                                     isCreator={isCreator}
                                                     onApprove={handleApprove}
                                                     onReject={handleReject}
+                                                    pendingUpdate={isUpdateRequester ? pendingUpdate : null}
                                                 />
                                             );
                                         })}

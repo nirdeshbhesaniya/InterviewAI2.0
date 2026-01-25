@@ -7,7 +7,8 @@
  * - Auto-save functionality
  */
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, useContext } from 'react';
+import { UserContext } from '../../context/UserContext'; // Import UserContext
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
     ArrowLeft,
@@ -147,6 +148,15 @@ const AnswerEditor = () => {
         return parts.length > 0 ? parts : [{ type: 'text', content: text.trim() }];
     }, []);
 
+    const { user } = useContext(UserContext); // Get user context
+    const isCreator = location.state?.isCreator; // Pass this from previous page or fetch
+    const isAdmin = user?.role === 'admin';
+    const isOwner = user?.role === 'owner';
+    // Assume creator check might need session data if not passed in state, but simpler if passed or we check session again.
+    // Ideally pass isCreator via location state from InterviewPrepModern.
+
+    const canDirectEdit = isAdmin || isOwner || isCreator;
+
     const handleSave = async () => {
         if (!hasChanges) {
             toast.success('No changes to save');
@@ -154,7 +164,7 @@ const AnswerEditor = () => {
         }
 
         setSaving(true);
-        toast.loading('Saving changes...', { id: 'save' });
+        const toastId = toast.loading(canDirectEdit ? 'Saving changes...' : 'Requesting update...');
 
         try {
             const answerParts = parseEditedContent(editedContent);
@@ -167,7 +177,8 @@ const AnswerEditor = () => {
             setOriginalContent(editedContent);
             setOriginalCategory(category);
             setHasChanges(false);
-            toast.success('Answer saved successfully!', { id: 'save' });
+
+            toast.success(canDirectEdit ? 'Answer saved successfully!' : 'Update requested successfully!', { id: toastId });
 
             // Navigate back after short delay
             setTimeout(() => {
@@ -176,7 +187,7 @@ const AnswerEditor = () => {
                 });
             }, 1000);
         } catch (error) {
-            toast.error('Failed to save changes', { id: 'save' });
+            toast.error('Failed to save changes', { id: toastId });
             console.error('Save error:', error);
         } finally {
             setSaving(false);
@@ -378,7 +389,7 @@ const AnswerEditor = () => {
                                     ) : (
                                         <>
                                             <Save className="w-4 h-4" />
-                                            <span>Save</span>
+                                            <span>{canDirectEdit ? 'Save' : 'Request Update'}</span>
                                         </>
                                     )}
                                 </button>

@@ -6,11 +6,60 @@ import 'highlight.js/styles/github-dark.css';
 import toast from 'react-hot-toast';
 import { Copy, Check } from 'lucide-react';
 
+import hljs from 'highlight.js';
+
 /**
  * Code Block Component with copy functionality
  */
-const CodeBlock = ({ language = 'javascript', content }) => {
+const CodeBlock = ({ language, content }) => {
     const [copied, setCopied] = useState(false);
+
+    // List of common languages to restrict auto-detection
+    // This prevents obscure languages (like 'routeros') from being falsely detected
+    const COMMON_LANGUAGES = [
+        'javascript', 'python', 'java', 'cpp', 'csharp',
+        'sql', 'html', 'css', 'xml', 'typescript',
+        'bash', 'json', 'go', 'rust', 'ruby', 'php',
+        'swift', 'kotlin', 'r', 'shell'
+    ];
+
+    // Simple heuristics to boost accuracy for common confusions
+    const detectLanguageWithHeuristics = (code) => {
+        if (!code) return null;
+
+        // Java vs C# vs C++ vs JS
+        if (code.includes('System.out.print')) return 'java';
+        if (code.includes('public static void main') && code.includes('String[] args')) return 'java';
+        if (code.includes('Console.WriteLine')) return 'csharp';
+        if (code.includes('#include <iostream>')) return 'cpp';
+        if (code.includes('std::cout')) return 'cpp';
+
+        // Python vs Ruby
+        if (code.includes('def __init__(self')) return 'python';
+        if (code.includes('import pandas')) return 'python';
+        if (code.includes('import numpy')) return 'python';
+        if (code.includes('if __name__ == "__main__":')) return 'python';
+
+        return null;
+    };
+
+    // Auto-detect language if not provided or if it's generic 'javascript' but looks like something else
+    const detectedLanguage = useMemo(() => {
+        if (language && language !== 'javascript') return language;
+
+        // 1. Try heuristics first (fast & accurate for known patterns)
+        const heuristicLang = detectLanguageWithHeuristics(content);
+        if (heuristicLang) return heuristicLang;
+
+        // 2. Fallback to highlight.js with restricted language set
+        try {
+            // Pass the subset of common languages to highlightAuto
+            const result = hljs.highlightAuto(content, COMMON_LANGUAGES);
+            return result.language || 'javascript';
+        } catch (e) {
+            return language || 'javascript';
+        }
+    }, [language, content]);
 
     const handleCopy = useCallback(() => {
         navigator.clipboard.writeText(content);
@@ -51,7 +100,7 @@ const CodeBlock = ({ language = 'javascript', content }) => {
                             <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-400 dark:bg-green-500"></div>
                         </div>
                         <span className="text-[10px] sm:text-xs font-mono font-semibold text-gray-400 dark:text-[rgb(var(--text-muted))] uppercase tracking-wide">
-                            {language}
+                            {detectedLanguage}
                         </span>
                     </div>
                 </div>
@@ -59,7 +108,7 @@ const CodeBlock = ({ language = 'javascript', content }) => {
                 {/* Code Content */}
                 <div className="p-3 sm:p-4 bg-[#1e1e1e] dark:bg-[#0d1117] overflow-x-auto scrollbar-thin scrollbar-track-gray-800 dark:scrollbar-track-[rgb(var(--bg-card))] scrollbar-thumb-gray-600 dark:scrollbar-thumb-[rgb(var(--border-strong))] hover:scrollbar-thumb-gray-500 dark:hover:scrollbar-thumb-[rgb(var(--accent))]">
                     <ReactMarkdown
-                        children={`\`\`\`${language}\n${content}\n\`\`\``}
+                        children={`\`\`\`${detectedLanguage}\n${content}\n\`\`\``}
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeHighlight]}
                         components={{
@@ -84,7 +133,7 @@ const AnswerRenderer = ({ answer }) => {
             if (!content) return null;
 
             if (part.type === 'code') {
-                return <CodeBlock key={idx} language={part.language || 'javascript'} content={content} />;
+                return <CodeBlock key={idx} language={part.language} content={content} />;
             }
 
             return (

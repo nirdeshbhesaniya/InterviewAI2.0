@@ -149,44 +149,65 @@ router.get('/qna-requests', async (req, res) => {
 
         // Build Aggregation Pipeline
         const pipeline = [
-            // 1. Match interviews with at least one pending question
-            { $match: { 'qna.status': 'pending' } },
-            // 2. Unwind qna array to process individual questions
-            { $unwind: '$qna' },
-            // 3. Match only pending questions and optional category filter
+            // 1. Match interviews with at least one question that is pending OR has a pending update
             {
                 $match: {
-                    'qna.status': 'pending',
+                    $or: [
+                        { 'qna.status': 'pending' },
+                        { 'qna.pendingUpdate.status': 'pending' }
+                    ]
+                }
+            },
+            // 2. Unwind qna array to process individual questions
+            { $unwind: '$qna' },
+            // 3. Match only the relevant questions (either new pending or existing with pending update)
+            {
+                $match: {
+                    $or: [
+                        { 'qna.status': 'pending' },
+                        { 'qna.pendingUpdate.status': 'pending' }
+                    ],
                     ...(category ? { 'qna.category': category } : {})
                 }
             },
             // 4. Lookup user details (requester)
+            // Note: requestedBy is in pendingUpdate for updates, or main qna for new questions
             {
                 $lookup: {
-                    from: 'users', // Collection name for User model
-                    localField: 'qna.requestedBy',
-                    foreignField: '_id',
+                    from: 'users',
+                    let: {
+                        requesterId: {
+                            $cond: {
+                                if: { $eq: ['$qna.status', 'pending'] },
+                                then: { $toObjectId: '$qna.requestedBy' },
+                                else: { $toObjectId: '$qna.pendingUpdate.requestedBy' }
+                            }
+                        }
+                    },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$requesterId'] } } }
+                    ],
                     as: 'requester'
                 }
             },
-            // 5. Unwind requester (preserve if missing, though it shouldn't be)
+            // 5. Unwind requester
             { $unwind: { path: '$requester', preserveNullAndEmptyArrays: true } },
-            // 6. Search Match (if provided)
+            // 6. Search Match
             ...(req.query.search ? [{
                 $match: {
                     $or: [
                         { 'qna.question': { $regex: req.query.search, $options: 'i' } },
-                        { 'qna.category': { $regex: req.query.search, $options: 'i' } },
+                        { 'qna.pendingUpdate.question': { $regex: req.query.search, $options: 'i' } },
                         { 'requester.fullName': { $regex: req.query.search, $options: 'i' } },
                         { 'requester.email': { $regex: req.query.search, $options: 'i' } }
                     ]
                 }
             }] : []),
-            // 7. Sort by creation date (newest first)
+            // 7. Sort by creation/request date
             { $sort: { 'qna.createdAt': -1 } }
         ];
 
-        // Get Total Count for Pagination (before skip/limit)
+        // Get Total Count
         const countPipeline = [...pipeline, { $count: 'total' }];
         const countResult = await Interview.aggregate(countPipeline);
         const total = countResult.length > 0 ? countResult[0].total : 0;
@@ -202,9 +223,39 @@ router.get('/qna-requests', async (req, res) => {
                 sessionId: '$sessionId',
                 interviewTitle: '$title',
                 qnaId: '$qna._id',
-                question: '$qna.question',
-                answerParts: '$qna.answerParts',
-                category: '$qna.category',
+                // Determine if it's a new question or an update
+                type: {
+                    $cond: {
+                        if: { $eq: ['$qna.status', 'pending'] },
+                        then: 'new',
+                        else: 'update'
+                    }
+                },
+                // Use pendingUpdate data if update, else main data
+                question: {
+                    $cond: {
+                        if: { $eq: ['$qna.status', 'pending'] },
+                        then: '$qna.question',
+                        else: '$qna.pendingUpdate.question'
+                    }
+                },
+                answerParts: {
+                    $cond: {
+                        if: { $eq: ['$qna.status', 'pending'] },
+                        then: '$qna.answerParts',
+                        else: '$qna.pendingUpdate.answerParts'
+                    }
+                },
+                category: {
+                    $cond: {
+                        if: { $eq: ['$qna.status', 'pending'] },
+                        then: '$qna.category',
+                        else: '$qna.pendingUpdate.category'
+                    }
+                },
+                // Original data context for updates (optional, for diffing)
+                originalQuestion: '$qna.question',
+
                 requestedBy: {
                     _id: '$requester._id',
                     fullName: '$requester.fullName',

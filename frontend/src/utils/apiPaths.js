@@ -54,6 +54,7 @@ export const API = {
     APPROVE_SESSION: (sessionId) => `${API_BASE_URL}/interview/approve-session/${sessionId}`,
     REJECT_SESSION: (sessionId) => `${API_BASE_URL}/interview/reject-session/${sessionId}`,
     INITIALIZE: (sessionId) => `${API_BASE_URL}/interview/initialize/${sessionId}`,
+    UPDATE_SESSION: (sessionId) => `${API_BASE_URL}/interview/session/${sessionId}`,
   },
   CODE: {
     COMPILE: `${API_BASE_URL}/compile`
