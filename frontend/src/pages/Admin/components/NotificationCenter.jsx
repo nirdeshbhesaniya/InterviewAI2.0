@@ -109,6 +109,7 @@ const NotificationCenter = () => {
                                 className="w-full px-4 py-2 bg-[rgb(var(--bg-main))] border border-[rgb(var(--border))] rounded-lg outline-none"
                             >
                                 <option value="all">All Users</option>
+                                <option value="all_admins">All Admins</option>
                                 <option value="user">Specific User</option>
                                 <option value="admin">Specific Admin</option>
                             </select>
