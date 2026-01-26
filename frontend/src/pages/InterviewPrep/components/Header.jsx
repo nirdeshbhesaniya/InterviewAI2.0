@@ -21,7 +21,7 @@ import {
   BookOpen,
   Library
 } from 'lucide-react';
-import {motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import axios from '../../../utils/axiosInstance';
 import { API } from '../../../utils/apiPaths';
 
