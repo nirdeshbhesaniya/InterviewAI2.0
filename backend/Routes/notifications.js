@@ -23,8 +23,11 @@ router.get('/:userId', async (req, res) => {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
+        // Store userId as string to match Notification model
+        const userIdStr = userId.toString();
+
         // Base query for individual notifications
-        const individualQuery = { userId };
+        const individualQuery = { userId: userIdStr };
 
         // Base query for broadcast notifications
         const broadcastQuery = {
@@ -35,7 +38,7 @@ router.get('/:userId', async (req, res) => {
 
         // Construct complex query using $or
         const matchConditions = [
-            { userId: userId }, // Individual
+            { userId: userIdStr }, // Individual
             {
                 recipientType: { $in: ['all', 'broadcast'] },
                 isActive: true,
@@ -82,7 +85,7 @@ router.get('/:userId', async (req, res) => {
 
         // Calculate counts
         // 1. Individual Unread
-        const individualUnread = await Notification.countDocuments({ userId, read: false });
+        const individualUnread = await Notification.countDocuments({ userId: userIdStr, read: false });
 
         // 2. Broadcast Unread
         const broadcastMatch = {
@@ -99,7 +102,7 @@ router.get('/:userId', async (req, res) => {
         const unreadCount = individualUnread + broadcastUnread;
 
         // Total Count (Individual + Broadcasts relevant to user)
-        const totalIndividual = await Notification.countDocuments({ userId });
+        const totalIndividual = await Notification.countDocuments({ userId: userIdStr });
         const totalBroadcastMatch = {
             recipientType: { $in: ['all', 'broadcast'] },
             isActive: true,
@@ -117,7 +120,7 @@ router.get('/:userId', async (req, res) => {
             if (n.recipientType === 'individual' || n.userId) {
                 n.isRead = n.read;
             } else {
-                n.isRead = n.readBy && n.readBy.some(id => id.toString() === userId);
+                n.isRead = n.readBy && n.readBy.some(id => id.toString() === userId || id.toString() === userIdStr);
             }
             return n;
         });
@@ -192,15 +195,21 @@ router.patch('/mark-read', async (req, res) => {
             return res.status(400).json({ success: false, message: 'userId is required' });
         }
 
+        // Validate userId format
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ success: false, message: 'Invalid user ID format' });
+        }
+
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
         if (markAll) {
-            // 1. Mark individual as read
-            await Notification.updateMany(
-                { userId, read: false },
+            // 1. Mark individual notifications as read (userId stored as string in Notification model)
+            const updateResult1 = await Notification.updateMany(
+                { userId: userId.toString(), read: false },
                 { $set: { read: true } }
             );
+            console.log(`Marked ${updateResult1.modifiedCount} individual notifications as read for user ${userId}`);
 
             // 2. Mark relevant broadcasts as read (push to readBy)
             const broadcastQuery = {
@@ -213,12 +222,18 @@ router.patch('/mark-read', async (req, res) => {
                 broadcastQuery.$or.push({ targetAudience: 'admins' });
             }
 
-            await Notification.updateMany(
+            const updateResult2 = await Notification.updateMany(
                 broadcastQuery,
                 { $addToSet: { readBy: userId } }
             );
+            console.log(`Marked ${updateResult2.modifiedCount} broadcast notifications as read for user ${userId}`);
 
-            return res.json({ success: true, message: 'All notifications marked as read' });
+            return res.json({ 
+                success: true, 
+                message: 'All notifications marked as read',
+                individualUpdated: updateResult1.modifiedCount,
+                broadcastUpdated: updateResult2.modifiedCount
+            });
         }
 
         if (notificationIds && Array.isArray(notificationIds) && notificationIds.length > 0) {
@@ -263,7 +278,7 @@ router.patch('/mark-read', async (req, res) => {
 
     } catch (error) {
         console.error('Mark read error:', error);
-        res.status(500).json({ success: false, message: 'Failed to mark notifications as read' });
+        res.status(500).json({ success: false, message: 'Failed to mark notifications as read', error: error.message });
     }
 });
 
