@@ -3,7 +3,10 @@ const mongoose = require('mongoose');
 const notificationSchema = new mongoose.Schema({
     userId: {
         type: String,
-        required: true,
+        required: function() {
+            // userId is only required for individual notifications
+            return this.recipientType === 'individual';
+        },
         index: true
     },
     type: {
