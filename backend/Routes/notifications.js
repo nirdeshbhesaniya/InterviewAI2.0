@@ -42,7 +42,11 @@ router.get('/:userId', async (req, res) => {
             {
                 recipientType: { $in: ['all', 'broadcast'] },
                 isActive: true,
-                targetAudience: 'all'
+                targetAudience: 'all',
+                hiddenBy: { $ne: userIdStr } // userIdStr or userId, ensure consistent type but usually objectId in DB vs string? 
+                // DB stores ObjectIds in array. $ne handles mixed if properly cast? 
+                // Safest to just rely on mongoose or pass userId. 
+                // Let's assume standard behavior. hiddenBy: { $ne: userId }
             }
         ];
 
@@ -50,7 +54,8 @@ router.get('/:userId', async (req, res) => {
             matchConditions.push({
                 recipientType: { $in: ['all', 'broadcast'] },
                 isActive: true,
-                targetAudience: 'admins'
+                targetAudience: 'admins',
+                hiddenBy: { $ne: userIdStr }
             });
         }
 
@@ -92,6 +97,7 @@ router.get('/:userId', async (req, res) => {
             recipientType: { $in: ['all', 'broadcast'] },
             isActive: true,
             readBy: { $ne: userId },
+            hiddenBy: { $ne: userId },
             $or: [{ targetAudience: 'all' }]
         };
         if (user.role === 'admin' || user.role === 'owner') {
@@ -106,6 +112,7 @@ router.get('/:userId', async (req, res) => {
         const totalBroadcastMatch = {
             recipientType: { $in: ['all', 'broadcast'] },
             isActive: true,
+            hiddenBy: { $ne: userId },
             $or: [{ targetAudience: 'all' }]
         };
         if (user.role === 'admin' || user.role === 'owner') {
@@ -212,6 +219,9 @@ router.patch('/mark-read', async (req, res) => {
             console.log(`Marked ${updateResult1.modifiedCount} individual notifications as read for user ${userId}`);
 
             // 2. Mark relevant broadcasts as read (push to readBy)
+            // BroadCast notifications should not be marked as read by "Mark All" action
+            // They must be individually read or interacted with.
+            /* 
             const broadcastQuery = {
                 recipientType: { $in: ['all', 'broadcast'] },
                 isActive: true,
@@ -227,12 +237,14 @@ router.patch('/mark-read', async (req, res) => {
                 { $addToSet: { readBy: userId } }
             );
             console.log(`Marked ${updateResult2.modifiedCount} broadcast notifications as read for user ${userId}`);
+            */
+            const updateResult2 = { modifiedCount: 0 };
 
             return res.json({
                 success: true,
-                message: 'All notifications marked as read',
+                message: 'Individual notifications marked as read',
                 individualUpdated: updateResult1.modifiedCount,
-                broadcastUpdated: updateResult2.modifiedCount
+                broadcastUpdated: 0
             });
         }
 
@@ -289,16 +301,70 @@ router.delete('/', async (req, res) => {
     try {
         const { notificationIds, userId, deleteAll = false } = req.body;
 
-        let result;
-        if (deleteAll && userId) {
-            // Only delete individual notifications
-            result = await Notification.deleteMany({ userId });
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'userId is required' });
+        }
+
+        if (deleteAll) {
+            // 1. Delete individual notifications
+            const deleteResult = await Notification.deleteMany({ userId });
+
+            // 2. Hide all relevant broadcast notifications
+            const broadcastQuery = {
+                recipientType: { $in: ['all', 'broadcast'] },
+                isActive: true,
+                hiddenBy: { $ne: userId },
+                $or: [{ targetAudience: 'all' }]
+            };
+
+            const user = await User.findById(userId);
+            if (user && (user.role === 'admin' || user.role === 'owner')) {
+                broadcastQuery.$or.push({ targetAudience: 'admins' });
+            }
+
+            const updateResult = await Notification.updateMany(
+                broadcastQuery,
+                { $addToSet: { hiddenBy: userId } }
+            );
+
+            return res.json({
+                success: true,
+                deletedCount: deleteResult.deletedCount + updateResult.modifiedCount,
+                message: 'All notifications cleared'
+            });
         } else if (notificationIds && Array.isArray(notificationIds)) {
-            // Only delete if it belongs to user (Security check implicit by query)
-            // But we must also check it's NOT a broadcast. Broadcasts shouldn't be deleted by users.
-            result = await Notification.deleteMany({
-                _id: { $in: notificationIds },
-                userId: { $exists: true } // Only legacy/individual
+            // Split by type
+            const notifs = await Notification.find({ _id: { $in: notificationIds } });
+
+            const individualIds = [];
+            const broadcastIds = [];
+
+            notifs.forEach(n => {
+                if (n.recipientType === 'individual' || n.userId) {
+                    individualIds.push(n._id);
+                } else {
+                    broadcastIds.push(n._id);
+                }
+            });
+
+            let deletedCount = 0;
+
+            if (individualIds.length > 0) {
+                const res = await Notification.deleteMany({ _id: { $in: individualIds } });
+                deletedCount += res.deletedCount;
+            }
+
+            if (broadcastIds.length > 0) {
+                const res = await Notification.updateMany(
+                    { _id: { $in: broadcastIds } },
+                    { $addToSet: { hiddenBy: userId } }
+                );
+                deletedCount += res.modifiedCount;
+            }
+
+            return res.json({
+                success: true,
+                deletedCount
             });
         } else {
             return res.status(400).json({
@@ -306,11 +372,6 @@ router.delete('/', async (req, res) => {
                 message: 'Invalid delete request'
             });
         }
-
-        res.json({
-            success: true,
-            deletedCount: result.deletedCount
-        });
     } catch (error) {
         console.error('Delete notifications error:', error);
         res.status(500).json({ success: false, message: 'Failed to delete notifications' });
@@ -335,6 +396,7 @@ router.get('/stats/:userId', async (req, res) => {
         const broadcastMatch = {
             recipientType: { $in: ['all', 'broadcast'] },
             isActive: true,
+            hiddenBy: { $ne: userId },
             $or: [{ targetAudience: 'all' }]
         };
         if (user.role === 'admin' || user.role === 'owner') {

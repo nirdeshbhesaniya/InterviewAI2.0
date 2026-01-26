@@ -17,13 +17,15 @@ const NotificationPage = () => {
     }, [user, filter]);
 
     const fetchNotifications = async () => {
+        if (!user?._id && !user?.email) return;
         setLoading(true);
         try {
             const params = { limit: 50 };
             if (filter === 'unread') params.unreadOnly = true;
 
+            const userId = user._id || user.email;
             // Backend expects userId in path
-            const res = await axios.get(API.NOTIFICATIONS.GET_ALL(user._id), { params });
+            const res = await axios.get(API.NOTIFICATIONS.GET_ALL(userId), { params });
             setNotifications(res.data.notifications || []);
         } catch (error) {
             console.error('Failed to fetch notifications', error);
@@ -35,13 +37,14 @@ const NotificationPage = () => {
 
     const handleMarkRead = async (id) => {
         try {
+            const userId = user._id || user.email;
             await axios.patch(API.NOTIFICATIONS.MARK_READ, {
                 notificationIds: [id],
-                userId: user._id
+                userId: userId
             });
             // Update local state
             setNotifications(notifications.map(n =>
-                n._id === id ? { ...n, isRead: true } : n
+                n._id === id ? { ...n, isRead: true, read: true } : n
             ));
             toast.success('Marked as read');
         } catch (error) {
@@ -51,11 +54,12 @@ const NotificationPage = () => {
 
     const handleMarkAllRead = async () => {
         try {
+            const userId = user._id || user.email;
             await axios.patch(API.NOTIFICATIONS.MARK_READ, {
-                userId: user._id,
+                userId: userId,
                 markAll: true
             });
-            setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+            setNotifications(notifications.map(n => ({ ...n, isRead: true, read: true })));
             toast.success('All marked as read');
         } catch (error) {
             toast.error('Failed to update status');
@@ -133,8 +137,8 @@ const NotificationPage = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
                                     className={`relative p-6 rounded-2xl border transition-all ${notif.isRead
-                                            ? 'bg-[rgb(var(--bg-card))] border-[rgb(var(--border))]'
-                                            : 'bg-[rgb(var(--bg-elevated))] border-[rgb(var(--accent))]/30 shadow-sm'
+                                        ? 'bg-[rgb(var(--bg-card))] border-[rgb(var(--border))]'
+                                        : 'bg-[rgb(var(--bg-elevated))] border-[rgb(var(--accent))]/30 shadow-sm'
                                         }`}
                                 >
                                     <div className="flex justify-between items-start gap-4">
@@ -168,15 +172,13 @@ const NotificationPage = () => {
                                                 </button>
                                             )}
                                             {/* Only allow delete for individual notifications, broadcasts can only be marked read (hidden logic needed for broadcast delete, but for MVP keep simple) */}
-                                            {(notif.recipientType === 'individual' || notif.userId) && (
-                                                <button
-                                                    onClick={() => handleDelete(notif._id)}
-                                                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 className="w-5 h-5" />
-                                                </button>
-                                            )}
+                                            <button
+                                                onClick={() => handleDelete(notif._id)}
+                                                className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                title="Delete"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
                                         </div>
                                     </div>
                                 </motion.div>

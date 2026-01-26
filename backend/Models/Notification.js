@@ -42,6 +42,11 @@ const notificationSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }],
+    // Users who have deleted/hidden this broadcast
+    hiddenBy: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
     isActive: {
         type: Boolean,
         default: true

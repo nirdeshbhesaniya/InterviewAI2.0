@@ -83,34 +83,36 @@ const Header = ({ onLoginClick }) => {
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
 
+  const fetchNotificationCount = async () => {
+    if (!user?._id && !user?.email) return;
+    try {
+      const userId = user._id || user.email;
+      const response = await axios.get(API.NOTIFICATIONS.GET_ALL(userId), {
+        params: { unreadOnly: true }
+      });
+      if (response.data.success) {
+        setUnreadCount(response.data.unreadCount || 0);
+      }
+    } catch (error) {
+      console.error('Failed to fetch notification count:', error);
+    }
+  };
+
   // Fetch notification count & list
   useEffect(() => {
-    const fetchNotificationCount = async () => {
-      if (!user?._id) return;
-      try {
-        const response = await axios.get(API.NOTIFICATIONS.GET_ALL(user._id), {
-          params: { unreadOnly: true }
-        });
-        if (response.data.success) {
-          setUnreadCount(response.data.unreadCount || 0);
-        }
-      } catch (error) {
-        console.error('Failed to fetch notification count:', error);
-      }
-    };
-
-    if (user?._id) {
+    if (user?._id || user?.email) {
       fetchNotificationCount();
       const interval = setInterval(fetchNotificationCount, 30000);
       return () => clearInterval(interval);
     }
-  }, [user?._id]);
+  }, [user?._id, user?.email]);
 
   // Fetch full list when dropdown opens
   useEffect(() => {
-    if (showNotifDropdown && user) {
+    if (showNotifDropdown && user && (user._id || user.email)) {
       setLoadingNotifications(true);
-      axios.get(API.NOTIFICATIONS.GET_ALL(user._id), { params: { limit: 10 } })
+      const userId = user._id || user.email;
+      axios.get(API.NOTIFICATIONS.GET_ALL(userId), { params: { limit: 10 } })
         .then(res => {
           setNotifications(res.data.notifications || []);
           setLoadingNotifications(false);
@@ -254,13 +256,12 @@ const Header = ({ onLoginClick }) => {
                             onClick={async () => {
                               try {
                                 setUnreadCount(0);
-                                await axios.patch(API.NOTIFICATIONS.MARK_READ, { userId: user._id, markAll: true });
                                 setNotifications(prev => prev.map(n => ({ ...n, isRead: true, read: true })));
+                                await axios.patch(API.NOTIFICATIONS.MARK_READ, { userId: user._id, markAll: true });
+                                await fetchNotificationCount();
                               } catch (e) {
-                                console.error("Failed to mark all read");
-                                // Revert on error
-                                const response = await axios.get(API.NOTIFICATIONS.GET_ALL(user._id), { params: { unreadOnly: true } });
-                                if (response.data.success) setUnreadCount(response.data.unreadCount || 0);
+                                console.error("Failed to mark all read", e);
+                                await fetchNotificationCount();
                               }
                             }}
                             className="text-xs text-[rgb(var(--accent))] hover:underline"
@@ -279,13 +280,56 @@ const Header = ({ onLoginClick }) => {
                           </div>
                         ) : (
                           notifications.map(notif => (
-                            <div key={notif._id} className={`p-4 border-b border-[rgb(var(--border))] hover:bg-[rgb(var(--bg-elevated-alt))] transition-colors ${!notif.isRead ? 'bg-[rgb(var(--accent))]/5' : ''}`}>
+                            <div key={notif._id} className={`p-4 border-b border-[rgb(var(--border))] hover:bg-[rgb(var(--bg-elevated-alt))] transition-colors ${!notif.isRead && !notif.read ? 'bg-[rgb(var(--accent))]/5' : ''}`}>
                               <div className="flex gap-3">
-                                <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${!notif.isRead ? 'bg-[rgb(var(--accent))]' : 'bg-transparent'}`} />
+                                <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${!notif.isRead && !notif.read ? 'bg-[rgb(var(--accent))]' : 'bg-transparent'}`} />
                                 <div className="flex-1">
                                   <h4 className="text-sm font-medium text-[rgb(var(--text-primary))]">{notif.title}</h4>
                                   <p className="text-xs text-[rgb(var(--text-secondary))] mt-1">{notif.message}</p>
-                                  <p className="text-[10px] text-[rgb(var(--text-muted))] mt-2">{new Date(notif.createdAt).toLocaleDateString()}</p>
+                                  <div className="flex items-center justify-between mt-2">
+                                    <p className="text-[10px] text-[rgb(var(--text-muted))]">{new Date(notif.createdAt).toLocaleDateString()}</p>
+                                    <div className="flex gap-2">
+                                      {!notif.isRead && !notif.read && (
+                                        <button
+                                          onClick={async (e) => {
+                                            e.stopPropagation();
+                                            try {
+                                              await axios.patch(API.NOTIFICATIONS.MARK_READ, {
+                                                notificationIds: [notif._id],
+                                                userId: user._id
+                                              });
+                                              setNotifications(prev => prev.map(n => n._id === notif._id ? { ...n, isRead: true, read: true } : n));
+                                              await fetchNotificationCount();
+                                            } catch (err) {
+                                              console.error('Failed to mark as read', err);
+                                            }
+                                          }}
+                                          className="text-[10px] text-[rgb(var(--accent))] hover:underline"
+                                          title="Mark as read"
+                                        >
+                                          Mark read
+                                        </button>
+                                      )}
+                                      <button
+                                        onClick={async (e) => {
+                                          e.stopPropagation();
+                                          try {
+                                            await axios.delete(API.NOTIFICATIONS.DELETE, {
+                                              data: { notificationIds: [notif._id] }
+                                            });
+                                            setNotifications(prev => prev.filter(n => n._id !== notif._id));
+                                            await fetchNotificationCount();
+                                          } catch (err) {
+                                            console.error('Failed to delete', err);
+                                          }
+                                        }}
+                                        className="text-[10px] text-red-500 hover:underline"
+                                        title="Delete"
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
