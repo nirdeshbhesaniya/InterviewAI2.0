@@ -21,7 +21,7 @@ import {
   BookOpen,
   Library
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import {motion, AnimatePresence } from 'framer-motion';
 import axios from '../../../utils/axiosInstance';
 import { API } from '../../../utils/apiPaths';
 
@@ -99,10 +99,12 @@ const Header = ({ onLoginClick }) => {
       }
     };
 
-    fetchNotificationCount();
-    const interval = setInterval(fetchNotificationCount, 30000);
-    return () => clearInterval(interval);
-  }, [user]);
+    if (user?._id) {
+      fetchNotificationCount();
+      const interval = setInterval(fetchNotificationCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user?._id]);
 
   // Fetch full list when dropdown opens
   useEffect(() => {
@@ -226,14 +228,14 @@ const Header = ({ onLoginClick }) => {
             {user && (
               <div className="relative" ref={notifDropdownRef}>
                 <motion.button
-                  className="p-2 rounded-full hover:bg-[rgb(var(--bg-elevated-alt))] transition-colors relative"
+                  className={`p-2 rounded-full hover:bg-[rgb(var(--bg-elevated-alt))] transition-colors relative ${unreadCount > 0 ? 'animate-notification-blink' : ''}`}
                   onClick={() => setShowNotifDropdown(!showNotifDropdown)}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >
                   <Bell className={`w-5 h-5 ${unreadCount > 0 ? 'text-[rgb(var(--accent))]' : 'text-[rgb(var(--text-secondary))]'}`} />
                   {unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[rgb(var(--bg-elevated))]"></span>
+                    <span className={`absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[rgb(var(--bg-elevated))] animate-pulse`}></span>
                   )}
                 </motion.button>
 
@@ -251,11 +253,14 @@ const Header = ({ onLoginClick }) => {
                           <button
                             onClick={async () => {
                               try {
-                                await axios.patch(API.NOTIFICATIONS.MARK_READ, { userId: user._id, markAll: true });
                                 setUnreadCount(0);
-                                setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+                                await axios.patch(API.NOTIFICATIONS.MARK_READ, { userId: user._id, markAll: true });
+                                setNotifications(prev => prev.map(n => ({ ...n, isRead: true, read: true })));
                               } catch (e) {
                                 console.error("Failed to mark all read");
+                                // Revert on error
+                                const response = await axios.get(API.NOTIFICATIONS.GET_ALL(user._id), { params: { unreadOnly: true } });
+                                if (response.data.success) setUnreadCount(response.data.unreadCount || 0);
                               }
                             }}
                             className="text-xs text-[rgb(var(--accent))] hover:underline"

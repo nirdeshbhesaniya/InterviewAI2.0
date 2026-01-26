@@ -32,11 +32,12 @@ const NotificationsPageNew = () => {
     }, [user, filter]);
 
     const fetchNotifications = async () => {
-        if (!user?.email) return;
+        const userId = user?._id || user?.email;
+        if (!userId) return;
 
         try {
             const unreadOnly = filter === 'unread';
-            const response = await axios.get(API.NOTIFICATIONS.GET_ALL(user.email), {
+            const response = await axios.get(API.NOTIFICATIONS.GET_ALL(userId), {
                 params: { unreadOnly }
             });
 
@@ -54,12 +55,14 @@ const NotificationsPageNew = () => {
 
     const handleMarkAsRead = async (notificationId) => {
         try {
+            const userId = user._id || user.email;
             await axios.patch(API.NOTIFICATIONS.MARK_READ, {
-                notificationIds: [notificationId]
+                notificationIds: [notificationId],
+                userId: userId
             });
 
             setNotifications(prev =>
-                prev.map(n => n._id === notificationId ? { ...n, read: true } : n)
+                prev.map(n => n._id === notificationId ? { ...n, read: true, isRead: true } : n)
             );
             setUnreadCount(prev => Math.max(0, prev - 1));
             toast.success('Marked as read');
@@ -71,14 +74,16 @@ const NotificationsPageNew = () => {
 
     const handleMarkAllAsRead = async () => {
         try {
+            const userId = user._id || user.email;
             await axios.patch(API.NOTIFICATIONS.MARK_READ, {
-                userId: user.email,
+                userId: userId,
                 markAll: true
             });
 
-            setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+            setNotifications(prev => prev.map(n => ({ ...n, read: true, isRead: true })));
             setUnreadCount(0);
             toast.success('All notifications marked as read');
+            setTimeout(fetchNotifications, 500);
         } catch (error) {
             console.error('Mark all read error:', error);
             toast.error('Failed to mark all as read');
@@ -212,7 +217,7 @@ const NotificationsPageNew = () => {
                         {notifications.map((notification) => (
                             <div
                                 key={notification._id}
-                                className={`bg-[rgb(var(--bg-card))] rounded-xl shadow-md border transition-all duration-200 p-5 ${!notification.read
+                                className={`bg-[rgb(var(--bg-card))] rounded-xl shadow-md border transition-all duration-200 p-5 ${!notification.isRead && !notification.read
                                     ? 'border-l-4 border-l-[rgb(var(--accent))] shadow-[rgb(var(--accent))]/10'
                                     : 'border-l-4 border-l-transparent border border-[rgb(var(--border-subtle))]'
                                     }`}
@@ -254,7 +259,7 @@ const NotificationsPageNew = () => {
                                                     {notification.action === 'review_qna' ? 'Review Request' : notification.action}
                                                 </button>
                                             )}
-                                            {!notification.read && (
+                                            {!(notification.isRead || notification.read) && (
                                                 <button
                                                     onClick={() => handleMarkAsRead(notification._id)}
                                                     className="px-3 py-1 bg-[rgb(var(--bg-body))] hover:bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-primary))] border border-[rgb(var(--border))] rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
