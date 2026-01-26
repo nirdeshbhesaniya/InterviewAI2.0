@@ -228,8 +228,8 @@ router.patch('/mark-read', async (req, res) => {
             );
             console.log(`Marked ${updateResult2.modifiedCount} broadcast notifications as read for user ${userId}`);
 
-            return res.json({ 
-                success: true, 
+            return res.json({
+                success: true,
                 message: 'All notifications marked as read',
                 individualUpdated: updateResult1.modifiedCount,
                 broadcastUpdated: updateResult2.modifiedCount
