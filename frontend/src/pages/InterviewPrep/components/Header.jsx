@@ -19,7 +19,8 @@ import {
   Camera,
   Edit3,
   BookOpen,
-  Library
+  Library,
+  Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from '../../../utils/axiosInstance';
@@ -310,24 +311,26 @@ const Header = ({ onLoginClick }) => {
                                           Mark read
                                         </button>
                                       )}
-                                      <button
-                                        onClick={async (e) => {
-                                          e.stopPropagation();
-                                          try {
-                                            await axios.delete(API.NOTIFICATIONS.DELETE, {
-                                              data: { notificationIds: [notif._id] }
-                                            });
-                                            setNotifications(prev => prev.filter(n => n._id !== notif._id));
-                                            await fetchNotificationCount();
-                                          } catch (err) {
-                                            console.error('Failed to delete', err);
-                                          }
-                                        }}
-                                        className="text-[10px] text-red-500 hover:underline"
-                                        title="Delete"
-                                      >
-                                        Delete
-                                      </button>
+                                      {(notif.recipientType === 'individual' || !notif.recipientType) && (
+                                        <button
+                                          onClick={async (e) => {
+                                            e.stopPropagation();
+                                            try {
+                                              await axios.delete(API.NOTIFICATIONS.DELETE, {
+                                                data: { notificationIds: [notif._id] }
+                                              });
+                                              setNotifications(prev => prev.filter(n => n._id !== notif._id));
+                                              await fetchNotificationCount();
+                                            } catch (err) {
+                                              console.error('Failed to delete', err);
+                                            }
+                                          }}
+                                          className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors group-hover:opacity-100 sm:opacity-0"
+                                          title="Delete"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
