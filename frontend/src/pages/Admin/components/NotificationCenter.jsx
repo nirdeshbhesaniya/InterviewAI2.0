@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Send } from 'lucide-react';
+import { Search, Send, Megaphone, Trash2 } from 'lucide-react';
 import axios from '../../../utils/axiosInstance';
 import { API } from '../../../utils/apiPaths';
 import toast from 'react-hot-toast';
@@ -52,6 +52,27 @@ const NotificationCenter = () => {
         searchRecipients();
     }, [debouncedRecipientSearch, notifForm.recipientType]);
 
+
+    const [broadcasts, setBroadcasts] = useState([]);
+    const [loadingBroadcasts, setLoadingBroadcasts] = useState(true);
+
+    // Fetch Broadcasts
+    const fetchBroadcasts = async () => {
+        try {
+            const res = await axios.get(API.ADMIN.GET_BROADCASTS);
+            setBroadcasts(res.data.broadcasts);
+        } catch (error) {
+            console.error('Error fetching broadcasts:', error);
+            toast.error('Failed to load broadcasts');
+        } finally {
+            setLoadingBroadcasts(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchBroadcasts();
+    }, []);
+
     const handleSendNotification = async (e) => {
         e.preventDefault();
         try {
@@ -65,16 +86,39 @@ const NotificationCenter = () => {
                 isEmailSent: false
             });
             setRecipientSearch('');
+            fetchBroadcasts(); // Refresh list
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to send notification');
         }
     };
 
+    const handleDeleteBroadcast = async (id) => {
+        if (window.confirm('SYSTEM ALERT: Are you sure you want to permanently delete this broadcast? This will remove it from all users\' notifications.')) {
+            try {
+                await axios.delete(API.ADMIN.DELETE_BROADCAST(id));
+                toast.success('Broadcast deleted permanently');
+                fetchBroadcasts();
+            } catch (error) {
+                toast.error('Failed to delete broadcast');
+            }
+        }
+    };
+
+    const getTypeColor = (type) => {
+        switch (type) {
+            case 'warning': return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
+            case 'error': return 'text-red-500 bg-red-500/10 border-red-500/20';
+            case 'success': return 'text-green-500 bg-green-500/10 border-green-500/20';
+            default: return 'text-blue-500 bg-blue-500/10 border-blue-500/20';
+        }
+    };
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
             <h2 className="text-xl font-bold text-[rgb(var(--text-primary))]">Send Notifications</h2>
 
             <div className="bg-[rgb(var(--bg-elevated))] p-6 rounded-2xl border border-[rgb(var(--border))] max-w-2xl">
+                {/* Form Content - same as before */}
                 <form onSubmit={handleSendNotification} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-[rgb(var(--text-secondary))] mb-1">Title</label>
@@ -162,6 +206,65 @@ const NotificationCenter = () => {
                         <Send className="w-4 h-4 mr-2" /> Send Notification
                     </Button>
                 </form>
+            </div>
+
+            {/* Active Broadcasts List */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-bold text-[rgb(var(--text-primary))] flex items-center gap-2">
+                    <Megaphone className="w-5 h-5 text-[rgb(var(--accent))]" />
+                    Active Broadcasts
+                </h3>
+
+                {loadingBroadcasts ? (
+                    <div className="text-center py-8 text-[rgb(var(--text-muted))]">Loading broadcasts...</div>
+                ) : broadcasts.length === 0 ? (
+                    <div className="text-center py-8 bg-[rgb(var(--bg-elevated))] rounded-xl border border-dashed border-[rgb(var(--border))] text-[rgb(var(--text-muted))]">
+                        No active broadcast notifications
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {broadcasts.map(broadcast => (
+                            <div key={broadcast._id} className="group relative bg-[rgb(var(--bg-main))] rounded-xl p-5 border border-[rgb(var(--border))] shadow-sm hover:shadow-md transition-all overflow-hidden">
+                                {/* Amazing Tag UI - Decorative Gradient */}
+                                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[rgb(var(--accent))] to-transparent opacity-50" />
+
+                                <div className="flex justify-between items-start mb-3">
+                                    <div className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${getTypeColor(broadcast.type)}`}>
+                                        {broadcast.type.toUpperCase()}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-[rgb(var(--text-muted))]">
+                                            {new Date(broadcast.createdAt).toLocaleDateString()}
+                                        </span>
+                                        <button
+                                            onClick={() => handleDeleteBroadcast(broadcast._id)}
+                                            className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                            title="Delete Broadcast"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <h4 className="font-semibold text-[rgb(var(--text-primary))] mb-1 line-clamp-1">{broadcast.title}</h4>
+                                <p className="text-sm text-[rgb(var(--text-secondary))] line-clamp-2 mb-3">{broadcast.message}</p>
+
+                                <div className="flex items-center justify-between mt-auto">
+                                    <div className="flex items-center gap-2 text-xs">
+                                        <span className="bg-[rgb(var(--bg-elevated))] px-2 py-0.5 rounded text-[rgb(var(--text-muted))] border border-[rgb(var(--border))]">
+                                            To: {broadcast.targetAudience === 'admins' ? 'Admins Only' : 'All Users'}
+                                        </span>
+                                        {broadcast.emailSent && (
+                                            <span className="bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded border border-blue-500/20">
+                                                Email Sent
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

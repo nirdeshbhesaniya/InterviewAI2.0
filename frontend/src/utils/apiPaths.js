@@ -93,6 +93,8 @@ export const API = {
     GET_PRACTICE_TEST: (id) => `${API_BASE_URL}/admin/practice-tests/${id}`,
     DELETE_PRACTICE_TEST: (id) => `${API_BASE_URL}/admin/practice-tests/${id}`,
     CREATE_NOTIFICATION: `${API_BASE_URL}/admin/notifications/create`,
+    GET_BROADCASTS: `${API_BASE_URL}/admin/notifications/broadcasts`,
+    DELETE_BROADCAST: (id) => `${API_BASE_URL}/admin/notifications/broadcasts/${id}`,
   },
   NOTIFICATIONS: {
     GET_ALL: (userId) => `${API_BASE_URL}/notifications/${userId}`,

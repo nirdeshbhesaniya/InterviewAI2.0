@@ -688,4 +688,49 @@ router.post('/notifications/create', async (req, res) => {
     }
 });
 
+
+// GET All Broadcast Notifications
+router.get('/notifications/broadcasts', async (req, res) => {
+    try {
+        const Notification = require('../models/Notification');
+        const broadcasts = await Notification.find({
+            recipientType: { $in: ['all', 'broadcast'] },
+            isActive: true
+        }).sort({ createdAt: -1 });
+
+        res.json({
+            success: true,
+            broadcasts
+        });
+    } catch (err) {
+        console.error('Error fetching broadcasts:', err);
+        res.status(500).json({ message: 'Failed to fetch broadcasts' });
+    }
+});
+
+// DELETE Broadcast Notification (Permanent)
+router.delete('/notifications/broadcasts/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const Notification = require('../models/Notification');
+
+        // Find first to verify it's a broadcast
+        const notification = await Notification.findOne({
+            _id: id,
+            recipientType: { $in: ['all', 'broadcast'] }
+        });
+
+        if (!notification) {
+            return res.status(404).json({ message: 'Broadcast notification not found' });
+        }
+
+        await Notification.findByIdAndDelete(id);
+
+        res.json({ message: 'Broadcast notification deleted permanently' });
+    } catch (err) {
+        console.error('Error deleting broadcast:', err);
+        res.status(500).json({ message: 'Failed to delete broadcast' });
+    }
+});
+
 module.exports = router;
