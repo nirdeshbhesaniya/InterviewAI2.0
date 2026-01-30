@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
 import axios from '../utils/axiosInstance';
 import { API } from '../utils/apiPaths';
@@ -57,6 +58,76 @@ const NotesPage = () => {
     useEffect(() => {
         fetchNotes(currentPage);
     }, [currentPage]);
+
+    // Handle Search Highlight (Robust for Pagination)
+    const location = useLocation();
+    const [highlightId, setHighlightId] = useState(null);
+
+    useEffect(() => {
+        console.log("📄 NotesPage Mounted. Location State:", location.state);
+        const handleDeepLink = async () => {
+            if (location.state?.highlightId && !loading) {
+                const targetId = location.state.highlightId;
+                console.log("🎯 Handling Deep Link for ID:", targetId);
+                setHighlightId(targetId);
+
+                // 1. Try finding in current list
+                const existingElement = document.getElementById(targetId);
+                if (existingElement) {
+                    console.log("✅ Found in current list, scrolling...");
+                    existingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setTimeout(() => setHighlightId(null), 3000);
+                    return;
+                }
+
+                // 2. Not found? Fetch specifically (it might be on another page)
+                try {
+                    console.log("🌍 Not found locally, fetching...");
+                    const res = await axios.get(API.NOTES.GET_ONE(targetId));
+                    if (res.data.success && res.data.note) {
+                        const targetNote = res.data.note;
+                        console.log("📦 Fetched note:", targetNote);
+                        // Prepend to list (avoid duplicates)
+                        setNotes(prev => {
+                            if (prev.some(n => n._id === targetId)) return prev;
+                            return [targetNote, ...prev];
+                        });
+
+                        // Wait for render, then scroll (Polling to ensure element exists)
+                        let attempts = 0;
+                        const scrollInterval = setInterval(() => {
+                            const el = document.getElementById(targetId);
+                            if (el) {
+                                console.log(`📜 Scrolling to fetched note (Attempt ${attempts + 1})...`);
+                                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                el.classList.add('highlight-pulse'); // Add CSS class for animation
+                                clearInterval(scrollInterval);
+                                setTimeout(() => {
+                                    setHighlightId(null);
+                                    el.classList.remove('highlight-pulse');
+                                }, 4000);
+                            } else {
+                                attempts++;
+                                if (attempts > 20) { // Stop after 2 seconds
+                                    console.warn("⚠️ Element still not found after polling.");
+                                    clearInterval(scrollInterval);
+                                }
+                            }
+                        }, 100);
+                    } else {
+                        console.warn("⚠️ API success but no note data found.");
+                    }
+                } catch (err) {
+                    console.error("Failed to load highlighted note:", err);
+                }
+            }
+        };
+
+        // Execute only after main loading finishes
+        if (!loading) {
+            handleDeepLink();
+        }
+    }, [location.state, loading]);
 
     const fetchNotes = async (page = 1) => {
         try {
@@ -390,10 +461,11 @@ const NotesPage = () => {
                                 {notes.map((note) => (
                                     <motion.div
                                         key={note._id}
+                                        id={note._id} // ID for scrolling
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -20 }}
-                                        className="bg-[rgb(var(--bg-card))] rounded-xl shadow-lg hover:shadow-xl hover:shadow-[rgb(var(--accent))]/10 transition-all duration-300 overflow-hidden border border-[rgb(var(--border-subtle))]"
+                                        className={`bg-[rgb(var(--bg-card))] rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border ${highlightId === note._id ? 'border-[rgb(var(--accent))] ring-2 ring-[rgb(var(--accent))] shadow-[0_0_20px_rgba(var(--accent),0.3)] transform scale-[1.02]' : 'border-[rgb(var(--border-subtle))] hover:shadow-[rgb(var(--accent))]/10'}`}
                                     >
                                         {/* Card Header */}
                                         <div className={`p-3 sm:p-4 ${note.type === 'pdf'

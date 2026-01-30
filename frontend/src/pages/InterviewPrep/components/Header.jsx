@@ -34,6 +34,8 @@ const Header = ({ onLoginClick }) => {
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('interviewPrepTheme') === 'dark';
   });
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const dropdownRef = useRef(null);
   const notifDropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -66,6 +68,31 @@ const Header = ({ onLoginClick }) => {
       localStorage.setItem('interviewPrepTheme', 'light');
     }
   }, [darkMode]);
+
+  // Auto-hide header on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // Show header when at top of page
+      if (currentScrollY < 10) {
+        setIsHeaderVisible(true);
+      }
+      // Hide header when scrolling down, show when scrolling up
+      else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Scrolling down
+        setIsHeaderVisible(false);
+      } else if (currentScrollY < lastScrollY) {
+        // Scrolling up
+        setIsHeaderVisible(true);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -142,7 +169,10 @@ const Header = ({ onLoginClick }) => {
   };
 
   return (
-    <header className="relative bg-[rgb(var(--bg-elevated))] border-b border-[rgb(var(--border))] shadow-sm z-50">
+    <header
+      className={`fixed top-0 left-0 right-0 bg-[rgb(var(--bg-elevated))] border-b border-[rgb(var(--border))] shadow-sm z-50 transition-transform duration-300 ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'
+        }`}
+    >
       {/* Main Header */}
       <div className="px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">

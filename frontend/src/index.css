@@ -1,11 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Ubuntu:ital@0;1&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Poppins&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Ubuntu:ital@0;1&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import 'highlight.js/styles/github.css';
+@import './styles/chatbot.css';
 @custom-variant dark (&:is(.dark *));
 
 
-/* Custom CSS begins here */  
+/* Custom CSS begins here */
 @layer base {
   :root {
     --font-display: "Urbanist", sans-serif;
@@ -14,10 +16,10 @@
   }
 
   .poppins-regular {
-  font-family: "Poppins", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-}
+    font-family: "Poppins", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+  }
 
 
   html {
@@ -53,6 +55,7 @@
       opacity: 0;
       transform: translateY(-10px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -64,6 +67,7 @@
       opacity: 0;
       transform: translateY(-20px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -75,6 +79,7 @@
       transform: scale(1);
       opacity: 1;
     }
+
     100% {
       transform: scale(2);
       opacity: 0;
@@ -82,15 +87,20 @@
   }
 
   @keyframes notificationBlink {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: scale(1);
     }
+
     25% {
       transform: scale(1.3);
     }
+
     50% {
       transform: scale(1);
     }
+
     75% {
       transform: scale(1.3);
     }
@@ -114,7 +124,7 @@
   ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(135deg, rgb(var(--accent-hover)), rgb(var(--accent)));
   }
-  
+
   /* Toast Notifications - Enhanced Styling */
   [data-sonner-toast] {
     backdrop-filter: blur(12px);
@@ -133,6 +143,7 @@
       transform: translateX(100%) scale(0.9);
       opacity: 0;
     }
+
     to {
       transform: translateX(0) scale(1);
       opacity: 1;
@@ -144,6 +155,7 @@
       transform: translateX(0) scale(1);
       opacity: 1;
     }
+
     to {
       transform: translateX(100%) scale(0.9);
       opacity: 0;
@@ -195,15 +207,16 @@
       border-radius: 8px !important;
     }
   }
-  
+
   /* Dark mode specific styles for better late-night readability */
   .dark {
+
     /* Improve code block readability in dark mode */
     .hljs {
       background: #0d1117 !important;
       color: #e6edf3 !important;
     }
-    
+
     /* Code syntax highlighting - softer colors for dark mode */
     .hljs-keyword,
     .hljs-selector-tag,
@@ -212,11 +225,11 @@
     .hljs-link {
       color: #ff7b72 !important;
     }
-    
+
     .hljs-function .hljs-keyword {
       color: #d2a8ff !important;
     }
-    
+
     .hljs-string,
     .hljs-title,
     .hljs-name,
@@ -230,14 +243,14 @@
     .hljs-template-variable {
       color: #a5d6ff !important;
     }
-    
+
     .hljs-comment,
     .hljs-quote,
     .hljs-deletion,
     .hljs-meta {
       color: #8b949e !important;
     }
-    
+
     .hljs-number,
     .hljs-regexp,
     .hljs-selector-id,
@@ -248,18 +261,18 @@
     .hljs-class .hljs-title {
       color: #79c0ff !important;
     }
-    
+
     .hljs-built_in,
     .hljs-params {
       color: #ffa657 !important;
     }
-    
+
     /* Better text selection in dark mode */
     ::selection {
       background-color: rgba(99, 179, 237, 0.3);
       color: rgb(var(--text-primary));
     }
-    
+
     /* Improve focus visibility in dark mode */
     *:focus-visible {
       outline: 2px solid rgb(var(--accent));
@@ -282,13 +295,46 @@
 }
 
 @layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(var(--accent), 0.7);
+  }
+
+  70% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 10px rgba(var(--accent), 0);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(var(--accent), 0);
+  }
+}
+
+.highlight-pulse {
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  border-color: rgb(var(--accent)) !important;
+  z-index: 10;
+  position: relative;
+}
+
+@layer utilities {
+
   /* Map custom token utilities to CSS variables for reliability */
   .text-text-primary {
     color: var(--foreground);
   }
+
   .text-text-secondary {
     color: var(--muted-foreground);
   }
+
   .text-text-muted {
     color: var(--muted-foreground);
   }
@@ -296,6 +342,7 @@
   .bg-bg-body {
     background-color: var(--background);
   }
+
   .bg-bg-card {
     background-color: var(--card);
   }
@@ -307,6 +354,7 @@
   .shadow-button-primary {
     box-shadow: 0 8px 24px rgba(var(--accent), 0.25);
   }
+
   .hover\:shadow-button-hover:hover {
     box-shadow: 0 10px 28px rgba(var(--accent), 0.35);
   }
@@ -315,6 +363,7 @@
     0% {
       background-position: 0% 50%;
     }
+
     100% {
       background-position: 100% 50%;
     }
@@ -325,21 +374,51 @@
   }
 
   @keyframes blob1 {
-    0%, 100% { transform: translate(0px, 0px) scale(1); }
-    33% { transform: translate(30px, -60px) scale(1.1); }
-    66% { transform: translate(-20px, 20px) scale(0.9); }
+
+    0%,
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+
+    33% {
+      transform: translate(30px, -60px) scale(1.1);
+    }
+
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
   }
 
   @keyframes blob2 {
-    0%, 100% { transform: translate(0px, 0px) scale(1); }
-    33% { transform: translate(-40px, 60px) scale(1.05); }
-    66% { transform: translate(20px, -40px) scale(0.95); }
+
+    0%,
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+
+    33% {
+      transform: translate(-40px, 60px) scale(1.05);
+    }
+
+    66% {
+      transform: translate(20px, -40px) scale(0.95);
+    }
   }
 
   @keyframes blob3 {
-    0%, 100% { transform: translate(0px, 0px) scale(1); }
-    33% { transform: translate(20px, 140px) scale(1.15); }
-    66% { transform: translate(-30px, -30px) scale(0.85); }
+
+    0%,
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+
+    33% {
+      transform: translate(20px, 140px) scale(1.15);
+    }
+
+    66% {
+      transform: translate(-30px, -30px) scale(0.85);
+    }
   }
 
   .animate-blob1 {
@@ -358,7 +437,7 @@
     @apply w-full flex justify-between gap-3 text-sm bg-[rgb(var(--bg-card))] rounded px-4 py-3 mb-4 mt-3 border border-[rgb(var(--border))] outline-none;
     color: rgb(var(--text-secondary));
   }
-  
+
   .input-box:focus-within {
     border-color: rgb(var(--accent));
   }
@@ -415,47 +494,56 @@
 :root {
   /* Radius */
   --radius: 0.75rem;
-  
+
   /* Backgrounds - Soft and comfortable for reading */
-  --bg-body: 248 250 252;              /* soft off-white page background */
-  --bg-body-alt: 241 245 249;          /* subtle section separation */
-  --bg-elevated: 255 255 255;          /* cards, modals */
-  --bg-elevated-alt: 248 250 252;      /* hover / secondary cards */
+  --bg-body: 248 250 252;
+  /* soft off-white page background */
+  --bg-body-alt: 241 245 249;
+  /* subtle section separation */
+  --bg-elevated: 255 255 255;
+  /* cards, modals */
+  --bg-elevated-alt: 248 250 252;
+  /* hover / secondary cards */
   --bg-card: 255 255 255;
   --bg-card-alt: 248 250 252;
-  
+
   /* Text - High readability hierarchy */
-  --text-primary: 15 23 42;            /* headings, titles */
-  --text-secondary: 51 65 85;          /* paragraphs */
-  --text-muted: 100 116 139;           /* hints, meta info */
+  --text-primary: 15 23 42;
+  /* headings, titles */
+  --text-secondary: 51 65 85;
+  /* paragraphs */
+  --text-muted: 100 116 139;
+  /* hints, meta info */
   --text-disabled: 148 163 184;
-  
+
   /* Borders - Subtle and soft */
-  --border: 226 232 240;               /* default borders */
+  --border: 226 232 240;
+  /* default borders */
   --border-subtle: 226 232 240;
   --border-strong: 203 213 225;
-  
+
   /* Accent - Modern blue for actions */
-  --accent: 59 130 246;                /* primary actions */
+  --accent: 59 130 246;
+  /* primary actions */
   --accent-hover: 37 99 235;
   --accent-foreground: 255 255 255;
-  
+
   /* Gradients */
   --gradient-start: 255 255 255;
   --gradient-end: 241 245 249;
-  
+
   /* Warning colors */
   --warning: 245 158 11;
   --warning-bg: 254 252 232;
   --warning-border: 253 224 71;
-  
+
   /* Success colors */
   --success: 34 197 94;
   --success-hover: 22 163 74;
-  
+
   /* Danger colors */
   --danger: 239 68 68;
-  
+
   /* Legacy mappings for shadcn components */
   --background: 248 250 252;
   --foreground: 15 23 42;
@@ -478,45 +566,67 @@
 /* Dark mode - Optimized for late-night reading with reduced eye strain */
 .dark {
   /* Backgrounds - Warm dark tones with reduced blue light */
-  --bg-body: 15 15 20;                 /* Deep charcoal base - easier on eyes than pure black */
-  --bg-body-alt: 20 20 27;             /* Slightly elevated sections */
-  --bg-elevated: 25 25 35;             /* Cards and elevated surfaces */
-  --bg-elevated-alt: 28 28 38;         /* Hover states */
-  --bg-card: 22 22 30;                 /* Card backgrounds */
-  --bg-card-alt: 28 28 38;             /* Alternative card backgrounds */
-  
+  --bg-body: 15 15 20;
+  /* Deep charcoal base - easier on eyes than pure black */
+  --bg-body-alt: 20 20 27;
+  /* Slightly elevated sections */
+  --bg-elevated: 25 25 35;
+  /* Cards and elevated surfaces */
+  --bg-elevated-alt: 28 28 38;
+  /* Hover states */
+  --bg-card: 22 22 30;
+  /* Card backgrounds */
+  --bg-card-alt: 28 28 38;
+  /* Alternative card backgrounds */
+
   /* Text - High contrast but not harsh, warm tones */
-  --text-primary: 240 240 245;         /* Primary text - off-white, not pure white */
-  --text-secondary: 200 200 210;       /* Secondary text - excellent readability */
-  --text-muted: 140 140 160;           /* Muted text - still readable */
-  --text-disabled: 100 100 120;        /* Disabled text */
-  
+  --text-primary: 240 240 245;
+  /* Primary text - off-white, not pure white */
+  --text-secondary: 200 200 210;
+  /* Secondary text - excellent readability */
+  --text-muted: 140 140 160;
+  /* Muted text - still readable */
+  --text-disabled: 100 100 120;
+  /* Disabled text */
+
   /* Borders - Subtle but visible */
-  --border: 45 45 60;                  /* Default borders */
-  --border-subtle: 35 35 50;           /* Subtle borders */
-  --border-strong: 60 60 80;           /* Strong borders */
-  
+  --border: 45 45 60;
+  /* Default borders */
+  --border-subtle: 35 35 50;
+  /* Subtle borders */
+  --border-strong: 60 60 80;
+  /* Strong borders */
+
   /* Accent - Softer, less harsh blue for dark mode */
-  --accent: 99 179 237;                /* Softer blue, less strain */
-  --accent-hover: 129 199 247;         /* Lighter on hover */
-  --accent-foreground: 15 15 20;       /* Dark text on accent */
-  
+  --accent: 99 179 237;
+  /* Softer blue, less strain */
+  --accent-hover: 129 199 247;
+  /* Lighter on hover */
+  --accent-foreground: 15 15 20;
+  /* Dark text on accent */
+
   /* Gradients for dark mode */
   --gradient-start: 25 25 35;
   --gradient-end: 15 15 20;
-  
+
   /* Warning colors - adjusted for dark mode */
-  --warning: 251 191 36;               /* Amber for better visibility */
-  --warning-bg: 30 27 18;              /* Dark amber background */
-  --warning-border: 120 90 20;         /* Amber border */
-  
+  --warning: 251 191 36;
+  /* Amber for better visibility */
+  --warning-bg: 30 27 18;
+  /* Dark amber background */
+  --warning-border: 120 90 20;
+  /* Amber border */
+
   /* Success colors - adjusted for dark mode */
-  --success: 74 222 128;               /* Brighter green for visibility */
-  --success-hover: 34 197 94;          /* Slightly darker on hover */
-  
+  --success: 74 222 128;
+  /* Brighter green for visibility */
+  --success-hover: 34 197 94;
+  /* Slightly darker on hover */
+
   /* Danger colors - adjusted for dark mode */
-  --danger: 248 113 113;               /* Softer red */
-  
+  --danger: 248 113 113;
+  /* Softer red */
+
   /* Legacy mappings for shadcn components in dark mode */
   --background: 15 15 20;
   --foreground: 240 240 245;
@@ -540,6 +650,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -549,10 +660,12 @@
   list-style: disc;
   margin-left: 1rem;
 }
+
 .markdown-body ol {
   list-style: decimal;
   margin-left: 1rem;
 }
+
 .markdown-body pre {
   background: rgb(var(--bg-body-alt));
   color: rgb(var(--text-primary));
@@ -561,6 +674,7 @@
   overflow-x: auto;
   border: 1px solid rgb(var(--border));
 }
+
 .markdown-body code {
   background: rgb(var(--bg-body-alt));
   color: rgb(var(--text-primary));
@@ -570,18 +684,24 @@
 
 /* Enhanced animations for landing page */
 @keyframes gradient-x {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateX(0%);
   }
+
   50% {
     transform: translateX(-100%);
   }
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-20px);
   }
@@ -591,9 +711,11 @@
   0% {
     width: 0%;
   }
+
   50% {
     width: 70%;
   }
+
   100% {
     width: 100%;
   }
@@ -604,6 +726,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -730,24 +853,25 @@
 /* Mobile-specific dark mode improvements for better readability */
 @media (max-width: 640px) {
   .dark {
+
     /* Increase font size slightly on mobile for better readability */
     body {
       font-size: 16px;
     }
-    
+
     /* Ensure touch targets are large enough in dark mode */
     button,
     a {
       min-height: 44px;
       min-width: 44px;
     }
-    
+
     /* Improve spacing on mobile */
     .prose {
       font-size: 0.95rem;
       line-height: 1.7;
     }
-    
+
     /* Better code blocks on mobile dark mode */
     pre code {
       font-size: 0.8rem !important;
@@ -759,6 +883,7 @@
 /* Tablet-specific dark mode improvements */
 @media (min-width: 641px) and (max-width: 1024px) {
   .dark {
+
     /* Optimize for tablet screens */
     .prose {
       font-size: 1rem;
@@ -770,6 +895,7 @@
 /* Reduce motion for users who prefer it - especially important for late-night viewing */
 @media (prefers-reduced-motion: reduce) {
   .dark {
+
     *,
     *::before,
     *::after {
@@ -779,5 +905,3 @@
     }
   }
 }
-
-

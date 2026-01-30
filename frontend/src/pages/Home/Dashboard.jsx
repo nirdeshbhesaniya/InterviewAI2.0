@@ -25,7 +25,7 @@ import { API } from '../../utils/apiPaths';
 import { Badge } from '@/components/ui/badge';
 import emptyStateImg from '../../assets/empty-state.jpg';
 import { Input } from '@/components/ui/input';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import Pagination from '../../components/common/Pagination';
 import { UserContext } from '../../context/UserContext';
@@ -88,6 +88,20 @@ export const Dashboard = () => {
   useEffect(() => {
     fetchCards();
   }, []);
+
+  // Handle Search Navigation Auto-Open
+  const location = useLocation();
+  useEffect(() => {
+    if (location.state?.highlightId && cards.length > 0) {
+      const targetId = location.state.highlightId;
+      const targetCard = cards.find(c => c.sessionId === targetId || c._id === targetId);
+      if (targetCard) {
+        navigate(`/interview-prep/${targetCard.sessionId}`);
+        // Clear state so it doesn't reopen on refresh
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [location.state, cards]);
 
   const handleCreated = (sessionId) => {
     fetchCards();

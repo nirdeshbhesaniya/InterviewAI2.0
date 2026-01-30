@@ -6,16 +6,14 @@ import {
     RotateCcw,
     Bot,
     User,
-    Copy,
-    Check,
     Sparkles
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
 import { ChatbotContext } from '../../context/ChatBotContext';
 import Icon3D from '../ui/Icon3D';
+import CodeBlock from './CodeBlock';
+import MessageActions from './MessageActions';
 
 const MobileChatbotWindow = () => {
     const {
@@ -29,6 +27,7 @@ const MobileChatbotWindow = () => {
 
     const [inputMessage, setInputMessage] = useState('');
     const [copiedMessageId, setCopiedMessageId] = useState(null);
+    const [feedback, setFeedback] = useState({});
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
 
@@ -77,8 +76,34 @@ const MobileChatbotWindow = () => {
         }
     };
 
+    const handleFeedback = (messageId, type) => {
+        setFeedback(prev => ({
+            ...prev,
+            [messageId]: prev[messageId] === type ? null : type
+        }));
+    };
+
+    const handleRegenerate = async (messageId) => {
+        // Find the user message before this bot message
+        const messageIndex = messages.findIndex(m => m.id === messageId);
+        if (messageIndex > 0) {
+            const previousUserMessage = messages[messageIndex - 1];
+            if (!previousUserMessage.isBot) {
+                await sendMessage(previousUserMessage.text);
+            }
+        }
+    };
+
     const formatTimestamp = (date) => {
-        return new Date(date).toLocaleTimeString([], {
+        const now = new Date();
+        const messageDate = new Date(date);
+        const diffInSeconds = Math.floor((now - messageDate) / 1000);
+
+        if (diffInSeconds < 60) return 'Just now';
+        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+
+        return messageDate.toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit'
         });
@@ -96,7 +121,7 @@ const MobileChatbotWindow = () => {
                 className="fixed inset-0 bg-[rgb(var(--bg-body))] z-50 flex flex-col md:hidden"
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 bg-[rgb(var(--accent))] text-white shadow-lg">
+                <div className="flex items-center justify-between p-4 chatbot-header-gradient text-white shadow-lg">
                     <div className="flex items-center space-x-3">
                         <Icon3D size="sm" color="secondary" animated={false}>
                             <Bot size={20} />
@@ -131,7 +156,7 @@ const MobileChatbotWindow = () => {
                 </div>
 
                 {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[rgb(var(--bg-body))]">
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[rgb(var(--bg-body))] chatbot-messages-container">
                     {messages.length === 1 && (
                         <div className="space-y-4">
                             <div className="text-center text-[rgb(var(--text-muted))] mb-6">
@@ -148,7 +173,7 @@ const MobileChatbotWindow = () => {
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => handleSendMessage(question)}
-                                        className="p-4 text-left text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-lg hover:border-[rgb(var(--accent))]/50 transition-colors shadow-sm"
+                                        className="chatbot-quick-question p-4 text-left text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-lg hover:border-[rgb(var(--accent))]/50 transition-colors shadow-sm"
                                     >
                                         {question}
                                     </motion.button>
@@ -162,38 +187,29 @@ const MobileChatbotWindow = () => {
                             key={message.id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
+                            className={`chatbot-message flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
                         >
                             <div className={`max-w-[85%] ${message.isBot ? 'order-2' : 'order-1'}`}>
                                 <div
                                     className={`rounded-lg p-4 ${message.isBot
-                                        ? 'bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] shadow-sm text-[rgb(var(--text-primary))]'
-                                        : 'bg-[rgb(var(--accent))] text-white shadow-lg'
-                                        } ${message.isError ? 'border-red-500 bg-red-50' : ''}`}
+                                            ? 'chatbot-bot-message'
+                                            : 'chatbot-user-message text-white shadow-lg'
+                                        } ${message.isError ? 'message-status-error' : ''}`}
                                 >
                                     {message.isBot ? (
-                                        <div className="prose prose-sm max-w-none">
+                                        <div className="chatbot-markdown prose-sm">
                                             <ReactMarkdown
                                                 remarkPlugins={[remarkGfm]}
                                                 components={{
-                                                    code: ({ inline, className, children, ...props }) => {
-                                                        const match = /language-(\w+)/.exec(className || '');
-                                                        return !inline && match ? (
-                                                            <SyntaxHighlighter
-                                                                style={oneDark}
-                                                                language={match[1]}
-                                                                PreTag="div"
-                                                                className="text-sm"
-                                                                {...props}
-                                                            >
-                                                                {String(children).replace(/\n$/, '')}
-                                                            </SyntaxHighlighter>
-                                                        ) : (
-                                                            <code className={className} {...props}>
-                                                                {children}
-                                                            </code>
-                                                        );
-                                                    },
+                                                    code: ({ inline, className, children, ...props }) => (
+                                                        <CodeBlock
+                                                            inline={inline}
+                                                            className={className}
+                                                            {...props}
+                                                        >
+                                                            {children}
+                                                        </CodeBlock>
+                                                    ),
                                                 }}
                                             >
                                                 {message.text}
@@ -204,23 +220,19 @@ const MobileChatbotWindow = () => {
                                     )}
 
                                     <div className="flex items-center justify-between mt-3">
-                                        <span className="text-xs text-[rgb(var(--text-muted))] opacity-70">
+                                        <span className="chatbot-timestamp">
                                             {formatTimestamp(message.timestamp)}
                                         </span>
 
                                         {message.isBot && (
-                                            <motion.button
-                                                whileHover={{ scale: 1.1 }}
-                                                whileTap={{ scale: 0.9 }}
-                                                onClick={() => copyToClipboard(message.text, message.id)}
-                                                className="p-2 rounded-md hover:bg-[rgb(var(--bg-elevated-alt))] transition-colors"
-                                            >
-                                                {copiedMessageId === message.id ? (
-                                                    <Check size={16} className="text-green-500" />
-                                                ) : (
-                                                    <Copy size={16} className="opacity-50" />
-                                                )}
-                                            </motion.button>
+                                            <MessageActions
+                                                message={message}
+                                                onCopy={copyToClipboard}
+                                                onRegenerate={handleRegenerate}
+                                                onFeedback={handleFeedback}
+                                                copied={copiedMessageId}
+                                                feedback={feedback}
+                                            />
                                         )}
                                     </div>
                                 </div>
@@ -249,23 +261,11 @@ const MobileChatbotWindow = () => {
                                 <Icon3D size="sm" color="secondary" animated={false}>
                                     <Bot size={16} />
                                 </Icon3D>
-                                <div className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-lg p-4 shadow-sm">
+                                <div className="chatbot-bot-message rounded-lg p-4 shadow-sm">
                                     <div className="flex space-x-2">
-                                        <motion.div
-                                            animate={{ scale: [1, 1.2, 1] }}
-                                            transition={{ duration: 1, repeat: Infinity, delay: 0 }}
-                                            className="w-3 h-3 bg-[rgb(var(--accent))] rounded-full"
-                                        />
-                                        <motion.div
-                                            animate={{ scale: [1, 1.2, 1] }}
-                                            transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
-                                            className="w-3 h-3 bg-[rgb(var(--accent))] rounded-full"
-                                        />
-                                        <motion.div
-                                            animate={{ scale: [1, 1.2, 1] }}
-                                            transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
-                                            className="w-3 h-3 bg-[rgb(var(--accent))] rounded-full"
-                                        />
+                                        <motion.div className="typing-indicator-dot w-3 h-3 bg-[rgb(var(--accent))] rounded-full" />
+                                        <motion.div className="typing-indicator-dot w-3 h-3 bg-[rgb(var(--accent))] rounded-full" />
+                                        <motion.div className="typing-indicator-dot w-3 h-3 bg-[rgb(var(--accent))] rounded-full" />
                                     </div>
                                 </div>
                             </div>
@@ -278,7 +278,7 @@ const MobileChatbotWindow = () => {
                 {/* Input Area */}
                 <div className="p-4 bg-[rgb(var(--bg-card))] border-t border-[rgb(var(--border))] shadow-lg">
                     <div className="flex space-x-3">
-                        <div className="flex-1 relative">
+                        <div className="flex-1 relative chatbot-input-focus rounded-lg">
                             <textarea
                                 ref={inputRef}
                                 value={inputMessage}
@@ -296,7 +296,7 @@ const MobileChatbotWindow = () => {
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleSendMessage()}
                             disabled={!inputMessage.trim() || isLoading}
-                            className="px-5 py-4 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center self-end"
+                            className="px-5 py-4 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center self-end shadow-lg"
                         >
                             <Send size={20} />
                         </motion.button>

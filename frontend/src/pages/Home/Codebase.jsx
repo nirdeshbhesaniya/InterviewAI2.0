@@ -486,7 +486,7 @@ const CodeExecution = () => {
                                         <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                                     </div>
                                     <span className="text-sm text-[rgb(var(--text-secondary))] ml-2">
-                                        {selectedLanguage?.icon} {selectedLanguage?.name} Editor
+                                         {selectedLanguage?.name} Editor
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-1 text-xs text-[rgb(var(--text-muted))]">
@@ -542,7 +542,7 @@ const CodeExecution = () => {
                                 <div className="p-2 bg-secondary/20 rounded-lg">
                                     <Terminal className="h-4 w-4 text-secondary" />
                                 </div>
-                                <h2 className="font-semibold text-lg text-[rgb(var(--text-primary))]">Input (stdin)</h2>
+                                <h2 className="font-semibold text-lg text-[rgb(var(--text-primary))]">Input</h2>
                             </div>
                             <textarea
                                 className="w-full p-3 border border-[rgb(var(--border-subtle))] rounded-xl bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 resize-none"

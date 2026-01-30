@@ -42,14 +42,6 @@ export const APP_FEATURES = [
   },
   {
     id: '06',
-    title: 'Session Management',
-    description: 'Save, export, and revisit your interview sessions. Export as PDF or Markdown for offline access and sharing.',
-    icon: 'FolderOpen',
-    color: 'from-teal-500 to-cyan-600',
-    link: '/dashboard'
-  },
-  {
-    id: '07',
     title: 'AI Chatbot Assistant',
     description: 'Get instant help and answers to your questions with our intelligent AI chatbot available 24/7 across the platform.',
     icon: 'Bot',
@@ -57,20 +49,12 @@ export const APP_FEATURES = [
     link: '#'
   },
   {
-    id: '08',
+    id: '07',
     title: 'Profile & Progress Tracking',
     description: 'Track your preparation progress, manage your profile, and monitor your performance across different topics.',
     icon: 'User',
     color: 'from-pink-500 to-rose-600',
     link: '/profile'
-  },
-  {
-    id: '09',
-    title: 'Data Structures & Algorithms',
-    description: 'Practice problems on arrays, linked lists, trees, graphs, dynamic programming, and system design basics.',
-    icon: 'Network',
-    color: 'from-indigo-500 to-blue-600',
-    link: '/dashboard'
   }
 ];
 

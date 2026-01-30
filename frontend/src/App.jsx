@@ -5,11 +5,13 @@ import { Toaster } from 'react-hot-toast';
 import Login from './pages/Auth/Login';
 import SignUp from './pages/Auth/SignUp';
 import LandingPage from './pages/LandingPage';
+import OldLandingPage from './pages/LandingPage_backup';
 import { Dashboard } from './pages/Home/Dashboard';
 import InterviewPrepModern from './pages/InterviewPrep/InterviewPrepModern';
 import AnswerEditor from './pages/InterviewPrep/AnswerEditor';
 import AddQuestionPage from './pages/InterviewPrep/AddQuestionPage';
 import ContactSupportPage from './pages/ContactSupportPage';
+
 import MCQTest from './pages/MCQTest/MCQTest';
 import TestHistoryPage from './pages/MCQTest/TestHistoryPage';
 import PracticeTestsPage from './pages/MCQTest/PracticeTestsPage';
@@ -43,6 +45,7 @@ const App = () => {
             <Routes>
               {/* Public routes (no header) */}
               <Route path="/" element={<LandingPage />} />
+              <Route path="/old-landing" element={<OldLandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/support" element={<ContactSupportPage />} />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     BookOpen, Download, FileText, Video, Link as LinkIcon,
@@ -136,6 +137,67 @@ const ResourcesPage = () => {
     useEffect(() => {
         fetchResources();
     }, [fetchResources]);
+
+    // Handle Search Highlight (Robust for Pagination)
+    const location = useLocation();
+    const [highlightId, setHighlightId] = useState(null);
+
+    // Effect 1: Handle Initial Navigation & Page Switching
+    useEffect(() => {
+        const handleDeepLink = async () => {
+            if (location.state?.highlightId && !loading && resources.length > 0) {
+                const targetId = location.state.highlightId;
+                const fromSearch = location.state.fromSearch;
+
+                // 1. Check if already on page
+                if (document.getElementById(targetId)) {
+                    setHighlightId(targetId);
+                    return; // Will be handled by scrolling effect
+                }
+
+                // 2. If from search and NOT found, find correct page
+                if (fromSearch) {
+                    try {
+                        console.log("📍 Finding page for resource:", targetId);
+                        const res = await axios.get(API.PUBLIC.FIND_PAGE('Resource', targetId, ITEMS_PER_PAGE));
+                        if (res.data.success) {
+                            console.log("📄 Resource is on page:", res.data.page);
+                            if (res.data.page !== currentPage) {
+                                setCurrentPage(res.data.page);
+                                // The new page fetch will trigger the scrolling effect
+                                setHighlightId(targetId);
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Failed to find page:", err);
+                    }
+                }
+            }
+        };
+
+        if (!loading) {
+            handleDeepLink();
+        }
+    }, [location.state, loading, resources.length]); // Re-run when resources load
+
+    // Effect 2: Scrolling & Highlighting (Runs whenever highlightId or resources change)
+    useEffect(() => {
+        if (highlightId && !loading) {
+            const el = document.getElementById(highlightId);
+            if (el) {
+                console.log("📜 Scrolling to target:", highlightId);
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.classList.add('highlight-pulse');
+
+                // Cleanup
+                const timer = setTimeout(() => {
+                    setHighlightId(null);
+                    el.classList.remove('highlight-pulse');
+                }, 4000);
+                return () => clearTimeout(timer);
+            }
+        }
+    }, [highlightId, resources, loading]);
 
     const handleUpload = async (formData) => {
         try {
@@ -531,10 +593,11 @@ const ResourcesPage = () => {
                                     return (
                                         <motion.div
                                             key={resource._id}
+                                            id={resource._id} // ID for scroll target
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                         >
-                                            <Card className="p-4 md:p-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))] transition-all duration-300">
+                                            <Card className={`p-4 md:p-6 bg-[rgb(var(--bg-card))] border transition-all duration-300 ${highlightId === resource._id ? 'border-[rgb(var(--accent))] ring-2 ring-[rgb(var(--accent))] shadow-[0_0_20px_rgba(var(--accent),0.3)] transform scale-[1.02]' : 'border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]'}`}>
                                                 <div className="flex flex-col gap-4">
                                                     {/* Header with Icon and Title */}
                                                     <div className="flex items-start gap-3">

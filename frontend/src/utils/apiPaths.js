@@ -15,7 +15,8 @@ export const API = {
   VERIFY_OTP: `${API_BASE_URL}/auth/verify-otp`,
   RESET_PASSWORD: `${API_BASE_URL}/auth/reset-password`,
   PUBLIC: {
-    GET_STATS: `${API_BASE_URL}/public/stats`
+    GET_STATS: `${API_BASE_URL}/public/stats`,
+    FIND_PAGE: (type, id, limit) => `${API_BASE_URL}/public/find-page?type=${type}&id=${id}&limit=${limit}`
   },
   FEEDBACK: {
     CREATE: `${API_BASE_URL}/feedback`,
