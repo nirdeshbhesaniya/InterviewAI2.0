@@ -56,7 +56,7 @@ const Testimonials = ({ onRate }) => {
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-5xl font-bold text-[rgb(var(--text-primary))] mb-6">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[rgb(var(--text-primary))] mb-6">
                         Loved by <span className="text-[rgb(var(--accent))]">Developers</span>
                     </h2>
                     <div className="mt-8">
@@ -80,7 +80,7 @@ const Testimonials = ({ onRate }) => {
                             whileInView={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.5, delay: idx * 0.1 }}
                             viewport={{ once: true }}
-                            className="bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] p-8 rounded-3xl relative hover:border-[rgb(var(--accent))]/30 transition-colors"
+                            className="bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] p-6 sm:p-8 rounded-3xl relative hover:border-[rgb(var(--accent))]/30 transition-colors"
                         >
                             <Quote className="absolute top-8 right-8 w-8 h-8 text-[rgb(var(--text-muted))]/20" />
 

@@ -85,8 +85,8 @@ const LandingPage = () => {
                         className="text-center p-8 bg-gradient-to-r from-[rgb(var(--accent))] to-purple-600 rounded-3xl text-white shadow-lg"
                     >
                         <MessageSquare className="w-12 h-12 mx-auto mb-4" />
-                        <h3 className="text-2xl md:text-3xl font-bold mb-4">Need Help or Have Questions?</h3>
-                        <p className="text-white/90 mb-6 text-lg">
+                        <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">Need Help or Have Questions?</h3>
+                        <p className="text-white/90 mb-6 text-base sm:text-lg">
                             Our support team is here to help you get the most out of Interview AI
                         </p>
                         <motion.button

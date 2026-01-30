@@ -249,11 +249,11 @@ const HeroSection = ({ onStart, onLogin }) => {
                 {/* Global Search Bar (Centered Top) */}
                 <div className="relative max-w-2xl mx-auto mb-12">
                     <div className={`relative flex items-center bg-[rgb(var(--bg-elevated))]/80 backdrop-blur-xl border-2 transition-all duration-300 rounded-full shadow-2xl ${isSearchFocused ? 'border-[rgb(var(--accent))] shadow-[0_0_30px_rgba(var(--accent),0.2)]' : 'border-[rgb(var(--border))]'}`}>
-                        <Search className={`ml-4 w-5 h-5 ${isSearchFocused ? 'text-[rgb(var(--accent))]' : 'text-[rgb(var(--text-muted))]'}`} />
+                        <Search className={`ml-3 sm:ml-4 w-4 h-4 sm:w-5 sm:h-5 ${isSearchFocused ? 'text-[rgb(var(--accent))]' : 'text-[rgb(var(--text-muted))]'}`} />
                         <input
                             type="text"
-                            placeholder="Search anything (e.g., 'React Interview', 'System Design')..."
-                            className="w-full bg-transparent border-none py-4 px-3 text-[rgb(var(--text-primary))] placeholder-[rgb(var(--text-muted))] focus:outline-none focus:border-none focus:ring-0 text-base sm:text-lg"
+                            placeholder="Search interviews, tests, notes..."
+                            className="w-full bg-transparent border-none py-3 sm:py-4 px-2 sm:px-3 text-[rgb(var(--text-primary))] placeholder-[rgb(var(--text-muted))] focus:outline-none focus:border-none focus:ring-0 text-sm sm:text-base md:text-lg"
                             value={searchQuery}
                             onChange={handleSearch}
                             onFocus={() => setIsSearchFocused(true)}
@@ -355,7 +355,7 @@ const HeroSection = ({ onStart, onLogin }) => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
-                    className="text-5xl md:text-7xl font-bold tracking-tight text-[rgb(var(--text-primary))] mb-6 leading-tight"
+                    className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-[rgb(var(--text-primary))] mb-6 leading-tight px-4"
                 >
                     Master Your Interview <br />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgb(var(--accent))] to-purple-500">
@@ -368,7 +368,7 @@ const HeroSection = ({ onStart, onLogin }) => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
-                    className="text-xl text-[rgb(var(--text-secondary))] mb-10 max-w-2xl mx-auto leading-relaxed"
+                    className="text-base sm:text-lg md:text-xl text-[rgb(var(--text-secondary))] mb-10 max-w-2xl mx-auto leading-relaxed px-4"
                 >
                     Practice with realistic AI interviewers, get instant feedback on your code and communication, and land your dream job faster.
                 </motion.p>
@@ -405,7 +405,7 @@ const HeroSection = ({ onStart, onLogin }) => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.4 }}
-                    className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto pt-10 border-t border-[rgb(var(--border-subtle))]"
+                    className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 max-w-4xl mx-auto pt-10 border-t border-[rgb(var(--border-subtle))] px-4"
                 >
                     {[
                         { label: "Active Users", value: stats.totalUsers, icon: Users },
@@ -482,7 +482,7 @@ const HeroSection = ({ onStart, onLogin }) => {
                                         className="p-6 h-full flex flex-col gap-6"
                                     >
                                         {/* Dashboard Header Mockup */}
-                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <div className="flex flex-col gap-4">
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <div className="w-8 h-8 rounded-lg bg-[rgb(var(--accent))] flex items-center justify-center">
@@ -492,19 +492,19 @@ const HeroSection = ({ onStart, onLogin }) => {
                                                 </div>
                                                 <p className="text-sm text-[rgb(var(--text-secondary))]">Manage your AI-powered interview preparation sessions</p>
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                                <div className="relative">
+                                            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                                                <div className="relative flex-1 min-w-[150px]">
                                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-muted))]" />
-                                                    <input type="text" placeholder="Search sessions..." className="pl-9 pr-4 py-2 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] rounded-lg text-sm w-48 focus:outline-none focus:border-[rgb(var(--accent))]" />
+                                                    <input type="text" placeholder="Search..." className="pl-9 pr-4 py-2 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] rounded-lg text-sm w-full focus:outline-none focus:border-[rgb(var(--accent))]" />
                                                 </div>
-                                                <button className="flex items-center gap-1.5 px-3 py-2 bg-[rgb(var(--accent))] text-white text-sm font-medium rounded-lg shadow-lg shadow-[rgb(var(--accent))]/20">
+                                                <button className="flex items-center gap-1.5 px-3 py-2 bg-[rgb(var(--accent))] text-white text-sm font-medium rounded-lg shadow-lg shadow-[rgb(var(--accent))]/20 whitespace-nowrap">
                                                     <PlusCircle className="w-4 h-4" /> New
                                                 </button>
                                             </div>
                                         </div>
 
                                         {/* Mock Stats Row */}
-                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                                        <div className="grid grid-cols-2 gap-2 sm:gap-3">
                                             {[
                                                 { label: "Total Sessions", value: userSessions.length || "12", icon: BookOpen, color: "text-blue-400" },
                                                 { label: "Questions", value: stats.questionsSolved === "50K+" ? "145" : stats.questionsSolved, icon: Target, color: "text-green-400" },
@@ -531,20 +531,20 @@ const HeroSection = ({ onStart, onLogin }) => {
                                                     color: "text-orange-400"
                                                 },
                                             ].map((s, i) => (
-                                                <div key={i} className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] p-3 rounded-xl flex items-center gap-3">
-                                                    <div className={`w-8 h-8 rounded-lg bg-[rgb(var(--bg-elevated))] flex items-center justify-center ${s.color}`}>
-                                                        <s.icon className="w-4 h-4" />
+                                                <div key={i} className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] p-2 sm:p-3 rounded-xl flex items-center gap-2 sm:gap-3">
+                                                    <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-[rgb(var(--bg-elevated))] flex items-center justify-center ${s.color}`}>
+                                                        <s.icon className="w-3 h-3 sm:w-4 sm:h-4" />
                                                     </div>
                                                     <div>
-                                                        <div className="text-xs text-[rgb(var(--text-muted))]">{s.label}</div>
-                                                        <div className="text-lg font-bold text-[rgb(var(--text-primary))]">{s.value}</div>
+                                                        <div className="text-[10px] sm:text-xs text-[rgb(var(--text-muted))]">{s.label}</div>
+                                                        <div className="text-sm sm:text-base md:text-lg font-bold text-[rgb(var(--text-primary))]">{s.value}</div>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
 
                                         {/* Mock Sessions Grid (Real Data if logged in) */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                                             {displaySessions.map((session, idx) => {
                                                 const grad = session.gradient || mockSessions[idx % mockSessions.length].gradient;
                                                 const qCount = session.qna?.length || session.qnaCount;
@@ -618,7 +618,7 @@ const HeroSection = ({ onStart, onLogin }) => {
                                         </div>
 
                                         {/* Options Grid */}
-                                        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="w-full grid grid-cols-1 gap-3 sm:gap-4">
                                             {[
                                                 { id: 'A', text: "122", selected: true },
                                                 { id: 'B', text: "32", selected: false },

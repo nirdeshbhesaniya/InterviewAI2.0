@@ -52,10 +52,10 @@ const HowItWorks = () => {
                         viewport={{ once: true }}
                         transition={{ duration: 0.5 }}
                     >
-                        <h2 className="text-3xl md:text-5xl font-bold text-[rgb(var(--text-primary))] mb-6">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[rgb(var(--text-primary))] mb-6">
                             How It Works
                         </h2>
-                        <p className="text-xl text-[rgb(var(--text-secondary))] max-w-2xl mx-auto">
+                        <p className="text-base sm:text-lg md:text-xl text-[rgb(var(--text-secondary))] max-w-2xl mx-auto">
                             Master your technical interview concepts in 4 simple steps.
                         </p>
                     </motion.div>
@@ -91,8 +91,8 @@ const HowItWorks = () => {
                                     {step.id}
                                 </div>
 
-                                <div className={`w-32 h-32 ${step.bg} ${step.border} border-4 rounded-full flex items-center justify-center mb-8 relative group transition-all duration-300 hover:scale-110 shadow-lg`}>
-                                    <step.icon className={`w-12 h-12 ${step.color}`} />
+                                <div className={`w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 ${step.bg} ${step.border} border-4 rounded-full flex items-center justify-center mb-8 relative group transition-all duration-300 hover:scale-110 shadow-lg`}>
+                                    <step.icon className={`w-10 h-10 sm:w-12 sm:h-12 ${step.color}`} />
 
                                     {/* Ripple Effect for first item */}
                                     {idx === 0 && (
@@ -107,7 +107,7 @@ const HowItWorks = () => {
                                     </div>
                                 )}
 
-                                <h3 className="text-xl font-bold text-[rgb(var(--text-primary))] mb-3">{step.title}</h3>
+                                <h3 className="text-lg sm:text-xl font-bold text-[rgb(var(--text-primary))] mb-3">{step.title}</h3>
                                 <p className="text-[rgb(var(--text-secondary))] leading-relaxed text-sm px-2">
                                     {step.description}
                                 </p>
