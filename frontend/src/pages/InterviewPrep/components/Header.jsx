@@ -19,8 +19,7 @@ import {
   Camera,
   Edit3,
   BookOpen,
-  Library,
-  Trash2
+  Library
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from '../../../utils/axiosInstance';
@@ -34,8 +33,6 @@ const Header = ({ onLoginClick }) => {
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('interviewPrepTheme') === 'dark';
   });
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const dropdownRef = useRef(null);
   const notifDropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -68,31 +65,6 @@ const Header = ({ onLoginClick }) => {
       localStorage.setItem('interviewPrepTheme', 'light');
     }
   }, [darkMode]);
-
-  // Auto-hide header on scroll
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-
-      // Show header when at top of page
-      if (currentScrollY < 10) {
-        setIsHeaderVisible(true);
-      }
-      // Hide header when scrolling down, show when scrolling up
-      else if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        // Scrolling down
-        setIsHeaderVisible(false);
-      } else if (currentScrollY < lastScrollY) {
-        // Scrolling up
-        setIsHeaderVisible(true);
-      }
-
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -169,23 +141,20 @@ const Header = ({ onLoginClick }) => {
   };
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 bg-[rgb(var(--bg-elevated))] border-b border-[rgb(var(--border))] shadow-sm z-50 transition-transform duration-300 ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'
-        }`}
-    >
+    <header className="relative bg-[rgb(var(--bg-elevated))] border-b border-[rgb(var(--border))] shadow-sm z-50">
       {/* Main Header */}
-      <div className="px-4 py-4 sm:px-6 lg:px-8">
+      <div className="px-4 py-3 sm:py-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           {/* Enhanced Logo Section */}
           <motion.div
-            className="flex items-center gap-3 cursor-pointer group"
+            className="flex items-center gap-2 cursor-pointer group"
             onClick={() => navigate('/')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
             <div className="relative">
-              <Bot className="w-8 h-8 sm:w-9 sm:h-9 text-[rgb(var(--accent))] drop-shadow-lg transform group-hover:rotate-12 transition-transform duration-300" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-[rgb(var(--accent))] rounded-full animate-pulse"></div>
+              <Bot className="w-7 h-7 sm:w-9 sm:h-9 text-[rgb(var(--accent))] drop-shadow-lg transform group-hover:rotate-12 transition-transform duration-300" />
+              <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[rgb(var(--accent))] rounded-full animate-pulse"></div>
             </div>
             <div className="hidden sm:block">
               <h1 className="text-2xl lg:text-3xl font-bold text-[rgb(var(--text-primary))] tracking-wide">
@@ -194,7 +163,7 @@ const Header = ({ onLoginClick }) => {
               <p className="text-xs text-[rgb(var(--text-muted))] -mt-1">Smart Interview Prep</p>
             </div>
             <div className="block sm:hidden">
-              <h1 className="text-xl font-bold text-[rgb(var(--text-primary))]">
+              <h1 className="text-lg font-bold text-[rgb(var(--text-primary))]">
                 Interview<span className="text-[rgb(var(--accent))]">AI</span>
               </h1>
             </div>
@@ -341,26 +310,24 @@ const Header = ({ onLoginClick }) => {
                                           Mark read
                                         </button>
                                       )}
-                                      {(notif.recipientType === 'individual' || !notif.recipientType) && (
-                                        <button
-                                          onClick={async (e) => {
-                                            e.stopPropagation();
-                                            try {
-                                              await axios.delete(API.NOTIFICATIONS.DELETE, {
-                                                data: { notificationIds: [notif._id] }
-                                              });
-                                              setNotifications(prev => prev.filter(n => n._id !== notif._id));
-                                              await fetchNotificationCount();
-                                            } catch (err) {
-                                              console.error('Failed to delete', err);
-                                            }
-                                          }}
-                                          className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors group-hover:opacity-100 sm:opacity-0"
-                                          title="Delete"
-                                        >
-                                          <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                      )}
+                                      <button
+                                        onClick={async (e) => {
+                                          e.stopPropagation();
+                                          try {
+                                            await axios.delete(API.NOTIFICATIONS.DELETE, {
+                                              data: { notificationIds: [notif._id] }
+                                            });
+                                            setNotifications(prev => prev.filter(n => n._id !== notif._id));
+                                            await fetchNotificationCount();
+                                          } catch (err) {
+                                            console.error('Failed to delete', err);
+                                          }
+                                        }}
+                                        className="text-[10px] text-red-500 hover:underline"
+                                        title="Delete"
+                                      >
+                                        Delete
+                                      </button>
                                     </div>
                                   </div>
                                 </div>
@@ -560,65 +527,65 @@ const Header = ({ onLoginClick }) => {
       {/* Mobile Navigation */}
       {user && (
         <div className="lg:hidden bg-[rgb(var(--bg-card))] border-t border-[rgb(var(--border))]">
-          <div className="px-2 py-2">
-            <div className="flex justify-around items-center">
+          <div className="px-1 py-1.5">
+            <div className="flex items-center justify-between gap-0.5">
               <motion.button
                 onClick={() => navigate('/dashboard')}
-                className="flex flex-col items-center py-2 px-1.5 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors min-w-0"
+                className="flex flex-1 min-w-0 flex-col items-center py-1.5 px-1 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors rounded-lg hover:bg-[rgb(var(--bg-elevated))]"
                 whileTap={{ scale: 0.95 }}
               >
-                <Bot className="w-5 h-5 mb-1" />
-                <span className="text-[10px] leading-tight">Dashboard</span>
+                <Bot className="w-4 h-4 mb-0.5" />
+                <span className="w-full truncate text-center text-[8px] leading-[10px] font-medium">Dashboard</span>
               </motion.button>
               {(user?.role === 'admin' || user?.role === 'owner') && (
                 <motion.button
                   onClick={() => navigate('/admin')}
-                  className="flex flex-col items-center py-2 px-1.5 text-red-500 hover:text-red-600 transition-colors min-w-0"
+                  className="flex flex-1 min-w-0 flex-col items-center py-1.5 px-1 text-red-500 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
                   whileTap={{ scale: 0.95 }}
                 >
-                  <ShieldAlert className="w-5 h-5 mb-1" />
-                  <span className="text-[10px] leading-tight">Admin</span>
+                  <ShieldAlert className="w-4 h-4 mb-0.5" />
+                  <span className="w-full truncate text-center text-[8px] leading-[10px] font-medium">Admin</span>
                 </motion.button>
               )}
               <motion.button
                 onClick={() => navigate('/mcq-test')}
-                className="flex flex-col items-center py-2 px-1.5 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors min-w-0"
+                className="flex flex-1 min-w-0 flex-col items-center py-1.5 px-1 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors rounded-lg hover:bg-[rgb(var(--bg-elevated))]"
                 whileTap={{ scale: 0.95 }}
               >
-                <Shield className="w-5 h-5 mb-1" />
-                <span className="text-[10px] leading-tight">AI MCQ</span>
+                <Shield className="w-4 h-4 mb-0.5" />
+                <span className="w-full truncate text-center text-[8px] leading-[10px] font-medium">AI MCQ</span>
               </motion.button>
               <motion.button
                 onClick={() => navigate('/mcq-test/practice')}
-                className="flex flex-col items-center py-2 px-1.5 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors min-w-0"
+                className="flex flex-1 min-w-0 flex-col items-center py-1.5 px-1 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors rounded-lg hover:bg-[rgb(var(--bg-elevated))]"
                 whileTap={{ scale: 0.95 }}
               >
-                <FileQuestion className="w-5 h-5 mb-1" />
-                <span className="text-[10px] leading-tight">Practice</span>
+                <FileQuestion className="w-4 h-4 mb-0.5" />
+                <span className="w-full truncate text-center text-[8px] leading-[10px] font-medium">Practice</span>
               </motion.button>
               <motion.button
                 onClick={() => navigate('/codebase')}
-                className="flex flex-col items-center py-2 px-1.5 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors min-w-0"
+                className="flex flex-1 min-w-0 flex-col items-center py-1.5 px-1 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors rounded-lg hover:bg-[rgb(var(--bg-elevated))]"
                 whileTap={{ scale: 0.95 }}
               >
-                <Code className="w-5 h-5 mb-1" />
-                <span className="text-[10px] leading-tight">Code</span>
+                <Code className="w-4 h-4 mb-0.5" />
+                <span className="w-full truncate text-center text-[8px] leading-[10px] font-medium">Code</span>
               </motion.button>
               <motion.button
                 onClick={() => navigate('/notes')}
-                className="flex flex-col items-center py-2 px-1.5 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors min-w-0"
+                className="flex flex-1 min-w-0 flex-col items-center py-1.5 px-1 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors rounded-lg hover:bg-[rgb(var(--bg-elevated))]"
                 whileTap={{ scale: 0.95 }}
               >
-                <BookOpen className="w-5 h-5 mb-1" />
-                <span className="text-[10px] leading-tight">Notes</span>
+                <BookOpen className="w-4 h-4 mb-0.5" />
+                <span className="w-full truncate text-center text-[8px] leading-[10px] font-medium">Notes</span>
               </motion.button>
               <motion.button
                 onClick={() => navigate('/resources')}
-                className="flex flex-col items-center py-2 px-1.5 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors min-w-0"
+                className="flex flex-1 min-w-0 flex-col items-center py-1.5 px-1 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors rounded-lg hover:bg-[rgb(var(--bg-elevated))]"
                 whileTap={{ scale: 0.95 }}
               >
-                <Library className="w-5 h-5 mb-1" />
-                <span className="text-[10px] leading-tight">Resources</span>
+                <Library className="w-4 h-4 mb-0.5" />
+                <span className="w-full truncate text-center text-[8px] leading-[10px] font-medium">Resources</span>
               </motion.button>
             </div>
           </div>

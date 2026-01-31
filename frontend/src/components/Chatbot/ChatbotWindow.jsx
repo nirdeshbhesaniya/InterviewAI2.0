@@ -132,17 +132,18 @@ const ChatbotWindow = () => {
                     y: isFullScreen ? 0 : 0,
                     x: isFullScreen ? 0 : 0,
                     height: isFullScreen ? '100vh' : (isMinimized ? '60px' : '600px'),
-                    width: isFullScreen ? '100vw' : (window.innerWidth < 768 ? '95vw' : '420px'),
+                    width: isFullScreen ? '100vw' : (window.innerWidth < 768 ? 'calc(100vw - 2rem)' : '420px'),
                     borderRadius: isFullScreen ? 0 : '0.75rem',
-                    bottom: isFullScreen ? 0 : '1.5rem',
-                    right: isFullScreen ? 0 : '1.5rem',
+                    bottom: isFullScreen ? 0 : (window.innerWidth < 640 ? '1rem' : '1.5rem'),
+                    right: isFullScreen ? 0 : (window.innerWidth < 640 ? '1rem' : '1.5rem'),
                 }}
                 exit={{ opacity: 0, scale: 0.8, y: 50 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 className={`fixed z-50 flex flex-col overflow-hidden bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] shadow-2xl ${!isFullScreen && 'rounded-xl'}`}
                 style={{
                     maxHeight: isFullScreen ? '100vh' : '80vh',
-                    minHeight: isMinimized ? '60px' : '400px'
+                    minHeight: isMinimized ? '60px' : '400px',
+                    maxWidth: isFullScreen ? '100vw' : (window.innerWidth < 768 ? 'calc(100vw - 2rem)' : '420px')
                 }}
             >
                 {/* Header */}
@@ -152,8 +153,8 @@ const ChatbotWindow = () => {
                             <Bot size={16} />
                         </Icon3D>
                         <div>
-                            <h3 className="font-semibold text-sm">AI Interview Assistant</h3>
-                            <p className="text-xs opacity-90">
+                            <h3 className="font-semibold text-sm !text-white">AI Interview Assistant</h3>
+                            <p className="text-xs !text-white/90">
                                 {isLoading ? 'Thinking...' : 'Online'}
                             </p>
                         </div>
@@ -211,9 +212,9 @@ const ChatbotWindow = () => {
                         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[rgb(var(--bg-body))] chatbot-messages-container">
                             {messages.length === 0 && (
                                 <div className="space-y-3">
-                                    <div className="text-center text-sm text-[rgb(var(--text-muted))] mb-4">
-                                        <Sparkles className="inline-block w-4 h-4 mr-1" />
-                                        Quick start questions:
+                                    <div className="text-center text-sm font-medium text-[rgb(var(--text-secondary))] mb-4 flex items-center justify-center gap-2">
+                                        <Sparkles className="w-4 h-4 text-[rgb(var(--accent))]" />
+                                        <span>Quick start questions:</span>
                                     </div>
                                     <div className="grid grid-cols-1 gap-2">
                                         {quickQuestions.map((question, index) => (
@@ -225,7 +226,7 @@ const ChatbotWindow = () => {
                                                 whileHover={{ scale: 1.02 }}
                                                 whileTap={{ scale: 0.98 }}
                                                 onClick={() => handleSendMessage(question)}
-                                                className="chatbot-quick-question p-3 text-left text-sm bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] rounded-lg hover:border-[rgb(var(--accent))] transition-colors text-[rgb(var(--text-secondary))]"
+                                                className="chatbot-quick-question p-3 text-left text-sm font-medium bg-[rgb(var(--bg-card))] border-2 border-[rgb(var(--border))] rounded-xl hover:border-[rgb(var(--accent))] hover:shadow-md transition-all duration-200 text-[rgb(var(--text-primary))]"
                                             >
                                                 {question}
                                             </motion.button>
@@ -243,10 +244,10 @@ const ChatbotWindow = () => {
                                 >
                                     <div className={`max-w-[85%] ${message.isBot ? 'order-2' : 'order-1'} ${isFullScreen && 'text-lg'}`}>
                                         <div
-                                            className={`rounded-lg p-4 ${message.isBot
-                                                    ? 'chatbot-bot-message'
-                                                    : 'chatbot-user-message text-white'
-                                                } ${message.isError ? 'message-status-error' : ''}`}
+                                            className={`rounded-xl p-4 ${message.isBot
+                                                    ? 'bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))] shadow-sm'
+                                                    : 'bg-[rgb(var(--accent))] text-white shadow-lg'
+                                                } ${message.isError ? 'border-red-500 bg-red-50' : ''}`}
                                         >
                                             {message.isBot ? (
                                                 <div className={`chatbot-markdown ${isFullScreen ? 'prose-lg' : 'prose-sm'}`}>
@@ -312,7 +313,7 @@ const ChatbotWindow = () => {
                                         <Icon3D size="sm" color="secondary" animated={false}>
                                             <Bot size={16} />
                                         </Icon3D>
-                                        <div className="chatbot-bot-message rounded-lg p-3">
+                                        <div className="bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] rounded-xl p-3 shadow-sm">
                                             <div className="flex space-x-2">
                                                 <motion.div className="typing-indicator-dot w-2 h-2 bg-[rgb(var(--accent))] rounded-full" />
                                                 <motion.div className="typing-indicator-dot w-2 h-2 bg-[rgb(var(--accent))] rounded-full" />
@@ -336,7 +337,7 @@ const ChatbotWindow = () => {
                                         onChange={(e) => setInputMessage(e.target.value)}
                                         onKeyPress={handleKeyPress}
                                         placeholder="Ask me anything about interviews..."
-                                        className="w-full p-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] resize-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-colors placeholder:text-[rgb(var(--text-muted))]"
+                                        className="w-full p-3 border-2 border-[rgb(var(--border))] rounded-xl bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] resize-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-[rgb(var(--accent))] transition-all placeholder:text-[rgb(var(--text-secondary))]"
                                         rows="1"
                                         style={{ minHeight: '44px', maxHeight: '120px' }}
                                         disabled={isLoading}
@@ -348,7 +349,7 @@ const ChatbotWindow = () => {
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => handleSendMessage()}
                                     disabled={!inputMessage.trim() || isLoading}
-                                    className="px-4 py-3 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl"
+                                    className="px-4 py-3 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl"
                                 >
                                     <Send size={18} />
                                 </motion.button>

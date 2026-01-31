@@ -21,13 +21,13 @@ const CTA = ({ onJoin }) => {
                     transition={{ duration: 0.6 }}
                     viewport={{ once: true }}
                 >
-                    <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[rgb(var(--text-primary))] mb-8 tracking-tight">
+                    <h2 className="text-4xl md:text-6xl font-bold text-[rgb(var(--text-primary))] mb-8 tracking-tight">
                         Ready to Ace Your Next <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgb(var(--accent))] to-purple-600">
                             Interview?
                         </span>
                     </h2>
-                    <p className="text-base sm:text-lg md:text-xl text-[rgb(var(--text-secondary))] mb-12 max-w-2xl mx-auto">
+                    <p className="text-xl text-[rgb(var(--text-secondary))] mb-12 max-w-2xl mx-auto">
                         Join thousands of developers who are using Interview AI to fast-track their career growth.
                         Start practicing today for free.
                     </p>
@@ -40,7 +40,7 @@ const CTA = ({ onJoin }) => {
                                 onJoin?.();
                             }
                         }}
-                        className="group relative inline-flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-primary))] border border-[rgb(var(--border))] rounded-full font-bold text-base sm:text-lg hover:shadow-[0_0_40px_-10px_rgba(var(--accent),0.3)] transition-all duration-300 transform hover:-translate-y-1"
+                        className="group relative inline-flex items-center gap-3 px-8 py-4 bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-primary))] border border-[rgb(var(--border))] rounded-full font-bold text-lg hover:shadow-[0_0_40px_-10px_rgba(var(--accent),0.3)] transition-all duration-300 transform hover:-translate-y-1"
                     >
                         <span>{user ? 'Go to Dashboard' : 'Get Started for Free'}</span>
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

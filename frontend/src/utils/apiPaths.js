@@ -4,7 +4,7 @@
 // export const API_BASE_URL = 'http://localhost:8080/api';
 // export const API_BASE_URL = 'http://104.43.106.43:8080/api';
 export const API_BASE_URL = 'https://api.interviewai.tech/api';
-console.log("API BASE:", API_BASE_URL);
+
 
 export const API = {
   REGISTER: `${API_BASE_URL}/auth/register`,

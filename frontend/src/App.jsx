@@ -41,7 +41,7 @@ const App = () => {
     <ChatbotProvider>
       <TestModeProvider>
         <Router>
-          <div className="min-h-screen bg-background text-foreground">
+          <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
             <Routes>
               {/* Public routes (no header) */}
               <Route path="/" element={<LandingPage />} />

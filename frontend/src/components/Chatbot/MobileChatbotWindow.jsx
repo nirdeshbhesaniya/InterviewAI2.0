@@ -127,8 +127,8 @@ const MobileChatbotWindow = () => {
                             <Bot size={20} />
                         </Icon3D>
                         <div>
-                            <h3 className="font-semibold text-white">AI Interview Assistant</h3>
-                            <p className="text-sm text-white/80 opacity-90">
+                            <h3 className="font-semibold !text-white">AI Interview Assistant</h3>
+                            <p className="text-sm !text-white/80 opacity-90">
                                 {isLoading ? 'Thinking...' : 'Online'}
                             </p>
                         </div>
@@ -159,9 +159,9 @@ const MobileChatbotWindow = () => {
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[rgb(var(--bg-body))] chatbot-messages-container">
                     {messages.length === 1 && (
                         <div className="space-y-4">
-                            <div className="text-center text-[rgb(var(--text-muted))] mb-6">
-                                <Sparkles className="inline-block w-5 h-5 mr-2" />
-                                Quick start questions:
+                            <div className="text-center text-sm font-medium text-[rgb(var(--text-secondary))] mb-6 flex items-center justify-center gap-2">
+                                <Sparkles className="w-5 h-5 text-[rgb(var(--accent))]" />
+                                <span>Quick start questions:</span>
                             </div>
                             <div className="grid grid-cols-1 gap-3">
                                 {quickQuestions.map((question, index) => (
@@ -173,7 +173,7 @@ const MobileChatbotWindow = () => {
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => handleSendMessage(question)}
-                                        className="chatbot-quick-question p-4 text-left text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-lg hover:border-[rgb(var(--accent))]/50 transition-colors shadow-sm"
+                                        className="chatbot-quick-question p-4 text-left text-sm font-medium text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-card))] border-2 border-[rgb(var(--border))] rounded-xl hover:border-[rgb(var(--accent))] hover:shadow-md transition-all duration-200"
                                     >
                                         {question}
                                     </motion.button>
@@ -191,10 +191,10 @@ const MobileChatbotWindow = () => {
                         >
                             <div className={`max-w-[85%] ${message.isBot ? 'order-2' : 'order-1'}`}>
                                 <div
-                                    className={`rounded-lg p-4 ${message.isBot
-                                            ? 'chatbot-bot-message'
-                                            : 'chatbot-user-message text-white shadow-lg'
-                                        } ${message.isError ? 'message-status-error' : ''}`}
+                                    className={`rounded-xl p-4 ${message.isBot
+                                        ? 'chatbot-bot-message bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))]'
+                                        : 'chatbot-user-message text-white bg-[rgb(var(--accent))] shadow-lg'
+                                        } ${message.isError ? 'message-status-error border-red-500' : ''}`}
                                 >
                                     {message.isBot ? (
                                         <div className="chatbot-markdown prose-sm">
@@ -261,7 +261,7 @@ const MobileChatbotWindow = () => {
                                 <Icon3D size="sm" color="secondary" animated={false}>
                                     <Bot size={16} />
                                 </Icon3D>
-                                <div className="chatbot-bot-message rounded-lg p-4 shadow-sm">
+                                <div className="chatbot-bot-message rounded-xl p-4 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] shadow-sm">
                                     <div className="flex space-x-2">
                                         <motion.div className="typing-indicator-dot w-3 h-3 bg-[rgb(var(--accent))] rounded-full" />
                                         <motion.div className="typing-indicator-dot w-3 h-3 bg-[rgb(var(--accent))] rounded-full" />
@@ -285,7 +285,7 @@ const MobileChatbotWindow = () => {
                                 onChange={(e) => setInputMessage(e.target.value)}
                                 onKeyPress={handleKeyPress}
                                 placeholder="Ask me anything about interviews..."
-                                className="w-full p-4 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] resize-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-colors"
+                                className="w-full p-4 border-2 border-[rgb(var(--border))] rounded-xl bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-secondary))] resize-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-[rgb(var(--accent))] transition-all"
                                 rows="2"
                                 disabled={isLoading}
                             />
@@ -296,9 +296,9 @@ const MobileChatbotWindow = () => {
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleSendMessage()}
                             disabled={!inputMessage.trim() || isLoading}
-                            className="px-5 py-4 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center self-end shadow-lg"
+                            className="px-5 py-4 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-xl hover:shadow-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center self-end shadow-lg"
                         >
-                            <Send size={20} />
+                            <Send size={22} />
                         </motion.button>
                     </div>
                 </div>

@@ -137,8 +137,8 @@ const NotificationPage = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
                                     className={`relative p-6 rounded-2xl border transition-all ${notif.isRead
-                                        ? 'bg-[rgb(var(--bg-card))] border-[rgb(var(--border))]'
-                                        : 'bg-[rgb(var(--bg-elevated))] border-[rgb(var(--accent))]/30 shadow-sm'
+                                            ? 'bg-[rgb(var(--bg-card))] border-[rgb(var(--border))]'
+                                            : 'bg-[rgb(var(--bg-elevated))] border-[rgb(var(--accent))]/30 shadow-sm'
                                         }`}
                                 >
                                     <div className="flex justify-between items-start gap-4">
@@ -172,13 +172,15 @@ const NotificationPage = () => {
                                                 </button>
                                             )}
                                             {/* Only allow delete for individual notifications, broadcasts can only be marked read (hidden logic needed for broadcast delete, but for MVP keep simple) */}
-                                            <button
-                                                onClick={() => handleDelete(notif._id)}
-                                                className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                                                title="Delete"
-                                            >
-                                                <Trash2 className="w-5 h-5" />
-                                            </button>
+                                            {(notif.recipientType === 'individual' || notif.userId) && (
+                                                <button
+                                                    onClick={() => handleDelete(notif._id)}
+                                                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </motion.div>

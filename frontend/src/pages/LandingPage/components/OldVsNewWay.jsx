@@ -181,13 +181,13 @@ const OldVsNewWay = ({ onJoin }) => {
                     viewport={{ once: true }}
                     className="text-center mb-16"
                 >
-                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[rgb(var(--text-primary))] mb-4">
+                    <h2 className="text-4xl md:text-5xl font-bold text-[rgb(var(--text-primary))] mb-4">
                         The Old Way vs{' '}
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgb(var(--accent))] to-purple-500">
                             The Interview AI Way
                         </span>
                     </h2>
-                    <p className="text-base sm:text-lg md:text-xl text-[rgb(var(--text-secondary))] max-w-3xl mx-auto">
+                    <p className="text-xl text-[rgb(var(--text-secondary))] max-w-3xl mx-auto">
                         See how Interview AI transforms your preparation journey with real data and proven results
                     </p>
                 </motion.div>
@@ -203,23 +203,23 @@ const OldVsNewWay = ({ onJoin }) => {
                             transition={{ delay: idx * 0.1 }}
                         >
                             {/* Category Title */}
-                            <h3 className="text-xl sm:text-2xl font-bold text-[rgb(var(--text-primary))] mb-8 text-center">
+                            <h3 className="text-2xl font-bold text-[rgb(var(--text-primary))] mb-8 text-center">
                                 {comparison.category}
                             </h3>
 
                             <div className="grid md:grid-cols-2 gap-8">
                                 {/* Old Way */}
-                                <div className="relative bg-[rgb(var(--bg-card))] border-2 border-red-500/20 rounded-2xl p-4 sm:p-6 md:p-8 hover:border-red-500/40 transition-all">
+                                <div className="relative bg-[rgb(var(--bg-card))] border-2 border-red-500/20 rounded-2xl p-8 hover:border-red-500/40 transition-all">
                                     {/* Negative Badge */}
                                     <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-red-500/10 border border-red-500/30 rounded-full">
                                         <span className="text-sm font-semibold text-red-400">Outdated</span>
                                     </div>
 
-                                    <div className="flex items-center gap-2 sm:gap-3 mb-6 mt-2">
+                                    <div className="flex items-center gap-3 mb-6 mt-2">
                                         <div className="p-3 bg-red-500/10 rounded-xl">
                                             <comparison.oldWay.icon className="w-6 h-6 text-red-400" />
                                         </div>
-                                        <h4 className="text-lg sm:text-xl font-bold text-[rgb(var(--text-primary))]">
+                                        <h4 className="text-xl font-bold text-[rgb(var(--text-primary))]">
                                             {comparison.oldWay.title}
                                         </h4>
                                     </div>
@@ -253,17 +253,17 @@ const OldVsNewWay = ({ onJoin }) => {
                                 </div>
 
                                 {/* New Way */}
-                                <div className="relative bg-gradient-to-br from-[rgb(var(--accent))]/5 to-purple-500/5 border-2 border-[rgb(var(--accent))]/30 rounded-2xl p-4 sm:p-6 md:p-8 hover:border-[rgb(var(--accent))]/60 transition-all hover:shadow-[0_0_30px_rgba(var(--accent),0.15)]">
+                                <div className="relative bg-gradient-to-br from-[rgb(var(--accent))]/5 to-purple-500/5 border-2 border-[rgb(var(--accent))]/30 rounded-2xl p-8 hover:border-[rgb(var(--accent))]/60 transition-all hover:shadow-[0_0_30px_rgba(var(--accent),0.15)]">
                                     {/* Positive Badge */}
                                     <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-[rgb(var(--accent))] rounded-full">
                                         <span className="text-sm font-semibold text-white">Modern & Smart</span>
                                     </div>
 
-                                    <div className="flex items-center gap-2 sm:gap-3 mb-6 mt-2">
+                                    <div className="flex items-center gap-3 mb-6 mt-2">
                                         <div className="p-3 bg-[rgb(var(--accent))]/10 rounded-xl">
                                             <comparison.newWay.icon className="w-6 h-6 text-[rgb(var(--accent))]" />
                                         </div>
-                                        <h4 className="text-lg sm:text-xl font-bold text-[rgb(var(--text-primary))]">
+                                        <h4 className="text-xl font-bold text-[rgb(var(--text-primary))]">
                                             {comparison.newWay.title}
                                         </h4>
                                     </div>
@@ -307,10 +307,10 @@ const OldVsNewWay = ({ onJoin }) => {
                     viewport={{ once: true }}
                     className="mb-12"
                 >
-                    <h3 className="text-2xl sm:text-3xl font-bold text-[rgb(var(--text-primary))] mb-8 text-center">
+                    <h3 className="text-3xl font-bold text-[rgb(var(--text-primary))] mb-8 text-center">
                         Real Results from Real Users
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         {benefits.map((benefit, idx) => (
                             <motion.div
                                 key={idx}
@@ -318,7 +318,7 @@ const OldVsNewWay = ({ onJoin }) => {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: idx * 0.1 }}
-                                className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-xl p-4 sm:p-6 text-center hover:border-[rgb(var(--accent))]/50 transition-all hover:shadow-lg"
+                                className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-xl p-6 text-center hover:border-[rgb(var(--accent))]/50 transition-all hover:shadow-lg"
                             >
                                 <div className="inline-flex p-4 bg-[rgb(var(--accent))]/10 rounded-full mb-4">
                                     <benefit.icon className="w-8 h-8 text-[rgb(var(--accent))]" />
@@ -326,7 +326,7 @@ const OldVsNewWay = ({ onJoin }) => {
                                 <h4 className="text-sm font-medium text-[rgb(var(--text-secondary))] mb-2">
                                     {benefit.title}
                                 </h4>
-                                <div className="text-2xl sm:text-3xl font-bold text-[rgb(var(--text-primary))] mb-2">
+                                <div className="text-3xl font-bold text-[rgb(var(--text-primary))] mb-2">
                                     {benefit.value}
                                 </div>
                                 <p className="text-xs text-[rgb(var(--text-muted))]">
@@ -344,12 +344,12 @@ const OldVsNewWay = ({ onJoin }) => {
                     viewport={{ once: true }}
                     className="text-center"
                 >
-                    <div className="inline-flex flex-col items-center gap-4 bg-gradient-to-r from-[rgb(var(--accent))]/10 to-purple-500/10 border border-[rgb(var(--accent))]/30 rounded-2xl p-6 sm:p-8 w-full max-w-4xl">
-                        <div className="flex-1 text-center sm:text-left">
-                            <h4 className="text-xl sm:text-2xl font-bold text-[rgb(var(--text-primary))] mb-2">
+                    <div className="inline-flex flex-col sm:flex-row items-center gap-4 bg-gradient-to-r from-[rgb(var(--accent))]/10 to-purple-500/10 border border-[rgb(var(--accent))]/30 rounded-2xl p-8">
+                        <div className="flex-1 text-left">
+                            <h4 className="text-2xl font-bold text-[rgb(var(--text-primary))] mb-2">
                                 Ready to Transform Your Interview Prep?
                             </h4>
-                            <p className="text-sm sm:text-base text-[rgb(var(--text-secondary))]">
+                            <p className="text-[rgb(var(--text-secondary))]">
                                 Join {stats.totalUsers}+ users who are already preparing smarter, not harder.
                             </p>
                         </div>
@@ -361,7 +361,7 @@ const OldVsNewWay = ({ onJoin }) => {
                                     onJoin?.();
                                 }
                             }}
-                            className="group inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-[rgb(var(--accent))] text-white rounded-full font-bold text-base sm:text-lg hover:bg-[rgb(var(--accent-hover))] transition-all duration-300 hover:shadow-[0_0_20px_rgba(var(--accent),0.4)] whitespace-nowrap"
+                            className="group inline-flex items-center gap-2 px-8 py-4 bg-[rgb(var(--accent))] text-white rounded-full font-bold text-lg hover:bg-[rgb(var(--accent-hover))] transition-all duration-300 hover:shadow-[0_0_20px_rgba(var(--accent),0.4)] whitespace-nowrap"
                         >
                             {user ? 'Go to Dashboard' : 'Start Free Now'}
                             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

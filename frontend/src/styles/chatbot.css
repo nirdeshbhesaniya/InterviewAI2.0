@@ -46,27 +46,40 @@
 
 /* Bot message with glassmorphism effect */
 .chatbot-bot-message {
-    background: linear-gradient(135deg, rgba(var(--bg-card), 0.95) 0%, rgba(var(--bg-elevated), 0.98) 100%);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(var(--border-subtle), 0.5);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+    background: rgb(var(--bg-elevated));
+    border: 1px solid rgb(var(--border-subtle));
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+    color: rgb(var(--text-primary));
 }
 
 .dark .chatbot-bot-message {
-    background: linear-gradient(135deg, rgba(var(--bg-card), 0.6) 0%, rgba(var(--bg-elevated), 0.8) 100%);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+    background: rgba(var(--bg-elevated), 0.9);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3);
+    color: rgb(var(--text-primary));
 }
 
 /* User message with gradient */
 .chatbot-user-message {
     background: linear-gradient(135deg, rgb(var(--accent)) 0%, rgb(var(--accent-hover)) 100%);
-    box-shadow: 0 4px 12px rgba(var(--accent), 0.25), 0 2px 4px rgba(var(--accent), 0.15);
+    box-shadow: 0 4px 16px rgba(var(--accent), 0.3), 0 2px 8px rgba(var(--accent), 0.2);
+    color: white;
+    font-weight: 500;
 }
 
 /* Enhanced markdown rendering */
 .chatbot-markdown {
-    color: rgb(var(--text-secondary));
+    color: rgb(var(--text-primary));
     line-height: 1.7;
+}
+
+.chatbot-markdown p {
+    color: rgb(var(--text-primary));
+    margin-bottom: 0.75rem;
+}
+
+.chatbot-markdown strong {
+    color: rgb(var(--text-primary));
+    font-weight: 600;
 }
 
 .chatbot-markdown h1 {
@@ -240,9 +253,10 @@
 /* Message timestamp */
 .chatbot-timestamp {
     font-size: 0.75rem;
-    color: rgb(var(--text-muted));
-    opacity: 0.7;
+    color: rgb(var(--text-secondary));
+    opacity: 0.8;
     transition: opacity 0.2s ease;
+    font-weight: 500;
 }
 
 .chatbot-message:hover .chatbot-timestamp {
@@ -276,6 +290,24 @@
     background: linear-gradient(135deg, rgb(var(--accent)) 0%, rgb(var(--accent-hover)) 100%);
     background-size: 200% 200%;
     animation: gradientShift 6s ease infinite;
+    color: white;
+}
+
+/* Ensure header text is always visible */
+.chatbot-header-gradient * {
+    color: white !important;
+}
+
+/* Light mode specific header styling */
+:root:not(.dark) .chatbot-header-gradient {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+}
+
+/* Dark mode specific header styling */
+.dark .chatbot-header-gradient {
+    background: linear-gradient(135deg, rgb(var(--accent)) 0%, rgb(var(--accent-hover)) 100%);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Input focus */

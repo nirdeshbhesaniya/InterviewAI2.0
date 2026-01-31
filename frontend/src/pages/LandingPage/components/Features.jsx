@@ -44,7 +44,7 @@ const Features = ({ onLogin }) => {
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[rgb(var(--text-primary))] mb-4"
+                        className="text-3xl md:text-5xl font-bold text-[rgb(var(--text-primary))] mb-4"
                     >
                         Powerful Features for <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgb(var(--accent))] to-purple-500">Serious Preparation</span>
                     </motion.h2>
@@ -53,7 +53,7 @@ const Features = ({ onLogin }) => {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.1 }}
-                        className="text-base sm:text-lg md:text-xl text-[rgb(var(--text-secondary))] max-w-2xl mx-auto"
+                        className="text-xl text-[rgb(var(--text-secondary))] max-w-2xl mx-auto"
                     >
                         Everything you need to crack your next technical interview, all in one platform.
                     </motion.p>
@@ -74,7 +74,7 @@ const Features = ({ onLogin }) => {
                                 viewport={{ once: true }}
                                 transition={{ delay: idx * 0.1 }}
                                 onClick={() => handleFeatureClick(feature.link)}
-                                className="group relative bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-2xl p-6 sm:p-8 hover:border-[rgb(var(--accent))]/50 transition-all duration-300 hover:shadow-xl hover:shadow-[rgb(var(--accent))]/5 cursor-pointer hover:-translate-y-1"
+                                className="group relative bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-2xl p-8 hover:border-[rgb(var(--accent))]/50 transition-all duration-300 hover:shadow-xl hover:shadow-[rgb(var(--accent))]/5 cursor-pointer hover:-translate-y-1"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--accent))]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
 
