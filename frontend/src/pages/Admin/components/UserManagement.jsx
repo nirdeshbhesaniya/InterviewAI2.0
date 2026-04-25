@@ -5,6 +5,7 @@ import { API } from '../../../utils/apiPaths';
 import toast from 'react-hot-toast';
 import { Button } from '../../../components/ui/button';
 import UserEditModal from './UserEditModal';
+import RecruiterProfileViewModal from './RecruiterProfileViewModal';
 import Pagination from '../../../components/common/Pagination';
 
 const UserManagement = () => {
@@ -16,6 +17,7 @@ const UserManagement = () => {
 
     // Edit Modal State
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isRecruiterModalOpen, setIsRecruiterModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
 
     useEffect(() => {
@@ -53,6 +55,11 @@ const UserManagement = () => {
     const handleEditUser = (user) => {
         setSelectedUser(user);
         setIsEditModalOpen(true);
+    };
+
+    const handleViewRecruiter = (user) => {
+        setSelectedUser(user);
+        setIsRecruiterModalOpen(true);
     };
 
     const handleSaveUser = async (userId, updatedData) => {
@@ -148,7 +155,10 @@ const UserManagement = () => {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-2 flex-wrap">
+                            <Button size="sm" variant="outline" onClick={() => handleViewRecruiter(user)} className="h-9 px-3 text-xs bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] hover:bg-[rgb(var(--accent))]/20 border-[rgb(var(--accent))]/20">
+                                <Search className="w-3.5 h-3.5 mr-1.5" /> View Recruiter
+                            </Button>
                             <Button size="sm" variant="outline" onClick={() => handleEditUser(user)} className="h-9 px-4 text-xs">
                                 <PenSquare className="w-3.5 h-3.5 mr-1.5" /> Edit
                             </Button>
@@ -233,6 +243,15 @@ const UserManagement = () => {
                                         <Button
                                             size="sm"
                                             variant="outline"
+                                            onClick={() => handleViewRecruiter(user)}
+                                            className="h-8 px-3 rounded-full border-[rgb(var(--accent))]/20 bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] hover:bg-[rgb(var(--accent))]/20 text-xs font-medium"
+                                            title="View Recruiter Profile"
+                                        >
+                                            View
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
                                             onClick={() => handleEditUser(user)}
                                             className="h-8 w-8 p-0 rounded-full border-[rgb(var(--border))]"
                                             title="Edit User"
@@ -281,6 +300,13 @@ const UserManagement = () => {
                 user={selectedUser}
                 onSave={handleSaveUser}
                 currentUserRole={JSON.parse(localStorage.getItem("user"))?.role}
+            />
+
+            {/* Recruiter Profile Modal */}
+            <RecruiterProfileViewModal
+                isOpen={isRecruiterModalOpen}
+                onClose={() => setIsRecruiterModalOpen(false)}
+                user={selectedUser}
             />
         </div>
     );

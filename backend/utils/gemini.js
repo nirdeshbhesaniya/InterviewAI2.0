@@ -273,10 +273,283 @@ async function summarizeText(text) {
   }
 }
 
+/**
+ * Extract a structured candidate profile from raw resume PDF text.
+ * Uses OpenRouter (OpenAI models) to parse and organize the information.
+ * Returns an empty object on failure so interviews still work without a resume.
+ *
+ * @param {string} rawText - Raw text extracted from the PDF by pdf-parse
+ * @returns {Promise<Object>} Structured candidate profile
+ */
+async function extractResumeProfile(rawText) {
+  console.log(`[ResumeParser] Received rawText with length: ${rawText?.length || 0}`);
+
+  if (!rawText || rawText.trim().length < 50) {
+    console.warn(`[ResumeParser] rawText is too short (< 50 chars). The PDF might be image-based or empty. Skipping extraction.`);
+    return {};
+  }
+
+  // Trim to avoid token overflows (max ~6000 chars of resume text)
+  const trimmedText = rawText.trim().substring(0, 6000);
+
+  const systemPrompt = `You are an expert resume parser. You always respond with ONLY valid JSON objects.`;
+
+  const userPrompt = `Extract structured information from the following resume text.
+
+Return ONLY a JSON object following this exact schema:
+{
+  "summary": "A 2-3 sentence professional summary of the candidate",
+  "education": ["B.Tech CSE from XYZ University (2024)", "..."],
+  "skills": ["React", "Node.js", "MongoDB", "..."],
+  "projects": [
+    {
+      "title": "Project Name",
+      "description": "Brief description of the project",
+      "technologies": ["React", "Node.js"]
+    }
+  ],
+  "workExperience": [
+    {
+      "company": "Company Name",
+      "role": "Software Engineer Intern",
+      "duration": "Jan 2024 – Jun 2024",
+      "highlights": ["Built REST APIs", "Improved performance by 30%"]
+    }
+  ],
+  "certifications": ["AWS Certified Developer", "..."]
+}
+
+Rules:
+- If a field has no information, use an empty array [] or empty string ""
+- Do NOT invent information not present in the resume
+
+RESUME TEXT:
+${trimmedText}`;
+
+  try {
+    const { content } = await generateWithFallback(QA_MODEL_PREFERENCES, systemPrompt, userPrompt);
+    console.log(`[ResumeParser] OpenRouter response length: ${content.length}`);
+
+    const extractFirstJsonObject = (text) => {
+      const start = text.indexOf('{');
+      if (start === -1) return '';
+
+      let depth = 0;
+      let inString = false;
+      let escaped = false;
+
+      for (let i = start; i < text.length; i += 1) {
+        const ch = text[i];
+
+        if (inString) {
+          if (escaped) {
+            escaped = false;
+            continue;
+          }
+          if (ch === '\\') {
+            escaped = true;
+            continue;
+          }
+          if (ch === '"') {
+            inString = false;
+          }
+          continue;
+        }
+
+        if (ch === '"') {
+          inString = true;
+          continue;
+        }
+
+        if (ch === '{') depth += 1;
+        if (ch === '}') {
+          depth -= 1;
+          if (depth === 0) {
+            return text.slice(start, i + 1);
+          }
+        }
+      }
+
+      return '';
+    };
+
+    const jsonString = extractFirstJsonObject(content);
+    if (!jsonString) {
+      throw new Error('No JSON object found in the AI response');
+    }
+
+    const profile = JSON.parse(jsonString);
+    console.log('[ResumeParser] Successfully extracted candidate profile via OpenRouter.');
+    return profile;
+
+  } catch (err) {
+    console.error('[ResumeParser] Failed to extract profile from resume:', err.message);
+    return {}; // Graceful degradation — interview still works
+  }
+}
+
+
+/**
+ * Generate mock interview questions via OpenRouter (OpenAI-compatible).
+ * Returns a strict JSON array of question objects.
+ */
+async function generateMockInterviewData(skills, degree, interviewType, difficulty, focusArea, questionCount = 5, options = {}) {
+  const {
+    jobRole = 'General',
+    jobExperience = 0,
+    resumeContext = '',
+    candidateProfile = null
+  } = options;
+
+  const profileSkills = Array.isArray(candidateProfile?.skills) ? candidateProfile.skills.join(', ') : '';
+  const profileProjects = Array.isArray(candidateProfile?.projects)
+    ? candidateProfile.projects
+      .slice(0, 3)
+      .map((p) => {
+        const tech = Array.isArray(p?.technologies) && p.technologies.length
+          ? ` (${p.technologies.join(', ')})`
+          : '';
+        return `${p?.title || 'Project'}${tech}${p?.description ? `: ${p.description}` : ''}`;
+      })
+      .join(' | ')
+    : '';
+
+  const profileExperience = Array.isArray(candidateProfile?.workExperience)
+    ? candidateProfile.workExperience
+      .slice(0, 2)
+      .map((w) => `${w?.role || 'Role'} at ${w?.company || 'Company'}${w?.duration ? ` (${w.duration})` : ''}`)
+      .join(' | ')
+    : '';
+
+  const condensedResumeContext = String(resumeContext || '').slice(0, 1200);
+
+  const systemPrompt = `You are an expert technical interviewer. You always respond with ONLY valid JSON arrays — no markdown, no explanation, no code fences.`;
+
+  const userPrompt = `Generate exactly ${questionCount} ${difficulty}-level ${interviewType} interview questions for a candidate with the following profile:
+- Degree: ${degree}
+- Skills: ${skills}
+- Job Role: ${jobRole}
+- Experience: ${jobExperience} years
+- Focus Area: ${focusArea}
+
+Use the resume-derived context below to personalize questions when available. At least 2 questions should reference the candidate's real project/work details if present.
+
+RESUME SUMMARY CONTEXT:
+${condensedResumeContext || 'N/A'}
+
+STRUCTURED RESUME SIGNALS:
+- Resume Skills: ${profileSkills || 'N/A'}
+- Resume Projects: ${profileProjects || 'N/A'}
+- Resume Work Experience: ${profileExperience || 'N/A'}
+
+Return ONLY a JSON array following this exact schema (no markdown, no fences):
+[
+  {
+    "question": "The interview question text",
+    "ideal_answer": "A concise ideal answer for evaluation reference"
+  }
+]
+
+Generate exactly ${questionCount} items. Return ONLY the JSON array.`;
+
+  try {
+    const { content } = await generateWithFallback(QA_MODEL_PREFERENCES, systemPrompt, userPrompt);
+
+    // Strip any accidental markdown fences
+    const jsonString = content
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim();
+
+    const questions = JSON.parse(jsonString);
+
+    if (!Array.isArray(questions)) {
+      throw new Error('Model did not return a valid JSON array');
+    }
+
+    console.log(`[MockInterview] Generated ${questions.length} questions via OpenRouter.`);
+    return questions;
+
+  } catch (err) {
+    console.error('[MockInterview] generateMockInterviewData failed:', err.message);
+    throw err;
+  }
+}
+
+/**
+ * Generate overall interview feedback from transcript via OpenRouter (OpenAI-compatible).
+ * Returns per-question feedback, overall score, and improvement suggestions.
+ */
+async function generateInterviewFeedback(interview, transcript) {
+  // Format transcript into readable text
+  const transcriptText = Array.isArray(transcript)
+    ? transcript.map(t => `${t.role === 'user' ? 'Candidate' : 'Interviewer'}: ${t.text}`).join('\n')
+    : String(transcript || '');
+
+  // Format reference questions
+  const questionsList = (interview.mockInterviewResult || [])
+    .map((q, i) => `Q${i + 1}: ${q.question}`)
+    .join('\n');
+
+  const systemPrompt = `You are an expert interview evaluator. You always respond with ONLY valid JSON objects — no markdown, no explanation, no code fences.`;
+
+  const userPrompt = `Analyze this ${interview.interviewType} interview transcript (Difficulty: ${interview.difficulty}, Focus: ${interview.focusArea}) and return structured feedback.
+
+REFERENCE QUESTIONS:
+${questionsList}
+
+TRANSCRIPT:
+${transcriptText.substring(0, 6000)}
+
+Return ONLY a JSON object with this exact schema (no markdown, no fences):
+{
+  "score": <number 0-100>,
+  "overallSummary": "<2-3 sentence overall assessment>",
+  "improvements": ["<point 1>", "<point 2>", "<point 3>"],
+  "feedback": [
+    {
+      "question": "<first 40 chars of the question>",
+      "userAnswer": "<brief summary of what the candidate said>",
+      "feedback": "<specific constructive feedback>",
+      "rating": <number 1-10>
+    }
+  ]
+}`;
+
+  try {
+    const { content } = await generateWithFallback(QA_MODEL_PREFERENCES, systemPrompt, userPrompt);
+
+    // Strip any accidental markdown fences
+    const jsonString = content
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim();
+
+    const feedback = JSON.parse(jsonString);
+    console.log(`[MockInterview] Generated interview feedback via OpenRouter. Score: ${feedback.score}`);
+    return feedback;
+
+  } catch (err) {
+    console.error('[MockInterview] generateInterviewFeedback failed:', err.message);
+    // Safe fallback — interview end flow never crashes
+    return {
+      score: 50,
+      overallSummary: 'Feedback generation encountered an error. Please review your interview manually.',
+      improvements: ['Review your answers for clarity', 'Practice technical explanations', 'Work on structured responses'],
+      feedback: []
+    };
+  }
+}
+
 module.exports = {
   generateInterviewQuestions,
   chatWithAI,
   generateAnswer,
   generateMoreQuestions,
-  summarizeText
+  summarizeText,
+  extractResumeProfile,
+  generateMockInterviewData,
+  generateInterviewFeedback
 };

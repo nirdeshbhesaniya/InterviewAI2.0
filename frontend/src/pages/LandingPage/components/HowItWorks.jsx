@@ -15,7 +15,7 @@ const steps = [
     {
         id: 2,
         title: "Customize Session",
-        description: "Select detailed topics (React, System Design) and company style.",
+        description: "Select detailed topics, company style, or upload your resume for a personalized Mock Interview.",
         icon: Settings,
         color: "text-purple-400",
         bg: "bg-purple-400/10",
@@ -23,8 +23,8 @@ const steps = [
     },
     {
         id: 3,
-        title: "Practice & Code",
-        description: "Solve AI-generated questions and write code with instant feedback.",
+        title: "Mock Interview & Code",
+        description: "Engage in AI-powered voice mock interviews and solve coding challenges with real-time feedback.",
         icon: Code2,
         color: "text-orange-400",
         bg: "bg-orange-400/10",

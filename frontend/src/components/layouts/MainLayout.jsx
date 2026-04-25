@@ -4,18 +4,23 @@ import Header from '../../pages/InterviewPrep/components/Header';
 import { Outlet } from 'react-router-dom';
 import Footer from '../../pages/InterviewPrep/components/Footer';
 import { useTestMode } from '../../context/TestModeContext';
+import { useInterviewMode } from '../../context/InterviewModeContext';
 
 const MainLayout = () => {
   const { isTestActive } = useTestMode();
+  const { isInterviewActive } = useInterviewMode();
+
+  // Hide header and footer during tests or interviews
+  const shouldHideHeaderFooter = isTestActive || isInterviewActive;
 
   return (
-    <>
-      {!isTestActive && <Header />}
-      <main>
+    <div className="flex flex-col min-h-screen">
+      {!shouldHideHeaderFooter && <Header />}
+      <main className="flex-1">
         <Outlet />
       </main>
-      {!isTestActive && <Footer />}
-    </>
+      {!shouldHideHeaderFooter && <Footer />}
+    </div>
   );
 };
 

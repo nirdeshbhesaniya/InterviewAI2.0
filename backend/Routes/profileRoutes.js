@@ -80,7 +80,7 @@ router.get('/', authenticateUser, async (req, res) => {
 // Update user profile
 router.put('/update', authenticateUser, async (req, res) => {
     try {
-        const { fullName, bio, location, website, linkedin, github } = req.body;
+        const { fullName, bio, location, website, linkedin, github, careerProfile } = req.body;
 
         // Validate required fields
         if (!fullName || fullName.trim().length === 0) {
@@ -105,6 +105,182 @@ router.put('/update', authenticateUser, async (req, res) => {
             }
         }
 
+        const sanitizeStringArray = (arr) => {
+            if (!Array.isArray(arr)) return [];
+            return [...new Set(arr.map((item) => String(item || '').trim()).filter(Boolean))];
+        };
+
+        const normalizeWorkExperience = (items) => {
+            if (!Array.isArray(items)) return [];
+            return items
+                .map((item) => ({
+                    companyName: String(item?.companyName || '').trim(),
+                    role: String(item?.role || '').trim(),
+                    startDate: String(item?.startDate || '').trim(),
+                    endDate: String(item?.endDate || '').trim(),
+                    description: String(item?.description || '').trim(),
+                    keySkills: String(item?.keySkills || '').trim()
+                }))
+                .filter((item) => item.companyName || item.role || item.description);
+        };
+
+        const normalizeRecruiterProfile = (profile) => {
+            if (!profile || typeof profile !== 'object') return undefined;
+
+            return {
+                basic: {
+                    headline: String(profile.basic?.headline || '').trim(),
+                    currentCompany: String(profile.basic?.currentCompany || '').trim(),
+                    currentSalary: String(profile.basic?.currentSalary || '').trim(),
+                    expectedSalary: String(profile.basic?.expectedSalary || '').trim(),
+                    noticePeriod: String(profile.basic?.noticePeriod || '').trim()
+                },
+                contact: {
+                    emailVerified: Boolean(profile.contact?.emailVerified),
+                    phone: String(profile.contact?.phone || '').trim(),
+                    phoneVerified: Boolean(profile.contact?.phoneVerified),
+                    address: String(profile.contact?.address || '').trim(),
+                    preferredLocation: String(profile.contact?.preferredLocation || '').trim(),
+                    privacy: String(profile.contact?.privacy || 'recruiter').trim() || 'recruiter'
+                },
+                career: {
+                    industry: String(profile.career?.industry || '').trim(),
+                    functionalArea: String(profile.career?.functionalArea || '').trim(),
+                    role: String(profile.career?.role || '').trim(),
+                    jobType: String(profile.career?.jobType || '').trim(),
+                    preferredShift: String(profile.career?.preferredShift || '').trim(),
+                    employmentType: String(profile.career?.employmentType || '').trim()
+                },
+                workExperience: normalizeWorkExperience(profile.workExperience),
+                education: Array.isArray(profile.education)
+                    ? profile.education
+                        .map((item) => ({
+                            degree: String(item?.degree || '').trim(),
+                            collegeName: String(item?.collegeName || '').trim(),
+                            yearOfPassing: String(item?.yearOfPassing || '').trim(),
+                            score: String(item?.score || '').trim()
+                        }))
+                        .filter((item) => item.degree || item.collegeName)
+                    : [],
+                skills: {
+                    keySkills: sanitizeStringArray(profile.skills?.keySkills),
+                    secondarySkills: sanitizeStringArray(profile.skills?.secondarySkills),
+                    levels: sanitizeStringArray(profile.skills?.levels)
+                },
+                resume: {
+                    fileName: String(profile.resume?.fileName || '').trim(),
+                    fileUrl: String(profile.resume?.fileUrl || '').trim(),
+                    uploadedAt: profile.resume?.uploadedAt ? new Date(profile.resume.uploadedAt) : undefined
+                },
+                projects: Array.isArray(profile.projects)
+                    ? profile.projects
+                        .map((item) => ({
+                            title: String(item?.title || '').trim(),
+                            description: String(item?.description || '').trim(),
+                            techStack: String(item?.techStack || '').trim(),
+                            githubLink: String(item?.githubLink || '').trim(),
+                            liveLink: String(item?.liveLink || '').trim()
+                        }))
+                        .filter((item) => item.title || item.description)
+                    : [],
+                accomplishments: {
+                    certifications: sanitizeStringArray(profile.accomplishments?.certifications),
+                    awards: sanitizeStringArray(profile.accomplishments?.awards),
+                    publications: sanitizeStringArray(profile.accomplishments?.publications),
+                    patents: sanitizeStringArray(profile.accomplishments?.patents)
+                },
+                onlineProfiles: {
+                    linkedin: String(profile.onlineProfiles?.linkedin || '').trim(),
+                    github: String(profile.onlineProfiles?.github || '').trim(),
+                    portfolio: String(profile.onlineProfiles?.portfolio || '').trim()
+                },
+                summary: String(profile.summary || '').trim()
+            };
+        };
+
+        const existingCareerProfile = req.user.careerProfile || {};
+        const normalizedRecruiterProfile = careerProfile && typeof careerProfile === 'object' && careerProfile.recruiterProfile !== undefined
+            ? normalizeRecruiterProfile(careerProfile.recruiterProfile)
+            : existingCareerProfile.recruiterProfile;
+
+        const normalizedCareerProfile = careerProfile && typeof careerProfile === 'object'
+            ? {
+                personal: {
+                    phone: String(careerProfile.personal?.phone || '').trim(),
+                    gender: String(careerProfile.personal?.gender || '').trim(),
+                    dateOfBirth: String(careerProfile.personal?.dateOfBirth || '').trim()
+                },
+                preferences: {
+                    jobTypes: sanitizeStringArray(careerProfile.preferences?.jobTypes),
+                    availability: String(careerProfile.preferences?.availability || '').trim(),
+                    preferredLocations: sanitizeStringArray(careerProfile.preferences?.preferredLocations)
+                },
+                profileSummary: String(careerProfile.profileSummary || '').trim(),
+                keySkills: sanitizeStringArray(careerProfile.keySkills),
+                languages: Array.isArray(careerProfile.languages)
+                    ? careerProfile.languages
+                        .map((item) => ({
+                            name: String(item?.name || '').trim(),
+                            proficiency: String(item?.proficiency || '').trim()
+                        }))
+                        .filter((item) => item.name)
+                    : [],
+                education: Array.isArray(careerProfile.education)
+                    ? careerProfile.education
+                        .map((item) => ({
+                            degree: String(item?.degree || '').trim(),
+                            institute: String(item?.institute || '').trim(),
+                            graduationYear: String(item?.graduationYear || '').trim(),
+                            courseType: String(item?.courseType || '').trim(),
+                            score: String(item?.score || '').trim()
+                        }))
+                        .filter((item) => item.degree || item.institute)
+                    : [],
+                internships: Array.isArray(careerProfile.internships)
+                    ? careerProfile.internships
+                        .map((item) => ({
+                            company: String(item?.company || '').trim(),
+                            role: String(item?.role || '').trim(),
+                            duration: String(item?.duration || '').trim(),
+                            description: String(item?.description || '').trim()
+                        }))
+                        .filter((item) => item.company || item.role)
+                    : [],
+                projects: Array.isArray(careerProfile.projects)
+                    ? careerProfile.projects
+                        .map((item) => ({
+                            title: String(item?.title || '').trim(),
+                            technologies: sanitizeStringArray(item?.technologies || []),
+                            description: String(item?.description || '').trim(),
+                            link: String(item?.link || '').trim()
+                        }))
+                        .filter((item) => item.title || item.description)
+                    : [],
+                accomplishments: sanitizeStringArray(careerProfile.accomplishments),
+                competitiveExams: Array.isArray(careerProfile.competitiveExams)
+                    ? careerProfile.competitiveExams
+                        .map((item) => ({
+                            examName: String(item?.examName || '').trim(),
+                            score: String(item?.score || '').trim(),
+                            year: String(item?.year || '').trim()
+                        }))
+                        .filter((item) => item.examName)
+                    : [],
+                employment: Array.isArray(careerProfile.employment)
+                    ? careerProfile.employment
+                        .map((item) => ({
+                            company: String(item?.company || '').trim(),
+                            role: String(item?.role || '').trim(),
+                            duration: String(item?.duration || '').trim(),
+                            description: String(item?.description || '').trim()
+                        }))
+                        .filter((item) => item.company || item.role)
+                    : [],
+                academicAchievements: sanitizeStringArray(careerProfile.academicAchievements),
+                recruiterProfile: normalizedRecruiterProfile
+            }
+            : undefined;
+
         const updatedUser = await User.findByIdAndUpdate(
             req.user._id,
             {
@@ -114,6 +290,7 @@ router.put('/update', authenticateUser, async (req, res) => {
                 website: website?.trim() || '',
                 linkedin: linkedin?.trim() || '',
                 github: github?.trim() || '',
+                ...(normalizedCareerProfile ? { careerProfile: normalizedCareerProfile } : {}),
                 updatedAt: new Date()
             },
             { new: true, runValidators: true }

@@ -29,6 +29,8 @@
     "url": "https://github.com/nirdeshbhesaniya/InterviewAI2.0.git"
   },
   "dependencies": {
+    "@deepgram/sdk": "^4.11.3",
+    "@elevenlabs/elevenlabs-js": "^2.33.0",
     "@google/generative-ai": "^0.24.1",
     "@langchain/community": "^0.3.59",
     "@langchain/core": "^0.3.80",
@@ -43,15 +45,18 @@
     "express": "^5.1.0",
     "express-rate-limit": "^8.2.1",
     "express-validator": "^7.2.1",
+    "google-tts-api": "^2.0.2",
     "jsonwebtoken": "^9.0.2",
     "langchain": "^0.3.37",
     "mongoose": "^8.15.1",
-    "multer": "^2.0.1",
+    "multer": "^2.0.2",
     "openai": "^5.1.1",
+    "pdf-parse": "^2.4.5",
     "redis": "^5.10.0",
     "resend": "^4.6.0",
     "streamifier": "^0.1.1",
     "uuid": "^11.1.0",
+    "ws": "^8.19.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

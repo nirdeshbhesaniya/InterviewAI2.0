@@ -87,7 +87,7 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, currentUserRole }) => {
                                         type="text"
                                         value={formData.fullName}
                                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                                        className="w-full px-4 py-2.5 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-xl text-sm focus:ring-2 focus:ring-[rgb(var(--accent))]/20 focus:border-[rgb(var(--accent))] outline-none transition-all"
+                                        className="w-full px-4 py-2.5 text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-xl text-sm focus:ring-2 focus:ring-[rgb(var(--accent))]/20 focus:border-[rgb(var(--accent))] outline-none transition-all"
                                         placeholder="John Doe"
                                         required
                                     />
@@ -101,7 +101,7 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, currentUserRole }) => {
                                         type="email"
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="w-full px-4 py-2.5 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-xl text-sm focus:ring-2 focus:ring-[rgb(var(--accent))]/20 focus:border-[rgb(var(--accent))] outline-none transition-all"
+                                        className="w-full px-4 py-2.5 text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-xl text-sm focus:ring-2 focus:ring-[rgb(var(--accent))]/20 focus:border-[rgb(var(--accent))] outline-none transition-all"
                                         placeholder="john@example.com"
                                         required
                                     />
@@ -115,7 +115,7 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, currentUserRole }) => {
                                         <select
                                             value={formData.role}
                                             onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                            className="w-full px-4 py-2.5 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-xl text-sm focus:ring-2 focus:ring-[rgb(var(--accent))]/20 focus:border-[rgb(var(--accent))] outline-none transition-all cursor-pointer"
+                                            className="w-full px-4 py-2.5 text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-xl text-sm focus:ring-2 focus:ring-[rgb(var(--accent))]/20 focus:border-[rgb(var(--accent))] outline-none transition-all cursor-pointer"
                                         >
                                             <option value="user">User</option>
                                             <option value="admin">Admin</option>
@@ -139,7 +139,7 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, currentUserRole }) => {
                                         type="text"
                                         value={formData.location}
                                         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                        className="w-full px-4 py-2.5 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-xl text-sm focus:ring-2 focus:ring-[rgb(var(--accent))]/20 focus:border-[rgb(var(--accent))] outline-none transition-all"
+                                        className="w-full px-4 py-2.5 text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-xl text-sm focus:ring-2 focus:ring-[rgb(var(--accent))]/20 focus:border-[rgb(var(--accent))] outline-none transition-all"
                                         placeholder="City, Country"
                                     />
                                 </div>
@@ -154,7 +154,7 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, currentUserRole }) => {
                                     value={formData.bio}
                                     onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                                     rows={4}
-                                    className="w-full px-4 py-3 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-xl text-sm focus:ring-2 focus:ring-[rgb(var(--accent))]/20 focus:border-[rgb(var(--accent))] outline-none transition-all resize-none"
+                                    className="w-full px-4 py-3 text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-xl text-sm focus:ring-2 focus:ring-[rgb(var(--accent))]/20 focus:border-[rgb(var(--accent))] outline-none transition-all resize-none"
                                     placeholder="Tell us about the user..."
                                 />
                             </div>
@@ -167,21 +167,21 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, currentUserRole }) => {
                                         type="text"
                                         value={formData.website}
                                         onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                                        className="w-full px-4 py-2 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg text-xs outline-none focus:border-[rgb(var(--accent))]"
+                                        className="w-full px-4 py-2 text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg text-xs outline-none focus:border-[rgb(var(--accent))]"
                                         placeholder="Website URL"
                                     />
                                     <input
                                         type="text"
                                         value={formData.linkedin}
                                         onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
-                                        className="w-full px-4 py-2 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg text-xs outline-none focus:border-[rgb(var(--accent))]"
+                                        className="w-full px-4 py-2 text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg text-xs outline-none focus:border-[rgb(var(--accent))]"
                                         placeholder="LinkedIn URL"
                                     />
                                     <input
                                         type="text"
                                         value={formData.github}
                                         onChange={(e) => setFormData({ ...formData, github: e.target.value })}
-                                        className="w-full px-4 py-2 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg text-xs outline-none focus:border-[rgb(var(--accent))]"
+                                        className="w-full px-4 py-2 text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg text-xs outline-none focus:border-[rgb(var(--accent))]"
                                         placeholder="GitHub URL"
                                     />
                                 </div>

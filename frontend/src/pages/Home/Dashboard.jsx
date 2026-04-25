@@ -14,6 +14,7 @@ import {
   Filter,
   Grid,
   List,
+
   MoreVertical,
   Eye,
   Library
@@ -196,7 +197,7 @@ export const Dashboard = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 font-[Urbanist]">
         {/* Enhanced Header */}
         <div className="mb-6 sm:mb-8">
-          <div className="flex flex-col space-y-4 lg:space-y-0 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col space-y-4 xl:space-y-0 xl:flex-row xl:items-center xl:justify-between xl:gap-6">
             {/* Title Section */}
             <div className="space-y-2">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
@@ -223,21 +224,23 @@ export const Dashboard = () => {
             </div>
 
             {/* Controls Section - Improved Mobile Layout */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto">
               {/* Search Bar - Full width on mobile */}
-              <div className="relative flex-1 lg:min-w-[300px] lg:max-w-[400px]">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-muted))]" />
+              <div className="relative flex-1 xl:min-w-[300px] xl:max-w-[400px]">
+                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-[rgb(var(--accent))]/15 flex items-center justify-center">
+                  <Search className="w-3.5 h-3.5 text-[rgb(var(--accent))]" />
+                </div>
                 <Input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search sessions..."
-                  className="pl-10 pr-4 py-2.5 w-full rounded-xl border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-card))]/50 backdrop-blur-sm focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-all text-sm sm:text-base text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))]"
+                  className="pl-12 pr-4 py-2.5 w-full rounded-xl border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-card))]/50 backdrop-blur-sm focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-all text-sm sm:text-base text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))]"
                 />
               </div>
 
               {/* Action Controls - Better mobile layout */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between sm:justify-end gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between sm:justify-end gap-2 sm:flex-wrap">
                 {/* View Mode Toggle - Hidden on small screens */}
                 <div className="hidden sm:flex rounded-lg bg-[rgb(var(--bg-card))] p-1 shadow-sm border border-[rgb(var(--border-subtle))]">
                   <button
@@ -261,7 +264,7 @@ export const Dashboard = () => {
                 </div>
 
                 {/* Mobile: Two-row layout for buttons */}
-                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:flex-wrap sm:justify-end">
                   {/* First row on mobile */}
                   <div className="flex gap-2">
                     <motion.button
@@ -424,7 +427,7 @@ export const Dashboard = () => {
           <>
             {/* Grid View - Enhanced Mobile Responsive */}
             {viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
                 {currentCards.map((card, index) => {
                   const gradient = gradients[index % gradients.length];
                   // Check if user can delete: creator, admin, or owner
@@ -433,7 +436,7 @@ export const Dashboard = () => {
                   return (
                     <motion.div
                       key={card.sessionId}
-                      className={`group relative bg-gradient-to-br ${gradient} rounded-2xl p-4 sm:p-6 shadow-md hover:shadow-xl hover:shadow-[rgb(var(--accent))]/20 border border-[rgb(var(--border-subtle))] backdrop-blur-sm transition-all duration-300 cursor-pointer overflow-hidden`}
+                      className={`group relative h-full flex flex-col bg-gradient-to-br ${gradient} rounded-2xl p-4 sm:p-6 shadow-md hover:shadow-xl hover:shadow-[rgb(var(--accent))]/20 border border-[rgb(var(--border-subtle))] backdrop-blur-sm transition-all duration-300 cursor-pointer overflow-hidden`}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
@@ -488,7 +491,7 @@ export const Dashboard = () => {
 
 
                       {/* Content - Mobile Optimized Typography */}
-                      <div className="relative z-10">
+                      <div className="relative z-10 flex flex-1 flex-col">
                         <h3 className="text-base sm:text-lg font-bold text-[rgb(var(--text-primary))] mb-2 line-clamp-2 leading-tight">
                           {card.title || "Untitled Session"}
                         </h3>
@@ -536,10 +539,10 @@ export const Dashboard = () => {
                         </div>
 
                         {/* Footer Stats */}
-                        <div className="flex items-center justify-between text-xs text-[rgb(var(--text-secondary))]">
+                        <div className="mt-auto flex flex-col gap-2 text-xs text-[rgb(var(--text-secondary))] sm:flex-row sm:items-center sm:justify-between">
                           <div
                             onClick={(e) => handleCreatorClick(e, card)}
-                            className="flex items-center gap-2 hover:text-[rgb(var(--accent))] cursor-pointer transition-colors group"
+                            className="min-w-0 flex items-center gap-2 hover:text-[rgb(var(--accent))] cursor-pointer transition-colors group"
                           >
                             {card.creatorDetails?.photo ? (
                               <img
@@ -552,9 +555,9 @@ export const Dashboard = () => {
                                 <Users className="w-3 h-3" />
                               </div>
                             )}
-                            <span className="truncate max-w-[120px]">{card.creatorDetails?.fullName || 'Unknown'}</span>
+                            <span className="truncate max-w-full">{card.creatorDetails?.fullName || 'Unknown'}</span>
                           </div>
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 whitespace-nowrap">
                             <BookOpen className="w-3 h-3" />
                             <span>{card.qna?.length || 0} Q&A</span>
                           </div>

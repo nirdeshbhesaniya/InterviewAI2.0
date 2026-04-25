@@ -127,7 +127,7 @@ const NotificationCenter = () => {
                             required
                             value={notifForm.title}
                             onChange={e => setNotifForm(prev => ({ ...prev, title: e.target.value }))}
-                            className="w-full px-4 py-2 bg-[rgb(var(--bg-main))] border border-[rgb(var(--border))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))]/20 outline-none transition-colors"
+                            className="w-full px-4 py-2 text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-main))] border border-[rgb(var(--border))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))]/20 outline-none transition-colors"
                             placeholder="Notification title..."
                         />
                     </div>
@@ -137,7 +137,7 @@ const NotificationCenter = () => {
                             required
                             value={notifForm.message}
                             onChange={e => setNotifForm(prev => ({ ...prev, message: e.target.value }))}
-                            className="w-full px-4 py-2 bg-[rgb(var(--bg-main))] border border-[rgb(var(--border))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))]/20 outline-none transition-colors h-24 resize-none"
+                            className="w-full px-4 py-2 text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-main))] border border-[rgb(var(--border))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))]/20 outline-none transition-colors h-24 resize-none"
                             placeholder="Type your message..."
                         />
                     </div>
@@ -150,7 +150,7 @@ const NotificationCenter = () => {
                                     setNotifForm(prev => ({ ...prev, recipientType: e.target.value, recipientId: '' }));
                                     setRecipientSearch('');
                                 }}
-                                className="w-full px-4 py-2 bg-[rgb(var(--bg-main))] border border-[rgb(var(--border))] rounded-lg outline-none"
+                                className="w-full px-4 py-2 text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-main))] border border-[rgb(var(--border))] rounded-lg outline-none"
                             >
                                 <option value="all">All Users</option>
                                 <option value="all_admins">All Admins</option>

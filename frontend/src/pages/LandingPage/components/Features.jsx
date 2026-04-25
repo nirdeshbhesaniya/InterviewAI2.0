@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { motion } from 'framer-motion';
-import { MessageSquare, ClipboardCheck, Code, BookOpen, Library, FolderOpen, Bot, User, Network } from 'lucide-react';
+import { MessageSquare, ClipboardCheck, Code, BookOpen, Library, FolderOpen, Bot, User, Network, Mic } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../../context/UserContext';
 import { APP_FEATURES } from '../../../utils/data';
@@ -15,7 +15,8 @@ const iconMap = {
     'FolderOpen': FolderOpen,
     'Bot': Bot,
     'User': User,
-    'Network': Network
+    'Network': Network,
+    'Mic': Mic
 };
 
 const Features = ({ onLogin }) => {

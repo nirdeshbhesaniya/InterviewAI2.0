@@ -46,6 +46,37 @@ const OldVsNewWay = ({ onJoin }) => {
 
     const comparisons = [
         {
+            category: "Mock Interviews",
+            oldWay: {
+                icon: Users,
+                title: "Traditional Method",
+                points: [
+                    { text: "Begging peers or mentors to practice", negative: true },
+                    { text: "Unrealistic interview environment", negative: true },
+                    { text: "No objective grading or metrics", negative: true },
+                    { text: "Generic, non-specific scenarios", negative: true },
+                    { text: "Expensive P2P platforms ($50+/hr)", negative: true }
+                ],
+                time: "Hard to schedule",
+                cost: "$50-150/session",
+                success: "Low"
+            },
+            newWay: {
+                icon: Bot,
+                title: "Interview AI Way",
+                points: [
+                    { text: "On-demand AI Voice & Text Simulator", positive: true },
+                    { text: "Tailored perfectly to your uploaded resume", positive: true },
+                    { text: "Instant technical evaluation & rating", positive: true },
+                    { text: "Identifies behavioral weak points automatically", positive: true },
+                    { text: "100% Free & infinite practice", positive: true }
+                ],
+                time: "Instant Practice",
+                cost: "FREE",
+                success: "High"
+            }
+        },
+        {
             category: "Interview Preparation",
             oldWay: {
                 icon: BookOpen,

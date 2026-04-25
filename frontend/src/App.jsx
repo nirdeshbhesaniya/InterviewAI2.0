@@ -11,6 +11,7 @@ import InterviewPrepModern from './pages/InterviewPrep/InterviewPrepModern';
 import AnswerEditor from './pages/InterviewPrep/AnswerEditor';
 import AddQuestionPage from './pages/InterviewPrep/AddQuestionPage';
 import ContactSupportPage from './pages/ContactSupportPage';
+import ExploreFeaturesPage from './pages/ExploreFeaturesPage';
 
 import MCQTest from './pages/MCQTest/MCQTest';
 import TestHistoryPage from './pages/MCQTest/TestHistoryPage';
@@ -20,9 +21,15 @@ import SettingsPageNew from './pages/SettingsPageNew';
 import NotificationPage from './pages/InterviewPrep/NotificationPage';
 import NotesPage from './pages/NotesPage';
 import ResourcesPage from './pages/ResourcesPage';
+import MockInterviewDashboard from './pages/MockInterview/MockInterviewDashboard';
+import CreateMockInterview from './pages/MockInterview/CreateMockInterview';
+import ActiveInterview from './pages/MockInterview/ActiveInterview';
+import InterviewResult from './pages/MockInterview/InterviewResult';
+import InterviewDetails from './pages/MockInterview/InterviewDetails';
 
 import MainLayout from './components/layouts/MainLayout';
 import ProtectedRoute from './components/layouts/ProtectedRoute';
+import DesktopOnlyGuard from './components/layouts/DesktopOnlyGuard';
 
 import AdminGuard from './components/layouts/AdminGuard';
 import AdminDashboard from './pages/Admin/AdminDashboard';
@@ -35,217 +42,287 @@ import FloatingHelpButton from './components/FloatingHelpButton';
 
 // Test Mode Context
 import { TestModeProvider } from './context/TestModeContext';
+import { InterviewModeProvider } from './context/InterviewModeContext';
 
 const App = () => {
   return (
     <ChatbotProvider>
       <TestModeProvider>
-        <Router>
-          <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-            <Routes>
-              {/* Public routes (no header) */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/old-landing" element={<OldLandingPage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/support" element={<ContactSupportPage />} />
+        <InterviewModeProvider>
+          <Router>
+            <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+              <Routes>
+                {/* Public routes (no header) */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/old-landing" element={<OldLandingPage />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/support" element={<ContactSupportPage />} />
 
-              {/* Routes with header */}
-              <Route element={<MainLayout />}>
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/codebase"
-                  element={
-                    <ProtectedRoute>
-                      <CodeExecutionPlatform />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/mcq-test"
-                  element={
-                    <ProtectedRoute>
-                      <MCQTest />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/mcq-test/practice"
-                  element={
-                    <ProtectedRoute>
-                      <PracticeTestsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/mcq-test/practice/:testId"
-                  element={
-                    <ProtectedRoute>
-                      <MCQTest />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/mcq-test/history"
-                  element={
-                    <ProtectedRoute>
-                      <TestHistoryPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/interview-prep/:sessionId"
-                  element={
-                    <ProtectedRoute>
-                      <InterviewPrepModern />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/interview-prep/:sessionId/add"
-                  element={
-                    <ProtectedRoute>
-                      <AddQuestionPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/interview-prep/:sessionId/edit"
-                  element={
-                    <ProtectedRoute>
-                      <AnswerEditor />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <ProfilePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings"
-                  element={
-                    <ProtectedRoute>
-                      <SettingsPageNew />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/notifications"
-                  element={
-                    <ProtectedRoute>
-                      <NotificationPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/notes"
-                  element={
-                    <ProtectedRoute>
-                      <NotesPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/resources"
-                  element={
-                    <ProtectedRoute>
-                      <ResourcesPage />
-                    </ProtectedRoute>
-                  }
-                />
+                {/* Routes with header */}
+                <Route element={<MainLayout />}>
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/codebase"
+                    element={
+                      <ProtectedRoute>
+                        <CodeExecutionPlatform />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/explore"
+                    element={
+                      <ProtectedRoute>
+                        <ExploreFeaturesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/mcq-test"
+                    element={
+                      <ProtectedRoute>
+                        <DesktopOnlyGuard featureName="AI MCQ Test">
+                          <MCQTest />
+                        </DesktopOnlyGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/mcq-test/practice"
+                    element={
+                      <ProtectedRoute>
+                        <DesktopOnlyGuard featureName="Practice Tests">
+                          <PracticeTestsPage />
+                        </DesktopOnlyGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/mcq-test/practice/:testId"
+                    element={
+                      <ProtectedRoute>
+                        <DesktopOnlyGuard featureName="Practice Test">
+                          <MCQTest />
+                        </DesktopOnlyGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/mcq-test/history"
+                    element={
+                      <ProtectedRoute>
+                        <TestHistoryPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/interview-prep/:sessionId"
+                    element={
+                      <ProtectedRoute>
+                        <InterviewPrepModern />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/interview-prep/:sessionId/add"
+                    element={
+                      <ProtectedRoute>
+                        <AddQuestionPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/interview-prep/:sessionId/edit"
+                    element={
+                      <ProtectedRoute>
+                        <AnswerEditor />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <ProfilePage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <SettingsPageNew />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/notifications"
+                    element={
+                      <ProtectedRoute>
+                        <NotificationPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/notes"
+                    element={
+                      <ProtectedRoute>
+                        <NotesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/resources"
+                    element={
+                      <ProtectedRoute>
+                        <ResourcesPage />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute>
-                      <AdminGuard>
-                        <AdminDashboard />
-                      </AdminGuard>
-                    </ProtectedRoute>
-                  }
-                />
-              </Route>
-            </Routes>
 
-            {/* Global Chatbot - Available on all routes */}
-            <Chatbot />
+                  {/* Mock Interview Routes */}
+                  <Route
+                    path="/mock-interview"
+                    element={
+                      <ProtectedRoute>
+                        <DesktopOnlyGuard featureName="Mock Interview">
+                          <MockInterviewDashboard />
+                        </DesktopOnlyGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/mock-interview/create"
+                    element={
+                      <ProtectedRoute>
+                        <DesktopOnlyGuard featureName="Mock Interview">
+                          <CreateMockInterview />
+                        </DesktopOnlyGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/mock-interview/:mockId"
+                    element={
+                      <ProtectedRoute>
+                        <DesktopOnlyGuard featureName="Mock Interview">
+                          <InterviewDetails />
+                        </DesktopOnlyGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/mock-interview/:mockId/start"
+                    element={
+                      <ProtectedRoute>
+                        <DesktopOnlyGuard featureName="Mock Interview">
+                          <ActiveInterview />
+                        </DesktopOnlyGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/mock-interview/:mockId/feedback"
+                    element={
+                      <ProtectedRoute>
+                        <DesktopOnlyGuard featureName="Mock Interview">
+                          <InterviewResult />
+                        </DesktopOnlyGuard>
+                      </ProtectedRoute>
+                    }
+                  />
 
-            {/* Global Help Button - Available on all routes */}
-            <FloatingHelpButton />
+                  <Route
+                    path="/admin"
+                    element={
+                      <ProtectedRoute>
+                        <AdminGuard>
+                          <AdminDashboard />
+                        </AdminGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                </Route>
+              </Routes>
 
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: 'rgb(var(--bg-elevated))',
-                  color: 'rgb(var(--text-primary))',
-                  border: '1px solid rgb(var(--border))',
-                  borderRadius: '12px',
-                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
-                  padding: '12px 16px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  maxWidth: '400px',
-                  width: '100%',
-                },
-                className: 'toast-custom',
-                success: {
-                  duration: 3500,
+              {/* Global Chatbot - Available on all routes */}
+              <Chatbot />
+
+              {/* Global Help Button - Available on all routes */}
+              <FloatingHelpButton />
+
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  duration: 4000,
                   style: {
                     background: 'rgb(var(--bg-elevated))',
                     color: 'rgb(var(--text-primary))',
-                    border: '2px solid rgb(var(--success))',
+                    border: '1px solid rgb(var(--border))',
                     borderRadius: '12px',
-                    boxShadow: '0 8px 24px rgba(34, 197, 94, 0.15)',
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+                    padding: '12px 16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    maxWidth: '400px',
+                    width: '100%',
                   },
-                  iconTheme: {
-                    primary: 'rgb(var(--success))',
-                    secondary: 'rgb(var(--bg-elevated))',
+                  className: 'toast-custom',
+                  success: {
+                    duration: 3500,
+                    style: {
+                      background: 'rgb(var(--bg-elevated))',
+                      color: 'rgb(var(--text-primary))',
+                      border: '2px solid rgb(var(--success))',
+                      borderRadius: '12px',
+                      boxShadow: '0 8px 24px rgba(34, 197, 94, 0.15)',
+                    },
+                    iconTheme: {
+                      primary: 'rgb(var(--success))',
+                      secondary: 'rgb(var(--bg-elevated))',
+                    },
                   },
-                },
-                error: {
-                  duration: 4500,
-                  style: {
-                    background: 'rgb(var(--bg-elevated))',
-                    color: 'rgb(var(--text-primary))',
-                    border: '2px solid rgb(var(--danger))',
-                    borderRadius: '12px',
-                    boxShadow: '0 8px 24px rgba(239, 68, 68, 0.15)',
+                  error: {
+                    duration: 4500,
+                    style: {
+                      background: 'rgb(var(--bg-elevated))',
+                      color: 'rgb(var(--text-primary))',
+                      border: '2px solid rgb(var(--danger))',
+                      borderRadius: '12px',
+                      boxShadow: '0 8px 24px rgba(239, 68, 68, 0.15)',
+                    },
+                    iconTheme: {
+                      primary: 'rgb(var(--danger))',
+                      secondary: 'rgb(var(--bg-elevated))',
+                    },
                   },
-                  iconTheme: {
-                    primary: 'rgb(var(--danger))',
-                    secondary: 'rgb(var(--bg-elevated))',
+                  loading: {
+                    style: {
+                      background: 'rgb(var(--bg-elevated))',
+                      color: 'rgb(var(--text-primary))',
+                      border: '2px solid rgb(var(--accent))',
+                      borderRadius: '12px',
+                      boxShadow: '0 8px 24px rgba(59, 130, 246, 0.15)',
+                    },
+                    iconTheme: {
+                      primary: 'rgb(var(--accent))',
+                      secondary: 'rgb(var(--bg-elevated))',
+                    },
                   },
-                },
-                loading: {
-                  style: {
-                    background: 'rgb(var(--bg-elevated))',
-                    color: 'rgb(var(--text-primary))',
-                    border: '2px solid rgb(var(--accent))',
-                    borderRadius: '12px',
-                    boxShadow: '0 8px 24px rgba(59, 130, 246, 0.15)',
-                  },
-                  iconTheme: {
-                    primary: 'rgb(var(--accent))',
-                    secondary: 'rgb(var(--bg-elevated))',
-                  },
-                },
-              }}
-            />
-          </div>
-        </Router>
+                }}
+              />
+            </div>
+          </Router>
+        </InterviewModeProvider>
       </TestModeProvider>
     </ChatbotProvider>
   );

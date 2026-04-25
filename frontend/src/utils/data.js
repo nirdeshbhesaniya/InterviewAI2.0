@@ -2,6 +2,14 @@
 export const APP_FEATURES = [
   {
     id: '01',
+    title: 'AI Powered Mock Interview',
+    description: 'Immersive, real-time voice and text mock interviews customized precisely to your uploaded resume and target job profile.',
+    icon: 'Mic',
+    color: 'from-amber-500 to-orange-600',
+    link: '/mock-interview'
+  },
+  {
+    id: '02',
     title: 'AI Interview Q&A Sessions',
     description: 'Create personalized interview preparation sessions with AI-generated questions and detailed answers tailored to your role and experience level.',
     icon: 'MessageSquare',

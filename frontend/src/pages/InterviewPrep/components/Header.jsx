@@ -19,7 +19,8 @@ import {
   Camera,
   Edit3,
   BookOpen,
-  Library
+  Library,
+  LayoutGrid
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from '../../../utils/axiosInstance';
@@ -144,17 +145,17 @@ const Header = ({ onLoginClick }) => {
     <header className="relative bg-[rgb(var(--bg-elevated))] border-b border-[rgb(var(--border))] shadow-sm z-50">
       {/* Main Header */}
       <div className="px-4 py-3 sm:py-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center">
+        <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 xl:gap-6">
           {/* Enhanced Logo Section */}
           <motion.div
-            className="flex items-center gap-2 cursor-pointer group"
+            className="flex flex-shrink-0 items-center gap-2 cursor-pointer group"
             onClick={() => navigate('/')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
             <div className="relative">
               <Bot className="w-7 h-7 sm:w-9 sm:h-9 text-[rgb(var(--accent))] drop-shadow-lg transform group-hover:rotate-12 transition-transform duration-300" />
-              <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[rgb(var(--accent))] rounded-full animate-pulse"></div>
+              <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[rgb(var(--accent))] rounded-full"></div>
             </div>
             <div className="hidden sm:block">
               <h1 className="text-2xl lg:text-3xl font-bold text-[rgb(var(--text-primary))] tracking-wide">
@@ -169,63 +170,26 @@ const Header = ({ onLoginClick }) => {
             </div>
           </motion.div>
 
-          {/* Navigation Menu - Desktop */}
-          <nav className="hidden lg:flex items-center space-x-8">
-            <motion.button
-              onClick={() => user ? navigate('/dashboard') : onLoginClick?.()}
-              className={`${isActive('/dashboard')} font-medium transition-colors duration-200`}
-              whileHover={{ y: -2 }}
-            >
-              Dashboard
-            </motion.button>
-            {(user?.role === 'admin' || user?.role === 'owner') && (
-              <motion.button
-                onClick={() => navigate('/admin')}
-                className={`${location.pathname.startsWith('/admin') ? 'text-red-600 font-bold' : 'text-red-500 hover:text-red-600'} font-medium transition-colors duration-200`}
-                whileHover={{ y: -2 }}
-              >
-                Admin
-              </motion.button>
-            )}
-            <motion.button
-              onClick={() => user ? navigate('/mcq-test') : onLoginClick?.()}
-              className={`${isActive('/mcq-test')} font-medium transition-colors duration-200`}
-              whileHover={{ y: -2 }}
-            >
-              AI Tests
-            </motion.button>
-            <motion.button
-              onClick={() => user ? navigate('/mcq-test/practice') : onLoginClick?.()}
-              className={`${isActive('/mcq-test/practice')} font-medium transition-colors duration-200`}
-              whileHover={{ y: -2 }}
-            >
-              Practice Tests
-            </motion.button>
-            <motion.button
-              onClick={() => user ? navigate('/codebase') : onLoginClick?.()}
-              className={`${isActive('/codebase')} font-medium transition-colors duration-200`}
-              whileHover={{ y: -2 }}
-            >
-              Code Editor
-            </motion.button>
-            <motion.button
-              onClick={() => user ? navigate('/notes') : onLoginClick?.()}
-              className={`flex items-center gap-2 ${isActive('/notes')} font-medium transition-colors duration-200`}
-              whileHover={{ y: -2 }}
-            >
-              Notes
-            </motion.button>
-            <motion.button
-              onClick={() => user ? navigate('/resources') : onLoginClick?.()}
-              className={`flex items-center gap-2 ${isActive('/resources')} font-medium transition-colors duration-200`}
-              whileHover={{ y: -2 }}
-            >
-              Resources
-            </motion.button>
-          </nav>
+          {/* Spacer */}
+          <div className="flex-1" />
 
           {/* User Section */}
-          <div className="flex items-center gap-4">
+          <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3 xl:gap-4">
+            {/* Explore Hub Button */}
+            <motion.button
+              onClick={() => user ? navigate('/explore') : onLoginClick?.()}
+              className={`flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-full transition-all duration-300 font-semibold shadow-sm border ${
+                location.pathname === '/explore' 
+                  ? 'bg-[rgb(var(--accent))] text-white border-[rgb(var(--accent))] shadow-[rgb(var(--accent))]/20' 
+                  : 'bg-[rgb(var(--bg-card))] text-[rgb(var(--text-primary))] hover:text-[rgb(var(--accent))] hover:border-[rgb(var(--accent))]/30 border-[rgb(var(--border-subtle))]'
+              }`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              title="Explore Features"
+            >
+              <LayoutGrid className="w-5 h-5" />
+              <span className="hidden md:inline">Explore</span>
+            </motion.button>
             {/* Notification Bell */}
             {user && (
               <div className="relative" ref={notifDropdownRef}>
@@ -524,74 +488,6 @@ const Header = ({ onLoginClick }) => {
         </div>
       </div>
 
-      {/* Mobile Navigation */}
-      {user && (
-        <div className="lg:hidden bg-[rgb(var(--bg-card))] border-t border-[rgb(var(--border))]">
-          <div className="px-1 py-1.5">
-            <div className="flex items-center justify-between gap-0.5">
-              <motion.button
-                onClick={() => navigate('/dashboard')}
-                className="flex flex-1 min-w-0 flex-col items-center py-1.5 px-1 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors rounded-lg hover:bg-[rgb(var(--bg-elevated))]"
-                whileTap={{ scale: 0.95 }}
-              >
-                <Bot className="w-4 h-4 mb-0.5" />
-                <span className="w-full truncate text-center text-[8px] leading-[10px] font-medium">Dashboard</span>
-              </motion.button>
-              {(user?.role === 'admin' || user?.role === 'owner') && (
-                <motion.button
-                  onClick={() => navigate('/admin')}
-                  className="flex flex-1 min-w-0 flex-col items-center py-1.5 px-1 text-red-500 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <ShieldAlert className="w-4 h-4 mb-0.5" />
-                  <span className="w-full truncate text-center text-[8px] leading-[10px] font-medium">Admin</span>
-                </motion.button>
-              )}
-              <motion.button
-                onClick={() => navigate('/mcq-test')}
-                className="flex flex-1 min-w-0 flex-col items-center py-1.5 px-1 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors rounded-lg hover:bg-[rgb(var(--bg-elevated))]"
-                whileTap={{ scale: 0.95 }}
-              >
-                <Shield className="w-4 h-4 mb-0.5" />
-                <span className="w-full truncate text-center text-[8px] leading-[10px] font-medium">AI MCQ</span>
-              </motion.button>
-              <motion.button
-                onClick={() => navigate('/mcq-test/practice')}
-                className="flex flex-1 min-w-0 flex-col items-center py-1.5 px-1 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors rounded-lg hover:bg-[rgb(var(--bg-elevated))]"
-                whileTap={{ scale: 0.95 }}
-              >
-                <FileQuestion className="w-4 h-4 mb-0.5" />
-                <span className="w-full truncate text-center text-[8px] leading-[10px] font-medium">Practice</span>
-              </motion.button>
-              <motion.button
-                onClick={() => navigate('/codebase')}
-                className="flex flex-1 min-w-0 flex-col items-center py-1.5 px-1 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors rounded-lg hover:bg-[rgb(var(--bg-elevated))]"
-                whileTap={{ scale: 0.95 }}
-              >
-                <Code className="w-4 h-4 mb-0.5" />
-                <span className="w-full truncate text-center text-[8px] leading-[10px] font-medium">Code</span>
-              </motion.button>
-              <motion.button
-                onClick={() => navigate('/notes')}
-                className="flex flex-1 min-w-0 flex-col items-center py-1.5 px-1 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors rounded-lg hover:bg-[rgb(var(--bg-elevated))]"
-                whileTap={{ scale: 0.95 }}
-              >
-                <BookOpen className="w-4 h-4 mb-0.5" />
-                <span className="w-full truncate text-center text-[8px] leading-[10px] font-medium">Notes</span>
-              </motion.button>
-              <motion.button
-                onClick={() => navigate('/resources')}
-                className="flex flex-1 min-w-0 flex-col items-center py-1.5 px-1 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors rounded-lg hover:bg-[rgb(var(--bg-elevated))]"
-                whileTap={{ scale: 0.95 }}
-              >
-                <Library className="w-4 h-4 mb-0.5" />
-                <span className="w-full truncate text-center text-[8px] leading-[10px] font-medium">Resources</span>
-              </motion.button>
-            </div>
-          </div>
-        </div>
-      )
-      }
     </header >
   );
 };

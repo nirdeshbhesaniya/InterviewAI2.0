@@ -43,9 +43,9 @@ class AIKeyManager {
             if (key) keys.push(key);
         }
 
-        // Also include the generic OPENROUTER_API_KEY if present and unique
-        if (process.env.OPENROUTER_API_KEY && !keys.includes(process.env.OPENROUTER_API_KEY)) {
-            keys.push(process.env.OPENROUTER_API_KEY);
+        // Also include the generic OPENROUTER_KEY_1 if present and unique
+        if (process.env.OPENROUTER_KEY_1 && !keys.includes(process.env.OPENROUTER_KEY_1)) {
+            keys.push(process.env.OPENROUTER_KEY_1);
         }
 
         return keys;

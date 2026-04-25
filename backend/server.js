@@ -104,6 +104,8 @@ app.use('/api/resources', require('./Routes/resources'));
 app.use('/api/ai', require('./Routes/aiRoutes'));
 app.use('/api/public', require('./Routes/publicRoutes'));
 app.use('/api/feedback', require('./Routes/feedbackRoutes'));
+app.use('/api/mock-interview', require('./Routes/mockInterviewRoutes'));
+// Mock Interview Route Registered
 
 // 404 handler
 app.use((req, res) => {
@@ -162,7 +164,7 @@ const connectDB = async () => {
 const startServer = async () => {
   await connectDB();
 
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log('='.repeat(50));
     console.log(`🚀 Interview AI Backend Server with new version 2.0`);
     console.log(`📡 Running on port ${PORT}`);
@@ -170,6 +172,9 @@ const startServer = async () => {
     console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
     console.log('='.repeat(50));
   });
+
+  const socketService = require('./services/SocketService');
+  socketService.init(server);
 };
 
 startServer().catch(err => {
