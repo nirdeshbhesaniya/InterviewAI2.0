@@ -1121,10 +1121,17 @@ const ProfilePage = () => {
     };
 
     const scrollToCareerSection = (sectionKey) => {
-        const node = document.getElementById(`recruiter-${sectionKey}`);
-        if (node) {
-            node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (!isEditingRecruiter) {
+            setIsEditingRecruiter(true);
         }
+        setTimeout(() => {
+            const node = document.getElementById(`recruiter-${sectionKey}`);
+            if (node) {
+                const yOffset = -100;
+                const y = node.getBoundingClientRect().top + window.scrollY + yOffset;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+            }
+        }, 150);
     };
 
     const renderProfileTab = () => (
@@ -1179,7 +1186,19 @@ const ProfilePage = () => {
                                             {user?.fullName || user?.email?.split('@')[0]}
                                         </h2>
                                         <button
-                                            onClick={() => setIsEditing(!isEditing)}
+                                            onClick={() => {
+                                                setIsEditing(!isEditing);
+                                                if (!isEditing) {
+                                                    setTimeout(() => {
+                                                        const node = document.getElementById('personal-information-section');
+                                                        if (node) {
+                                                            const yOffset = -100;
+                                                            const y = node.getBoundingClientRect().top + window.scrollY + yOffset;
+                                                            window.scrollTo({ top: y, behavior: 'smooth' });
+                                                        }
+                                                    }, 150);
+                                                }
+                                            }}
                                             className="rounded-full border border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-card))] p-2 text-[rgb(var(--text-muted))] transition-colors hover:border-[rgb(var(--accent))]/40 hover:text-[rgb(var(--accent))]"
                                             title="Edit profile"
                                         >
@@ -1187,27 +1206,31 @@ const ProfilePage = () => {
                                         </button>
                                     </div>
 
-                                    <p className="mt-2 text-xl font-semibold text-[rgb(var(--text-secondary))]">{(careerProfile.education || [])[0]?.degree || 'B.Tech / B.E.'}</p>
-                                    <p className="mt-1 text-base text-[rgb(var(--text-muted))] sm:text-lg">{(careerProfile.education || [])[0]?.institute || user?.bio || 'Add your college / profile summary'}</p>
+                                    <p className="mt-2 text-xl font-semibold text-[rgb(var(--text-secondary))]">
+                                        {recruiterProfile.basic.headline || recruiterProfile.career.role || (recruiterProfile.education || [])[0]?.degree || 'Add your headline / degree'}
+                                    </p>
+                                    <p className="mt-1 text-base text-[rgb(var(--text-muted))] sm:text-lg">
+                                        {recruiterProfile.basic.currentCompany ? `at ${recruiterProfile.basic.currentCompany}` : ((recruiterProfile.education || [])[0]?.collegeName || user?.bio || 'Add your current company / college')}
+                                    </p>
 
                                     <div className="my-5 h-px bg-[rgb(var(--border-subtle))]" />
 
                                     <div className="grid grid-cols-1 gap-3 text-[rgb(var(--text-secondary))] sm:grid-cols-2">
                                         <div className={profilePillClass}>
                                             <MapPin className="h-4 w-4 text-[rgb(var(--accent))]" />
-                                            <span>{profileData.location || 'Location not added'}</span>
+                                            <span>{profileData.location || recruiterProfile.contact.preferredLocation || 'Location not added'}</span>
                                         </div>
                                         <div className={profilePillClass}>
                                             <Mail className="h-4 w-4 text-[rgb(var(--accent))]" />
                                             <span className="truncate">{user?.email}</span>
                                         </div>
                                         <div className={profilePillClass}>
-                                            <Calendar className="h-4 w-4 text-[rgb(var(--accent))]" />
-                                            <span>{careerProfile.personal?.dateOfBirth || 'Add DOB'}</span>
+                                            <Briefcase className="h-4 w-4 text-[rgb(var(--accent))]" />
+                                            <span>{recruiterProfile.career.industry || 'Add Industry'}</span>
                                         </div>
                                         <div className={profilePillClass}>
-                                            <User className="h-4 w-4 text-[rgb(var(--accent))]" />
-                                            <span>{careerProfile.personal?.gender || 'Add gender'}</span>
+                                            <Phone className="h-4 w-4 text-[rgb(var(--accent))]" />
+                                            <span>{recruiterProfile.contact.phone || 'Add phone number'}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1227,9 +1250,18 @@ const ProfilePage = () => {
                                         .filter((section) => getRecruiterSectionCount(section.key) === 0)
                                         .slice(0, 3)
                                         .map((section) => (
-                                            <div key={section.key} className="flex items-center justify-between rounded-2xl border border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-card))] px-4 py-3">
-                                                <p className="font-medium text-[rgb(var(--text-secondary))]">Add {section.title.replace(/^[A-Z]\.\s*/, '').toLowerCase()}</p>
-                                                <span className="rounded-full bg-[rgb(var(--success))]/10 px-2.5 py-1 text-xs font-bold text-[rgb(var(--success))]">+{Math.max(3, Math.floor(100 / recruiterSections.length))}%</span>
+                                            <div 
+                                                key={section.key} 
+                                                onClick={() => scrollToCareerSection(section.key)}
+                                                className="flex items-center justify-between rounded-2xl border border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-card))] px-4 py-3 cursor-pointer group hover:border-[rgb(var(--accent))]/50 transition-all"
+                                            >
+                                                <p className="font-medium text-[rgb(var(--text-secondary))] group-hover:text-[rgb(var(--accent))] transition-colors">Add {section.title.replace(/^[A-Z]\.\s*/, '').toLowerCase()}</p>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="rounded-full bg-[rgb(var(--success))]/10 px-2.5 py-1 text-xs font-bold text-[rgb(var(--success))]">+{Math.max(3, Math.floor(100 / recruiterSections.length))}%</span>
+                                                    <div className="rounded-full bg-[rgb(var(--bg-body))] p-1.5 group-hover:bg-[rgb(var(--accent))]/10 transition-colors">
+                                                        <Edit3 className="w-3.5 h-3.5 text-[rgb(var(--text-muted))] group-hover:text-[rgb(var(--accent))] transition-colors" />
+                                                    </div>
+                                                </div>
                                             </div>
                                         ))}
                                 </div>
@@ -1922,7 +1954,7 @@ const ProfilePage = () => {
             </motion.div>
 
             {/* Profile Form */}
-            <Card className="p-4 sm:p-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">
+            <Card id="personal-information-section" className="p-4 sm:p-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">
                 <h3 className="text-base sm:text-lg font-semibold mb-4 flex items-center gap-2">
                     <User className="w-4 h-4 sm:w-5 sm:h-5 text-[rgb(var(--accent))]" />
                     <span className="text-[rgb(var(--text-primary))]">Personal Information</span>
