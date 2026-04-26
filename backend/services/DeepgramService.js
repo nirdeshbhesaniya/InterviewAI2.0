@@ -88,7 +88,7 @@ class DeepgramService {
             const formattedText = this.formatInterviewSpeech(text);
 
             const response = await fetch(
-                'https://api.deepgram.com/v1/speak?model=aura-orion-en',
+                'https://api.deepgram.com/v1/speak?model=aura-2-hyperion-en',
                 {
                     method: 'POST',
                     headers: {
