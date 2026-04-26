@@ -238,7 +238,7 @@ const ActiveInterview = () => {
 
         try {
             // Initialize WebSocket
-            const ws = new WebSocket('ws://localhost:8080');
+            const ws = new WebSocket('wss://api.interviewai.tech');
             wsRef.current = ws;
 
             ws.onopen = () => {
