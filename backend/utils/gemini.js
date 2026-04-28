@@ -487,35 +487,90 @@ async function generateInterviewFeedback(interview, transcript) {
     ? transcript.map(t => `${t.role === 'user' ? 'Candidate' : 'Interviewer'}: ${t.text}`).join('\n')
     : String(transcript || '');
 
-  // Format reference questions
+  // Format reference questions with ideal answers
   const questionsList = (interview.mockInterviewResult || [])
-    .map((q, i) => `Q${i + 1}: ${q.question}`)
-    .join('\n');
+    .map((q, i) => `Q${i + 1}: ${q.question}\nIdeal Answer: ${q.correctAnswer || 'N/A'}`)
+    .join('\n\n');
 
-  const systemPrompt = `You are an expert interview evaluator. You always respond with ONLY valid JSON objects — no markdown, no explanation, no code fences.`;
+  // Candidate context for better analysis
+  const candidateSkills = interview.skills || '';
+  const candidateDegree = interview.degree || '';
+  const focusArea = interview.focusArea || '';
 
-  const userPrompt = `Analyze this ${interview.interviewType} interview transcript (Difficulty: ${interview.difficulty}, Focus: ${interview.focusArea}) and return structured feedback.
+  const systemPrompt = `You are a strict, highly experienced Principal Engineering Manager and elite interview coach from a top-tier tech company (like Google, Meta, or Amazon).
+Your goal is to provide deeply actionable, highly specific, and unvarnished feedback that genuinely helps candidates land jobs. 
+Do not sugarcoat your feedback. If an answer is weak, explain exactly why it would fail a real interview.
+When providing feedback on specific questions, you must include a "rewrittenAnswer" which provides a realistic, polished version of how the candidate should have answered using their own context.
+You always respond with ONLY valid JSON objects — no markdown, no explanation, no html tags, no code fences.`;
 
-REFERENCE QUESTIONS:
+  const userPrompt = `Perform a comprehensive, critical evaluation of this ${interview.interviewType} interview (Difficulty: ${interview.difficulty}, Focus: ${focusArea}).
+
+CANDIDATE PROFILE:
+- Degree: ${candidateDegree}
+- Skills: ${candidateSkills}
+- Focus Area: ${focusArea}
+
+REFERENCE QUESTIONS & IDEAL ANSWERS:
 ${questionsList}
 
-TRANSCRIPT:
-${transcriptText.substring(0, 6000)}
+FULL INTERVIEW TRANSCRIPT:
+${transcriptText.substring(0, 8000)}
 
-Return ONLY a JSON object with this exact schema (no markdown, no fences):
+Analyze the transcript rigorously and return ONLY a valid JSON object with this exact schema (no markdown, no fences):
 {
-  "score": <number 0-100>,
-  "overallSummary": "<2-3 sentence overall assessment>",
-  "improvements": ["<point 1>", "<point 2>", "<point 3>"],
+  "score": <number 0-100, overall performance percentage>,
+  "overallSummary": "<3-4 sentence comprehensive, brutally honest assessment of the candidate's performance, highlighting key patterns >",
+  "strengths": ["<specific strength 1 with evidence from transcript>", "<strength 2>", "<strength 3>"],
+  "weaknesses": ["<specific weakness 1 with evidence>", "<weakness 2>", "<weakness 3>"],
+  "improvements": ["<actionable improvement tip 1>", "<tip 2>", "<tip 3>", "<tip 4>"],
+  "communicationScore": <number 1-10, clarity, articulation, structure of responses>,
+  "technicalScore": <number 1-10, depth of technical knowledge demonstrated>,
+  "problemSolvingScore": <number 1-10, analytical thinking and approach to problems>,
+  "confidenceScore": <number 1-10, how confident and composed the candidate appeared>,
+  "starMethodAdherence": <number 1-10, how well answers followed Situation-Task-Action-Result format>,
+  "skillGaps": [
+    {
+      "skill": "<specific technical skill or concept the candidate was weak on>",
+      "level": "<Beginner|Intermediate|Advanced — their current level>",
+      "recommendation": "<specific resource, practice method, or study tip to improve this skill>"
+    }
+  ],
   "feedback": [
     {
-      "question": "<first 40 chars of the question>",
-      "userAnswer": "<brief summary of what the candidate said>",
-      "feedback": "<specific constructive feedback>",
-      "rating": <number 1-10>
+      "question": "<first 50 chars of the question>",
+      "userAnswer": "<concise 2-3 sentence summary of what the candidate actually said>",
+      "feedback": "<specific, strict, constructive feedback explaining exactly why it was good or bad. Speak like a real hiring manager.>",
+      "rating": <number 1-10>,
+      "strengths": ["<what the candidate did well on THIS question>"],
+      "improvements": ["<specific way to improve the answer to THIS question>"],
+      "idealApproach": "<brief 2-3 sentence description of the ideal way to approach and answer this question>",
+      "rewrittenAnswer": "<Provide a polished, professional 3-4 sentence version of the candidate's answer as it SHOULD have been spoken in a real interview.>"
     }
+  ],
+  "overallRecommendations": [
+    {
+      "category": "<Technical|Communication|Behavioral|Problem Solving>",
+      "tip": "<specific, actionable recommendation>",
+      "priority": "<High|Medium|Low>"
+    }
+  ],
+  "interviewReadiness": "<Not Ready|Needs More Practice|Almost Ready|Interview Ready|Exceptional>",
+  "nextSteps": [
+    "<specific action item 1 the candidate should do next>",
+    "<action item 2>",
+    "<action item 3>"
   ]
-}`;
+}
+
+EVALUATION GUIDELINES:
+- Be brutally honest but constructive. Speak like a real hiring manager evaluating a candidate.
+- Reference actual things the candidate said in the transcript.
+- "rewrittenAnswer" is critical: show them exactly what a 10/10 answer sounds like using the context they provided.
+- Score accurately based on the difficulty. If they give a superficial answer to advanced questions, penalize the score.
+- Identify at least 2-4 skill gaps based on the interview content.
+- interviewReadiness should reflect the overall score: <30 = Not Ready, 30-50 = Needs More Practice, 50-70 = Almost Ready, 70-85 = Interview Ready, >85 = Exceptional.
+- nextSteps should be concrete actions, not vague advice.
+- MUST Output ONLY raw JSON.`;
 
   try {
     const { content } = await generateWithFallback(QA_MODEL_PREFERENCES, systemPrompt, userPrompt);
@@ -528,7 +583,7 @@ Return ONLY a JSON object with this exact schema (no markdown, no fences):
       .trim();
 
     const feedback = JSON.parse(jsonString);
-    console.log(`[MockInterview] Generated interview feedback via OpenRouter. Score: ${feedback.score}`);
+    console.log(`[MockInterview] Generated enriched interview feedback. Score: ${feedback.score}, Readiness: ${feedback.interviewReadiness}`);
     return feedback;
 
   } catch (err) {
@@ -537,8 +592,31 @@ Return ONLY a JSON object with this exact schema (no markdown, no fences):
     return {
       score: 50,
       overallSummary: 'Feedback generation encountered an error. Please review your interview manually.',
+      strengths: ['Completed the interview session'],
+      weaknesses: ['Unable to analyze specific weaknesses due to processing error'],
       improvements: ['Review your answers for clarity', 'Practice technical explanations', 'Work on structured responses'],
-      feedback: []
+      communicationScore: 5,
+      technicalScore: 5,
+      problemSolvingScore: 5,
+      confidenceScore: 5,
+      starMethodAdherence: 5,
+      skillGaps: [],
+      feedback: interview.mockInterviewResult?.map(q => ({
+        question: q.question,
+        userAnswer: "Error transcribing answer.",
+        feedback: "Unable to generate detailed feedback.",
+        rating: 5,
+        strengths: ["Attempted question"],
+        improvements: ["Try again later"],
+        idealApproach: "Provide clear examples.",
+        rewrittenAnswer: "NA"
+      })) || [],
+      overallRecommendations: [
+        { category: 'Technical', tip: 'Practice explaining technical concepts clearly', priority: 'High' },
+        { category: 'Communication', tip: 'Use the STAR method for behavioral questions', priority: 'Medium' }
+      ],
+      interviewReadiness: 'Needs More Practice',
+      nextSteps: ['Retake this interview for a fresh assessment', 'Practice with different focus areas']
     };
   }
 }

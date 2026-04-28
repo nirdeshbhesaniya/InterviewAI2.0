@@ -82,6 +82,10 @@ const MockInterviewSchema = new mongoose.Schema({
             userAns: { type: String }, // User's transcribed answer
             feedback: { type: String }, // AI feedback on individual answer
             rating: { type: Number }, // Score 1-10
+            questionStrengths: [String], // What user did well on this question
+            questionImprovements: [String], // What user should improve on this question
+            idealApproach: { type: String }, // Ideal approach/strategy for this question
+            rewrittenAnswer: { type: String }, // A polished version of candidate's answer
             createdAt: { type: Date, default: Date.now }
         }
     ],
@@ -90,7 +94,30 @@ const MockInterviewSchema = new mongoose.Schema({
     overallFeedback: {
         summary: String,
         score: Number,
-        improvements: [String]
+        improvements: [String],
+        strengths: [String],
+        weaknesses: [String],
+        communicationScore: { type: Number, default: 0 },
+        technicalScore: { type: Number, default: 0 },
+        problemSolvingScore: { type: Number, default: 0 },
+        confidenceScore: { type: Number, default: 0 },
+        starMethodAdherence: { type: Number, default: 0 },
+        skillGaps: [
+            {
+                skill: String,
+                level: String,
+                recommendation: String
+            }
+        ],
+        overallRecommendations: [
+            {
+                category: String,
+                tip: String,
+                priority: { type: String, enum: ['High', 'Medium', 'Low'], default: 'Medium' }
+            }
+        ],
+        interviewReadiness: { type: String, default: 'Needs More Practice' },
+        nextSteps: [String]
     },
 
     // Vapi Call ID for reference

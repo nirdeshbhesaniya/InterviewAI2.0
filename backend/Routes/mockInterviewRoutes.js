@@ -444,10 +444,21 @@ router.post('/:mockId/end', authenticateToken, async (req, res) => {
         interview.overallFeedback = {
             score: aiFeedback.score,
             summary: aiFeedback.overallSummary,
-            improvements: aiFeedback.improvements
+            improvements: aiFeedback.improvements || [],
+            strengths: aiFeedback.strengths || [],
+            weaknesses: aiFeedback.weaknesses || [],
+            communicationScore: aiFeedback.communicationScore || 0,
+            technicalScore: aiFeedback.technicalScore || 0,
+            problemSolvingScore: aiFeedback.problemSolvingScore || 0,
+            confidenceScore: aiFeedback.confidenceScore || 0,
+            starMethodAdherence: aiFeedback.starMethodAdherence || 0,
+            skillGaps: aiFeedback.skillGaps || [],
+            overallRecommendations: aiFeedback.overallRecommendations || [],
+            interviewReadiness: aiFeedback.interviewReadiness || 'Needs More Practice',
+            nextSteps: aiFeedback.nextSteps || []
         };
 
-        // Merge Question Feedback
+        // Merge Question Feedback (enriched with per-question strengths, improvements, idealApproach)
         if (aiFeedback.feedback && Array.isArray(aiFeedback.feedback)) {
             interview.mockInterviewResult = interview.mockInterviewResult.map(originalQ => {
                 const matchingFeedback = aiFeedback.feedback.find(f => f.question.includes(originalQ.question.substring(0, 20))); // fuzzy match
@@ -456,7 +467,11 @@ router.post('/:mockId/end', authenticateToken, async (req, res) => {
                         ...originalQ.toObject(),
                         userAns: matchingFeedback.userAnswer,
                         feedback: matchingFeedback.feedback,
-                        rating: matchingFeedback.rating
+                        rating: matchingFeedback.rating,
+                        questionStrengths: matchingFeedback.strengths || [],
+                        questionImprovements: matchingFeedback.improvements || [],
+                        idealApproach: matchingFeedback.idealApproach || '',
+                        rewrittenAnswer: matchingFeedback.rewrittenAnswer || ''
                     };
                 }
                 return originalQ;
