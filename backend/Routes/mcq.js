@@ -907,7 +907,7 @@ router.delete('/test/:testId', async (req, res) => {
 });
 
 // GET all published Practice Tests with Pagination
-router.get('/practice-tests', async (req, res) => {
+router.get('/practice-tests', checkFeatureEnabled('practice_tests'), async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 9; // Default to 9 (3x3 grid)
@@ -952,7 +952,7 @@ router.get('/practice-tests', async (req, res) => {
 });
 
 // GET specific Practice Test
-router.get('/practice-tests/:id', async (req, res) => {
+router.get('/practice-tests/:id', checkFeatureEnabled('practice_tests'), async (req, res) => {
     try {
         const { id } = req.params;
         const PracticeTest = require('../models/PracticeTest');

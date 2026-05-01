@@ -5,6 +5,8 @@ const Note = require('../models/Note');
 const Resource = require('../models/Resource');
 const PracticeTest = require('../models/PracticeTest');
 const Interview = require('../models/Interview');
+const { FEATURE_LOCKS } = require('../utils/featureRegistry');
+const { getFeatureStatus } = require('../middlewares/featureAuth');
 
 // GET /api/public/stats
 // Public endpoint to get application statistics
@@ -226,6 +228,29 @@ router.get('/find-page', async (req, res) => {
     } catch (error) {
         console.error('Find Page Error:', error);
         res.status(500).json({ success: false, message: 'Calculation failed' });
+    }
+});
+
+// GET /api/public/feature-locks
+// Public feature availability feed for frontend guards
+router.get('/feature-locks', async (req, res) => {
+    try {
+        const features = await Promise.all(FEATURE_LOCKS.map(async (feature) => {
+            const isEnabled = await getFeatureStatus(feature.key, true);
+            return {
+                ...feature,
+                isEnabled,
+                isLocked: !isEnabled
+            };
+        }));
+
+        res.json({
+            success: true,
+            features
+        });
+    } catch (error) {
+        console.error('Feature lock lookup failed:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch feature locks' });
     }
 });
 

@@ -237,7 +237,7 @@ const MockInterviewDashboard = () => {
                                                     <div className="flex items-center justify-between">
                                                         <span className="text-xs font-medium text-green-700 dark:text-green-300">Overall Score</span>
                                                         <span className="text-lg font-bold text-green-600 dark:text-green-400">
-                                                            {interview.overallFeedback.score}/10
+                                                            {interview.overallFeedback.score}/100
                                                         </span>
                                                     </div>
                                                 </div>

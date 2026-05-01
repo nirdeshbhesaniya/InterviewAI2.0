@@ -12,7 +12,8 @@ import {
     Bell,
     Loader2,
     LayoutDashboard,
-    MessageSquare
+    MessageSquare,
+    Lock
 } from 'lucide-react';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
@@ -29,6 +30,7 @@ import NotificationCenter from './components/NotificationCenter';
 import AIServicePanel from './components/AIServicePanel';
 import SessionApprovals from './components/SessionApprovals';
 import FeedbackManagement from './components/FeedbackManagement';
+import FeatureLocksPanel from './components/FeatureLocksPanel';
 
 const STATS_CARDS = [
     { title: 'Total Users', key: 'totalUsers', icon: Users, color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-500/10' },
@@ -108,6 +110,8 @@ const AdminDashboard = () => {
                 return <NotificationCenter />;
             case 'feedback':
                 return <FeedbackManagement />;
+            case 'feature-locks':
+                return <FeatureLocksPanel />;
             default:
                 return <UserManagement />;
         }
@@ -278,6 +282,16 @@ const AdminDashboard = () => {
                         >
                             <MessageSquare className="w-5 h-5" />
                             Feedback
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('feature-locks')}
+                            className={`flex-none lg:w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 font-medium transition-all whitespace-nowrap ${activeTab === 'feature-locks'
+                                ? 'bg-[rgb(var(--accent))] text-white shadow-lg shadow-[rgb(var(--accent))]/20'
+                                : 'text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-elevated))]'
+                                }`}
+                        >
+                            <Lock className="w-5 h-5" />
+                            Feature Locks
                         </button>
                     </div>
 

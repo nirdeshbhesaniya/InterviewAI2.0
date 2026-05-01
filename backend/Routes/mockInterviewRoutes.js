@@ -5,6 +5,9 @@ const { generateMockInterviewData, generateInterviewFeedback, extractResumeProfi
 const { authenticateToken } = require('../middlewares/auth');
 const multer = require('multer');
 const pdfParse = require('pdf-parse');
+const { checkFeatureEnabled } = require('../middlewares/featureAuth');
+
+router.use(checkFeatureEnabled('mock_interview'));
 
 // Configure Multer for in-memory storage (temporary)
 const storage = multer.memoryStorage();

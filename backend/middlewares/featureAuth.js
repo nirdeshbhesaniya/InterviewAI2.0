@@ -1,4 +1,5 @@
 const SystemSetting = require('../models/SystemSetting');
+const { getFeatureDefinition } = require('../utils/featureRegistry');
 
 // Simple in-memory cache to avoid DB hits on every request
 // In a distributed system, use Redis or short TTL.
@@ -36,6 +37,23 @@ const getFeatureStatus = async (key, defaultValue = true) => {
         // Let's fallback to default.
         return defaultValue;
     }
+};
+
+const setFeatureStatus = async (key, isEnabled, updatedBy = null, description = '') => {
+    const featureDefinition = getFeatureDefinition(key);
+
+    const setting = await SystemSetting.findOneAndUpdate(
+        { key },
+        {
+            value: isEnabled,
+            updatedBy,
+            description: description || featureDefinition?.description || `Feature flag for ${key}`
+        },
+        { upsert: true, new: true }
+    );
+
+    featureCache.set(key, { value: setting.value, timestamp: Date.now() });
+    return setting;
 };
 
 /**
@@ -80,4 +98,4 @@ const invalidateFeatureCache = (key) => {
     featureCache.delete(key);
 };
 
-module.exports = { checkFeatureEnabled, getFeatureStatus, invalidateFeatureCache };
+module.exports = { checkFeatureEnabled, getFeatureStatus, setFeatureStatus, invalidateFeatureCache };

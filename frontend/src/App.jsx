@@ -30,6 +30,7 @@ import InterviewDetails from './pages/MockInterview/InterviewDetails';
 import MainLayout from './components/layouts/MainLayout';
 import ProtectedRoute from './components/layouts/ProtectedRoute';
 import DesktopOnlyGuard from './components/layouts/DesktopOnlyGuard';
+import FeatureLockGuard from './components/layouts/FeatureLockGuard';
 
 import AdminGuard from './components/layouts/AdminGuard';
 import AdminDashboard from './pages/Admin/AdminDashboard';
@@ -73,7 +74,9 @@ const App = () => {
                     path="/codebase"
                     element={
                       <ProtectedRoute>
-                        <CodeExecutionPlatform />
+                        <FeatureLockGuard featureKey="code_execution" title="Code Execution" description="The code workspace and compilation API are locked by an administrator.">
+                          <CodeExecutionPlatform />
+                        </FeatureLockGuard>
                       </ProtectedRoute>
                     }
                   />
@@ -89,9 +92,11 @@ const App = () => {
                     path="/mcq-test"
                     element={
                       <ProtectedRoute>
-                        <DesktopOnlyGuard featureName="AI MCQ Test">
-                          <MCQTest />
-                        </DesktopOnlyGuard>
+                        <FeatureLockGuard featureKey="ai_mcq_generation" title="AI MCQ Test" description="MCQ generation has been locked by an administrator.">
+                          <DesktopOnlyGuard featureName="AI MCQ Test">
+                            <MCQTest />
+                          </DesktopOnlyGuard>
+                        </FeatureLockGuard>
                       </ProtectedRoute>
                     }
                   />
@@ -99,9 +104,11 @@ const App = () => {
                     path="/mcq-test/practice"
                     element={
                       <ProtectedRoute>
-                        <DesktopOnlyGuard featureName="Practice Tests">
-                          <PracticeTestsPage />
-                        </DesktopOnlyGuard>
+                        <FeatureLockGuard featureKey="practice_tests" title="Practice Tests" description="The practice test library is currently unavailable.">
+                          <DesktopOnlyGuard featureName="Practice Tests">
+                            <PracticeTestsPage />
+                          </DesktopOnlyGuard>
+                        </FeatureLockGuard>
                       </ProtectedRoute>
                     }
                   />
@@ -109,9 +116,11 @@ const App = () => {
                     path="/mcq-test/practice/:testId"
                     element={
                       <ProtectedRoute>
-                        <DesktopOnlyGuard featureName="Practice Test">
-                          <MCQTest />
-                        </DesktopOnlyGuard>
+                        <FeatureLockGuard featureKey="practice_tests" title="Practice Test" description="This practice test is currently locked.">
+                          <DesktopOnlyGuard featureName="Practice Test">
+                            <MCQTest />
+                          </DesktopOnlyGuard>
+                        </FeatureLockGuard>
                       </ProtectedRoute>
                     }
                   />
@@ -127,7 +136,9 @@ const App = () => {
                     path="/interview-prep/:sessionId"
                     element={
                       <ProtectedRoute>
-                        <InterviewPrepModern />
+                        <FeatureLockGuard featureKey="ai_interview_generation" title="AI Interview Generation" description="Interview generation and AI assistance are currently locked by an administrator.">
+                          <InterviewPrepModern />
+                        </FeatureLockGuard>
                       </ProtectedRoute>
                     }
                   />
@@ -135,7 +146,9 @@ const App = () => {
                     path="/interview-prep/:sessionId/add"
                     element={
                       <ProtectedRoute>
-                        <AddQuestionPage />
+                        <FeatureLockGuard featureKey="ai_interview_generation" title="AI Interview Generation" description="Interview generation and AI assistance are currently locked by an administrator.">
+                          <AddQuestionPage />
+                        </FeatureLockGuard>
                       </ProtectedRoute>
                     }
                   />
@@ -143,7 +156,9 @@ const App = () => {
                     path="/interview-prep/:sessionId/edit"
                     element={
                       <ProtectedRoute>
-                        <AnswerEditor />
+                        <FeatureLockGuard featureKey="ai_interview_generation" title="AI Interview Generation" description="Interview generation and AI assistance are currently locked by an administrator.">
+                          <AnswerEditor />
+                        </FeatureLockGuard>
                       </ProtectedRoute>
                     }
                   />
@@ -194,9 +209,11 @@ const App = () => {
                     path="/mock-interview"
                     element={
                       <ProtectedRoute>
-                        <DesktopOnlyGuard featureName="Mock Interview">
-                          <MockInterviewDashboard />
-                        </DesktopOnlyGuard>
+                        <FeatureLockGuard featureKey="mock_interview" title="Mock Interview" description="The mock interview workflow is locked right now.">
+                          <DesktopOnlyGuard featureName="Mock Interview">
+                            <MockInterviewDashboard />
+                          </DesktopOnlyGuard>
+                        </FeatureLockGuard>
                       </ProtectedRoute>
                     }
                   />
@@ -204,9 +221,11 @@ const App = () => {
                     path="/mock-interview/create"
                     element={
                       <ProtectedRoute>
-                        <DesktopOnlyGuard featureName="Mock Interview">
-                          <CreateMockInterview />
-                        </DesktopOnlyGuard>
+                        <FeatureLockGuard featureKey="mock_interview" title="Mock Interview" description="The mock interview workflow is locked right now.">
+                          <DesktopOnlyGuard featureName="Mock Interview">
+                            <CreateMockInterview />
+                          </DesktopOnlyGuard>
+                        </FeatureLockGuard>
                       </ProtectedRoute>
                     }
                   />
@@ -214,9 +233,11 @@ const App = () => {
                     path="/mock-interview/:mockId"
                     element={
                       <ProtectedRoute>
-                        <DesktopOnlyGuard featureName="Mock Interview">
-                          <InterviewDetails />
-                        </DesktopOnlyGuard>
+                        <FeatureLockGuard featureKey="mock_interview" title="Mock Interview" description="The mock interview workflow is locked right now.">
+                          <DesktopOnlyGuard featureName="Mock Interview">
+                            <InterviewDetails />
+                          </DesktopOnlyGuard>
+                        </FeatureLockGuard>
                       </ProtectedRoute>
                     }
                   />
@@ -224,9 +245,11 @@ const App = () => {
                     path="/mock-interview/:mockId/start"
                     element={
                       <ProtectedRoute>
-                        <DesktopOnlyGuard featureName="Mock Interview">
-                          <ActiveInterview />
-                        </DesktopOnlyGuard>
+                        <FeatureLockGuard featureKey="mock_interview" title="Mock Interview" description="The mock interview workflow is locked right now.">
+                          <DesktopOnlyGuard featureName="Mock Interview">
+                            <ActiveInterview />
+                          </DesktopOnlyGuard>
+                        </FeatureLockGuard>
                       </ProtectedRoute>
                     }
                   />
@@ -234,9 +257,11 @@ const App = () => {
                     path="/mock-interview/:mockId/feedback"
                     element={
                       <ProtectedRoute>
-                        <DesktopOnlyGuard featureName="Mock Interview">
-                          <InterviewResult />
-                        </DesktopOnlyGuard>
+                        <FeatureLockGuard featureKey="mock_interview" title="Mock Interview" description="The mock interview workflow is locked right now.">
+                          <DesktopOnlyGuard featureName="Mock Interview">
+                            <InterviewResult />
+                          </DesktopOnlyGuard>
+                        </FeatureLockGuard>
                       </ProtectedRoute>
                     }
                   />

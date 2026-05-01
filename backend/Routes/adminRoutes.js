@@ -3,7 +3,10 @@ const router = express.Router();
 const User = require('../models/User');
 const Interview = require('../models/Interview');
 const Notification = require('../models/Notification');
+const SystemSetting = require('../models/SystemSetting');
 const { authenticateToken } = require('../middlewares/auth');
+const { getFeatureStatus, setFeatureStatus } = require('../middlewares/featureAuth');
+const { FEATURE_LOCKS, getFeatureDefinition } = require('../utils/featureRegistry');
 
 // Middleware to check if user is admin or owner
 const requireAdmin = (req, res, next) => {
@@ -314,6 +317,64 @@ router.post('/approve-all-qna', async (req, res) => {
     } catch (err) {
         console.error('Error approving all requests:', err);
         res.status(500).json({ message: 'Failed to approve all requests' });
+    }
+});
+
+// GET feature lock configuration
+router.get('/feature-locks', async (req, res) => {
+    try {
+        const features = await Promise.all(FEATURE_LOCKS.map(async (feature) => {
+            const isEnabled = await getFeatureStatus(feature.key, true);
+            const setting = await SystemSetting.findOne({ key: feature.key }).select('updatedAt updatedBy');
+
+            return {
+                ...feature,
+                isEnabled,
+                isLocked: !isEnabled,
+                updatedAt: setting?.updatedAt || null,
+                updatedBy: setting?.updatedBy || null
+            };
+        }));
+
+        res.json({
+            success: true,
+            features
+        });
+    } catch (err) {
+        console.error('Error fetching feature locks:', err);
+        res.status(500).json({ message: 'Failed to fetch feature locks' });
+    }
+});
+
+// PATCH feature lock status
+router.patch('/feature-locks/:featureKey', async (req, res) => {
+    try {
+        const { featureKey } = req.params;
+        const { isEnabled } = req.body;
+
+        if (typeof isEnabled !== 'boolean') {
+            return res.status(400).json({ message: 'isEnabled must be a boolean' });
+        }
+
+        const featureDefinition = getFeatureDefinition(featureKey);
+        if (!featureDefinition) {
+            return res.status(404).json({ message: 'Unknown feature key' });
+        }
+
+        await setFeatureStatus(featureKey, isEnabled, req.user._id, featureDefinition.description);
+
+        res.json({
+            success: true,
+            message: `${featureDefinition.label} ${isEnabled ? 'unlocked' : 'locked'} successfully`,
+            feature: {
+                key: featureKey,
+                isEnabled,
+                isLocked: !isEnabled
+            }
+        });
+    } catch (err) {
+        console.error('Error updating feature lock:', err);
+        res.status(500).json({ message: 'Failed to update feature lock' });
     }
 });
 

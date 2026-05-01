@@ -16,7 +16,12 @@ export const API = {
   RESET_PASSWORD: `${API_BASE_URL}/auth/reset-password`,
   PUBLIC: {
     GET_STATS: `${API_BASE_URL}/public/stats`,
-    FIND_PAGE: (type, id, limit) => `${API_BASE_URL}/public/find-page?type=${type}&id=${id}&limit=${limit}`
+    FIND_PAGE: (type, id, limit) => `${API_BASE_URL}/public/find-page?type=${type}&id=${id}&limit=${limit}`,
+    FEATURE_LOCKS: `${API_BASE_URL}/public/feature-locks`
+  },
+  AI: {
+    FEATURES: `${API_BASE_URL}/ai/features`,
+    TOGGLE_FEATURE: `${API_BASE_URL}/ai/features/toggle`
   },
   FEEDBACK: {
     CREATE: `${API_BASE_URL}/feedback`,
@@ -96,6 +101,8 @@ export const API = {
     CREATE_NOTIFICATION: `${API_BASE_URL}/admin/notifications/create`,
     GET_BROADCASTS: `${API_BASE_URL}/admin/notifications/broadcasts`,
     DELETE_BROADCAST: (id) => `${API_BASE_URL}/admin/notifications/broadcasts/${id}`,
+    FEATURE_LOCKS: `${API_BASE_URL}/admin/feature-locks`,
+    UPDATE_FEATURE_LOCK: (key) => `${API_BASE_URL}/admin/feature-locks/${key}`
   },
   NOTIFICATIONS: {
     GET_ALL: (userId) => `${API_BASE_URL}/notifications/${userId}`,
