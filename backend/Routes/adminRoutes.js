@@ -13,7 +13,7 @@ const requireAdmin = (req, res, next) => {
     if (req.user && (req.user.role === 'admin' || req.user.role === 'owner')) {
         next();
     } else {
-        res.status(403).json({ message: 'Access denied. Admin or Owner rights required.' });
+        res.status(403).json({ message: 'Access denied. Admin or Owner rights must required.' });
     }
 };
 

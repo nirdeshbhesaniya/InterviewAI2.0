@@ -85,7 +85,7 @@ router.get('/search', async (req, res) => {
                 });
                 return Math.floor(countBefore / limit) + 1;
             } catch (error) {
-                console.error('Page calculation error:', error);
+                console.error('Page calculation error!:', error);
                 return null;
             }
         };
