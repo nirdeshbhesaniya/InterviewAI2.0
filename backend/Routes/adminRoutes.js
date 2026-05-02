@@ -326,9 +326,9 @@ router.get('/feature-locks', async (req, res) => {
     try {
         // Verify admin access
         if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'owner')) {
-            return res.status(403).json({ 
+            return res.status(403).json({
                 message: 'Access denied. Admin or Owner rights required.',
-                requiresAuth: true 
+                requiresAuth: true
             });
         }
 
@@ -362,9 +362,9 @@ router.patch('/feature-locks/:featureKey', async (req, res) => {
     try {
         // Verify admin access
         if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'owner')) {
-            return res.status(403).json({ 
+            return res.status(403).json({
                 message: 'Access denied. Admin or Owner rights required.',
-                requiresAuth: true 
+                requiresAuth: true
             });
         }
 
