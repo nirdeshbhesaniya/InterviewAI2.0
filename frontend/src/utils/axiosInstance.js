@@ -10,6 +10,13 @@ const axiosInstance = axios.create({
   },
 });
 
+// Create a separate instance for public endpoints (no auth headers)
+const publicAxiosInstance = axios.create({
+  baseURL: "https://api.interviewai.tech/api",
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 // Add a request interceptor to include user email for authentication
 axiosInstance.interceptors.request.use(
@@ -59,3 +66,4 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
+export { publicAxiosInstance };

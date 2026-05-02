@@ -233,24 +233,53 @@ router.get('/find-page', async (req, res) => {
 
 // GET /api/public/feature-locks
 // Public feature availability feed for frontend guards
+// This endpoint is intentionally public - NO authentication required
+// Frontend can call this without any Authorization header
 router.get('/feature-locks', async (req, res) => {
     try {
+        if (!FEATURE_LOCKS || FEATURE_LOCKS.length === 0) {
+            return res.json({
+                success: true,
+                features: []
+            });
+        }
+
         const features = await Promise.all(FEATURE_LOCKS.map(async (feature) => {
-            const isEnabled = await getFeatureStatus(feature.key, true);
-            return {
-                ...feature,
-                isEnabled,
-                isLocked: !isEnabled
-            };
+            try {
+                const isEnabled = await getFeatureStatus(feature.key, true);
+                return {
+                    ...feature,
+                    isEnabled,
+                    isLocked: !isEnabled
+                };
+            } catch (featureErr) {
+                console.error(`Error fetching feature status for ${feature.key}:`, featureErr);
+                // Fail open - return feature as enabled if DB lookup fails
+                return {
+                    ...feature,
+                    isEnabled: true,
+                    isLocked: false
+                };
+            }
         }));
+
+        // Filter out any null features and ensure valid response
+        const validFeatures = features.filter(f => f && f.key);
 
         res.json({
             success: true,
-            features
+            features: validFeatures,
+            timestamp: new Date().toISOString()
         });
     } catch (error) {
         console.error('Feature lock lookup failed:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch feature locks' });
+        // Fail gracefully - return empty array if something goes wrong
+        // This prevents blocking users due to backend errors
+        res.status(200).json({
+            success: true,
+            features: [],
+            error: 'Unable to fetch feature locks, defaulting to all features enabled'
+        });
     }
 });
 

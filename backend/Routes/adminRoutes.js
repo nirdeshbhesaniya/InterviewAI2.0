@@ -320,9 +320,18 @@ router.post('/approve-all-qna', async (req, res) => {
     }
 });
 
-// GET feature lock configuration
+// GET feature lock configuration (ADMIN ONLY)
+// This endpoint requires authentication and admin role
 router.get('/feature-locks', async (req, res) => {
     try {
+        // Verify admin access
+        if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'owner')) {
+            return res.status(403).json({ 
+                message: 'Access denied. Admin or Owner rights required.',
+                requiresAuth: true 
+            });
+        }
+
         const features = await Promise.all(FEATURE_LOCKS.map(async (feature) => {
             const isEnabled = await getFeatureStatus(feature.key, true);
             const setting = await SystemSetting.findOne({ key: feature.key }).select('updatedAt updatedBy');
@@ -338,17 +347,27 @@ router.get('/feature-locks', async (req, res) => {
 
         res.json({
             success: true,
-            features
+            features,
+            timestamp: new Date().toISOString()
         });
     } catch (err) {
         console.error('Error fetching feature locks:', err);
-        res.status(500).json({ message: 'Failed to fetch feature locks' });
+        res.status(500).json({ message: 'Failed to fetch feature locks', error: err.message });
     }
 });
 
-// PATCH feature lock status
+// PATCH feature lock status (ADMIN ONLY)
+// This endpoint requires authentication and admin role
 router.patch('/feature-locks/:featureKey', async (req, res) => {
     try {
+        // Verify admin access
+        if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'owner')) {
+            return res.status(403).json({ 
+                message: 'Access denied. Admin or Owner rights required.',
+                requiresAuth: true 
+            });
+        }
+
         const { featureKey } = req.params;
         const { isEnabled } = req.body;
 
@@ -370,11 +389,12 @@ router.patch('/feature-locks/:featureKey', async (req, res) => {
                 key: featureKey,
                 isEnabled,
                 isLocked: !isEnabled
-            }
+            },
+            timestamp: new Date().toISOString()
         });
     } catch (err) {
         console.error('Error updating feature lock:', err);
-        res.status(500).json({ message: 'Failed to update feature lock' });
+        res.status(500).json({ message: 'Failed to update feature lock', error: err.message });
     }
 });
 

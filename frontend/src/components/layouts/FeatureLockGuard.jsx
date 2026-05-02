@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Loader2, Lock, Sparkles, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import axios from '../../utils/axiosInstance';
+import { publicAxiosInstance } from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import { useUser } from '../../context/UserContext';
 
@@ -18,15 +18,21 @@ const FeatureLockGuard = ({ featureKey, children, title, description }) => {
 
         const fetchFeatureLocks = async () => {
             try {
-                const res = await axios.get(API.PUBLIC.FEATURE_LOCKS);
+                // Use public axios instance which doesn't include auth headers
+                // This ensures the public endpoint works without authentication
+                const res = await publicAxiosInstance.get(API.PUBLIC.FEATURE_LOCKS);
                 if (!active) return;
 
                 const matchedFeature = (res.data.features || []).find((item) => item.key === featureKey);
                 setFeature(matchedFeature || null);
                 setIsLocked(Boolean(matchedFeature && matchedFeature.isLocked));
             } catch (error) {
+                console.error('Error fetching feature locks:', error.message);
                 if (active) {
+                    // Fail open - if we can't fetch feature locks, allow the feature
+                    // This prevents blocking users due to API errors
                     setIsLocked(false);
+                    console.warn(`Feature lock status unavailable for ${featureKey}. Allowing access.`);
                 }
             } finally {
                 if (active) {
