@@ -323,6 +323,10 @@ router.post('/approve-all-qna', async (req, res) => {
 // GET feature lock configuration (ADMIN ONLY)
 // This endpoint requires authentication and admin role
 router.get('/feature-locks', async (req, res) => {
+    // Prevent all caching so the admin always sees live state
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
     try {
         // Verify admin access
         if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'owner')) {
@@ -359,6 +363,10 @@ router.get('/feature-locks', async (req, res) => {
 // PATCH feature lock status (ADMIN ONLY)
 // This endpoint requires authentication and admin role
 router.patch('/feature-locks/:featureKey', async (req, res) => {
+    // Prevent all caching
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
     try {
         // Verify admin access
         if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'owner')) {

@@ -22,7 +22,10 @@ const FeatureLocksPanel = () => {
     const fetchFeatureLocks = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(API.ADMIN.FEATURE_LOCKS);
+            // Add _t param to bust any CDN/browser cache — critical in production
+            const res = await axios.get(API.ADMIN.FEATURE_LOCKS, {
+                params: { _t: Date.now() }
+            });
             const allFeatures = (res.data.features || []).map((feature) => ({
                 ...feature,
                 isLocked: !feature.isEnabled,
@@ -31,8 +34,16 @@ const FeatureLocksPanel = () => {
 
             setFeatures(allFeatures);
         } catch (error) {
-            console.error('Failed to load feature locks:', error);
-            toast.error('Failed to load feature locks');
+            const status = error?.response?.status;
+            const msg = error?.response?.data?.message || error?.message || 'Unknown error';
+            console.error('Failed to load feature locks:', { status, msg, error });
+            if (status === 401) {
+                toast.error('Session expired — please log in again.');
+            } else if (status === 403) {
+                toast.error('Access denied. Admin or Owner role required.');
+            } else {
+                toast.error(`Failed to load feature locks (${status || 'network error'}): ${msg}`);
+            }
             setFeatures([]);
         } finally {
             setLoading(false);

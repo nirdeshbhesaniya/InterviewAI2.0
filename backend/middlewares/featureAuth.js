@@ -16,25 +16,21 @@ const getFeatureStatus = async (key, defaultValue = true) => {
     }
 
     try {
-        let setting = await SystemSetting.findOne({ key });
-
-        // If setting doesn't exist, create it with default
-        if (!setting) {
-            setting = await SystemSetting.create({
-                key,
-                value: defaultValue,
-                description: `Feature flag for ${key}`
-            });
-        }
+        // Use findOneAndUpdate with upsert to atomically get-or-create the setting.
+        // This eliminates the duplicate-key race condition that occurred when two
+        // concurrent requests both tried to create the same missing setting.
+        const setting = await SystemSetting.findOneAndUpdate(
+            { key },
+            { $setOnInsert: { key, value: defaultValue, description: `Feature flag for ${key}` } },
+            { upsert: true, new: true }
+        );
 
         featureCache.set(key, { value: setting.value, timestamp: now });
         return setting.value;
 
     } catch (error) {
         console.error(`Error checking feature flag ${key}:`, error);
-        // Fail open (allow feature) or closed? 
-        // Failing open is usually better for UX if DB is flaky, unless it's critical.
-        // Let's fallback to default.
+        // Fail open: allow the feature if DB is unavailable to avoid blocking users.
         return defaultValue;
     }
 };

@@ -29,7 +29,7 @@ const authenticateToken = (req, res, next) => {
                 // optimization: if we have a user cache, check there. For now, findOne with selection.
                 // Re-require User here to avoid circular dependency if possible, or assume it's available.
                 const User = require('../models/User');
-                const user = await User.findById(decodedUser.userId).select('isBanned role email fullName');
+                const user = await User.findById(decodedUser.userId).select('isBanned isDeleted role email fullName');
 
                 if (!user) {
                     return res.status(401).json({ message: 'User not found' });
@@ -75,7 +75,7 @@ const identifyUser = (req, res, next) => {
 
             try {
                 const User = require('../models/User');
-                const user = await User.findById(decodedUser.userId).select('isBanned role email fullName');
+                const user = await User.findById(decodedUser.userId).select('isBanned isDeleted role email fullName');
 
                 if (!user || user.isBanned || user.isDeleted) {
                     req.user = null;
