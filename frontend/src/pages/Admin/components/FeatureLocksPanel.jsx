@@ -1,11 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, Unlock, Sparkles, ShieldAlert, Layers3, RefreshCw } from 'lucide-react';
+import { Lock, Unlock, Sparkles, ShieldAlert, Layers3, RefreshCw, AlertTriangle } from 'lucide-react';
 import axios from '../../../utils/axiosInstance';
 import { API } from '../../../utils/apiPaths';
 import toast from 'react-hot-toast';
-
-// const ORIGINAL_LIVE_FEATURES = new Set(['ai_interview_generation', 'ai_mcq_generation', 'ai_chatbot']); // Commented out constant
 
 const CATEGORY_STYLE = {
     AI: 'from-cyan-500/15 to-blue-500/10 text-cyan-600 dark:text-cyan-300',
@@ -18,33 +16,44 @@ const FeatureLocksPanel = () => {
     const [features, setFeatures] = useState([]);
     const [loading, setLoading] = useState(true);
     const [savingKey, setSavingKey] = useState(null);
+    // readOnly = true when admin endpoint is missing (404) and we fell back to public endpoint
+    const [readOnly, setReadOnly] = useState(false);
 
     const fetchFeatureLocks = async () => {
         setLoading(true);
         try {
-            // Add _t param to bust any CDN/browser cache — critical in production
             const res = await axios.get(API.ADMIN.FEATURE_LOCKS, {
                 params: { _t: Date.now() }
             });
-            const allFeatures = (res.data.features || []).map((feature) => ({
-                ...feature,
-                isLocked: !feature.isEnabled,
-                // isNewFeature: !ORIGINAL_LIVE_FEATURES.has(feature.key) // Removed unused logic
-            }));
-
-            setFeatures(allFeatures);
+            setReadOnly(false);
+            setFeatures((res.data.features || []).map((f) => ({ ...f, isLocked: !f.isEnabled })));
         } catch (error) {
             const status = error?.response?.status;
             const msg = error?.response?.data?.message || error?.message || 'Unknown error';
-            console.error('Failed to load feature locks:', { status, msg, error });
-            if (status === 401) {
+            console.error('Failed to load feature locks:', { status, msg });
+
+            if (status === 404) {
+                // Admin route not on deployed server yet — use public endpoint as read-only fallback
+                try {
+                    const fallback = await axios.get(API.PUBLIC.FEATURE_LOCKS, {
+                        params: { _t: Date.now() }
+                    });
+                    setFeatures((fallback.data.features || []).map((f) => ({ ...f, isLocked: !f.isEnabled })));
+                    setReadOnly(true);
+                } catch {
+                    toast.error('Could not load feature locks from server.');
+                    setFeatures([]);
+                }
+            } else if (status === 401) {
                 toast.error('Session expired — please log in again.');
+                setFeatures([]);
             } else if (status === 403) {
                 toast.error('Access denied. Admin or Owner role required.');
+                setFeatures([]);
             } else {
                 toast.error(`Failed to load feature locks (${status || 'network error'}): ${msg}`);
+                setFeatures([]);
             }
-            setFeatures([]);
         } finally {
             setLoading(false);
         }
@@ -55,28 +64,26 @@ const FeatureLocksPanel = () => {
     }, []);
 
     const summary = useMemo(() => {
-        const locked = features.filter((feature) => feature.isLocked).length;
-        return {
-            total: features.length,
-            locked,
-            unlocked: features.length - locked
-        };
+        const locked = features.filter((f) => f.isLocked).length;
+        return { total: features.length, locked, unlocked: features.length - locked };
     }, [features]);
 
     const handleToggle = async (feature) => {
+        if (readOnly) {
+            toast.error('Read-only mode — deploy the latest backend to enable toggling.');
+            return;
+        }
         const nextEnabled = !feature.isEnabled;
         setSavingKey(feature.key);
         try {
             const res = await axios.patch(API.ADMIN.UPDATE_FEATURE_LOCK(feature.key), {
                 isEnabled: nextEnabled
             });
-
-            setFeatures((current) => current.map((item) => (
+            setFeatures((current) => current.map((item) =>
                 item.key === feature.key
                     ? { ...item, isEnabled: nextEnabled, isLocked: !nextEnabled }
                     : item
-            )));
-
+            ));
             toast.success(res.data.message || 'Feature lock updated successfully');
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to update feature lock');
@@ -86,12 +93,10 @@ const FeatureLocksPanel = () => {
     };
 
     const groupedFeatures = useMemo(() => {
-        return features.reduce((accumulator, feature) => {
-            if (!accumulator[feature.category]) {
-                accumulator[feature.category] = [];
-            }
-            accumulator[feature.category].push(feature);
-            return accumulator;
+        return features.reduce((acc, feature) => {
+            if (!acc[feature.category]) acc[feature.category] = [];
+            acc[feature.category].push(feature);
+            return acc;
         }, {});
     }, [features]);
 
@@ -108,6 +113,19 @@ const FeatureLocksPanel = () => {
 
     return (
         <div className="space-y-8">
+            {/* Read-only warning banner */}
+            {readOnly && (
+                <div className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-5 py-4">
+                    <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
+                    <div>
+                        <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">Backend not updated yet — Read-only mode</p>
+                        <p className="text-xs text-amber-600/80 dark:text-amber-400/70 mt-0.5">
+                            The deployed server does not have the feature-lock admin endpoint. Deploy the latest backend code to enable toggling. Current states are shown from the public endpoint.
+                        </p>
+                    </div>
+                </div>
+            )}
+
             <div className="relative overflow-hidden rounded-[2rem] border border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))] p-6 sm:p-8">
                 <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.15),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(236,72,153,0.14),transparent_30%)]" />
                 <div className="relative flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
@@ -139,6 +157,19 @@ const FeatureLocksPanel = () => {
                 </div>
             </div>
 
+            {features.length === 0 && !loading && (
+                <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+                    <Layers3 className="w-10 h-10 text-[rgb(var(--text-muted))]" />
+                    <p className="text-[rgb(var(--text-secondary))]">No features found.</p>
+                    <button
+                        onClick={fetchFeatureLocks}
+                        className="mt-2 text-sm text-[rgb(var(--accent))] hover:underline flex items-center gap-1"
+                    >
+                        <RefreshCw className="w-3.5 h-3.5" /> Retry
+                    </button>
+                </div>
+            )}
+
             {Object.entries(groupedFeatures).map(([category, items], categoryIndex) => (
                 <div key={category} className="space-y-4">
                     <div className="flex items-center gap-3">
@@ -169,7 +200,6 @@ const FeatureLocksPanel = () => {
                                                 <div className="flex items-center gap-2">
                                                     {locked ? <Lock className="w-5 h-5 text-rose-500" /> : <Unlock className="w-5 h-5 text-emerald-500" />}
                                                     <h3 className="text-xl font-bold text-[rgb(var(--text-primary))]">{feature.label}</h3>
-                                                    {/* Removed "Not live yet" badge */}
                                                 </div>
                                                 <p className="text-sm text-[rgb(var(--text-secondary))] leading-relaxed max-w-xl">
                                                     {feature.description}
@@ -188,13 +218,13 @@ const FeatureLocksPanel = () => {
                                                     {locked ? 'Feature access is disabled for everyone' : 'Feature is available to users'}
                                                 </p>
                                                 <p className="text-xs text-[rgb(var(--text-secondary))] mt-1">
-                                                    Changes apply immediately after saving.
+                                                    {readOnly ? 'Read-only — deploy backend to enable toggling.' : 'Changes apply immediately after saving.'}
                                                 </p>
                                             </div>
 
                                             <button
                                                 onClick={() => handleToggle(feature)}
-                                                disabled={isSaving}
+                                                disabled={isSaving || readOnly}
                                                 className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all border ${locked
                                                     ? 'bg-emerald-500 text-white border-emerald-500 hover:brightness-110'
                                                     : 'bg-rose-500 text-white border-rose-500 hover:brightness-110'
@@ -207,7 +237,7 @@ const FeatureLocksPanel = () => {
                                                 ) : (
                                                     <Lock className="w-4 h-4" />
                                                 )}
-                                                {isSaving ? 'Saving...' : locked ? 'Unlock feature' : 'Lock feature'}
+                                                {isSaving ? 'Saving...' : readOnly ? 'Read-only' : locked ? 'Unlock feature' : 'Lock feature'}
                                             </button>
                                         </div>
                                     </div>
