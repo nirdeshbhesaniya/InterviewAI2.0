@@ -16,32 +16,36 @@ const FeatureLocksPanel = () => {
     const [features, setFeatures] = useState([]);
     const [loading, setLoading] = useState(true);
     const [savingKey, setSavingKey] = useState(null);
-    // readOnly = true when admin endpoint is missing (404) and we fell back to public endpoint
     const [readOnly, setReadOnly] = useState(false);
+    // notDeployed = true when BOTH endpoints return 404 (backend is old/not updated)
+    const [notDeployed, setNotDeployed] = useState(false);
 
     const fetchFeatureLocks = async () => {
         setLoading(true);
+        setNotDeployed(false);
         try {
             const res = await axios.get(API.ADMIN.FEATURE_LOCKS, {
                 params: { _t: Date.now() }
             });
             setReadOnly(false);
             setFeatures((res.data.features || []).map((f) => ({ ...f, isLocked: !f.isEnabled })));
-        } catch (error) {
-            const status = error?.response?.status;
-            const msg = error?.response?.data?.message || error?.message || 'Unknown error';
-            console.error('Failed to load feature locks:', { status, msg });
+        } catch (adminErr) {
+            const status = adminErr?.response?.status;
+            const msg = adminErr?.response?.data?.message || adminErr?.message || 'Unknown error';
+            console.error('Admin feature-locks failed:', { status, msg });
 
             if (status === 404) {
-                // Admin route not on deployed server yet — use public endpoint as read-only fallback
+                // Try public fallback (read-only)
                 try {
                     const fallback = await axios.get(API.PUBLIC.FEATURE_LOCKS, {
                         params: { _t: Date.now() }
                     });
                     setFeatures((fallback.data.features || []).map((f) => ({ ...f, isLocked: !f.isEnabled })));
                     setReadOnly(true);
+                    setNotDeployed(false);
                 } catch {
-                    toast.error('Could not load feature locks from server.');
+                    // Both endpoints are 404 — backend is not deployed with feature-lock routes
+                    setNotDeployed(true);
                     setFeatures([]);
                 }
             } else if (status === 401) {
@@ -107,6 +111,32 @@ const FeatureLocksPanel = () => {
                     <RefreshCw className="w-8 h-8 text-[rgb(var(--accent))] animate-spin" />
                     <p className="text-sm text-[rgb(var(--text-secondary))]">Loading feature locks...</p>
                 </div>
+            </div>
+        );
+    }
+
+    if (notDeployed) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[440px] gap-5 text-center px-6">
+                <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                    <AlertTriangle className="w-8 h-8 text-amber-500" />
+                </div>
+                <div className="space-y-2 max-w-md">
+                    <h3 className="text-xl font-bold text-[rgb(var(--text-primary))]">Backend not updated yet</h3>
+                    <p className="text-sm text-[rgb(var(--text-secondary))] leading-relaxed">
+                        The deployed server at <code className="px-1.5 py-0.5 rounded bg-[rgb(var(--bg-elevated))] text-xs font-mono">api.interviewai.tech</code> is running
+                        old code that does not have the Feature Locks routes. Deploy the latest backend code to use this panel.
+                    </p>
+                    <p className="text-xs text-[rgb(var(--text-muted))] mt-3">
+                        After deploying, click Retry below — no page refresh needed.
+                    </p>
+                </div>
+                <button
+                    onClick={fetchFeatureLocks}
+                    className="inline-flex items-center gap-2 rounded-xl bg-[rgb(var(--accent))] text-white px-5 py-2.5 text-sm font-semibold hover:brightness-110 transition-all"
+                >
+                    <RefreshCw className="w-4 h-4" /> Retry
+                </button>
             </div>
         );
     }
