@@ -101,8 +101,9 @@ export const API = {
     CREATE_NOTIFICATION: `${API_BASE_URL}/admin/notifications/create`,
     GET_BROADCASTS: `${API_BASE_URL}/admin/notifications/broadcasts`,
     DELETE_BROADCAST: (id) => `${API_BASE_URL}/admin/notifications/broadcasts/${id}`,
-    FEATURE_LOCKS: `${API_BASE_URL}/admin/feature-locks`,
-    UPDATE_FEATURE_LOCK: (key) => `${API_BASE_URL}/admin/feature-locks/${key}`
+    FEATURE_LOCKS: `${API_BASE_URL}/ai/features`,
+    TOGGLE_FEATURE_LOCK: `${API_BASE_URL}/ai/features/toggle`,
+    PATCH_FEATURE_LOCK: (key) => `${API_BASE_URL}/ai/features/${key}`
   },
   NOTIFICATIONS: {
     GET_ALL: (userId) => `${API_BASE_URL}/notifications/${userId}`,

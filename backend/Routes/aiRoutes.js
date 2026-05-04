@@ -304,83 +304,92 @@ router.get('/logs', authenticateToken, requireAdminOrOwner, async (req, res) => 
     }
 });
 
-const SystemSetting = require('../models/SystemSetting');
-const { invalidateFeatureCache, getFeatureStatus } = require('../middlewares/featureAuth');
-
-// ... existing code ...
+// ─── Feature Lock System ───────────────────────────────────────────────────
+const { getFeatureStatus, setFeatureStatus } = require('../middlewares/featureAuth');
+const { FEATURE_LOCKS, getFeatureDefinition } = require('../utils/featureRegistry');
 
 /**
  * GET /api/ai/features
- * Get all AI-related feature flags.
+ * Returns all feature flags with live enabled/locked status.
+ * Access: Admin + Owner
  */
 router.get('/features', authenticateToken, requireAdminOrOwner, async (req, res) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
     try {
-        const features = [
-            'ai_interview_generation',
-            'ai_mcq_generation',
-            'ai_chatbot'
-        ];
-
-        const settings = [];
-        for (const key of features) {
-            const isEnabled = await getFeatureStatus(key, true);
-            settings.push({ key, isEnabled, label: formatFeatureLabel(key) });
-        }
-
-        res.json({
-            status: 'success',
-            features: settings
-        });
-    } catch (error) {
-        console.error('Error fetching features:', error);
+        const features = await Promise.all(
+            FEATURE_LOCKS.map(async (f) => {
+                const isEnabled = await getFeatureStatus(f.key, true);
+                return {
+                    key: f.key,
+                    label: f.label,
+                    description: f.description,
+                    category: f.category,
+                    isEnabled,
+                    isLocked: !isEnabled
+                };
+            })
+        );
+        res.json({ success: true, features });
+    } catch (err) {
+        console.error('Error fetching feature locks:', err);
         res.status(500).json({ message: 'Failed to fetch features' });
     }
 });
 
 /**
- * POST /api/ai/features/toggle
- * Toggle a feature. (Owner Only)
+ * PATCH /api/ai/features/:key
+ * Toggle a single feature by key.
+ * Access: Admin + Owner
  */
-router.post('/features/toggle', authenticateToken, requireOwner, async (req, res) => {
+router.patch('/features/:key', authenticateToken, requireAdminOrOwner, async (req, res) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
     try {
-        const { key, isEnabled } = req.body;
+        const { key } = req.params;
+        const { isEnabled } = req.body;
 
         if (typeof isEnabled !== 'boolean') {
             return res.status(400).json({ message: 'isEnabled must be a boolean' });
         }
 
-        await SystemSetting.findOneAndUpdate(
-            { key },
-            {
-                value: isEnabled,
-                updatedBy: req.user._id,
-                description: `Feature flag for ${key}`
-            },
-            { upsert: true, new: true }
-        );
+        const def = getFeatureDefinition(key);
+        if (!def) {
+            return res.status(404).json({ message: `Unknown feature key: ${key}` });
+        }
 
-        // Clear cache so changes take effect immediately
-        invalidateFeatureCache(key);
+        await setFeatureStatus(key, isEnabled, req.user._id, def.description);
 
         res.json({
-            message: `Feature ${formatFeatureLabel(key)} ${isEnabled ? 'enabled' : 'disabled'} successfully.`,
+            success: true,
+            message: `${def.label} ${isEnabled ? 'unlocked' : 'locked'} successfully`,
             key,
-            isEnabled
+            isEnabled,
+            isLocked: !isEnabled
         });
-
-    } catch (error) {
-        console.error('Error toggling feature:', error);
+    } catch (err) {
+        console.error('Error updating feature lock:', err);
         res.status(500).json({ message: 'Failed to update feature' });
     }
 });
 
-function formatFeatureLabel(key) {
-    const labels = {
-        'ai_interview_generation': 'Interview Generation',
-        'ai_mcq_generation': 'MCQ Test Generation',
-        'ai_chatbot': 'AI Chatbot'
-    };
-    return labels[key] || key;
-}
+/**
+ * POST /api/ai/features/toggle  — kept for AIServicePanel backward compat
+ * Access: Owner only
+ */
+router.post('/features/toggle', authenticateToken, requireOwner, async (req, res) => {
+    try {
+        const { key, isEnabled } = req.body;
+        if (typeof isEnabled !== 'boolean') {
+            return res.status(400).json({ message: 'isEnabled must be a boolean' });
+        }
+        const def = getFeatureDefinition(key);
+        if (!def) return res.status(404).json({ message: `Unknown feature key: ${key}` });
+
+        await setFeatureStatus(key, isEnabled, req.user._id, def.description);
+        res.json({ message: `${def.label} ${isEnabled ? 'enabled' : 'disabled'} successfully.`, key, isEnabled });
+    } catch (err) {
+        console.error('Error toggling feature:', err);
+        res.status(500).json({ message: 'Failed to update feature' });
+    }
+});
 
 module.exports = router;
