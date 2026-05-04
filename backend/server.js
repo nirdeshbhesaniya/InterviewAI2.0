@@ -2,6 +2,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const express = require('express');
+const helmet = require('helmet');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
@@ -46,9 +47,16 @@ app.use(cors({
   optionsSuccessStatus: 200 // For legacy browser support
 }));
 
+// 🔒 Helmet – sets secure HTTP response headers
+app.use(helmet({
+  contentSecurityPolicy: false, // Disabled to avoid breaking frontend scripts; enable & tune for production
+  crossOriginEmbedderPolicy: false
+}));
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Limit body size to 1mb (registration payloads are tiny; larger bodies = abuse)
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use('/uploads', express.static('uploads'));
 
 // Rate limiting for login API - 10 requests per minute per IP

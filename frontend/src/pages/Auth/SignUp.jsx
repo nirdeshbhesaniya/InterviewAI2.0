@@ -16,10 +16,23 @@ const SignUp = ({ onSwitch }) => {
   const [photoFile, setPhotoFile] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showOTPVerification, setShowOTPVerification] = useState(false);
+
+  // ─ Password strength helpers ───────────────────────────────────
+  const pwdChecks = [
+    { label: 'At least 8 characters',      test: (p) => p.length >= 8 },
+    { label: 'One uppercase letter (A-Z)',  test: (p) => /[A-Z]/.test(p) },
+    { label: 'One lowercase letter (a-z)', test: (p) => /[a-z]/.test(p) },
+    { label: 'One number (0-9)',            test: (p) => /[0-9]/.test(p) },
+    { label: 'One special character (!@#$)', test: (p) => /[!@#$%^&*()_\-+=\[\]{};':"\\|,.<>\/?`~]/.test(p) },
+  ];
+  const passedChecks = pwdChecks.filter(c => c.test(password)).length;
+  const strengthLabel = ['', 'Very Weak', 'Weak', 'Fair', 'Strong', 'Very Strong'][passedChecks];
+  const strengthColor = ['', '#ef4444', '#f97316', '#eab308', '#22c55e', '#10b981'][passedChecks];
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -49,9 +62,40 @@ const SignUp = ({ onSwitch }) => {
     e.preventDefault();
     setLoading(true);
 
+    // ── Full name check ────────────────────────────────────────
+    if (!fullName.trim() || fullName.trim().length < 2) {
+      toast.error('❌ Full name must be at least 2 characters.');
+      setLoading(false); return;
+    }
+    if (!/^[a-zA-Z\s'\-.]+$/.test(fullName.trim())) {
+      toast.error("❌ Full name may only contain letters, spaces, hyphens, and apostrophes.");
+      setLoading(false); return;
+    }
+
+    // ── Username check ───────────────────────────────────────
+    if (!username.trim() || username.length < 3) {
+      toast.error('❌ Username must be at least 3 characters.');
+      setLoading(false); return;
+    }
+    if (!/^[a-z0-9_]+$/.test(username)) {
+      toast.error('❌ Username: letters, numbers, underscores only.');
+      setLoading(false); return;
+    }
+    if (username.startsWith('_') || username.endsWith('_')) {
+      toast.error('❌ Username cannot start or end with an underscore.');
+      setLoading(false); return;
+    }
+
+    // ── Password strength check ────────────────────────────────
+    if (passedChecks < 5) {
+      toast.error('❌ Password is too weak. Please meet all 5 requirements below.');
+      setLoading(false); return;
+    }
+
     try {
       const formData = new FormData();
       formData.append('fullName', fullName);
+      formData.append('username', username.trim().toLowerCase());
       formData.append('email', email);
       formData.append('password', password);
       if (photoFile) {
@@ -165,6 +209,21 @@ const SignUp = ({ onSwitch }) => {
           />
         </div>
 
+        {/* Username */}
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] text-sm sm:text-base font-semibold select-none">@</span>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+            placeholder="username (e.g. john_doe)"
+            required
+            minLength={3}
+            maxLength={20}
+            className="w-full pl-8 sm:pl-9 pr-3 sm:pr-4 py-2.5 sm:py-2 text-sm sm:text-base bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
+          />
+        </div>
+
         {/* Email */}
         <div className="relative">
           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-4 h-4 sm:w-5 sm:h-5" />
@@ -183,11 +242,12 @@ const SignUp = ({ onSwitch }) => {
           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-4 h-4 sm:w-5 sm:h-5" />
           <input
             type={showPassword ? 'text' : 'password'}
-            placeholder="Min 6 characters"
+            placeholder="Min 8 chars, uppercase, number, symbol"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            minLength={6}
+            minLength={8}
+            maxLength={128}
             className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2.5 sm:py-2 text-sm sm:text-base bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
           />
           <button
@@ -198,6 +258,36 @@ const SignUp = ({ onSwitch }) => {
             {showPassword ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
           </button>
         </div>
+
+        {/* Password strength meter */}
+        {password.length > 0 && (
+          <div className="space-y-1 px-0.5">
+            {/* Bar */}
+            <div className="flex gap-1">
+              {[1,2,3,4,5].map(i => (
+                <div
+                  key={i}
+                  className="h-1 flex-1 rounded-full transition-all duration-300"
+                  style={{ backgroundColor: i <= passedChecks ? strengthColor : 'rgb(var(--border))' }}
+                />
+              ))}
+            </div>
+            {/* Label */}
+            <p className="text-xs font-medium" style={{ color: strengthColor }}>
+              {strengthLabel}
+            </p>
+            {/* Checklist */}
+            <ul className="space-y-0.5">
+              {pwdChecks.map((c, i) => (
+                <li key={i} className="flex items-center gap-1.5 text-xs"
+                  style={{ color: c.test(password) ? '#22c55e' : 'rgb(var(--text-muted))' }}>
+                  <span>{c.test(password) ? '✓' : '○'}</span>
+                  {c.label}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Submit */}
         <motion.button

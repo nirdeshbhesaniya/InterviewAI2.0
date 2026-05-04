@@ -13,6 +13,7 @@ const sessionSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema({
   fullName: String,
+  username: { type: String, unique: true, sparse: true, trim: true },
   email: { type: String, unique: true },
   role: { type: String, enum: ['user', 'admin', 'owner'], default: 'user' },
   isBanned: { type: Boolean, default: false },
@@ -184,6 +185,7 @@ const userSchema = new mongoose.Schema({
   emailVerificationOTPExpires: Date,
   tempUserData: {
     fullName: String,
+    username: String,
     email: String,
     password: String,
     photo: String

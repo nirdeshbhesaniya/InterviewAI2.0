@@ -16,12 +16,20 @@ const generateOTP = () => {
 
 exports.registerUser = async (req, res) => {
   try {
-    const { fullName, email, password } = req.body;
+    const { fullName, email, password, username } = req.body;
 
     // Validate required fields
-    if (!fullName || !email || !password) {
+    if (!fullName || !email || !password || !username) {
       return res.status(400).json({
-        message: 'Please provide all required fields: fullName, email, and password'
+        message: 'Please provide all required fields: fullName, username, email, and password'
+      });
+    }
+
+    // Validate username format (alphanumeric + underscores, 3-20 chars)
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    if (!usernameRegex.test(username)) {
+      return res.status(400).json({
+        message: 'Username must be 3-20 characters and can only contain letters, numbers, and underscores'
       });
     }
 
@@ -35,6 +43,15 @@ exports.registerUser = async (req, res) => {
         message: 'Service temporarily unavailable. Please try again.',
         error: process.env.NODE_ENV === 'production' ? undefined : dbError.message
       });
+    }
+
+    // Check for duplicate username (exclude current re-registering user)
+    const usernameConflict = await User.findOne({
+      username: username.toLowerCase(),
+      isEmailVerified: true
+    }).maxTimeMS(5000);
+    if (usernameConflict) {
+      return res.status(400).json({ message: 'Username is already taken. Please choose another.' });
     }
 
     if (existingUser) {
@@ -64,6 +81,7 @@ exports.registerUser = async (req, res) => {
         // Update temp user data
         existingUser.tempUserData = {
           fullName,
+          username: username.toLowerCase(),
           email,
           password: hashedPassword,
           photo: uploadedPhotoUrl
@@ -129,6 +147,7 @@ exports.registerUser = async (req, res) => {
       emailVerificationOTPExpires: otpExpires,
       tempUserData: {
         fullName,
+        username: username.toLowerCase(),
         email,
         password: hashedPassword,
         photo: uploadedPhotoUrl
@@ -202,6 +221,7 @@ exports.verifyRegistrationOTP = async (req, res) => {
     }
 
     user.fullName = user.tempUserData.fullName;
+    user.username = user.tempUserData.username;
     user.password = user.tempUserData.password;
     user.photo = user.tempUserData.photo;
     user.isEmailVerified = true;

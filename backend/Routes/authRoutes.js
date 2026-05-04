@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const rateLimit = require('express-rate-limit');
 const {
     registerUser,
     verifyRegistrationOTP,
@@ -9,7 +10,42 @@ const {
     verifyOTP,
     resetPassword
 } = require('../Controllers/authController');
-const upload = require('../middlewares/upload'); // ✅ Use this and remove any redefinition
+const upload = require('../middlewares/upload');
+const registrationSecurity = require('../middlewares/registrationSecurity');
+
+// ── Rate limiter: max 5 registration attempts per IP per 15 minutes ──────
+const TEST_BYPASS_KEY = process.env.TEST_BYPASS_KEY || 'dev-test-bypass-key-change-in-prod';
+
+const registrationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Skip rate limit for local test scripts (NEVER active in production)
+  skip: (req) => {
+    if (process.env.NODE_ENV === 'production') return false;
+    return req.headers['x-test-key'] === TEST_BYPASS_KEY;
+  },
+  message: {
+    message: 'Too many account creation attempts from this IP. Please wait 15 minutes and try again.'
+  },
+  handler: (req, res) => {
+    console.warn(`⚠️  Registration rate limit hit: IP=${req.ip}`);
+    res.status(429).json({
+      message: 'Too many account creation attempts from this IP. Please wait 15 minutes and try again.',
+      retryAfter: 15 * 60
+    });
+  }
+});
+
+// ── Rate limiter: max 10 OTP resend attempts per IP per 30 minutes ────────
+const otpResendLimiter = rateLimit({
+  windowMs: 30 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many OTP resend attempts. Please wait before trying again.' }
+});
 
 // Multer error handling middleware
 const handleMulterError = (err, req, res, next) => {
@@ -28,9 +64,22 @@ const handleMulterError = (err, req, res, next) => {
     next();
 };
 
-router.post('/register', upload.single('photo'), handleMulterError, registerUser);
+// 📝 Register: rate-limit → multer upload → security checks → controller
+router.post(
+  '/register',
+  registrationLimiter,
+  upload.single('photo'),
+  handleMulterError,
+  registrationSecurity,
+  registerUser
+);
+
+// 🔑 OTP verification (no heavy limits – OTP itself is the gate)
 router.post('/verify-registration-otp', verifyRegistrationOTP);
-router.post('/resend-registration-otp', resendRegistrationOTP);
+
+// 📨 Resend OTP (limited to prevent OTP flooding)
+router.post('/resend-registration-otp', otpResendLimiter, resendRegistrationOTP);
+
 router.post('/login', loginUser);
 router.post('/forgot-password', forgotPassword);
 router.post('/verify-otp', verifyOTP);
