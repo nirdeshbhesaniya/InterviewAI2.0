@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Trash2, Clock, FileQuestion, ChevronDown, CheckCircle, PenSquare } from 'lucide-react';
+import { Search, Plus, Trash2, Clock, FileQuestion, ChevronDown, CheckCircle, PenSquare, RotateCcw, X, Mail } from 'lucide-react';
 import axios from '../../../utils/axiosInstance';
 import { API } from '../../../utils/apiPaths';
 import toast from 'react-hot-toast';
@@ -18,6 +18,11 @@ const PracticeTestsManagement = () => {
     // Modal State
     const [isPracticeModalOpen, setIsPracticeModalOpen] = useState(false);
     const [selectedTest, setSelectedTest] = useState(null);
+    
+    // Reset Modal State
+    const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+    const [resetEmail, setResetEmail] = useState('');
+    const [resetTestId, setResetTestId] = useState(null);
 
     useEffect(() => {
         const fetchTests = async () => {
@@ -76,6 +81,27 @@ const PracticeTestsManagement = () => {
             setPracticeTests(practiceTests.filter(t => t._id !== id));
         } catch (error) {
             toast.error('Failed to delete test');
+        }
+    };
+
+    const openResetModal = (id) => {
+        setResetTestId(id);
+        setResetEmail('');
+        setIsResetModalOpen(true);
+    };
+
+    const submitResetAttempts = async () => {
+        if (!resetEmail) {
+            toast.error("Please enter the user's email address");
+            return;
+        }
+        
+        try {
+            await axios.post(API.ADMIN.RESET_PRACTICE_ATTEMPTS(resetTestId), { email: resetEmail });
+            toast.success(`Attempts reset successfully for ${resetEmail}`);
+            setIsResetModalOpen(false);
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to reset attempts');
         }
     };
 
@@ -145,8 +171,19 @@ const PracticeTestsManagement = () => {
                                     <Button
                                         size="sm"
                                         variant="outline"
+                                        onClick={() => openResetModal(test._id)}
+                                        className="h-9 px-2 rounded-lg border-[rgb(var(--border))] text-[rgb(var(--accent))] hover:bg-[rgb(var(--accent))]/10"
+                                        title="Reset User Attempts"
+                                    >
+                                        <RotateCcw className="w-4 h-4 mr-1.5" />
+                                        <span className="hidden md:inline">Reset User</span>
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
                                         onClick={() => handleEditTest(test._id)}
                                         className="h-9 w-9 p-0 rounded-lg border-[rgb(var(--border))]"
+                                        title="Edit Test"
                                     >
                                         <PenSquare className="w-4 h-4 text-[rgb(var(--text-secondary))]" />
                                     </Button>
@@ -179,6 +216,62 @@ const PracticeTestsManagement = () => {
                 onSave={handleSaveTest}
                 testToEdit={selectedTest}
             />
+
+            {/* Custom Reset Attempts Modal */}
+            {isResetModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-[rgb(var(--bg-card))] rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-[rgb(var(--border-subtle))]">
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-xl font-bold text-[rgb(var(--text-primary))] flex items-center gap-2">
+                                    <RotateCcw className="w-5 h-5 text-[rgb(var(--accent))]" />
+                                    Reset User Attempts
+                                </h3>
+                                <button
+                                    onClick={() => setIsResetModalOpen(false)}
+                                    className="p-2 text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-body-alt))] rounded-lg transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            
+                            <p className="text-[rgb(var(--text-secondary))] mb-6 text-sm">
+                                Enter the email address of the user. This will delete all of their previous attempts for this practice test, allowing them to start fresh.
+                            </p>
+                            
+                            <div className="space-y-4">
+                                <div className="relative">
+                                    <Mail className="absolute left-3 top-3 h-5 w-5 text-[rgb(var(--text-muted))]" />
+                                    <input
+                                        type="email"
+                                        placeholder="user@example.com"
+                                        value={resetEmail}
+                                        onChange={(e) => setResetEmail(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-3 bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent outline-none transition-all"
+                                        autoFocus
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="flex gap-3 mt-8 justify-end">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setIsResetModalOpen(false)}
+                                    className="border-[rgb(var(--border-subtle))] hover:bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-primary))]"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={submitResetAttempts}
+                                    className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white shadow-lg shadow-[rgb(var(--accent))]/20"
+                                >
+                                    Confirm Reset
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -17,6 +17,12 @@ const MCQTestSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    practiceTestId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'PracticeTest',
+        required: false,
+        index: true
+    },
     experience: {
         type: String,
         enum: ['beginner', 'intermediate', 'advanced', 'expert'],
@@ -28,21 +34,21 @@ const MCQTestSchema = new mongoose.Schema({
     },
     totalQuestions: {
         type: Number,
-        required: true
+        default: 0
     },
     correctAnswers: {
         type: Number,
-        required: true
+        default: 0
     },
     score: {
         type: Number,
-        required: true,
+        default: 0,
         min: 0,
         max: 100
     },
     timeSpent: {
         type: Number,
-        required: true,
+        default: 0,
         comment: 'Time spent in seconds'
     },
     userAnswers: {
@@ -68,8 +74,8 @@ const MCQTestSchema = new mongoose.Schema({
     },
     testStatus: {
         type: String,
-        enum: ['completed', 'auto-submitted', 'timeout'],
-        default: 'completed'
+        enum: ['in-progress', 'completed', 'auto-submitted', 'timeout', 'abandoned'],
+        default: 'in-progress'
     },
     completedAt: {
         type: Date,

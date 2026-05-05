@@ -9,8 +9,8 @@ const Chatbot = () => {
     const { isOpen, isAuthModalOpen } = useContext(ChatbotContext);
     const location = useLocation();
 
-    // Hide chatbot on MCQ test page OR when Auth Modal is open
-    const isMCQTest = location.pathname === '/mcq-test';
+    // Hide chatbot on MCQ test pages OR when Auth Modal is open
+    const isMCQTest = location.pathname.startsWith('/mcq-test');
 
     if (isMCQTest || isAuthModalOpen) {
         return null;

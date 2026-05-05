@@ -80,7 +80,8 @@ export const API = {
     GET_TEST: (testId) => `${API_BASE_URL}/mcq/test/${testId}`,
     DELETE_TEST: (testId) => `${API_BASE_URL}/mcq/test/${testId}`,
     PRACTICE_LIST: `${API_BASE_URL}/mcq/practice-tests`,
-    PRACTICE_DETAILS: (id) => `${API_BASE_URL}/mcq/practice-tests/${id}`
+    PRACTICE_DETAILS: (id) => `${API_BASE_URL}/mcq/practice-tests/${id}`,
+    START_PRACTICE_TEST: (id) => `${API_BASE_URL}/mcq/practice-tests/${id}/start`
   },
   ADMIN: {
     GET_USERS: `${API_BASE_URL}/admin/users`,
@@ -98,6 +99,7 @@ export const API = {
     UPDATE_PRACTICE_TEST: (id) => `${API_BASE_URL}/admin/practice-tests/${id}`,
     GET_PRACTICE_TEST: (id) => `${API_BASE_URL}/admin/practice-tests/${id}`,
     DELETE_PRACTICE_TEST: (id) => `${API_BASE_URL}/admin/practice-tests/${id}`,
+    RESET_PRACTICE_ATTEMPTS: (id) => `${API_BASE_URL}/admin/practice-tests/${id}/reset-attempts`,
     CREATE_NOTIFICATION: `${API_BASE_URL}/admin/notifications/create`,
     GET_BROADCASTS: `${API_BASE_URL}/admin/notifications/broadcasts`,
     DELETE_BROADCAST: (id) => `${API_BASE_URL}/admin/notifications/broadcasts/${id}`,

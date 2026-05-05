@@ -108,14 +108,22 @@ const MCQTest = () => {
 
     // Load Practice Test if testId is present
     useEffect(() => {
-        if (testId) {
+        if (testId && user?.email) {
             const fetchTest = async () => {
                 setLoading(true);
                 try {
-                    const res = await axiosInstance.get(API.MCQ.PRACTICE_DETAILS(testId));
+                    const res = await axiosInstance.get(API.MCQ.PRACTICE_DETAILS(testId), {
+                        headers: { 'user-email': user.email }
+                    });
                     const data = res.data.data;
 
                     if (data) {
+                        if (data.maxAttempts && data.userAttempts >= data.maxAttempts) {
+                            toast.error(`You have reached the maximum attempts (${data.maxAttempts}) for this test.`);
+                            navigate('/mcq-test/practice');
+                            return;
+                        }
+
                         // Transform options if they are objects (though practice tests usually standard)
                         const transformedQuestions = data.questions.map(q => ({
                             ...q,
@@ -127,14 +135,13 @@ const MCQTest = () => {
                             ...prev,
                             topic: data.topic,
                             numberOfQuestions: data.questions.length,
-                            title: data.title
+                            title: data.title,
+                            guidelines: data.guidelines,
+                            timeLimit: data.timeLimit || 30,
+                            maxAttempts: data.maxAttempts || 1
                         }));
                         setHasAttempted(true); // Treat as attempted to prevent regeneration logic
-                        setCurrentStep('test');
-                        setTimeLeft(data.questions.length * 120); // 2 mins per question default
-                        setTestStartTime(new Date());
-
-                        toast.success(`Practice Test: ${data.title} started!`);
+                        setCurrentStep('guidelines');
                     }
                 } catch (error) {
                     console.error('Error loading practice test:', error);
@@ -146,7 +153,7 @@ const MCQTest = () => {
             };
             fetchTest();
         }
-    }, [testId, navigate]);
+    }, [testId, navigate, user?.email]);
 
     // Submit test function - defined before useEffect hooks that reference it
     const handleSubmitTest = useCallback(async () => {
@@ -1756,7 +1763,7 @@ const MCQTest = () => {
                                 setVisitedQuestions({});
                                 setMarkedForReview({});
                                 setAnswers({});
-                                navigate('/mcq-test');
+                                navigate('/mcq-test/practice');
                             }}
                             variant="primary"
                             className="px-8"
@@ -2215,6 +2222,87 @@ const MCQTest = () => {
         );
     };
 
+    const handleStartPracticeTest = () => {
+        setCurrentStep('test');
+        setTimeLeft(formData.timeLimit ? formData.timeLimit * 60 : formData.numberOfQuestions * 120);
+        setTestStartTime(new Date());
+        toast.success(`Practice Test: ${formData.title} started!`);
+    };
+
+    const renderGuidelines = () => (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-3xl mx-auto mt-10"
+        >
+            <Card className="p-6 md:p-8 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] shadow-xl relative overflow-hidden rounded-2xl">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[rgb(var(--accent))]/5 rounded-full blur-3xl -z-10" />
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-[rgb(var(--primary))]/5 rounded-full blur-3xl -z-10" />
+
+                <div className="text-center mb-8">
+                    <h2 className="text-2xl md:text-3xl font-bold text-[rgb(var(--text-primary))] mb-3">
+                        {formData.title || formData.topic}
+                    </h2>
+                    <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-[rgb(var(--text-secondary))]">
+                        <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-[rgb(var(--accent))]" /> {formData.timeLimit || 30} Minutes</span>
+                        <span className="flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-primary" /> {formData.numberOfQuestions} Questions</span>
+                        <span className="flex items-center gap-1.5"><History className="w-4 h-4 text-orange-500" /> Max Attempts: {formData.maxAttempts || 1}</span>
+                    </div>
+                </div>
+
+                <div className="bg-[rgb(var(--bg-body-alt))] rounded-xl p-6 border border-[rgb(var(--border-subtle))] mb-8">
+                    <h3 className="text-lg font-semibold text-[rgb(var(--text-primary))] mb-4 flex items-center gap-2">
+                        <AlertTriangle className="w-5 h-5 text-[rgb(var(--accent))]" />
+                        Guidelines & Instructions
+                    </h3>
+                    <div className="prose prose-sm md:prose-base max-w-none text-[rgb(var(--text-secondary))]">
+                        <ul className="list-none space-y-3">
+                            <li className="flex items-start gap-2">
+                                <span className="text-[rgb(var(--accent))] mt-1">•</span>
+                                <span><strong>Stable Connection:</strong> Ensure you have a stable internet connection before starting.</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="text-[rgb(var(--accent))] mt-1">•</span>
+                                <span><strong>No Tab Switching:</strong> Avoid switching tabs or opening new windows. This activity is monitored and recorded.</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="text-[rgb(var(--accent))] mt-1">•</span>
+                                <span><strong>Auto-Submission:</strong> The test will automatically submit when the timer reaches zero.</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="text-[rgb(var(--accent))] mt-1">•</span>
+                                <span><strong>Do Not Refresh:</strong> Refreshing or closing the tab during the exam will result in loss of progress.</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="text-[rgb(var(--accent))] mt-1">•</span>
+                                <span><strong>Finality:</strong> Once submitted, you cannot alter your answers. Please review carefully.</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="text-[rgb(var(--accent))] mt-1">•</span>
+                                <span><strong>Exam start:</strong> Once click "I Agree, Start Exam", it's count in attempt Exam so start after you ready.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div className="flex justify-end gap-4">
+                    <Button
+                        onClick={() => navigate('/mcq-test/practice')}
+                        className="bg-[rgb(var(--bg-body-alt))] hover:bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-primary))] border border-[rgb(var(--border-subtle))] px-6"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleStartPracticeTest}
+                        className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white px-8 font-semibold shadow-lg shadow-[rgb(var(--accent))]/20 transition-all active:scale-95"
+                    >
+                        I Agree, Start Exam
+                    </Button>
+                </div>
+            </Card>
+        </motion.div>
+    );
+
     // During test on desktop, render fullscreen layout without container
     if (currentStep === 'test' && window.innerWidth >= 1024) {
         return (
@@ -2230,6 +2318,7 @@ const MCQTest = () => {
             <div className="container mx-auto px-4 pb-4 pt-4">
                 {/* Content based on current step */}
                 {currentStep === 'setup' && renderSetupForm()}
+                {currentStep === 'guidelines' && renderGuidelines()}
                 {currentStep === 'test' && renderTest()}
                 {currentStep === 'results' && (testId ? renderPracticeResults() : renderResults())}
             </div>

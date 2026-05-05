@@ -7,8 +7,8 @@ const FloatingHelpButton = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Hide on MCQ test page
-    if (location.pathname === '/mcq-test') {
+    // Hide on MCQ test pages
+    if (location.pathname.startsWith('/mcq-test')) {
         return null;
     }
 

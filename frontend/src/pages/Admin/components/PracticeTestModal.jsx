@@ -11,6 +11,9 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
         description: '',
         topic: '',
         difficulty: 'medium',
+        maxAttempts: 1,
+        timeLimit: 30,
+        guidelines: '',
         questions: []
     });
 
@@ -28,6 +31,9 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
                     description: '',
                     topic: '',
                     difficulty: 'medium',
+                    maxAttempts: 1,
+                    timeLimit: 30,
+                    guidelines: '',
                     questions: []
                 });
                 setStep(1);
@@ -99,7 +105,8 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
 
         const payload = {
             ...formData,
-            timeLimit: Math.max(formData.questions.length * 2, 5) // Auto-calc: 2 min per question, min 5 mins
+            timeLimit: parseInt(formData.timeLimit) || 30,
+            maxAttempts: parseInt(formData.maxAttempts) || 1
         };
 
         await onSave(testToEdit ? testToEdit._id : null, payload);
@@ -174,6 +181,28 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
                                 <option value="medium">Medium</option>
                                 <option value="hard">Hard</option>
                             </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-[rgb(var(--text-secondary))]">Max Attempts</label>
+                            <input
+                                type="number"
+                                min="1"
+                                name="maxAttempts"
+                                value={formData.maxAttempts}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] outline-none text-[rgb(var(--text-primary))]"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-[rgb(var(--text-secondary))]">Time Limit (mins)</label>
+                            <input
+                                type="number"
+                                min="1"
+                                name="timeLimit"
+                                value={formData.timeLimit}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] outline-none text-[rgb(var(--text-primary))]"
+                            />
                         </div>
                     </div>
 

@@ -606,34 +606,61 @@ router.post('/submit', async (req, res) => {
             }
         }
 
-        // Only save to DB and send email if saveHistory is true
-        if (saveHistory) {
+        // Only save to DB and send email if saveHistory is true or if it's a practice test
+        if (saveHistory || practiceTestId) {
             // Save test results to database
             try {
-                const mcqTest = new MCQTest({
-                    userId: userId,
-                    userEmail: userInfo.email,
-                    topic,
-                    experience,
-                    specialization,
-                    totalQuestions: results.totalQuestions,
-                    correctAnswers: results.correctAnswers,
-                    score: results.score,
-                    timeSpent: results.timeSpent,
-                    userAnswers: answers,
-                    questionsWithAnswers: questionsWithAnswers.map(q => ({
+                let mcqTest;
+                
+                if (req.body.attemptId) {
+                    mcqTest = await MCQTest.findById(req.body.attemptId);
+                }
+
+                if (mcqTest) {
+                    mcqTest.totalQuestions = results.totalQuestions;
+                    mcqTest.correctAnswers = results.correctAnswers;
+                    mcqTest.score = results.score;
+                    mcqTest.timeSpent = results.timeSpent;
+                    mcqTest.userAnswers = answers;
+                    mcqTest.questionsWithAnswers = questionsWithAnswers.map(q => ({
                         question: q.question,
                         options: q.options,
                         correctAnswer: q.correctAnswer,
                         explanation: q.explanation
-                    })),
-                    securityWarnings: {
+                    }));
+                    mcqTest.securityWarnings = {
                         fullscreenExits: securityWarnings.fullscreenExits || 0,
                         tabSwitches: securityWarnings.tabSwitches || 0
-                    },
-                    testStatus,
-                    completedAt: new Date()
-                });
+                    };
+                    mcqTest.testStatus = testStatus;
+                    mcqTest.completedAt = new Date();
+                } else {
+                    mcqTest = new MCQTest({
+                        userId: userId,
+                        userEmail: userInfo.email,
+                        topic,
+                        experience,
+                        specialization,
+                        practiceTestId: practiceTestId || undefined,
+                        totalQuestions: results.totalQuestions,
+                        correctAnswers: results.correctAnswers,
+                        score: results.score,
+                        timeSpent: results.timeSpent,
+                        userAnswers: answers,
+                        questionsWithAnswers: questionsWithAnswers.map(q => ({
+                            question: q.question,
+                            options: q.options,
+                            correctAnswer: q.correctAnswer,
+                            explanation: q.explanation
+                        })),
+                        securityWarnings: {
+                            fullscreenExits: securityWarnings.fullscreenExits || 0,
+                            tabSwitches: securityWarnings.tabSwitches || 0
+                        },
+                        testStatus,
+                        completedAt: new Date()
+                    });
+                }
 
                 await mcqTest.save();
                 console.log(`Test results saved to database: ${mcqTest._id}`);
@@ -930,7 +957,7 @@ router.get('/practice-tests', checkFeatureEnabled('practice_tests'), async (req,
         const totalPages = Math.ceil(totalTests / limit);
 
         const tests = await PracticeTest.find(filter)
-            .select('title description topic difficulty questions.length attempts createdAt')
+            .select('title description topic difficulty questions.length attempts createdAt maxAttempts timeLimit')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
@@ -981,6 +1008,15 @@ router.get('/practice-tests/:id', checkFeatureEnabled('practice_tests'), async (
             // Omit correctAnswer and explanation
         }));
 
+        // Find user's past attempts for this specific practice test if userEmail is provided
+        const userEmail = req.headers['user-email'] || req.query.email;
+        let userAttempts = 0;
+        if (userEmail) {
+            const MCQTest = require('../models/MCQTest');
+            // Use practiceTestId for accurate tracking
+            userAttempts = await MCQTest.countDocuments({ userEmail, practiceTestId: test._id });
+        }
+
         // Return detailed object similar to `generate` response style
         res.json({
             success: true,
@@ -992,7 +1028,10 @@ router.get('/practice-tests/:id', checkFeatureEnabled('practice_tests'), async (
                 difficulty: test.difficulty,
                 questions: questionsForTest, // Stripped for UI
                 totalQuestions: test.questions.length,
-                timeLimit: 45, // Default or add to schema
+                timeLimit: test.timeLimit || 30, // From schema
+                maxAttempts: test.maxAttempts || 1, // From schema
+                guidelines: test.guidelines || '', // From schema
+                userAttempts: userAttempts,
                 cached: true // Treat as cached/static
             }
         });
@@ -1000,6 +1039,66 @@ router.get('/practice-tests/:id', checkFeatureEnabled('practice_tests'), async (
     } catch (err) {
         console.error('Error fetching practice test:', err);
         res.status(500).json({ success: false, message: 'Failed to fetch test' });
+    }
+});
+
+// START a practice test (Create an in-progress attempt)
+router.post('/practice-tests/:id/start', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { userInfo } = req.body;
+
+        if (!userInfo || !userInfo.email) {
+            return res.status(400).json({ success: false, message: 'User info is required' });
+        }
+
+        const PracticeTest = require('../models/PracticeTest');
+        const test = await PracticeTest.findById(id);
+        
+        if (!test) {
+            return res.status(404).json({ success: false, message: 'Practice test not found' });
+        }
+
+        let userId = null;
+        try {
+            const User = require('../models/User');
+            const user = await User.findOne({ email: userInfo.email });
+            if (user) userId = user._id;
+        } catch (e) {
+            console.error('Error finding user:', e);
+        }
+
+        if (!userId) {
+            return res.status(404).json({ success: false, message: 'User not found in DB' });
+        }
+
+        const MCQTest = require('../models/MCQTest');
+
+        const mcqTest = new MCQTest({
+            userId,
+            userEmail: userInfo.email,
+            topic: test.topic,
+            practiceTestId: test._id,
+            totalQuestions: test.questions.length,
+            correctAnswers: 0,
+            score: 0,
+            timeSpent: 0,
+            userAnswers: {},
+            questionsWithAnswers: [],
+            testStatus: 'in-progress'
+        });
+
+        await mcqTest.save();
+
+        res.json({
+            success: true,
+            data: {
+                attemptId: mcqTest._id
+            }
+        });
+    } catch (err) {
+        console.error('Error starting practice test:', err);
+        res.status(500).json({ success: false, message: 'Failed to start practice test' });
     }
 });
 

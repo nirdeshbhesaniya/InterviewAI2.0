@@ -602,7 +602,7 @@ router.delete('/resources/:id', async (req, res) => {
 // CREATE Practice Test (Admin)
 router.post('/practice-tests', async (req, res) => {
     try {
-        const { title, description, topic, difficulty, questions, isPublished } = req.body;
+        const { title, description, topic, difficulty, questions, isPublished, maxAttempts, timeLimit, guidelines } = req.body;
         const PracticeTest = require('../models/PracticeTest');
 
         const newTest = new PracticeTest({
@@ -612,7 +612,10 @@ router.post('/practice-tests', async (req, res) => {
             difficulty,
             questions, // Array of { question, options, correctAnswer, explanation }
             createdBy: req.user._id,
-            isPublished: isPublished !== undefined ? isPublished : true
+            isPublished: isPublished !== undefined ? isPublished : true,
+            maxAttempts: maxAttempts !== undefined ? maxAttempts : 1,
+            timeLimit: timeLimit !== undefined ? timeLimit : 30,
+            guidelines: guidelines || ''
         });
 
         await newTest.save();
@@ -678,6 +681,34 @@ router.delete('/practice-tests/:id', async (req, res) => {
     } catch (err) {
         console.error('Error deleting practice test:', err);
         res.status(500).json({ message: 'Failed to delete practice test' });
+    }
+});
+
+// RESET Practice Test Attempts for User (Admin)
+router.post('/practice-tests/:id/reset-attempts', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: 'User email is required' });
+        }
+
+        const MCQTest = require('../models/MCQTest');
+
+        // Delete all MCQTest records matching this user and practice test
+        const result = await MCQTest.deleteMany({
+            userEmail: email,
+            practiceTestId: id
+        });
+
+        res.json({ 
+            success: true, 
+            message: `Reset ${result.deletedCount} attempt(s) for ${email}` 
+        });
+    } catch (err) {
+        console.error('Error resetting practice test attempts:', err);
+        res.status(500).json({ message: 'Failed to reset attempts' });
     }
 });
 

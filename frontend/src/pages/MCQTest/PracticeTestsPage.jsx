@@ -118,14 +118,24 @@ const PracticeTestsPage = () => {
                                             </p>
                                         </div>
 
-                                        <div className="pt-4 border-t border-[rgb(var(--border))] flex items-center justify-between text-sm text-[rgb(var(--text-secondary))]">
+                                        <div className="pt-4 border-t border-[rgb(var(--border))] flex items-center justify-between text-sm text-[rgb(var(--text-secondary))] mb-2">
                                             <div className="flex items-center gap-2">
-                                                <BookOpen className="w-4 h-4" />
-                                                <span>{test.questions.length || 0} Questions</span>
+                                                <BookOpen className="w-4 h-4 text-primary" />
+                                                <span>{test.questions?.length || 0} Questions</span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <BarChart2 className="w-4 h-4" />
-                                                <span>{test.attempts || 0} Attempts</span>
+                                                <Clock className="w-4 h-4 text-accent" />
+                                                <span>{test.timeLimit || 30} Mins</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex justify-between items-center text-sm text-[rgb(var(--text-secondary))] mb-4">
+                                            <div className="flex items-center gap-2">
+                                                <BarChart2 className="w-4 h-4 text-orange-500" />
+                                                <span>Total Hits: {test.attempts || 0}</span>
+                                            </div>
+                                            <div className="font-medium text-[rgb(var(--text-primary))]">
+                                                Max Attempts: {test.maxAttempts || 1}
                                             </div>
                                         </div>
 
