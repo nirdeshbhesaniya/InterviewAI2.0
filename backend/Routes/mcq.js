@@ -957,7 +957,7 @@ router.get('/practice-tests', checkFeatureEnabled('practice_tests'), async (req,
         const totalPages = Math.ceil(totalTests / limit);
 
         const tests = await PracticeTest.find(filter)
-            .select('title description topic difficulty questions.length attempts createdAt maxAttempts timeLimit')
+            .select('title description topic difficulty questions.length attempts createdAt maxAttempts timeLimit isTimeRestricted startTime endTime')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
@@ -1031,6 +1031,9 @@ router.get('/practice-tests/:id', checkFeatureEnabled('practice_tests'), async (
                 timeLimit: test.timeLimit || 30, // From schema
                 maxAttempts: test.maxAttempts || 1, // From schema
                 guidelines: test.guidelines || '', // From schema
+                isTimeRestricted: test.isTimeRestricted || false,
+                startTime: test.startTime || null,
+                endTime: test.endTime || null,
                 userAttempts: userAttempts,
                 cached: true // Treat as cached/static
             }
@@ -1059,6 +1062,16 @@ router.post('/practice-tests/:id/start', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Practice test not found' });
         }
 
+        if (test.isTimeRestricted) {
+            const now = new Date();
+            if (test.startTime && now < test.startTime) {
+                return res.status(403).json({ success: false, message: 'Test has not started yet' });
+            }
+            if (test.endTime && now > test.endTime) {
+                return res.status(403).json({ success: false, message: 'Test has already ended' });
+            }
+        }
+
         let userId = null;
         try {
             const User = require('../models/User');
@@ -1073,6 +1086,19 @@ router.post('/practice-tests/:id/start', async (req, res) => {
         }
 
         const MCQTest = require('../models/MCQTest');
+
+        // Check max attempts
+        const userAttempts = await MCQTest.countDocuments({ 
+            userEmail: userInfo.email, 
+            practiceTestId: test._id 
+        });
+
+        if (test.maxAttempts && userAttempts >= test.maxAttempts) {
+            return res.status(403).json({ 
+                success: false, 
+                message: `You have reached the maximum attempts (${test.maxAttempts}) for this test.` 
+            });
+        }
 
         const mcqTest = new MCQTest({
             userId,

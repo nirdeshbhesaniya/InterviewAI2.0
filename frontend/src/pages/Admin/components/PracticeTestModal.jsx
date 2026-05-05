@@ -4,6 +4,14 @@ import { X, Plus, Trash2, CheckCircle, AlertCircle, Save } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import toast from 'react-hot-toast';
 
+const toLocalDateTimeString = (isoString) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return '';
+    const offset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+};
+
 const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
@@ -14,6 +22,9 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
         maxAttempts: 1,
         timeLimit: 30,
         guidelines: '',
+        isTimeRestricted: false,
+        startTime: '',
+        endTime: '',
         questions: []
     });
 
@@ -23,7 +34,12 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
             if (testToEdit) {
                 // Sanitize questions to remove nulls
                 const sanitizedQuestions = (testToEdit.questions || []).filter(q => q);
-                setFormData({ ...testToEdit, questions: sanitizedQuestions });
+                setFormData({ 
+                    ...testToEdit, 
+                    questions: sanitizedQuestions,
+                    startTime: toLocalDateTimeString(testToEdit.startTime),
+                    endTime: toLocalDateTimeString(testToEdit.endTime)
+                });
                 setStep(1);
             } else {
                 setFormData({
@@ -34,6 +50,9 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
                     maxAttempts: 1,
                     timeLimit: 30,
                     guidelines: '',
+                    isTimeRestricted: false,
+                    startTime: '',
+                    endTime: '',
                     questions: []
                 });
                 setStep(1);
@@ -42,8 +61,8 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
     }, [isOpen, testToEdit]);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     };
 
     const addQuestion = () => {
@@ -106,7 +125,9 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
         const payload = {
             ...formData,
             timeLimit: parseInt(formData.timeLimit) || 30,
-            maxAttempts: parseInt(formData.maxAttempts) || 1
+            maxAttempts: parseInt(formData.maxAttempts) || 1,
+            startTime: formData.startTime ? new Date(formData.startTime).toISOString() : null,
+            endTime: formData.endTime ? new Date(formData.endTime).toISOString() : null
         };
 
         await onSave(testToEdit ? testToEdit._id : null, payload);
@@ -203,6 +224,44 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
                                 onChange={handleChange}
                                 className="w-full px-4 py-2 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] outline-none text-[rgb(var(--text-primary))]"
                             />
+                        </div>
+                        
+                        <div className="md:col-span-2 p-4 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg">
+                            <label className="flex items-center space-x-3 cursor-pointer mb-4">
+                                <input
+                                    type="checkbox"
+                                    name="isTimeRestricted"
+                                    checked={formData.isTimeRestricted}
+                                    onChange={handleChange}
+                                    className="w-5 h-5 rounded border-[rgb(var(--border))] text-[rgb(var(--accent))] focus:ring-[rgb(var(--accent))] bg-transparent"
+                                />
+                                <span className="text-sm font-medium text-[rgb(var(--text-primary))]">Restrict Test Availability to Specific Date/Time</span>
+                            </label>
+                            
+                            {formData.isTimeRestricted && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-[rgb(var(--text-secondary))]">Available From</label>
+                                        <input
+                                            type="datetime-local"
+                                            name="startTime"
+                                            value={formData.startTime || ''}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-2 bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border-subtle))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] outline-none text-[rgb(var(--text-primary))]"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-[rgb(var(--text-secondary))]">Available Until</label>
+                                        <input
+                                            type="datetime-local"
+                                            name="endTime"
+                                            value={formData.endTime || ''}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-2 bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border-subtle))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] outline-none text-[rgb(var(--text-primary))]"
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 

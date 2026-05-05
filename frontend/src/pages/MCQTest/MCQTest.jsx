@@ -95,6 +95,7 @@ const MCQTest = () => {
         'Results include score, accuracy and time spent'
     ]);
     const [hasAttempted, setHasAttempted] = useState(false);
+    const [attemptId, setAttemptId] = useState(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [fullscreenWarnings, setFullscreenWarnings] = useState(0);
     const [tabSwitchWarnings, setTabSwitchWarnings] = useState(0);
@@ -138,7 +139,10 @@ const MCQTest = () => {
                             title: data.title,
                             guidelines: data.guidelines,
                             timeLimit: data.timeLimit || 30,
-                            maxAttempts: data.maxAttempts || 1
+                            maxAttempts: data.maxAttempts || 1,
+                            isTimeRestricted: data.isTimeRestricted || false,
+                            startTime: data.startTime || null,
+                            endTime: data.endTime || null
                         }));
                         setHasAttempted(true); // Treat as attempted to prevent regeneration logic
                         setCurrentStep('guidelines');
@@ -209,7 +213,8 @@ const MCQTest = () => {
                     tabSwitches: tabSwitchWarnings
                 },
                 practiceTestId: testId, // Include practiceTestId if available
-                saveHistory: !testId // Do not save history for practice tests, save for AI tests
+                saveHistory: !testId, // Do not save history for practice tests, save for AI tests
+                attemptId: attemptId // Link this submission to the in-progress attempt
             };
 
             const response = await axiosInstance.post(API.MCQ.SUBMIT, submissionData);
@@ -2222,14 +2227,50 @@ const MCQTest = () => {
         );
     };
 
-    const handleStartPracticeTest = () => {
+    const handleStartPracticeTest = async () => {
+        if (testId) {
+            setLoading(true);
+            try {
+                const res = await axiosInstance.post(API.MCQ.START_PRACTICE_TEST(testId), {
+                    userInfo: user
+                });
+                if (res.data.success) {
+                    setAttemptId(res.data.data.attemptId);
+                }
+            } catch (error) {
+                console.error("Error starting practice test:", error);
+                toast.error(error.response?.data?.message || 'Failed to start test');
+                setLoading(false);
+                return; // Stop execution
+            }
+            setLoading(false);
+        }
+
         setCurrentStep('test');
         setTimeLeft(formData.timeLimit ? formData.timeLimit * 60 : formData.numberOfQuestions * 120);
         setTestStartTime(new Date());
         toast.success(`Practice Test: ${formData.title} started!`);
     };
 
-    const renderGuidelines = () => (
+    const renderGuidelines = () => {
+        let isAvailable = true;
+        let availabilityMessage = "";
+
+        if (formData.isTimeRestricted) {
+            const now = new Date();
+            const start = formData.startTime ? new Date(formData.startTime) : null;
+            const end = formData.endTime ? new Date(formData.endTime) : null;
+
+            if (start && now < start) {
+                isAvailable = false;
+                availabilityMessage = `Test will be available from ${start.toLocaleString()}`;
+            } else if (end && now > end) {
+                isAvailable = false;
+                availabilityMessage = `Test ended on ${end.toLocaleString()}`;
+            }
+        }
+
+        return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2285,23 +2326,31 @@ const MCQTest = () => {
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-4">
+                <div className="flex justify-end gap-4 items-center">
+                    {!isAvailable && (
+                        <div className="text-red-500 font-medium mr-auto">
+                            <Clock className="w-4 h-4 inline mr-1" /> {availabilityMessage}
+                        </div>
+                    )}
                     <Button
                         onClick={() => navigate('/mcq-test/practice')}
                         className="bg-[rgb(var(--bg-body-alt))] hover:bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-primary))] border border-[rgb(var(--border-subtle))] px-6"
                     >
                         Cancel
                     </Button>
-                    <Button
-                        onClick={handleStartPracticeTest}
-                        className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white px-8 font-semibold shadow-lg shadow-[rgb(var(--accent))]/20 transition-all active:scale-95"
-                    >
-                        I Agree, Start Exam
-                    </Button>
+                    {isAvailable && (
+                        <Button
+                            onClick={handleStartPracticeTest}
+                            className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white px-8 font-semibold shadow-lg shadow-[rgb(var(--accent))]/20 transition-all active:scale-95"
+                        >
+                            I Agree, Start Exam
+                        </Button>
+                    )}
                 </div>
             </Card>
         </motion.div>
-    );
+        );
+    };
 
     // During test on desktop, render fullscreen layout without container
     if (currentStep === 'test' && window.innerWidth >= 1024) {

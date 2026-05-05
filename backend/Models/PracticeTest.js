@@ -35,7 +35,10 @@ const practiceTestSchema = new mongoose.Schema({
     attempts: { type: Number, default: 0 },
     maxAttempts: { type: Number, default: 1 }, // Default 1 attempt
     timeLimit: { type: Number, default: 30 }, // Default 30 minutes
-    guidelines: { type: String, default: '' } // Markdown or text instructions
+    guidelines: { type: String, default: '' }, // Markdown or text instructions
+    isTimeRestricted: { type: Boolean, default: false }, // If true, test is only available between startTime and endTime
+    startTime: { type: Date },
+    endTime: { type: Date }
 }, {
     timestamps: true
 });

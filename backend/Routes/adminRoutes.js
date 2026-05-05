@@ -602,7 +602,7 @@ router.delete('/resources/:id', async (req, res) => {
 // CREATE Practice Test (Admin)
 router.post('/practice-tests', async (req, res) => {
     try {
-        const { title, description, topic, difficulty, questions, isPublished, maxAttempts, timeLimit, guidelines } = req.body;
+        const { title, description, topic, difficulty, questions, isPublished, maxAttempts, timeLimit, guidelines, isTimeRestricted, startTime, endTime } = req.body;
         const PracticeTest = require('../models/PracticeTest');
 
         const newTest = new PracticeTest({
@@ -615,7 +615,10 @@ router.post('/practice-tests', async (req, res) => {
             isPublished: isPublished !== undefined ? isPublished : true,
             maxAttempts: maxAttempts !== undefined ? maxAttempts : 1,
             timeLimit: timeLimit !== undefined ? timeLimit : 30,
-            guidelines: guidelines || ''
+            guidelines: guidelines || '',
+            isTimeRestricted: isTimeRestricted || false,
+            startTime: startTime || null,
+            endTime: endTime || null
         });
 
         await newTest.save();
