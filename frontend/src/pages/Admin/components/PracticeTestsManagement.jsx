@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Trash2, Clock, FileQuestion, ChevronDown, CheckCircle, PenSquare, RotateCcw, X, Mail, Users, Loader2 } from 'lucide-react';
+import { Search, Plus, Trash2, Clock, FileQuestion, ChevronDown, CheckCircle, PenSquare, RotateCcw, X, Mail, Users, Loader2, Calendar } from 'lucide-react';
 import axios from '../../../utils/axiosInstance';
 import { API } from '../../../utils/apiPaths';
 import toast from 'react-hot-toast';
@@ -189,7 +189,14 @@ const PracticeTestsManagement = () => {
                                             <Users className="w-3.5 h-3.5" />
                                             {test.attempts || 0} Attempts
                                         </div>
-                                        <span className="whitespace-nowrap">Created: {new Date(test.createdAt).toLocaleDateString()}</span>
+                                        {test.isTimeRestricted && test.startTime && test.endTime ? (
+                                            <div className="flex items-center gap-1.5 bg-blue-500/10 px-2 py-1 rounded-md whitespace-nowrap text-blue-600 border border-blue-500/20">
+                                                <Calendar className="w-3.5 h-3.5" />
+                                                {new Date(test.startTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })} - {new Date(test.endTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                                            </div>
+                                        ) : (
+                                            <span className="whitespace-nowrap">Created: {new Date(test.createdAt).toLocaleDateString()}</span>
+                                        )}
                                     </div>
                                 </div>
 

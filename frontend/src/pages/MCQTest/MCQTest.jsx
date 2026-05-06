@@ -2229,6 +2229,22 @@ const MCQTest = () => {
 
     const handleStartPracticeTest = async () => {
         if (testId) {
+            // Re-validate availability before starting
+            if (formData.isTimeRestricted) {
+                const now = new Date();
+                const start = formData.startTime ? new Date(formData.startTime) : null;
+                const end = formData.endTime ? new Date(formData.endTime) : null;
+
+                if (start && now < start) {
+                    toast.error(`Test has not started yet. Available from ${start.toLocaleString()}`);
+                    return;
+                }
+                if (end && now > end) {
+                    toast.error(`Test has already ended on ${end.toLocaleString()}`);
+                    return;
+                }
+            }
+
             setLoading(true);
             try {
                 const res = await axiosInstance.post(API.MCQ.START_PRACTICE_TEST(testId), {
@@ -2246,8 +2262,22 @@ const MCQTest = () => {
             setLoading(false);
         }
 
+        // Calculate time left - cap it if test is time restricted
+        let calculatedTimeLeft = formData.timeLimit ? formData.timeLimit * 60 : formData.numberOfQuestions * 120;
+        
+        if (formData.isTimeRestricted && formData.endTime) {
+            const now = new Date();
+            const end = new Date(formData.endTime);
+            const remainingUntilEnd = Math.floor((end - now) / 1000);
+            
+            if (remainingUntilEnd > 0) {
+                // Use the minimum of time limit and time remaining until test ends
+                calculatedTimeLeft = Math.min(calculatedTimeLeft, remainingUntilEnd);
+            }
+        }
+
         setCurrentStep('test');
-        setTimeLeft(formData.timeLimit ? formData.timeLimit * 60 : formData.numberOfQuestions * 120);
+        setTimeLeft(calculatedTimeLeft);
         setTestStartTime(new Date());
         toast.success(`Practice Test: ${formData.title} started!`);
     };

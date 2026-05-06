@@ -110,6 +110,16 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
             toast.error('Please add at least one question');
             return;
         }
+        if (formData.isTimeRestricted) {
+            if (!formData.startTime || !formData.endTime) {
+                toast.error('Please select both start and end times for restricted availability');
+                return;
+            }
+            if (new Date(formData.startTime) >= new Date(formData.endTime)) {
+                toast.error('Start time must be before end time');
+                return;
+            }
+        }
         for (let i = 0; i < formData.questions.length; i++) {
             const q = formData.questions[i];
             if (!q.question.trim()) {
@@ -126,8 +136,8 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
             ...formData,
             timeLimit: parseInt(formData.timeLimit) || 30,
             maxAttempts: parseInt(formData.maxAttempts) || 1,
-            startTime: formData.startTime ? new Date(formData.startTime).toISOString() : null,
-            endTime: formData.endTime ? new Date(formData.endTime).toISOString() : null
+            startTime: (formData.isTimeRestricted && formData.startTime) ? new Date(formData.startTime).toISOString() : null,
+            endTime: (formData.isTimeRestricted && formData.endTime) ? new Date(formData.endTime).toISOString() : null
         };
 
         await onSave(testToEdit ? testToEdit._id : null, payload);

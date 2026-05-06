@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FileQuestion, Clock, ArrowRight, BookOpen, BarChart2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { FileQuestion, Clock, ArrowRight, BookOpen, BarChart2, ChevronLeft, ChevronRight, Calendar, AlertCircle } from 'lucide-react';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import { Button } from '../../components/ui/button';
@@ -139,12 +139,56 @@ const PracticeTestsPage = () => {
                                             </div>
                                         </div>
 
-                                        <Button
-                                            onClick={() => handleStartTest(test._id)}
-                                            className="w-full bg-[rgb(var(--bg-elevated))] hover:bg-[rgb(var(--accent))] hover:text-white text-[rgb(var(--text-primary))] transition-all group-hover:shadow-lg group-hover:shadow-[rgb(var(--accent))]/20"
-                                        >
-                                            Start Practice <ArrowRight className="w-4 h-4 ml-2" />
-                                        </Button>
+                                        {test.isTimeRestricted && (
+                                            <div className="bg-[rgb(var(--bg-elevated))] p-3 rounded-xl border border-[rgb(var(--border-subtle))] mb-4">
+                                                <div className="flex items-center gap-2 text-xs font-semibold text-[rgb(var(--accent))] mb-1 uppercase tracking-wider">
+                                                    <Calendar className="w-3.5 h-3.5" />
+                                                    Scheduled Window
+                                                </div>
+                                                <div className="text-[10px] sm:text-xs text-[rgb(var(--text-secondary))] space-y-1">
+                                                    <div className="flex justify-between">
+                                                        <span>Start:</span>
+                                                        <span className="font-medium text-[rgb(var(--text-primary))]">{new Date(test.startTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span>End:</span>
+                                                        <span className="font-medium text-[rgb(var(--text-primary))]">{new Date(test.endTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {(() => {
+                                            const now = new Date();
+                                            const start = test.startTime ? new Date(test.startTime) : null;
+                                            const end = test.endTime ? new Date(test.endTime) : null;
+                                            
+                                            let status = 'available';
+                                            if (test.isTimeRestricted) {
+                                                if (start && now < start) status = 'upcoming';
+                                                else if (end && now > end) status = 'ended';
+                                            }
+
+                                            return (
+                                                <Button
+                                                    onClick={() => handleStartTest(test._id)}
+                                                    disabled={status !== 'available'}
+                                                    className={`w-full transition-all group-hover:shadow-lg ${
+                                                        status === 'available' 
+                                                        ? 'bg-[rgb(var(--bg-elevated))] hover:bg-[rgb(var(--accent))] hover:text-white text-[rgb(var(--text-primary))] group-hover:shadow-[rgb(var(--accent))]/20' 
+                                                        : 'bg-gray-500/10 text-gray-500 cursor-not-allowed border-gray-500/20'
+                                                    }`}
+                                                >
+                                                    {status === 'upcoming' ? (
+                                                        <><Clock className="w-4 h-4 mr-2" /> Not Started</>
+                                                    ) : status === 'ended' ? (
+                                                        <><AlertCircle className="w-4 h-4 mr-2" /> Test Ended</>
+                                                    ) : (
+                                                        <>Start Practice <ArrowRight className="w-4 h-4 ml-2" /></>
+                                                    )}
+                                                </Button>
+                                            );
+                                        })()}
                                     </div>
                                 </motion.div>
                             ))}
