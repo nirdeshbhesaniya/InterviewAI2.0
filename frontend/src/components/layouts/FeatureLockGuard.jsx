@@ -118,9 +118,9 @@ const FeatureLockGuard = ({ featureKey, children, title, description }) => {
                                 <p className="font-semibold text-[rgb(var(--text-primary))]">Status</p>
                             </div>
                             <p className="text-sm text-[rgb(var(--text-secondary))] leading-relaxed">
-                                {user?.role === 'owner' || user?.role === 'admin'
+                                {user?.role === 'owner'
                                     ? 'You can change this from the Feature Locks tab in the admin panel.'
-                                    : 'Please try again later or contact an administrator if you need access.'}
+                                    : 'Please try again later or contact the owner if you need access.'}
                             </p>
                         </div>
                     </div>

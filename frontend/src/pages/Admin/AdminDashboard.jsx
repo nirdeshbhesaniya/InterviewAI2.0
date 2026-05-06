@@ -111,7 +111,7 @@ const AdminDashboard = () => {
             case 'feedback':
                 return <FeedbackManagement />;
             case 'feature-locks':
-                return <FeatureLocksPanel />;
+                return <FeatureLocksPanel currentUserRole={user?.role} />;
             default:
                 return <UserManagement />;
         }

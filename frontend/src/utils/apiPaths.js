@@ -99,6 +99,7 @@ export const API = {
     UPDATE_PRACTICE_TEST: (id) => `${API_BASE_URL}/admin/practice-tests/${id}`,
     GET_PRACTICE_TEST: (id) => `${API_BASE_URL}/admin/practice-tests/${id}`,
     DELETE_PRACTICE_TEST: (id) => `${API_BASE_URL}/admin/practice-tests/${id}`,
+    GET_PRACTICE_ATTEMPTS: (id) => `${API_BASE_URL}/admin/practice-tests/${id}/attempts`,
     RESET_PRACTICE_ATTEMPTS: (id) => `${API_BASE_URL}/admin/practice-tests/${id}/reset-attempts`,
     CREATE_NOTIFICATION: `${API_BASE_URL}/admin/notifications/create`,
     GET_BROADCASTS: `${API_BASE_URL}/admin/notifications/broadcasts`,

@@ -360,18 +360,18 @@ router.get('/feature-locks', async (req, res) => {
     }
 });
 
-// PATCH feature lock status (ADMIN ONLY)
-// This endpoint requires authentication and admin role
+// PATCH feature lock status (OWNER ONLY)
+// This endpoint requires authentication and owner role
 router.patch('/feature-locks/:featureKey', async (req, res) => {
     // Prevent all caching
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.set('Pragma', 'no-cache');
     res.set('Expires', '0');
     try {
-        // Verify admin access
-        if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'owner')) {
+        // Verify owner access
+        if (!req.user || req.user.role !== 'owner') {
             return res.status(403).json({
-                message: 'Access denied. Admin or Owner rights required.',
+                message: 'Access denied. Owner rights required.',
                 requiresAuth: true
             });
         }
@@ -684,6 +684,23 @@ router.delete('/practice-tests/:id', async (req, res) => {
     } catch (err) {
         console.error('Error deleting practice test:', err);
         res.status(500).json({ message: 'Failed to delete practice test' });
+    }
+});
+
+// GET Practice Test Attempts (Admin)
+router.get('/practice-tests/:id/attempts', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const MCQTest = require('../models/MCQTest');
+
+        const attempts = await MCQTest.find({ practiceTestId: id })
+            .populate('userId', 'fullName email')
+            .sort({ createdAt: -1 });
+
+        res.json({ success: true, data: attempts });
+    } catch (err) {
+        console.error('Error fetching practice test attempts:', err);
+        res.status(500).json({ message: 'Failed to fetch attempts' });
     }
 });
 

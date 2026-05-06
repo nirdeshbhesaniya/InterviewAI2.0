@@ -339,9 +339,9 @@ router.get('/features', authenticateToken, requireAdminOrOwner, async (req, res)
 /**
  * PATCH /api/ai/features/:key
  * Toggle a single feature by key.
- * Access: Admin + Owner
+ * Access: Owner
  */
-router.patch('/features/:key', authenticateToken, requireAdminOrOwner, async (req, res) => {
+router.patch('/features/:key', authenticateToken, requireOwner, async (req, res) => {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
     try {
         const { key } = req.params;

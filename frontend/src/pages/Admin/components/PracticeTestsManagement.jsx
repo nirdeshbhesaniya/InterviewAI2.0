@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Trash2, Clock, FileQuestion, ChevronDown, CheckCircle, PenSquare, RotateCcw, X, Mail } from 'lucide-react';
+import { Search, Plus, Trash2, Clock, FileQuestion, ChevronDown, CheckCircle, PenSquare, RotateCcw, X, Mail, Users, Loader2 } from 'lucide-react';
 import axios from '../../../utils/axiosInstance';
 import { API } from '../../../utils/apiPaths';
 import toast from 'react-hot-toast';
@@ -23,6 +23,12 @@ const PracticeTestsManagement = () => {
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
     const [resetTestId, setResetTestId] = useState(null);
+
+    // Analytics Modal State
+    const [isAnalyticsModalOpen, setIsAnalyticsModalOpen] = useState(false);
+    const [analyticsTest, setAnalyticsTest] = useState(null);
+    const [analyticsData, setAnalyticsData] = useState([]);
+    const [loadingAnalytics, setLoadingAnalytics] = useState(false);
 
     useEffect(() => {
         const fetchTests = async () => {
@@ -116,6 +122,22 @@ const PracticeTestsManagement = () => {
         }
     };
 
+    const openAnalyticsModal = async (test) => {
+        setAnalyticsTest(test);
+        setIsAnalyticsModalOpen(true);
+        setLoadingAnalytics(true);
+        try {
+            const res = await axios.get(API.ADMIN.GET_PRACTICE_ATTEMPTS(test._id));
+            setAnalyticsData(res.data.data || []);
+        } catch (err) {
+            console.error('Error fetching analytics:', err);
+            toast.error('Failed to load analytics');
+            setAnalyticsData([]);
+        } finally {
+            setLoadingAnalytics(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
@@ -148,26 +170,30 @@ const PracticeTestsManagement = () => {
                 <div className="grid gap-4">
                     {practiceTests.map((test) => (
                         <div key={test._id} className="bg-[rgb(var(--bg-main))] p-5 rounded-2xl border border-[rgb(var(--border))] hover:border-[rgb(var(--accent))]/30 transition-shadow shadow-sm group">
-                            <div className="flex justify-between items-start gap-4">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                                <div className="flex-1 w-full">
+                                    <div className="flex items-center gap-3 mb-2 flex-wrap">
                                         <h3 className="text-lg font-semibold text-[rgb(var(--text-primary))]">{test.title}</h3>
-                                        <span className="px-2.5 py-0.5 rounded-full bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-secondary))] text-xs font-medium border border-[rgb(var(--border))]">
+                                        <span className="px-2.5 py-0.5 rounded-full bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-secondary))] text-xs font-medium border border-[rgb(var(--border))] whitespace-nowrap">
                                             {test.questions?.length || 0} Questions
                                         </span>
                                     </div>
                                     <p className="text-sm text-[rgb(var(--text-secondary))] mb-3 line-clamp-2">{test.description}</p>
 
-                                    <div className="flex items-center gap-4 text-xs text-[rgb(var(--text-muted))]">
-                                        <div className="flex items-center gap-1.5 bg-[rgb(var(--bg-elevated))] px-2 py-1 rounded-md">
+                                    <div className="flex items-center gap-4 text-xs text-[rgb(var(--text-muted))] flex-wrap">
+                                        <div className="flex items-center gap-1.5 bg-[rgb(var(--bg-elevated))] px-2 py-1 rounded-md whitespace-nowrap">
                                             <Clock className="w-3.5 h-3.5" />
                                             {test.timeLimit || (test.questions?.length || 0) * 2} mins
                                         </div>
-                                        <span>Created: {new Date(test.createdAt).toLocaleDateString()}</span>
+                                        <div className="flex items-center gap-1.5 bg-[rgb(var(--bg-elevated))] px-2 py-1 rounded-md whitespace-nowrap">
+                                            <Users className="w-3.5 h-3.5" />
+                                            {test.attempts || 0} Attempts
+                                        </div>
+                                        <span className="whitespace-nowrap">Created: {new Date(test.createdAt).toLocaleDateString()}</span>
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity w-full sm:w-auto justify-end mt-2 sm:mt-0">
                                     <Button
                                         size="sm"
                                         variant="outline"
@@ -177,6 +203,16 @@ const PracticeTestsManagement = () => {
                                     >
                                         <RotateCcw className="w-4 h-4 mr-1.5" />
                                         <span className="hidden md:inline">Reset User</span>
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => openAnalyticsModal(test)}
+                                        className="h-9 px-2 rounded-lg border-[rgb(var(--border))] text-purple-500 hover:bg-purple-500/10"
+                                        title="View Analytics & Attempts"
+                                    >
+                                        <Users className="w-4 h-4 mr-1.5" />
+                                        <span className="hidden md:inline">Analytics</span>
                                     </Button>
                                     <Button
                                         size="sm"
@@ -268,6 +304,96 @@ const PracticeTestsManagement = () => {
                                     Confirm Reset
                                 </Button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Analytics Modal */}
+            {isAnalyticsModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-[rgb(var(--bg-card))] rounded-2xl shadow-xl w-full max-w-4xl overflow-hidden border border-[rgb(var(--border-subtle))] max-h-[90vh] flex flex-col">
+                        <div className="p-6 border-b border-[rgb(var(--border))] flex items-center justify-between">
+                            <div>
+                                <h3 className="text-xl font-bold text-[rgb(var(--text-primary))] flex items-center gap-2">
+                                    <Users className="w-5 h-5 text-purple-500" />
+                                    Attempts Analytics
+                                </h3>
+                                <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">
+                                    {analyticsTest?.title}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setIsAnalyticsModalOpen(false)}
+                                className="p-2 text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-body-alt))] rounded-lg transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        
+                        <div className="p-6 overflow-y-auto flex-1">
+                            {loadingAnalytics ? (
+                                <div className="flex flex-col items-center justify-center py-12 gap-3">
+                                    <Loader2 className="w-8 h-8 text-[rgb(var(--accent))] animate-spin" />
+                                    <p className="text-sm text-[rgb(var(--text-secondary))]">Loading analytics...</p>
+                                </div>
+                            ) : analyticsData.length === 0 ? (
+                                <div className="text-center py-12 text-[rgb(var(--text-muted))]">
+                                    <Users className="mx-auto h-12 w-12 opacity-50 mb-3" />
+                                    <p>No attempts recorded for this test yet.</p>
+                                </div>
+                            ) : (
+                                <div className="overflow-x-auto rounded-xl border border-[rgb(var(--border))]">
+                                    <table className="w-full text-left text-sm">
+                                        <thead className="bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-secondary))] uppercase text-xs">
+                                            <tr>
+                                                <th className="px-4 py-3 font-medium">User</th>
+                                                <th className="px-4 py-3 font-medium">Score</th>
+                                                <th className="px-4 py-3 font-medium">Status</th>
+                                                <th className="px-4 py-3 font-medium">Time Spent</th>
+                                                <th className="px-4 py-3 font-medium">Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-[rgb(var(--border))] bg-[rgb(var(--bg-card))]">
+                                            {analyticsData.map((attempt) => (
+                                                <tr key={attempt._id} className="hover:bg-[rgb(var(--bg-elevated))]/50 transition-colors">
+                                                    <td className="px-4 py-3">
+                                                        <div className="font-medium text-[rgb(var(--text-primary))]">
+                                                            {attempt.userId?.fullName || attempt.userEmail || 'Unknown User'}
+                                                        </div>
+                                                        <div className="text-xs text-[rgb(var(--text-secondary))]">
+                                                            {attempt.userEmail}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <span className={`font-bold ${attempt.score >= 70 ? 'text-emerald-500' : attempt.score >= 40 ? 'text-amber-500' : 'text-rose-500'}`}>
+                                                            {attempt.score}%
+                                                        </span>
+                                                        <div className="text-xs text-[rgb(var(--text-muted))]">
+                                                            {attempt.correctAnswers}/{attempt.totalQuestions} correct
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                                            attempt.testStatus === 'completed' ? 'bg-emerald-500/10 text-emerald-600' :
+                                                            attempt.testStatus === 'auto-submitted' ? 'bg-rose-500/10 text-rose-600' :
+                                                            'bg-amber-500/10 text-amber-600'
+                                                        }`}>
+                                                            {attempt.testStatus}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-[rgb(var(--text-secondary))]">
+                                                        {Math.floor(attempt.timeSpent / 60)}m {attempt.timeSpent % 60}s
+                                                    </td>
+                                                    <td className="px-4 py-3 text-[rgb(var(--text-secondary))] text-xs">
+                                                        {new Date(attempt.createdAt).toLocaleString()}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

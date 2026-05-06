@@ -18,7 +18,8 @@ const CATEGORY_COLORS = {
    PATCH /api/ai/features/:key     → toggle (after backend update deployed)
    POST  /api/ai/features/toggle   → toggle fallback (already on server)
 ───────────────────────────────────────────────────────────────────────────── */
-const FeatureLocksPanel = () => {
+const FeatureLocksPanel = ({ currentUserRole }) => {
+    const isOwner = currentUserRole === 'owner';
     const [features, setFeatures]   = useState([]);
     const [loading, setLoading]     = useState(true);
     const [savingKey, setSavingKey] = useState(null);
@@ -212,7 +213,8 @@ const FeatureLocksPanel = () => {
                                             </p>
                                             <button
                                                 onClick={() => toggle(feature)}
-                                                disabled={isSaving}
+                                                disabled={isSaving || !isOwner}
+                                                title={!isOwner ? 'Only the owner can modify feature locks' : ''}
                                                 className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${locked
                                                     ? 'bg-emerald-500 text-white border-emerald-500 hover:brightness-110'
                                                     : 'bg-rose-500   text-white border-rose-500   hover:brightness-110'}`}
