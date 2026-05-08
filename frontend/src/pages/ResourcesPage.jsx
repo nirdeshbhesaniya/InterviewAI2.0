@@ -632,7 +632,9 @@ const ResourcesPage = () => {
                                                             </span>
                                                             <span className="flex items-center gap-1">
                                                                 <Folder className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                                <span className="truncate">{resource.semester}</span>
+                                                                <span className="truncate">
+                                                                    {Array.isArray(resource.semester) ? resource.semester.join(', ') : resource.semester}
+                                                                </span>
                                                             </span>
                                                             <span className="flex items-center gap-1">
                                                                 <User className="w-3 h-3 sm:w-4 sm:h-4" />
