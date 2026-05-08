@@ -21,7 +21,7 @@ export const useAnimatedCounter = (end, duration = 1500) => {
 // Radar Chart Component (pure SVG)
 export const RadarChart = ({ scores }) => {
     const labels = ['Technical', 'Communication', 'Problem Solving', 'Confidence', 'STAR Method'];
-    const cx = 150, cy = 150, r = 110;
+    const cx = 200, cy = 180, r = 110;
     const angleStep = (2 * Math.PI) / 5;
 
     const getPoint = (index, value) => {
@@ -35,32 +35,59 @@ export const RadarChart = ({ scores }) => {
     const pathD = dataPoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ') + 'Z';
 
     return (
-        <svg viewBox="0 0 300 300" className="w-full max-w-[320px] mx-auto" style={{ filter: 'drop-shadow(0 4px 12px rgba(99,102,241,0.15))' }}>
+        <svg viewBox="0 0 400 360" className="w-full max-w-[380px] mx-auto" style={{ filter: 'drop-shadow(0 4px 12px rgba(99,102,241,0.15))' }}>
+            {/* Background Grid */}
             {gridLevels.map((level, li) => (
                 <polygon key={li} points={Array.from({ length: 5 }, (_, i) => { const p = getPoint(i, level * 10); return `${p.x},${p.y}`; }).join(' ')}
-                    fill="none" stroke="rgb(var(--border))" strokeWidth="0.8" opacity={0.5} />
+                    fill="none" stroke="rgb(var(--border))" strokeWidth="1" opacity={li === 3 ? 0.6 : 0.3} />
             ))}
+            
+            {/* Axis Lines */}
             {Array.from({ length: 5 }, (_, i) => {
                 const p = getPoint(i, 10);
-                return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="rgb(var(--border))" strokeWidth="0.5" opacity={0.4} />;
+                return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="rgb(var(--border))" strokeWidth="1" opacity={0.3} strokeDasharray="4 2" />;
             })}
-            <polygon points={pathD.replace(/[MLZ]/g, ' ').trim()} fill="rgba(99,102,241,0.15)" stroke="rgb(99,102,241)" strokeWidth="2.5">
-                <animate attributeName="opacity" from="0" to="1" dur="0.8s" fill="freeze" />
+
+            {/* Data Area */}
+            <polygon points={pathD.replace(/[MLZ]/g, ' ').trim()} fill="rgba(99,102,241,0.2)" stroke="rgb(79,70,229)" strokeWidth="3" strokeLinejoin="round">
+                <animate attributeName="opacity" from="0" to="1" dur="1s" fill="freeze" />
             </polygon>
+
+            {/* Data Points */}
             {dataPoints.map((p, i) => (
-                <circle key={i} cx={p.x} cy={p.y} r="5" fill="rgb(99,102,241)" stroke="white" strokeWidth="2">
+                <circle key={i} cx={p.x} cy={p.y} r="5" fill="rgb(79,70,229)" stroke="white" strokeWidth="2" className="drop-shadow-sm">
                     <animate attributeName="r" from="0" to="5" dur="0.5s" begin={`${i * 0.1}s`} fill="freeze" />
                 </circle>
             ))}
+
+            {/* Labels */}
             {labels.map((label, i) => {
-                const p = getPoint(i, 12.5);
-                return <text key={i} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle"
-                    className="text-[10px] font-semibold" fill="rgb(var(--text-muted))">{label}</text>;
+                const p = getPoint(i, 12.8);
+                let textAnchor = "middle";
+                if (p.x > cx + 20) textAnchor = "start";
+                else if (p.x < cx - 20) textAnchor = "end";
+
+                return (
+                    <text key={i} x={p.x} y={p.y} textAnchor={textAnchor} dominantBaseline="middle"
+                        className="text-[12px] font-bold fill-[rgb(var(--text-secondary))] tracking-tight">
+                        {label}
+                    </text>
+                );
             })}
+
+            {/* Value Labels */}
             {scores.map((s, i) => {
-                const p = getPoint(i, s + 1.5);
-                return <text key={`s${i}`} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle"
-                    className="text-[11px] font-bold" fill="rgb(99,102,241)">{s}</text>;
+                const p = getPoint(i, s + 1.8);
+                let textAnchor = "middle";
+                if (p.x > cx + 20) textAnchor = "start";
+                else if (p.x < cx - 20) textAnchor = "end";
+
+                return (
+                    <text key={`s${i}`} x={p.x} y={p.y} textAnchor={textAnchor} dominantBaseline="middle"
+                        className="text-[11px] font-black fill-[rgb(79,70,229)]">
+                        {s}
+                    </text>
+                );
             })}
         </svg>
     );
@@ -112,17 +139,21 @@ export const ReadinessBadge = ({ readiness }) => {
 // Score Bar
 export const ScoreBar = ({ label, score, max = 10, icon: Icon }) => {
     const pct = (score / max) * 100;
-    const color = pct >= 70 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-500' : 'bg-red-500';
+    const color = pct >= 80 ? 'bg-indigo-500' : pct >= 60 ? 'bg-emerald-500' : pct >= 40 ? 'bg-amber-500' : 'bg-rose-500';
     return (
-        <div className="flex items-center gap-3">
-            {Icon && <Icon className="w-4 h-4 text-[rgb(var(--text-muted))] flex-shrink-0" />}
+        <div className="flex items-center gap-4 group/bar">
+            <div className={`p-2 rounded-lg bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] group-hover/bar:border-indigo-300 transition-colors shadow-sm`}>
+                {Icon && <Icon className="w-4 h-4 text-indigo-500 flex-shrink-0" />}
+            </div>
             <div className="flex-1">
-                <div className="flex justify-between mb-1">
-                    <span className="text-xs font-semibold text-[rgb(var(--text-secondary))]">{label}</span>
-                    <span className="text-xs font-bold text-[rgb(var(--text-primary))]">{score}/{max}</span>
+                <div className="flex justify-between items-end mb-1.5">
+                    <span className="text-[11px] font-bold text-[rgb(var(--text-secondary))] uppercase tracking-wider">{label}</span>
+                    <span className="text-sm font-black text-[rgb(var(--text-primary))]">{score}<span className="text-[10px] text-[rgb(var(--text-muted))] font-bold ml-0.5">/{max}</span></span>
                 </div>
-                <div className="h-2 bg-[rgb(var(--border))]/30 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${color} transition-all duration-1000 ease-out`} style={{ width: `${pct}%` }} />
+                <div className="h-2.5 bg-[rgb(var(--border))]/20 rounded-full overflow-hidden border border-[rgb(var(--border))]/10">
+                    <div className={`h-full rounded-full ${color} transition-all duration-1000 ease-out relative`} style={{ width: `${pct}%` }}>
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-30" />
+                    </div>
                 </div>
             </div>
         </div>

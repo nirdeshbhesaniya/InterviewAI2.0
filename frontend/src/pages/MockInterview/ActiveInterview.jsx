@@ -421,6 +421,11 @@ ${questionsList}
                     // Start face tracking
                     startFaceTracking();
 
+                    // Pre-warm AudioContext to avoid initial playback delay
+                    if (!audioContextRef.current) {
+                        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+
                     // Start Microphone AFTER sending the start message
                     await startMicrophone();
                 }, 500);
@@ -783,6 +788,29 @@ ${questionsList}
 
     return (
         <div className="h-screen bg-[rgb(var(--bg-background))] p-3 md:p-4 flex flex-col font-sans overflow-hidden">
+            <style>{`
+                @keyframes ripple {
+                    0% { transform: scale(1); opacity: 0.8; }
+                    100% { transform: scale(2.5); opacity: 0; }
+                }
+                @keyframes voice-wave {
+                    0%, 100% { transform: scaleY(0.4); }
+                    50% { transform: scaleY(1.2); }
+                }
+                .ripple-circle {
+                    position: absolute;
+                    border: 2px solid rgb(var(--accent));
+                    border-radius: 50%;
+                    animation: ripple 2s infinite;
+                }
+                .wave-bar {
+                    width: 4px;
+                    height: 24px;
+                    background: rgb(var(--accent));
+                    border-radius: 4px;
+                    animation: voice-wave 1s ease-in-out infinite;
+                }
+            `}</style>
             {/* Top Bar */}
             <div className="flex flex-col gap-2 pb-3 border-b border-[rgb(var(--border))] flex-shrink-0">
                 {/* Row 1: Logo + Timer */}
@@ -1095,17 +1123,49 @@ ${questionsList}
                         </div>
 
                         <div className="flex-1 flex items-center justify-center relative mt-6">
-                            {/* Glowing orb effects */}
+                            {/* Speaking Animations */}
                             {isCallActive && aiStatus === 'speaking' && (
-                                <>
-                                    <div className="absolute w-40 h-40 bg-[rgb(var(--accent))]/30 rounded-full blur-2xl animate-ping opacity-70"></div>
-                                    <div className="absolute w-56 h-56 bg-[rgb(var(--accent))]/10 rounded-full blur-3xl animate-pulse"></div>
-                                </>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="ripple-circle" style={{ animationDelay: '0s' }}></div>
+                                    <div className="ripple-circle" style={{ animationDelay: '0.6s' }}></div>
+                                    <div className="ripple-circle" style={{ animationDelay: '1.2s' }}></div>
+                                    
+                                    <div className="absolute -bottom-12 flex items-center gap-1 h-8">
+                                        <div className="wave-bar" style={{ animationDelay: '0s' }}></div>
+                                        <div className="wave-bar" style={{ animationDelay: '0.2s' }}></div>
+                                        <div className="wave-bar" style={{ animationDelay: '0.4s' }}></div>
+                                        <div className="wave-bar" style={{ animationDelay: '0.1s' }}></div>
+                                        <div className="wave-bar" style={{ animationDelay: '0.3s' }}></div>
+                                    </div>
+                                </div>
                             )}
-                            <div className={`absolute w-32 h-32 bg-[rgb(var(--accent))]/20 rounded-full blur-xl transition-all duration-700 ${isCallActive && aiStatus === 'speaking' ? 'scale-[1.8] opacity-100' : 'scale-100 opacity-50'}`}></div>
-                            <div className={`absolute w-24 h-24 bg-[rgb(var(--accent))]/30 rounded-full blur-md transition-all duration-500 ${isCallActive && aiStatus === 'speaking' ? 'scale-[1.4] opacity-100' : 'scale-100 opacity-60'}`}></div>
-                            <div className={`relative z-10 w-24 h-24 bg-gradient-to-br from-[rgb(var(--accent))] to-[rgb(var(--accent-hover))] rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(var(--accent),0.5)] border-[5px] border-[rgb(var(--bg-elevated))]/60 transition-transform duration-300 ${isCallActive && aiStatus === 'speaking' ? 'scale-110' : 'scale-100'}`}>
-                                <span className="text-4xl font-extrabold text-[rgb(var(--accent-foreground))] drop-shadow-md">A</span>
+
+                            {/* Listening Animations */}
+                            {isCallActive && aiStatus === 'listening' && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="absolute w-48 h-48 border-2 border-dashed border-[rgb(var(--accent))]/30 rounded-full animate-[spin_10s_linear_infinite]"></div>
+                                    <div className="absolute w-40 h-40 border border-[rgb(var(--accent))]/20 rounded-full animate-[ping_3s_linear_infinite]"></div>
+                                    <div className="absolute -bottom-10 text-[10px] font-black uppercase tracking-[0.3em] text-[rgb(var(--accent))] animate-pulse">
+                                        Listening...
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Thinking Animations */}
+                            {isCallActive && aiStatus === 'thinking' && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-48 h-48 border-4 border-[rgb(var(--accent))]/10 border-t-[rgb(var(--accent))] rounded-full animate-spin"></div>
+                                    <div className="absolute -bottom-10 text-[10px] font-black uppercase tracking-[0.3em] text-[rgb(var(--text-muted))]">
+                                        Thinking...
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Base Avatar */}
+                            <div className={`absolute w-32 h-32 bg-[rgb(var(--accent))]/20 rounded-full blur-xl transition-all duration-700 ${isCallActive && (aiStatus === 'speaking' || aiStatus === 'thinking') ? 'scale-[1.8] opacity-100' : 'scale-100 opacity-50'}`}></div>
+                            <div className={`absolute w-24 h-24 bg-[rgb(var(--accent))]/30 rounded-full blur-md transition-all duration-500 ${isCallActive && (aiStatus === 'speaking' || aiStatus === 'thinking') ? 'scale-[1.4] opacity-100' : 'scale-100 opacity-60'}`}></div>
+                            <div className={`relative z-10 w-24 h-24 bg-gradient-to-br from-[rgb(var(--accent))] to-[rgb(var(--accent-hover))] rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(var(--accent),0.5)] border-[5px] border-[rgb(var(--bg-elevated))]/60 transition-transform duration-300 ${isCallActive && aiStatus === 'speaking' ? 'scale-110 shadow-[0_0_60px_rgba(var(--accent),0.8)]' : 'scale-100'}`}>
+                                <span className="text-4xl font-extrabold text-white drop-shadow-md">A</span>
                             </div>
                         </div>
                     </div>

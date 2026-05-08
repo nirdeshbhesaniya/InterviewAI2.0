@@ -143,9 +143,6 @@ class SocketService {
                                 const aiResponse = await llm.generateResponse(userText);
                                 console.log('💭 AI Response:', aiResponse);
 
-                                // Send AI text to client
-                                ws.send(JSON.stringify({ type: 'transcript', role: 'assistant', text: aiResponse }));
-
                                 // Sanitize audio string so it doesn't read code out loud
                                 const ttsSanitizedResponse = aiResponse
                                     .replace(/```[\s\S]*?```/g, '\nI have provided the code example on your screen, please observe it while I explain the logic.\n')
@@ -154,14 +151,18 @@ class SocketService {
                                     .replace(/\*/g, '')
                                     .replace(/#/g, '');
 
-                                // Generate Audio
+                                // Generate Audio (slow part)
                                 ws.send(JSON.stringify({ type: 'status', status: 'speaking' }));
                                 const audioBuffer = await tts.generateAudio(ttsSanitizedResponse);
 
                                 if (audioBuffer) {
+                                    // Send Assistant text and audio together for better synchronization
+                                    ws.send(JSON.stringify({ type: 'transcript', role: 'assistant', text: aiResponse }));
                                     console.log('🔊 Sending audio buffer:', audioBuffer.length, 'bytes');
                                     ws.send(audioBuffer);
                                 } else {
+                                    // Fallback: send transcript even if audio fails
+                                    ws.send(JSON.stringify({ type: 'transcript', role: 'assistant', text: aiResponse }));
                                     console.error('❌ Failed to generate audio');
                                 }
 

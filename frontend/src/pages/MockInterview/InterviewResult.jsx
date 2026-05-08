@@ -80,15 +80,27 @@ const InterviewResult = () => {
                                 <ReadinessBadge readiness={fb.interviewReadiness || 'Needs More Practice'} />
                             </div>
                             <div className="flex-1 text-center lg:text-left">
-                                <h1 className="text-3xl font-black text-[rgb(var(--text-primary))] mb-1 flex items-center justify-center lg:justify-start gap-2">
-                                    <Award className="w-8 h-8 text-amber-500" /> Performance Report
-                                </h1>
-                                <p className="text-sm text-[rgb(var(--text-muted))] mb-4">
-                                    {interview.interviewType} Interview · {interview.difficulty} · {interview.focusArea}
+                                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-3">
+                                    <h1 className="text-3xl font-black text-[rgb(var(--text-primary))] flex items-center gap-2">
+                                        <Award className="w-8 h-8 text-amber-500" /> Performance Report
+                                    </h1>
+                                    {fb.summary?.toLowerCase().includes('hire') && (
+                                        <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${fb.summary.toLowerCase().includes('no hire') ? 'bg-rose-100 text-rose-600 border border-rose-200' : 'bg-emerald-100 text-emerald-600 border border-emerald-200'}`}>
+                                            {fb.summary.toLowerCase().includes('no hire') ? 'Verdict: No Hire' : 'Verdict: Hire'}
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-sm text-[rgb(var(--text-muted))] mb-4 font-medium flex items-center justify-center lg:justify-start gap-2">
+                                    <span className="bg-[rgb(var(--bg-card))] px-2 py-0.5 rounded border border-[rgb(var(--border))]">{interview.interviewType}</span>
+                                    <span className="bg-[rgb(var(--bg-card))] px-2 py-0.5 rounded border border-[rgb(var(--border))]">{interview.difficulty}</span>
+                                    <span className="bg-[rgb(var(--bg-card))] px-2 py-0.5 rounded border border-[rgb(var(--border))]">{interview.focusArea}</span>
                                 </p>
-                                <p className="text-[rgb(var(--text-secondary))] leading-relaxed text-sm max-w-2xl">
-                                    {fb.summary || "Great job completing the interview!"}
-                                </p>
+                                <div className="bg-[rgb(var(--bg-card))]/50 p-5 rounded-2xl border border-[rgb(var(--border))]/50 shadow-inner">
+                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[rgb(var(--text-muted))] mb-2">Executive Summary</h4>
+                                    <p className="text-[rgb(var(--text-secondary))] leading-relaxed text-sm max-w-2xl font-medium">
+                                        {fb.summary || "Great job completing the interview!"}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>

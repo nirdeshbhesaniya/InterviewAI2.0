@@ -497,10 +497,13 @@ async function generateInterviewFeedback(interview, transcript) {
   const candidateDegree = interview.degree || '';
   const focusArea = interview.focusArea || '';
 
-  const systemPrompt = `You are a strict, highly experienced Principal Engineering Manager and elite interview coach from a top-tier tech company (like Google, Meta, or Amazon).
-Your goal is to provide deeply actionable, highly specific, and unvarnished feedback that genuinely helps candidates land jobs. 
-Do not sugarcoat your feedback. If an answer is weak, explain exactly why it would fail a real interview.
-When providing feedback on specific questions, you must include a "rewrittenAnswer" which provides a realistic, polished version of how the candidate should have answered using their own context.
+  const systemPrompt = `You are a strict, highly experienced Principal Engineering Manager and Elite Interview Coach from a top-tier tech company (like Google, Meta, or NVIDIA). 
+Your goal is to provide deeply professional, industrial-grade evaluation and feedback that simulates a real-world interview debrief.
+Your feedback must be:
+1. **Critical & Professional**: Do not use generic praise. If an answer is standard, call it standard. If it lacks depth, explain the missing technical nuances.
+2. **Actionable & Specific**: Every piece of feedback should reference a specific moment or concept from the transcript.
+3. **Realistic Scoring**: Score as if you were deciding whether to hire this person for a $150k+/year role. Be conservative with high scores.
+4. **Polished "Rewritten" Answers**: The "rewrittenAnswer" should be exactly what an elite candidate would say—concise, structured, and technically profound.
 You always respond with ONLY valid JSON objects — no markdown, no explanation, no html tags, no code fences.`;
 
   const userPrompt = `Perform a comprehensive, critical evaluation of this ${interview.interviewType} interview (Difficulty: ${interview.difficulty}, Focus: ${focusArea}).
@@ -519,58 +522,55 @@ ${transcriptText.substring(0, 8000)}
 Analyze the transcript rigorously and return ONLY a valid JSON object with this exact schema (no markdown, no fences):
 {
   "score": <number 0-100, overall performance percentage>,
-  "overallSummary": "<3-4 sentence comprehensive, brutally honest assessment of the candidate's performance, highlighting key patterns >",
-  "strengths": ["<specific strength 1 with evidence from transcript>", "<strength 2>", "<strength 3>"],
-  "weaknesses": ["<specific weakness 1 with evidence>", "<weakness 2>", "<weakness 3>"],
-  "improvements": ["<actionable improvement tip 1>", "<tip 2>", "<tip 3>", "<tip 4>"],
-  "communicationScore": <number 1-10, clarity, articulation, structure of responses>,
-  "technicalScore": <number 1-10, depth of technical knowledge demonstrated>,
-  "problemSolvingScore": <number 1-10, analytical thinking and approach to problems>,
-  "confidenceScore": <number 1-10, how confident and composed the candidate appeared>,
-  "starMethodAdherence": <number 1-10, how well answers followed Situation-Task-Action-Result format>,
+  "overallSummary": "<4-5 sentence professional evaluation summary. Start with a clear 'Hire/No Hire' sentiment and explain the reasoning based on industry standards.>",
+  "strengths": ["<Specific strength with evidence from transcript, e.g., 'Demonstrated deep understanding of CAP theorem during the system design question...'>", "<strength 2>", "<strength 3>"],
+  "weaknesses": ["<Specific weakness with evidence, e.g., 'Failed to mention edge cases for the array manipulation logic...'>", "<weakness 2>", "<weakness 3>"],
+  "improvements": ["<Specific architectural or behavioral tip>", "<tip 2>", "<tip 3>", "<tip 4>"],
+  "communicationScore": <number 1-10, evaluate clarity, structural logic (STAR), and professional vocabulary>,
+  "technicalScore": <number 1-10, evaluate depth, accuracy, and understanding of underlying principles>,
+  "problemSolvingScore": <number 1-10, evaluate analytical path, edge case consideration, and optimization mindset>,
+  "confidenceScore": <number 1-10, evaluate poise, delivery speed, and assertiveness>,
+  "starMethodAdherence": <number 1-10, evaluate how well they used Situation-Task-Action-Result structure>,
   "skillGaps": [
     {
-      "skill": "<specific technical skill or concept the candidate was weak on>",
-      "level": "<Beginner|Intermediate|Advanced — their current level>",
-      "recommendation": "<specific resource, practice method, or study tip to improve this skill>"
+      "skill": "<Technical skill or concept, e.g., 'Microservices Orchestration'>",
+      "level": "<Beginner|Intermediate|Advanced>",
+      "recommendation": "<Specific book, documentation link, or practice project idea>"
     }
   ],
   "feedback": [
     {
       "question": "<first 50 chars of the question>",
-      "userAnswer": "<concise 2-3 sentence summary of what the candidate actually said>",
-      "feedback": "<specific, strict, constructive feedback explaining exactly why it was good or bad. Speak like a real hiring manager.>",
+      "userAnswer": "<Concise summary of their actual response>",
+      "feedback": "<Professional hiring manager feedback. Explain *why* the answer would or wouldn't pass a technical screen at a top firm.>",
       "rating": <number 1-10>,
-      "strengths": ["<what the candidate did well on THIS question>"],
-      "improvements": ["<specific way to improve the answer to THIS question>"],
-      "idealApproach": "<brief 2-3 sentence description of the ideal way to approach and answer this question>",
-      "rewrittenAnswer": "<Provide a polished, professional 3-4 sentence version of the candidate's answer as it SHOULD have been spoken in a real interview.>"
+      "strengths": ["<specific win in this answer>"],
+      "improvements": ["<specific technical or structural addition>"],
+      "idealApproach": "<Explain the 'Senior Engineer' approach to this specific question in 2-3 sentences.>",
+      "rewrittenAnswer": "<The 'Perfect Answer': Professional, structured, and technical version (3-5 sentences).>"
     }
   ],
   "overallRecommendations": [
     {
       "category": "<Technical|Communication|Behavioral|Problem Solving>",
-      "tip": "<specific, actionable recommendation>",
+      "tip": "<High-impact recommendation>",
       "priority": "<High|Medium|Low>"
     }
   ],
   "interviewReadiness": "<Not Ready|Needs More Practice|Almost Ready|Interview Ready|Exceptional>",
   "nextSteps": [
-    "<specific action item 1 the candidate should do next>",
-    "<action item 2>",
-    "<action item 3>"
+    "<Specific technical topic to master>",
+    "<Specific behavioral pattern to practice>",
+    "<Concrete action item>"
   ]
 }
 
 EVALUATION GUIDELINES:
-- Be brutally honest but constructive. Speak like a real hiring manager evaluating a candidate.
-- Reference actual things the candidate said in the transcript.
-- "rewrittenAnswer" is critical: show them exactly what a 10/10 answer sounds like using the context they provided.
-- Score accurately based on the difficulty. If they give a superficial answer to advanced questions, penalize the score.
-- Identify at least 2-4 skill gaps based on the interview content.
-- interviewReadiness should reflect the overall score: <30 = Not Ready, 30-50 = Needs More Practice, 50-70 = Almost Ready, 70-85 = Interview Ready, >85 = Exceptional.
-- nextSteps should be concrete actions, not vague advice.
-- MUST Output ONLY raw JSON.`;
+- **Be Rigorous**: A 10/10 requires exceptional clarity and technical perfection. 
+- **Reference Transcript**: Use phrases like "When you mentioned..." or "Your explanation of..." to make it feel real.
+- **Scoring**: If transcript is empty or very short, scores MUST be 0-2.
+- **Industry Standard**: Evaluate against expectations for top tech firms.
+- **MUST Output ONLY raw JSON.**`;
 
   try {
     const { content } = await generateWithFallback(QA_MODEL_PREFERENCES, systemPrompt, userPrompt);
