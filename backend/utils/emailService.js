@@ -16,61 +16,87 @@ const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
  * Centralized Email Sender Util
  */
 const sendEmail = async ({ to, subject, html, text, from, replyTo }) => {
-  try {
-    const apiKey = process.env.BREVO_API_KEY;
+  // Collect all available Brevo API keys
+  const apiKeys = [
+    process.env.BREVO_API_KEY,
+    process.env.BREVO_API_KEY_NEW
+  ].filter(Boolean);
 
-    if (!apiKey) {
-      console.warn('⚠️ BREVO_API_KEY is missing. Email will not be sent.');
-      return { success: false, error: 'Configuration missing' };
-    }
-
-    // Use configured From address, or fallback to a professional format
-    const senderName = 'Interview AI';
-    const senderEmail = 'noreply@interviewai.tech';
-
-    // Parse 'from' if it contains name and email "Name <email>"
-    let finalSender = { name: senderName, email: senderEmail };
-    if (from) {
-      const match = from.match(/(.*?)\s*<(.*?)>/);
-      if (match) {
-        finalSender = { name: match[1].trim(), email: match[2].trim() };
-      } else {
-        finalSender = { email: from };
-      }
-    }
-
-    const payload = {
-      sender: finalSender,
-      to: [{ email: to }],
-      subject: subject,
-      htmlContent: html,
-      textContent: text || html.replace(/<[^>]*>?/gm, ''), // Basic fallback
-    };
-
-    if (replyTo) {
-      payload.replyTo = { email: replyTo };
-    }
-
-    const response = await axios.post(BREVO_API_URL, payload, {
-      headers: {
-        'accept': 'application/json',
-        'api-key': apiKey,
-        'content-type': 'application/json'
-      },
-      timeout: 10000 // 10 seconds timeout
-    });
-
-    console.log(`✅ Email sent to ${to} | MsgID: ${response.data.messageId}`);
-    return { success: true, messageId: response.data.messageId };
-  } catch (error) {
-    if (error.response) {
-      console.error(`❌ Failed to send email to ${to}: [${error.response.status}]`, JSON.stringify(error.response.data));
-    } else {
-      console.error(`❌ Failed to send email to ${to}:`, error.message);
-    }
-    // Do NOT throw error, just return failure
-    return { success: false, error: error.message };
+  if (apiKeys.length === 0) {
+    console.warn('⚠️ BREVO API keys are missing. Email will not be sent.');
+    return { success: false, error: 'Configuration missing' };
   }
+
+  // Use configured From address, or fallback to a professional format
+  const senderName = 'Interview AI';
+  const senderEmail = 'noreply@interviewai.tech';
+
+  // Parse 'from' if it contains name and email "Name <email>"
+  let finalSender = { name: senderName, email: senderEmail };
+  if (from) {
+    const match = from.match(/(.*?)\s*<(.*?)>/);
+    if (match) {
+      finalSender = { name: match[1].trim(), email: match[2].trim() };
+    } else {
+      finalSender = { email: from };
+    }
+  }
+
+  const payload = {
+    sender: finalSender,
+    to: [{ email: to }],
+    subject: subject,
+    htmlContent: html,
+    textContent: text || html.replace(/<[^>]*>?/gm, ''), // Basic fallback
+  };
+
+  if (replyTo) {
+    payload.replyTo = { email: replyTo };
+  }
+
+  let lastError = null;
+
+  // Try each API key until one works
+  for (let i = 0; i < apiKeys.length; i++) {
+    const apiKey = apiKeys[i];
+    const keyLabel = i === 0 ? 'Primary' : 'Secondary';
+
+    try {
+      const response = await axios.post(BREVO_API_URL, payload, {
+        headers: {
+          'accept': 'application/json',
+          'api-key': apiKey,
+          'content-type': 'application/json'
+        },
+        timeout: 10000 // 10 seconds timeout
+      });
+
+      console.log(`✅ Email sent to ${to} using ${keyLabel} Key | MsgID: ${response.data.messageId}`);
+      return { success: true, messageId: response.data.messageId };
+    } catch (error) {
+      lastError = error;
+      const status = error.response?.status;
+      const errorData = error.response?.data;
+      
+      // Log failure for this specific key
+      console.error(`❌ Failed with ${keyLabel} Key: [${status || 'TIMEOUT'}]`, errorData ? JSON.stringify(errorData) : error.message);
+
+      // Check if we should try the next key
+      // 401 (Unauthorized), 403 (Forbidden - usually limit), 402 (Payment Required) or 429 (Too Many Requests)
+      const shouldFallback = [401, 402, 403, 429].includes(status) || !status; // !status means timeout or network error
+
+      if (shouldFallback && i < apiKeys.length - 1) {
+        console.warn(`🔄 Attempting fallback to the next Brevo API key...`);
+        continue;
+      }
+
+      // If it's a 400 error, it's likely a bad request (e.g., invalid email), 
+      // so trying another key won't help. Break early.
+      break;
+    }
+  }
+
+  return { success: false, error: lastError?.message || 'Failed to send email after trying all keys' };
 };
 
 // ==========================================
@@ -513,8 +539,12 @@ exports.getNotificationEmailContent = getNotificationEmailContent;
 exports.getWelcomeEmailContent = getWelcomeEmailContent;
 exports.getRegistrationOTPEmailContent = getRegistrationOTPEmailContent;
 
-exports.getServiceInfo = () => ({
-  service: 'Brevo API (HTTP)',
-  isProduction: process.env.NODE_ENV === 'production',
-  configured: !!process.env.BREVO_API_KEY
-});
+exports.getServiceInfo = () => {
+  const keys = [process.env.BREVO_API_KEY, process.env.BREVO_API_KEY_NEW].filter(Boolean);
+  return {
+    service: 'Brevo API (HTTP)',
+    isProduction: process.env.NODE_ENV === 'production',
+    configured: keys.length > 0,
+    apiKeysCount: keys.length
+  };
+};
