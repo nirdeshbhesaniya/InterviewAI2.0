@@ -33,6 +33,7 @@ const practiceTestSchema = new mongoose.Schema({
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     isPublished: { type: Boolean, default: true },
     attempts: { type: Number, default: 0 },
+    submissions: { type: Number, default: 0 },
     maxAttempts: { type: Number, default: 1 }, // Default 1 attempt
     timeLimit: { type: Number, default: 30 }, // Default 30 minutes
     guidelines: { type: String, default: '' }, // Markdown or text instructions

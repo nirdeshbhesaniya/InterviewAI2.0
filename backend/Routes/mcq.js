@@ -664,6 +664,13 @@ router.post('/submit', async (req, res) => {
 
                 await mcqTest.save();
                 console.log(`Test results saved to database: ${mcqTest._id}`);
+
+                // Increment submissions count in PracticeTest if it's a practice test
+                if (practiceTestId) {
+                    const PracticeTest = require('../models/PracticeTest');
+                    await PracticeTest.findByIdAndUpdate(practiceTestId, { $inc: { submissions: 1 } });
+                    console.log(`Incremented submissions for PracticeTest: ${practiceTestId}`);
+                }
             } catch (dbError) {
                 console.error('Error saving test to database:', dbError);
                 // Continue even if database save fails
@@ -956,11 +963,30 @@ router.get('/practice-tests', checkFeatureEnabled('practice_tests'), async (req,
         const totalTests = await PracticeTest.countDocuments(filter);
         const totalPages = Math.ceil(totalTests / limit);
 
-        const tests = await PracticeTest.find(filter)
-            .select('title description topic difficulty questions.length attempts createdAt maxAttempts timeLimit isTimeRestricted startTime endTime')
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit);
+        const tests = await PracticeTest.aggregate([
+            { $match: filter },
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+            {
+                $project: {
+                    _id: 1,
+                    title: 1,
+                    description: 1,
+                    topic: 1,
+                    difficulty: 1,
+                    attempts: 1,
+                    submissions: 1,
+                    createdAt: 1,
+                    maxAttempts: 1,
+                    timeLimit: 1,
+                    isTimeRestricted: 1,
+                    startTime: 1,
+                    endTime: 1,
+                    questionCount: { $size: "$questions" }
+                }
+            }
+        ]);
 
         res.json({
             success: true,
@@ -1035,6 +1061,7 @@ router.get('/practice-tests/:id', checkFeatureEnabled('practice_tests'), async (
                 startTime: test.startTime || null,
                 endTime: test.endTime || null,
                 userAttempts: userAttempts,
+                submissions: test.submissions || 0,
                 cached: true // Treat as cached/static
             }
         });

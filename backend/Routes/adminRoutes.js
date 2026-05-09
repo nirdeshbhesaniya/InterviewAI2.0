@@ -619,11 +619,33 @@ router.get('/practice-tests', async (req, res) => {
         }
 
         const totalTests = await PracticeTest.countDocuments(query);
-        const tests = await PracticeTest.find(query)
-            .select('_id title description topic difficulty isPublished createdAt attempts maxAttempts timeLimit isTimeRestricted startTime endTime questions.length')
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit);
+        
+        // Use aggregation to get question count without fetching the whole array
+        const tests = await PracticeTest.aggregate([
+            { $match: query },
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+            {
+                $project: {
+                    _id: 1,
+                    title: 1,
+                    description: 1,
+                    topic: 1,
+                    difficulty: 1,
+                    isPublished: 1,
+                    createdAt: 1,
+                    attempts: 1,
+                    submissions: 1,
+                    maxAttempts: 1,
+                    timeLimit: 1,
+                    isTimeRestricted: 1,
+                    startTime: 1,
+                    endTime: 1,
+                    questionCount: { $size: "$questions" }
+                }
+            }
+        ]);
 
         res.json({
             success: true,
@@ -728,7 +750,7 @@ router.get('/practice-tests/analytics', async (req, res) => {
 
         const testIds = agg.map(a => a._id);
         const tests = await PracticeTest.find({ _id: { $in: testIds } })
-            .select('title description topic createdBy createdAt maxAttempts timeLimit isTimeRestricted startTime endTime attempts');
+            .select('title description topic createdBy createdAt maxAttempts timeLimit isTimeRestricted startTime endTime attempts submissions');
 
         const perTest = tests.map(t => {
             const a = agg.find(x => x._id.toString() === t._id.toString()) || {};
@@ -742,16 +764,18 @@ router.get('/practice-tests/analytics', async (req, res) => {
                 isTimeRestricted: t.isTimeRestricted,
                 startTime: t.startTime,
                 endTime: t.endTime,
-                attempts: a.attempts || 0,
-                submissions: a.submissions || 0,
+                attempts: t.attempts || 0, // Use direct count from document
+                submissions: t.submissions || 0, // Use direct count from document
                 uniqueUsers: a.uniqueUsersCount || 0,
                 avgScore: a.avgScore || 0,
                 lastAttempt: a.lastAttempt || null
             };
         });
 
-        const totalAttempts = agg.reduce((s, x) => s + (x.attempts || 0), 0);
-        const totalSubmissions = agg.reduce((s, x) => s + (x.submissions || 0), 0);
+        // Calculate totals from ALL PracticeTest documents for consistency
+        const allTests = await PracticeTest.find({}, 'attempts submissions');
+        const totalAttempts = allTests.reduce((s, x) => s + (x.attempts || 0), 0);
+        const totalSubmissions = allTests.reduce((s, x) => s + (x.submissions || 0), 0);
         const distinctUsers = await MCQTest.distinct('userEmail', { practiceTestId: { $ne: null } });
 
         res.json({

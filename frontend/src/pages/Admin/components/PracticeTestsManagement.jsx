@@ -302,18 +302,22 @@ const PracticeTestsManagement = () => {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-3 mb-5 p-3 bg-[rgb(var(--bg-elevated))]/50 rounded-xl border border-[rgb(var(--border-subtle))]">
-                                    <div className="text-center border-r border-[rgb(var(--border))] last:border-0">
-                                        <div className="text-sm font-bold text-[rgb(var(--text-primary))]">{test.questions?.length || 0}</div>
-                                        <div className="text-[10px] text-[rgb(var(--text-muted))] uppercase">Questions</div>
+                                <div className="grid grid-cols-4 gap-2 mb-5 p-3 bg-[rgb(var(--bg-elevated))]/50 rounded-xl border border-[rgb(var(--border-subtle))]">
+                                    <div className="text-center border-r border-[rgb(var(--border))]">
+                                        <div className="text-xs font-bold text-[rgb(var(--text-primary))]">{test.questionCount || 0}</div>
+                                        <div className="text-[9px] text-[rgb(var(--text-muted))] uppercase">Quest</div>
                                     </div>
-                                    <div className="text-center border-r border-[rgb(var(--border))] last:border-0">
-                                        <div className="text-sm font-bold text-[rgb(var(--text-primary))]">{test.timeLimit}m</div>
-                                        <div className="text-[10px] text-[rgb(var(--text-muted))] uppercase">Duration</div>
+                                    <div className="text-center border-r border-[rgb(var(--border))]">
+                                        <div className="text-xs font-bold text-[rgb(var(--text-primary))]">{test.timeLimit}m</div>
+                                        <div className="text-[9px] text-[rgb(var(--text-muted))] uppercase">Mins</div>
+                                    </div>
+                                    <div className="text-center border-r border-[rgb(var(--border))]">
+                                        <div className="text-xs font-bold text-[rgb(var(--text-primary))]">{test.attempts || 0}</div>
+                                        <div className="text-[9px] text-[rgb(var(--text-muted))] uppercase">Hits</div>
                                     </div>
                                     <div className="text-center">
-                                        <div className="text-sm font-bold text-[rgb(var(--text-primary))]">{test.attempts || 0}</div>
-                                        <div className="text-[10px] text-[rgb(var(--text-muted))] uppercase">Attempts</div>
+                                        <div className="text-xs font-bold text-emerald-500">{test.submissions || 0}</div>
+                                        <div className="text-[9px] text-[rgb(var(--text-muted))] uppercase">Done</div>
                                     </div>
                                 </div>
 

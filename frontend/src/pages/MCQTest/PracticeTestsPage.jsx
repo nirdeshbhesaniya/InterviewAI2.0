@@ -133,7 +133,7 @@ const PracticeTestsPage = () => {
                                         <div className="pt-4 border-t border-[rgb(var(--border))] flex items-center justify-between text-sm text-[rgb(var(--text-secondary))] mb-2">
                                             <div className="flex items-center gap-2">
                                                 <BookOpen className="w-4 h-4 text-primary" />
-                                                <span>{test.questions?.length || 0} Questions</span>
+                                                <span>{test.questionCount || 0} Questions</span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Clock className="w-4 h-4 text-accent" />
