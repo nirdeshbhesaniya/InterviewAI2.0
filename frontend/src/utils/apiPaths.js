@@ -3,7 +3,9 @@
 // export const API_BASE_URL = 'https://interviewai2-0sever.onrender.com/api';
 // export const API_BASE_URL = 'http://localhost:8080/api';
 // export const API_BASE_URL = 'http://104.43.106.43:8080/api';
-export const API_BASE_URL = 'https://api.interviewai.tech/api';
+export const API_BASE_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:8080/api' 
+  : 'https://api.interviewai.tech/api';
 
 
 export const API = {
@@ -101,6 +103,7 @@ export const API = {
     DELETE_PRACTICE_TEST: (id) => `${API_BASE_URL}/admin/practice-tests/${id}`,
     GET_PRACTICE_ATTEMPTS: (id) => `${API_BASE_URL}/admin/practice-tests/${id}/attempts`,
     RESET_PRACTICE_ATTEMPTS: (id) => `${API_BASE_URL}/admin/practice-tests/${id}/reset-attempts`,
+    GET_PRACTICE_TESTS: `${API_BASE_URL}/admin/practice-tests`,
     GET_PRACTICE_ANALYTICS: `${API_BASE_URL}/admin/practice-tests/analytics`,
     CREATE_NOTIFICATION: `${API_BASE_URL}/admin/notifications/create`,
     GET_BROADCASTS: `${API_BASE_URL}/admin/notifications/broadcasts`,

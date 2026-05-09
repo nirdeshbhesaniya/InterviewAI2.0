@@ -1,10 +1,11 @@
 import axios from 'axios';
 
+const baseURL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:8080/api' 
+  : 'https://api.interviewai.tech/api';
+
 const axiosInstance = axios.create({
-  // baseURL: 'https://interviewai2-0sever.onrender.com/api',
-  // baseURL: "http://localhost:8080/api",
-  // baseURL: "http://104.43.106.43:8080/api",
-  baseURL: "https://api.interviewai.tech/api",
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -12,7 +13,7 @@ const axiosInstance = axios.create({
 
 // Create a separate instance for public endpoints (no auth headers)
 const publicAxiosInstance = axios.create({
-  baseURL: "https://api.interviewai.tech/api",
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },

@@ -599,6 +599,47 @@ router.delete('/resources/:id', async (req, res) => {
     }
 });
 
+// GET all Practice Tests (Admin - includes unpublished)
+router.get('/practice-tests', async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        const search = req.query.search || '';
+
+        const PracticeTest = require('../models/PracticeTest');
+        
+        let query = {};
+        if (search) {
+            query.$or = [
+                { title: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } },
+                { topic: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const totalTests = await PracticeTest.countDocuments(query);
+        const tests = await PracticeTest.find(query)
+            .select('_id title description topic difficulty isPublished createdAt attempts maxAttempts timeLimit isTimeRestricted startTime endTime questions.length')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        res.json({
+            success: true,
+            data: tests,
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(totalTests / limit),
+                totalTests
+            }
+        });
+    } catch (err) {
+        console.error('Error fetching practice tests (Admin):', err);
+        res.status(500).json({ success: false, message: 'Failed to fetch practice tests' });
+    }
+});
+
 // CREATE Practice Test (Admin)
 router.post('/practice-tests', async (req, res) => {
     try {

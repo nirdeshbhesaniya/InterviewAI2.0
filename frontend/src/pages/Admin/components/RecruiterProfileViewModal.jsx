@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Briefcase, FileText, CheckCircle, GraduationCap, MapPin, Mail, Phone, Link as LinkIcon, Building2, Code2, Award, User } from 'lucide-react';
 
@@ -17,10 +18,10 @@ const RecruiterProfileViewModal = ({ user, isOpen, onClose }) => {
     );
 
     if (!hasProfileData) {
-        return (
+        return createPortal(
             <AnimatePresence>
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-md" />
                     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-sm bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-2xl shadow-2xl p-6 text-center">
                         <User className="w-12 h-12 text-[rgb(var(--text-muted))] mx-auto mb-3" />
                         <h2 className="text-xl font-bold text-[rgb(var(--text-primary))] mb-2">No Profile Found</h2>
@@ -28,7 +29,8 @@ const RecruiterProfileViewModal = ({ user, isOpen, onClose }) => {
                         <button onClick={onClose} className="w-full py-2 bg-[rgb(var(--bg-elevated))] hover:bg-[rgb(var(--bg-elevated-alt))] text-[rgb(var(--text-primary))] rounded-xl font-medium transition-colors border border-[rgb(var(--border))]">Close</button>
                     </motion.div>
                 </div>
-            </AnimatePresence>
+            </AnimatePresence>,
+            document.body
         );
     }
 
@@ -49,16 +51,16 @@ const RecruiterProfileViewModal = ({ user, isOpen, onClose }) => {
         );
     };
 
-    return (
-        <AnimatePresence>
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={onClose}
-                    className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                />
+        return createPortal(
+            <AnimatePresence>
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 lg:p-8">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="absolute inset-0 bg-black/60 backdrop-blur-md"
+                    />
 
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -210,7 +212,8 @@ const RecruiterProfileViewModal = ({ user, isOpen, onClose }) => {
                     </div>
                 </motion.div>
             </div>
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 };
 

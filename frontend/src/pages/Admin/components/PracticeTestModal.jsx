@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Trash2, CheckCircle, AlertCircle, Save } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
@@ -25,6 +26,7 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
         isTimeRestricted: false,
         startTime: '',
         endTime: '',
+        isPublished: true,
         questions: []
     });
 
@@ -53,6 +55,7 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
                     isTimeRestricted: false,
                     startTime: '',
                     endTime: '',
+                    isPublished: true,
                     questions: []
                 });
                 setStep(1);
@@ -145,14 +148,16 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
 
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-[rgb(var(--bg-card))] w-full max-w-4xl rounded-2xl border border-[rgb(var(--border))] shadow-2xl flex flex-col max-h-[90vh]"
-            >
+    return createPortal(
+        <AnimatePresence>
+            {isOpen && (
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md overflow-y-auto">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="bg-[rgb(var(--bg-card))] w-full max-w-4xl rounded-2xl border border-[rgb(var(--border))] shadow-2xl flex flex-col max-h-[90vh]"
+                    >
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-[rgb(var(--border))]">
                     <h2 className="text-2xl font-bold text-[rgb(var(--text-primary))]">
@@ -273,6 +278,22 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
                                 </div>
                             )}
                         </div>
+
+                        <div className="md:col-span-2 p-4 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg">
+                            <label className="flex items-center space-x-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    name="isPublished"
+                                    checked={formData.isPublished}
+                                    onChange={handleChange}
+                                    className="w-5 h-5 rounded border-[rgb(var(--border))] text-[rgb(var(--accent))] focus:ring-[rgb(var(--accent))] bg-transparent"
+                                />
+                                <div>
+                                    <span className="text-sm font-medium text-[rgb(var(--text-primary))] block">Published (Visible to Students)</span>
+                                    <span className="text-xs text-[rgb(var(--text-secondary))]">When enabled, this test will appear in the public practice library.</span>
+                                </div>
+                            </label>
+                        </div>
                     </div>
 
                     <div className="border-t border-[rgb(var(--border))] my-6"></div>
@@ -377,8 +398,11 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
                         <Save className="w-4 h-4 mr-2" /> Save Test
                     </Button>
                 </div>
-            </motion.div>
-        </div>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>,
+        document.body
     );
 };
 
