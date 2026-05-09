@@ -3,6 +3,8 @@ const router = express.Router();
 const { chatWithAI } = require('../utils/gemini');
 const { sendCustomEmail, getEmailTemplate } = require('../utils/emailService');
 const MCQTest = require('../models/MCQTest');
+const PracticeTest = require('../models/PracticeTest');
+const PracticeTestResult = require('../models/PracticeTestResult');
 const User = require('../models/User');
 const { generateMCQBatch, shuffleQuestionOptions } = require('../utils/mcq-optimizer');
 const { getFromCache, addToCache, getCacheStats } = require('../utils/mcq-cache');
@@ -611,43 +613,27 @@ router.post('/submit', async (req, res) => {
             // Save test results to database
             try {
                 let mcqTest;
-
+                const isPractice = !!practiceTestId;
+                const ResultModel = isPractice ? PracticeTestResult : MCQTest;
+                
                 if (req.body.attemptId) {
-                    mcqTest = await MCQTest.findById(req.body.attemptId);
+                    mcqTest = await ResultModel.findById(req.body.attemptId);
                 }
 
-                if (mcqTest) {
-                    mcqTest.totalQuestions = results.totalQuestions;
-                    mcqTest.correctAnswers = results.correctAnswers;
-                    mcqTest.score = results.score;
-                    mcqTest.timeSpent = results.timeSpent;
-                    mcqTest.userAnswers = answers;
-                    mcqTest.questionsWithAnswers = questionsWithAnswers.map(q => ({
-                        question: q.question,
-                        options: q.options,
-                        correctAnswer: q.correctAnswer,
-                        explanation: q.explanation
-                    }));
-                    mcqTest.securityWarnings = {
-                        fullscreenExits: securityWarnings.fullscreenExits || 0,
-                        tabSwitches: securityWarnings.tabSwitches || 0
-                    };
-                    mcqTest.testStatus = testStatus;
-                    mcqTest.completedAt = new Date();
-                } else {
-                    mcqTest = new MCQTest({
+                if (!mcqTest) {
+                    mcqTest = new ResultModel({
                         userId: userId,
                         userEmail: userInfo.email,
-                        topic,
+                        topic: isPractice ? undefined : topic,
+                        practiceTestId: isPractice ? new mongoose.Types.ObjectId(practiceTestId) : undefined,
                         experience,
                         specialization,
-                        practiceTestId: practiceTestId || undefined,
                         totalQuestions: results.totalQuestions,
                         correctAnswers: results.correctAnswers,
                         score: results.score,
-                        timeSpent: results.timeSpent,
+                        timeSpent: timeSpent || 0, // Fix: Use timeSpent from req.body
                         userAnswers: answers,
-                        questionsWithAnswers: questionsWithAnswers.map(q => ({
+                        questionsWithAnswers: isPractice ? [] : (questionsWithAnswers || []).map(q => ({
                             question: q.question,
                             options: q.options,
                             correctAnswer: q.correctAnswer,
@@ -660,13 +646,19 @@ router.post('/submit', async (req, res) => {
                         testStatus,
                         completedAt: new Date()
                     });
+                } else {
+                    mcqTest.correctAnswers = results.correctAnswers;
+                    mcqTest.score = results.score;
+                    mcqTest.timeSpent = timeSpent || 0; // Fix: Use timeSpent from req.body
+                    mcqTest.userAnswers = answers;
+                    mcqTest.testStatus = testStatus;
+                    mcqTest.completedAt = new Date();
                 }
 
                 await mcqTest.save();
-                console.log(`Test results saved to database: ${mcqTest._id}`);
+                console.log(`Test results saved to ${isPractice ? 'PracticeTestResult' : 'MCQTest'}: ${mcqTest._id}`);
 
-                // Increment submissions count in PracticeTest if it's a practice test
-                if (practiceTestId) {
+                if (isPractice) {
                     const PracticeTest = require('../models/PracticeTest');
                     await PracticeTest.findByIdAndUpdate(practiceTestId, { $inc: { submissions: 1 } });
                     console.log(`Incremented submissions for PracticeTest: ${practiceTestId}`);
@@ -768,18 +760,26 @@ router.get('/history', async (req, res) => {
             });
         }
 
-        // Fetch all tests for the user, sorted by most recent first
-        const tests = await MCQTest.find({ userEmail })
-            .select('-questionsWithAnswers -userAnswers') // Exclude detailed data for list view
-            .sort({ createdAt: -1 })
-            .limit(50) // Limit to last 50 tests
-            .lean();
+        // Fetch from both models for user history
+        const aiTests = await MCQTest.find({ userEmail }).sort({ createdAt: -1 }).lean();
+        const practiceTests = await PracticeTestResult.find({ userEmail }).populate('practiceTestId').sort({ createdAt: -1 }).lean();
+
+        // Merge and normalize for unified view
+        const history = [
+            ...aiTests.map(t => ({ ...t, type: 'ai' })),
+            ...practiceTests.map(t => ({ 
+                ...t, 
+                type: 'practice',
+                topic: t.practiceTestId?.topic || t.topic,
+                title: t.practiceTestId?.title || 'Practice Test'
+            }))
+        ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         res.json({
             success: true,
             data: {
-                history: tests,
-                totalTests: tests.length
+                history,
+                totalTests: history.length
             }
         });
 
@@ -805,17 +805,30 @@ router.get('/test/:testId', async (req, res) => {
             });
         }
 
-        // Fetch specific test with all details
-        const test = await MCQTest.findOne({
-            _id: testId,
-            userEmail // Ensure user can only access their own tests
-        }).lean();
+        // Fetch from either model
+        let test = await MCQTest.findOne({ _id: testId, userEmail }).lean();
+        if (!test) {
+            test = await PracticeTestResult.findOne({ _id: testId, userEmail }).populate('practiceTestId').lean();
+        }
 
         if (!test) {
             return res.status(404).json({
                 success: false,
                 message: 'Test not found'
             });
+        }
+
+        // If it's a practice test and data is normalized (missing in record), 
+        // fill from the populated practiceTestId
+        if (test.practiceTestId && (!test.questionsWithAnswers || test.questionsWithAnswers.length === 0)) {
+            test.topic = test.practiceTestId.topic;
+            test.questionsWithAnswers = test.practiceTestId.questions.map(q => ({
+                question: q.question,
+                options: q.options,
+                correctAnswer: q.correctAnswer,
+                explanation: q.explanation || ""
+            }));
+            test.title = test.practiceTestId.title;
         }
 
         res.json({
@@ -1092,13 +1105,11 @@ router.post('/practice-tests/:id/start', async (req, res) => {
         const hasScheduleWindow = test.isTimeRestricted || test.startTime || test.endTime;
 
         if (hasScheduleWindow) {
-            const now = new Date();
-            // Strict check: if restricted, respect defined bounds. 
-            // If a bound is null, it's considered open on that side (standard for old tests)
-            if (test.startTime && now < new Date(test.startTime)) {
+            const now = new Date().getTime();
+            if (test.startTime && now < new Date(test.startTime).getTime()) {
                 return res.status(403).json({ success: false, message: 'Test has not started yet' });
             }
-            if (test.endTime && now > new Date(test.endTime)) {
+            if (test.endTime && now > new Date(test.endTime).getTime()) {
                 return res.status(403).json({ success: false, message: 'Test has already ended' });
             }
         }
@@ -1116,10 +1127,8 @@ router.post('/practice-tests/:id/start', async (req, res) => {
             return res.status(404).json({ success: false, message: 'User not found in DB' });
         }
 
-        const MCQTest = require('../models/MCQTest');
-
-        // Check max attempts
-        const userAttempts = await MCQTest.countDocuments({
+        // Check max attempts in dedicated model
+        const userAttempts = await PracticeTestResult.countDocuments({
             userEmail: userInfo.email,
             practiceTestId: test._id
         });
@@ -1131,21 +1140,23 @@ router.post('/practice-tests/:id/start', async (req, res) => {
             });
         }
 
-        const mcqTest = new MCQTest({
+        const mcqTest = new PracticeTestResult({
             userId,
             userEmail: userInfo.email,
-            topic: test.topic,
-            practiceTestId: test._id,
+            practiceTestId: new mongoose.Types.ObjectId(test._id),
             totalQuestions: test.questions.length,
             correctAnswers: 0,
             score: 0,
             timeSpent: 0,
             userAnswers: {},
-            questionsWithAnswers: [],
             testStatus: 'in-progress'
         });
 
         await mcqTest.save();
+
+        // Increment attempts count in PracticeTest (Hits)
+        await PracticeTest.findByIdAndUpdate(id, { $inc: { attempts: 1 } });
+        console.log(`Incremented attempts (Hits) for PracticeTest: ${id}`);
 
         res.json({
             success: true,

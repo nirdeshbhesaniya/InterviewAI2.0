@@ -721,15 +721,25 @@ router.put('/practice-tests/:id', async (req, res) => {
 router.get('/practice-tests/analytics', async (req, res) => {
     try {
         const PracticeTest = require('../models/PracticeTest');
-        const MCQTest = require('../models/MCQTest');
+        const PracticeTestResult = require('../models/PracticeTestResult');
 
         const totalTests = await PracticeTest.countDocuments();
 
-        const agg = await MCQTest.aggregate([
-            { $match: { practiceTestId: { $ne: null } } },
+        const agg = await PracticeTestResult.aggregate([
+            { 
+                $match: { 
+                    practiceTestId: { $exists: true, $ne: null, $nin: ["", "null", "undefined"] } 
+                } 
+            },
+            {
+                // Ensure practiceTestId is treated as an ObjectId for consistent grouping
+                $addFields: {
+                    normalizedTestId: { $toObjectId: "$practiceTestId" }
+                }
+            },
             {
                 $group: {
-                    _id: '$practiceTestId',
+                    _id: '$normalizedTestId',
                     attempts: { $sum: 1 },
                     submissions: { $sum: { $cond: [{ $in: ['$testStatus', ['completed', 'auto-submitted']] }, 1, 0] } },
                     users: { $addToSet: '$userEmail' },
@@ -739,6 +749,7 @@ router.get('/practice-tests/analytics', async (req, res) => {
             },
             {
                 $project: {
+                    _id: 1,
                     attempts: 1,
                     submissions: 1,
                     uniqueUsersCount: { $size: '$users' },
@@ -753,7 +764,7 @@ router.get('/practice-tests/analytics', async (req, res) => {
             .select('title description topic createdBy createdAt maxAttempts timeLimit isTimeRestricted startTime endTime attempts submissions');
 
         const perTest = tests.map(t => {
-            const a = agg.find(x => x._id.toString() === t._id.toString()) || {};
+            const a = agg.find(x => x._id && x._id.toString() === t._id.toString()) || {};
             return {
                 testId: t._id,
                 title: t.title,
@@ -764,19 +775,23 @@ router.get('/practice-tests/analytics', async (req, res) => {
                 isTimeRestricted: t.isTimeRestricted,
                 startTime: t.startTime,
                 endTime: t.endTime,
-                attempts: t.attempts || 0, // Use direct count from document
-                submissions: t.submissions || 0, // Use direct count from document
+                // Use the higher value to handle legacy data (where submissions field wasn't present)
+                attempts: Math.max(t.attempts || 0, a.attempts || 0),
+                submissions: Math.max(t.submissions || 0, a.submissions || 0),
                 uniqueUsers: a.uniqueUsersCount || 0,
                 avgScore: a.avgScore || 0,
                 lastAttempt: a.lastAttempt || null
             };
         });
 
-        // Calculate totals from ALL PracticeTest documents for consistency
+        // Calculate totals
+        // totalAttempts = Sum of all hits in PracticeTest model
         const allTests = await PracticeTest.find({}, 'attempts submissions');
         const totalAttempts = allTests.reduce((s, x) => s + (x.attempts || 0), 0);
-        const totalSubmissions = allTests.reduce((s, x) => s + (x.submissions || 0), 0);
-        const distinctUsers = await MCQTest.distinct('userEmail', { practiceTestId: { $ne: null } });
+        
+        // totalSubmissions = Sum of actual completed records in PracticeTestResult (legacy safe)
+        const totalSubmissions = agg.reduce((s, x) => s + (x.submissions || 0), 0);
+        const distinctUsers = await PracticeTestResult.distinct('userEmail', { practiceTestId: { $ne: null } });
 
         res.json({
             success: true,
@@ -836,13 +851,23 @@ router.delete('/practice-tests/:id', async (req, res) => {
 router.get('/practice-tests/:id/attempts', async (req, res) => {
     try {
         const { id } = req.params;
-        const MCQTest = require('../models/MCQTest');
+        const PracticeTestResult = require('../models/PracticeTestResult');
 
-        const attempts = await MCQTest.find({ practiceTestId: id })
+        const attempts = await PracticeTestResult.find({ practiceTestId: id })
             .populate('userId', 'fullName email')
+            .populate('practiceTestId', 'title topic')
             .sort({ createdAt: -1 });
 
-        res.json({ success: true, data: attempts });
+        // Merge topic from parent if missing in record
+        const data = attempts.map(a => {
+            const doc = a.toObject();
+            if (!doc.topic && a.practiceTestId) {
+                doc.topic = a.practiceTestId.topic;
+            }
+            return doc;
+        });
+
+        res.json({ success: true, data });
     } catch (err) {
         console.error('Error fetching practice test attempts:', err);
         res.status(500).json({ message: 'Failed to fetch attempts' });
@@ -860,13 +885,26 @@ router.post('/practice-tests/:id/reset-attempts', async (req, res) => {
             return res.status(400).json({ message: 'User email is required' });
         }
 
-        const MCQTest = require('../models/MCQTest');
+        const PracticeTestResult = require('../models/PracticeTestResult');
+        const PracticeTest = require('../models/PracticeTest');
 
-        // Delete all MCQTest records matching this user and practice test
-        const result = await MCQTest.deleteMany({
+        // Get count before deleting for counter sync
+        const deletedCount = await PracticeTestResult.countDocuments({
+            userEmail: email,
+            practiceTestId: id,
+            testStatus: { $in: ['completed', 'auto-submitted'] }
+        });
+
+        // Delete all PracticeTestResult records matching this user and practice test
+        const result = await PracticeTestResult.deleteMany({
             userEmail: email,
             practiceTestId: id
         });
+
+        // Sync the submissions counter if needed
+        if (deletedCount > 0) {
+            await PracticeTest.findByIdAndUpdate(id, { $inc: { submissions: -deletedCount } });
+        }
 
         res.json({
             success: true,
@@ -936,9 +974,7 @@ router.post('/notifications/create', async (req, res) => {
                         if (recipientType === 'all_admins') {
                             query.role = { $in: ['admin', 'owner'] };
                         } else if (recipientType === 'all') {
-                            // Fetch all users? Be careful.
-                            // For now, let's limit or chunk.
-                            // query is empty {}
+                            // query remains {}
                         }
 
                         // We only send to those who have email enabled
