@@ -253,6 +253,7 @@ const ProfilePage = () => {
     const [sessions, setSessions] = useState([]);
     const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
     const [loadingSecurity, setLoadingSecurity] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     // Stats state
     const [stats, setStats] = useState({
@@ -933,10 +934,6 @@ const ProfilePage = () => {
     };
 
     const handleDeleteAccount = async () => {
-        if (!window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-            return;
-        }
-
         setLoadingSecurity(true);
         try {
             const response = await axiosInstance.delete(API.PROFILE.DELETE_ACCOUNT);
@@ -2430,7 +2427,7 @@ const ProfilePage = () => {
                                                 <h4 className="text-sm font-medium text-red-900">Delete Account</h4>
                                                 <p className="mt-1 text-xs text-red-700 sm:text-sm">Permanently delete your account and all associated data. This action cannot be undone.</p>
                                             </div>
-                                            <Button onClick={handleDeleteAccount} disabled={loadingSecurity} className="flex items-center gap-2 bg-red-600 text-white hover:bg-red-700">
+                                            <Button onClick={() => setShowDeleteModal(true)} disabled={loadingSecurity} className="flex items-center gap-2 bg-red-600 text-white hover:bg-red-700">
                                                 {loadingSecurity ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <Trash2 className="w-4 h-4" />}
                                                 <span>Delete Account</span>
                                             </Button>
@@ -2630,6 +2627,63 @@ const ProfilePage = () => {
                                         >
                                             {loading ? 'Saving...' : 'Save details'}
                                         </Button>
+                                    </div>
+                                </motion.div>
+                            </motion.div>
+                        )}
+
+                        {showDeleteModal && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
+                                onClick={() => setShowDeleteModal(false)}
+                            >
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    className="w-full max-w-md bg-[rgb(var(--bg-card))] rounded-3xl p-8 shadow-2xl border border-red-200/30 relative overflow-hidden"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    {/* Background decorative elements */}
+                                    <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-48 h-48 bg-red-500/5 rounded-full blur-3xl" />
+                                    <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-48 h-48 bg-red-500/5 rounded-full blur-3xl" />
+
+                                    <div className="relative z-10 flex flex-col items-center text-center">
+                                        <div className="mb-6 rounded-2xl bg-red-50 p-4 text-red-500 ring-8 ring-red-50/50">
+                                            <AlertCircle className="w-10 h-10" />
+                                        </div>
+                                        
+                                        <h3 className="mb-2 text-2xl font-bold text-gray-900">Delete Account?</h3>
+                                        <p className="mb-8 text-gray-500">
+                                            This action is <span className="font-bold text-red-600">permanent</span> and cannot be undone. 
+                                            All your interviews, MCQ tests, and study notes will be deleted forever.
+                                        </p>
+
+                                        <div className="flex w-full flex-col gap-3 sm:flex-row">
+                                            <Button
+                                                onClick={() => setShowDeleteModal(false)}
+                                                className="flex-1 order-2 sm:order-1 bg-gray-100 text-gray-700 hover:bg-gray-200 border-none h-12 rounded-xl font-semibold"
+                                            >
+                                                Keep My Account
+                                            </Button>
+                                            <Button
+                                                onClick={() => {
+                                                    setShowDeleteModal(false);
+                                                    handleDeleteAccount();
+                                                }}
+                                                disabled={loadingSecurity}
+                                                className="flex-1 order-1 sm:order-2 bg-red-600 text-white hover:bg-red-700 h-12 rounded-xl font-semibold shadow-lg shadow-red-500/20"
+                                            >
+                                                {loadingSecurity ? (
+                                                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent mx-auto" />
+                                                ) : (
+                                                    "Yes, Delete Everything"
+                                                )}
+                                            </Button>
+                                        </div>
                                     </div>
                                 </motion.div>
                             </motion.div>

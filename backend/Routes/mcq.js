@@ -611,7 +611,7 @@ router.post('/submit', async (req, res) => {
             // Save test results to database
             try {
                 let mcqTest;
-                
+
                 if (req.body.attemptId) {
                     mcqTest = await MCQTest.findById(req.body.attemptId);
                 }
@@ -1057,17 +1057,21 @@ router.post('/practice-tests/:id/start', async (req, res) => {
 
         const PracticeTest = require('../models/PracticeTest');
         const test = await PracticeTest.findById(id);
-        
+
         if (!test) {
             return res.status(404).json({ success: false, message: 'Practice test not found' });
         }
 
-        if (test.isTimeRestricted) {
+        const hasScheduleWindow = test.isTimeRestricted || test.startTime || test.endTime;
+
+        if (hasScheduleWindow) {
             const now = new Date();
-            if (test.startTime && now < test.startTime) {
+            // Strict check: if restricted, respect defined bounds. 
+            // If a bound is null, it's considered open on that side (standard for old tests)
+            if (test.startTime && now < new Date(test.startTime)) {
                 return res.status(403).json({ success: false, message: 'Test has not started yet' });
             }
-            if (test.endTime && now > test.endTime) {
+            if (test.endTime && now > new Date(test.endTime)) {
                 return res.status(403).json({ success: false, message: 'Test has already ended' });
             }
         }
@@ -1088,15 +1092,15 @@ router.post('/practice-tests/:id/start', async (req, res) => {
         const MCQTest = require('../models/MCQTest');
 
         // Check max attempts
-        const userAttempts = await MCQTest.countDocuments({ 
-            userEmail: userInfo.email, 
-            practiceTestId: test._id 
+        const userAttempts = await MCQTest.countDocuments({
+            userEmail: userInfo.email,
+            practiceTestId: test._id
         });
 
         if (test.maxAttempts && userAttempts >= test.maxAttempts) {
-            return res.status(403).json({ 
-                success: false, 
-                message: `You have reached the maximum attempts (${test.maxAttempts}) for this test.` 
+            return res.status(403).json({
+                success: false,
+                message: `You have reached the maximum attempts (${test.maxAttempts}) for this test.`
             });
         }
 

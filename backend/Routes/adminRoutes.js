@@ -604,6 +604,7 @@ router.post('/practice-tests', async (req, res) => {
     try {
         const { title, description, topic, difficulty, questions, isPublished, maxAttempts, timeLimit, guidelines, isTimeRestricted, startTime, endTime } = req.body;
         const PracticeTest = require('../models/PracticeTest');
+        const hasScheduleWindow = isTimeRestricted || !!startTime || !!endTime;
 
         const newTest = new PracticeTest({
             title,
@@ -616,7 +617,7 @@ router.post('/practice-tests', async (req, res) => {
             maxAttempts: maxAttempts !== undefined ? maxAttempts : 1,
             timeLimit: timeLimit !== undefined ? timeLimit : 30,
             guidelines: guidelines || '',
-            isTimeRestricted: isTimeRestricted || false,
+            isTimeRestricted: hasScheduleWindow,
             startTime: startTime || null,
             endTime: endTime || null
         });
@@ -636,6 +637,10 @@ router.put('/practice-tests/:id', async (req, res) => {
         const updates = req.body;
         const PracticeTest = require('../models/PracticeTest');
 
+        if (updates.startTime || updates.endTime || updates.isTimeRestricted !== undefined) {
+            updates.isTimeRestricted = Boolean(updates.isTimeRestricted || updates.startTime || updates.endTime);
+        }
+
         const test = await PracticeTest.findByIdAndUpdate(id, updates, { new: true });
 
         if (!test) {
@@ -646,6 +651,81 @@ router.put('/practice-tests/:id', async (req, res) => {
     } catch (err) {
         console.error('Error updating practice test:', err);
         res.status(500).json({ message: 'Failed to update practice test' });
+    }
+});
+
+// GET aggregated analytics for all practice tests (Admin)
+router.get('/practice-tests/analytics', async (req, res) => {
+    try {
+        const PracticeTest = require('../models/PracticeTest');
+        const MCQTest = require('../models/MCQTest');
+
+        const totalTests = await PracticeTest.countDocuments();
+
+        const agg = await MCQTest.aggregate([
+            { $match: { practiceTestId: { $ne: null } } },
+            {
+                $group: {
+                    _id: '$practiceTestId',
+                    attempts: { $sum: 1 },
+                    submissions: { $sum: { $cond: [{ $in: ['$testStatus', ['completed', 'auto-submitted']] }, 1, 0] } },
+                    users: { $addToSet: '$userEmail' },
+                    avgScore: { $avg: '$score' },
+                    lastAttempt: { $max: '$createdAt' }
+                }
+            },
+            {
+                $project: {
+                    attempts: 1,
+                    submissions: 1,
+                    uniqueUsersCount: { $size: '$users' },
+                    avgScore: { $round: ['$avgScore', 2] },
+                    lastAttempt: 1
+                }
+            }
+        ]);
+
+        const testIds = agg.map(a => a._id);
+        const tests = await PracticeTest.find({ _id: { $in: testIds } })
+            .select('title description topic createdBy createdAt maxAttempts timeLimit isTimeRestricted startTime endTime attempts');
+
+        const perTest = tests.map(t => {
+            const a = agg.find(x => x._id.toString() === t._id.toString()) || {};
+            return {
+                testId: t._id,
+                title: t.title,
+                topic: t.topic,
+                createdAt: t.createdAt,
+                maxAttempts: t.maxAttempts,
+                timeLimit: t.timeLimit,
+                isTimeRestricted: t.isTimeRestricted,
+                startTime: t.startTime,
+                endTime: t.endTime,
+                attempts: a.attempts || 0,
+                submissions: a.submissions || 0,
+                uniqueUsers: a.uniqueUsersCount || 0,
+                avgScore: a.avgScore || 0,
+                lastAttempt: a.lastAttempt || null
+            };
+        });
+
+        const totalAttempts = agg.reduce((s, x) => s + (x.attempts || 0), 0);
+        const totalSubmissions = agg.reduce((s, x) => s + (x.submissions || 0), 0);
+        const distinctUsers = await MCQTest.distinct('userEmail', { practiceTestId: { $ne: null } });
+
+        res.json({
+            success: true,
+            totals: {
+                totalTests,
+                totalAttempts,
+                totalSubmissions,
+                totalUsersAttended: distinctUsers.length
+            },
+            perTest
+        });
+    } catch (err) {
+        console.error('Error fetching practice tests analytics:', err);
+        res.status(500).json({ message: 'Failed to fetch practice tests analytics', error: err.message });
     }
 });
 
@@ -704,6 +784,7 @@ router.get('/practice-tests/:id/attempts', async (req, res) => {
     }
 });
 
+
 // RESET Practice Test Attempts for User (Admin)
 router.post('/practice-tests/:id/reset-attempts', async (req, res) => {
     try {
@@ -722,9 +803,9 @@ router.post('/practice-tests/:id/reset-attempts', async (req, res) => {
             practiceTestId: id
         });
 
-        res.json({ 
-            success: true, 
-            message: `Reset ${result.deletedCount} attempt(s) for ${email}` 
+        res.json({
+            success: true,
+            message: `Reset ${result.deletedCount} attempt(s) for ${email}`
         });
     } catch (err) {
         console.error('Error resetting practice test attempts:', err);

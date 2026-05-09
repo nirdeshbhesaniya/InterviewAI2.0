@@ -1,7 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const Interview = require('../models/Interview'); // 👈 Import Interview model
+const Interview = require('../models/Interview');
+const MCQTest = require('../models/MCQTest');
+const Note = require('../models/Note');
+const Resource = require('../models/Resource');
+const UserSettings = require('../models/UserSettings');
+const Notification = require('../models/Notification');
+const Feedback = require('../models/FeedbackModel');
+const MockInterview = require('../models/MockInterview');
 const bcrypt = require('bcryptjs');
 const upload = require('../middlewares/upload');
 const { uploadToCloudinary } = require('../utils/cloudinary');
@@ -461,30 +468,47 @@ router.put('/change-password', authenticateUser, async (req, res) => {
     }
 });
 
-// Delete account (soft delete with confirmation)
+// Delete account (comprehensive hard delete)
 router.delete('/delete-account', authenticateUser, async (req, res) => {
     try {
-        // Mark account as deleted (soft delete)
-        await User.findByIdAndUpdate(req.user._id, {
-            isDeleted: true,
-            deletedAt: new Date(),
-            // Clear sensitive data
-            sessions: [],
-            resetPasswordToken: undefined,
-            resetPasswordExpires: undefined,
-            otp: undefined,
-            otpExpires: undefined
+        const userId = req.user._id;
+        const userEmail = req.user.email;
+
+        console.log(`🗑️ Starting comprehensive deletion for user: ${userEmail} (${userId})`);
+
+        // 1. Delete all associated data in parallel
+        const deletionResults = await Promise.allSettled([
+            Interview.deleteMany({ creatorEmail: userEmail }),
+            MCQTest.deleteMany({ $or: [{ userId: userId }, { userEmail: userEmail }] }),
+            Note.deleteMany({ $or: [{ userId: userId.toString() }, { userEmail: userEmail }, { userId: userEmail }] }),
+            Resource.deleteMany({ uploadedBy: userId }),
+            UserSettings.deleteMany({ userId: userId }),
+            Notification.deleteMany({ userId: userId }),
+            Feedback.deleteMany({ user: userId }),
+            MockInterview.deleteMany({ userId: userId })
+        ]);
+
+        // Log any failures in data deletion but continue with user deletion
+        deletionResults.forEach((result, index) => {
+            if (result.status === 'rejected') {
+                console.error(`❌ Failed to delete data for index ${index}:`, result.reason);
+            }
         });
+
+        // 2. Delete the user itself
+        await User.findByIdAndDelete(userId);
+
+        console.log(`✅ Successfully deleted user ${userEmail} and associated data`);
 
         res.json({
             success: true,
-            message: 'Account deleted successfully'
+            message: 'Your account and all associated data have been permanently deleted.'
         });
     } catch (error) {
-        console.error('Error deleting account:', error);
+        console.error('Error during account deletion:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to delete account'
+            message: 'An error occurred while deleting your account. Please try again later.'
         });
     }
 });

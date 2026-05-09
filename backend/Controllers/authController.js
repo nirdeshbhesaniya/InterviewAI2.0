@@ -346,6 +346,15 @@ exports.loginUser = async (req, res) => {
       });
     }
 
+    // Check if user is soft-deleted
+    if (user.isDeleted) {
+      console.log(`❌ Login failed: Account deleted - ${email}`);
+      return res.status(403).json({
+        message: 'This account has been deleted. Please contact support if you believe this is an error.',
+        isDeleted: true
+      });
+    }
+
     // Make sure we are really comparing what we think we are
     // console.log(`DEBUG: Comparing password for ${email}`);
 

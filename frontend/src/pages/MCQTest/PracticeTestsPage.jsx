@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FileQuestion, Clock, ArrowRight, BookOpen, BarChart2, ChevronLeft, ChevronRight, Calendar, AlertCircle } from 'lucide-react';
+import { FileQuestion, Clock, ArrowRight, BookOpen, ChevronLeft, ChevronRight, Calendar, AlertCircle, BarChart2 } from 'lucide-react';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import { Button } from '../../components/ui/button';
@@ -20,12 +20,24 @@ const PracticeTestsPage = () => {
             setLoading(true); // Ensure loading state shows on page change
             try {
                 const res = await axios.get(`${API.MCQ.PRACTICE_LIST}?page=${currentPage}&limit=${TESTS_PER_PAGE}`);
+                // Debug: log API response to inspect time restriction fields
+                console.debug('Practice tests API response:', res.data);
+
+                const rawTests = res.data.data || [];
+                // Normalize fields to ensure consistent shape
+                const normalized = rawTests.map((t) => ({
+                    ...t,
+                    isTimeRestricted: t.isTimeRestricted ?? false,
+                    startTime: t.startTime ?? null,
+                    endTime: t.endTime ?? null,
+                }));
+
                 if (res.data.pagination) {
-                    setTests(res.data.data || []);
+                    setTests(normalized);
                     setTotalPages(res.data.pagination.totalPages);
                 } else {
                     // Fallback for non-paginated response (if any)
-                    setTests(res.data.data || []);
+                    setTests(normalized);
                 }
             } catch (error) {
                 console.error('Error fetching practice tests:', error);
@@ -128,7 +140,7 @@ const PracticeTestsPage = () => {
                                                 <span>{test.timeLimit || 30} Mins</span>
                                             </div>
                                         </div>
-                                        
+
                                         <div className="flex justify-between items-center text-sm text-[rgb(var(--text-secondary))] mb-4">
                                             <div className="flex items-center gap-2">
                                                 <BarChart2 className="w-4 h-4 text-orange-500" />
@@ -139,7 +151,7 @@ const PracticeTestsPage = () => {
                                             </div>
                                         </div>
 
-                                        {test.isTimeRestricted && (
+                                        {(test.isTimeRestricted || test.startTime || test.endTime) && (
                                             <div className="bg-[rgb(var(--bg-elevated))] p-3 rounded-xl border border-[rgb(var(--border-subtle))] mb-4">
                                                 <div className="flex items-center gap-2 text-xs font-semibold text-[rgb(var(--accent))] mb-1 uppercase tracking-wider">
                                                     <Calendar className="w-3.5 h-3.5" />
@@ -148,11 +160,15 @@ const PracticeTestsPage = () => {
                                                 <div className="text-[10px] sm:text-xs text-[rgb(var(--text-secondary))] space-y-1">
                                                     <div className="flex justify-between">
                                                         <span>Start:</span>
-                                                        <span className="font-medium text-[rgb(var(--text-primary))]">{new Date(test.startTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span>
+                                                        <span className="font-medium text-[rgb(var(--text-primary))]">
+                                                            {test.startTime ? new Date(test.startTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'Immediate'}
+                                                        </span>
                                                     </div>
                                                     <div className="flex justify-between">
                                                         <span>End:</span>
-                                                        <span className="font-medium text-[rgb(var(--text-primary))]">{new Date(test.endTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span>
+                                                        <span className="font-medium text-[rgb(var(--text-primary))]">
+                                                            {test.endTime ? new Date(test.endTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'No Expiry'}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -162,9 +178,10 @@ const PracticeTestsPage = () => {
                                             const now = new Date();
                                             const start = test.startTime ? new Date(test.startTime) : null;
                                             const end = test.endTime ? new Date(test.endTime) : null;
-                                            
+
                                             let status = 'available';
-                                            if (test.isTimeRestricted) {
+                                            // Consider explicit start/end even if isTimeRestricted flag wasn't set
+                                            if (test.isTimeRestricted || start || end) {
                                                 if (start && now < start) status = 'upcoming';
                                                 else if (end && now > end) status = 'ended';
                                             }
@@ -173,11 +190,10 @@ const PracticeTestsPage = () => {
                                                 <Button
                                                     onClick={() => handleStartTest(test._id)}
                                                     disabled={status !== 'available'}
-                                                    className={`w-full transition-all group-hover:shadow-lg ${
-                                                        status === 'available' 
-                                                        ? 'bg-[rgb(var(--bg-elevated))] hover:bg-[rgb(var(--accent))] hover:text-white text-[rgb(var(--text-primary))] group-hover:shadow-[rgb(var(--accent))]/20' 
+                                                    className={`w-full transition-all group-hover:shadow-lg ${status === 'available'
+                                                        ? 'bg-[rgb(var(--bg-elevated))] hover:bg-[rgb(var(--accent))] hover:text-white text-[rgb(var(--text-primary))] group-hover:shadow-[rgb(var(--accent))]/20'
                                                         : 'bg-gray-500/10 text-gray-500 cursor-not-allowed border-gray-500/20'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {status === 'upcoming' ? (
                                                         <><Clock className="w-4 h-4 mr-2" /> Not Started</>
