@@ -6,6 +6,7 @@ const MCQTest = require('../models/MCQTest');
 const PracticeTest = require('../models/PracticeTest');
 const PracticeTestResult = require('../models/PracticeTestResult');
 const User = require('../models/User');
+const mongoose = require('mongoose');
 const { generateMCQBatch, shuffleQuestionOptions } = require('../utils/mcq-optimizer');
 const { getFromCache, addToCache, getCacheStats } = require('../utils/mcq-cache');
 const { checkFeatureEnabled } = require('../middlewares/featureAuth');
