@@ -104,13 +104,96 @@ const MCQTest = () => {
         'JavaScript', 'React', 'Node.js', 'Python', 'Java', 'C++', 'Database',
         'System Design', 'Data Structures', 'Algorithms', 'Machine Learning',
         'DevOps', 'Cloud Computing', 'Cybersecurity', 'Frontend Development',
+        'Frontend Development',
         'Backend Development'
     ]);
 
-    // Load Practice Test if testId is present
+    // --- Persistence Logic ---
+    const getPersistenceKey = useCallback(() => {
+        if (!user?.email) return null;
+        return `practice_test_resilience_${testId || 'ai'}_${user.email}`;
+    }, [testId, user?.email]);
+
+    const saveProgress = useCallback(() => {
+        const key = getPersistenceKey();
+        if (!key || currentStep !== 'test' || questions.length === 0) return;
+
+        const stateToSave = {
+            questions,
+            questionsWithAnswers,
+            answers,
+            tempAnswer,
+            markedForReview,
+            visitedQuestions,
+            currentQuestion,
+            timeLeft,
+            testStartTime: testStartTime?.toISOString(),
+            formData,
+            attemptId,
+            lastUpdated: new Date().toISOString()
+        };
+        localStorage.setItem(key, JSON.stringify(stateToSave));
+    }, [getPersistenceKey, currentStep, questions, questionsWithAnswers, answers, tempAnswer, markedForReview, visitedQuestions, currentQuestion, timeLeft, testStartTime, formData, attemptId]);
+
+    const clearProgress = useCallback(() => {
+        const key = getPersistenceKey();
+        if (key) localStorage.removeItem(key);
+    }, [getPersistenceKey]);
+
+    // Auto-save effect
     useEffect(() => {
-        if (testId && user?.email) {
-            const fetchTest = async () => {
+        if (currentStep === 'test') {
+            saveProgress();
+        }
+    }, [saveProgress, currentStep, answers, tempAnswer, currentQuestion, timeLeft, markedForReview]);
+
+    // --- Unified Initialization & Resilience Logic ---
+    useEffect(() => {
+        if (!user?.email) return;
+
+        const initializeTest = async () => {
+            const key = getPersistenceKey();
+            const saved = key ? localStorage.getItem(key) : null;
+
+            // 1. Priority: Try to resume existing session
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.questions && parsed.questions.length > 0) {
+                        const lastUpdated = new Date(parsed.lastUpdated);
+                        const now = new Date();
+                        const hoursSinceUpdate = (now - lastUpdated) / (1000 * 60 * 60);
+
+                        if (hoursSinceUpdate < 4) {
+                            setQuestions(parsed.questions);
+                            setQuestionsWithAnswers(parsed.questionsWithAnswers || []);
+                            setAnswers(parsed.answers || {});
+                            setTempAnswer(parsed.tempAnswer);
+                            setMarkedForReview(parsed.markedForReview || {});
+                            setVisitedQuestions(parsed.visitedQuestions || {});
+                            setCurrentQuestion(parsed.currentQuestion || 0);
+                            setTimeLeft(parsed.timeLeft);
+                            setTestStartTime(parsed.testStartTime ? new Date(parsed.testStartTime) : null);
+                            setFormData(parsed.formData);
+                            setAttemptId(parsed.attemptId);
+                            setHasAttempted(true);
+                            setCurrentStep('test');
+                            
+                            toast.success('Resuming your active session...', {
+                                icon: '🔄',
+                                duration: 3000
+                            });
+                            return; // Stop here, session resumed successfully
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to parse saved progress:', e);
+                    localStorage.removeItem(key);
+                }
+            }
+
+            // 2. If no resume, handle practice test loading
+            if (testId) {
                 setLoading(true);
                 try {
                     const res = await axiosInstance.get(API.MCQ.PRACTICE_DETAILS(testId), {
@@ -119,13 +202,13 @@ const MCQTest = () => {
                     const data = res.data.data;
 
                     if (data) {
+                        // Check attempts only if we're starting fresh
                         if (data.maxAttempts && data.userAttempts >= data.maxAttempts) {
-                            toast.error(`You have reached the maximum attempts (${data.maxAttempts}) for this test.`);
+                            toast.error(`Attempt limit reached (${data.maxAttempts}). Please contact support if you believe this is an error.`);
                             navigate('/mcq-test/practice');
                             return;
                         }
 
-                        // Transform options if they are objects (though practice tests usually standard)
                         const transformedQuestions = data.questions.map(q => ({
                             ...q,
                             options: Array.isArray(q.options) ? q.options : Object.values(q.options)
@@ -144,20 +227,24 @@ const MCQTest = () => {
                             startTime: data.startTime || null,
                             endTime: data.endTime || null
                         }));
-                        setHasAttempted(true); // Treat as attempted to prevent regeneration logic
+                        setHasAttempted(true);
                         setCurrentStep('guidelines');
                     }
                 } catch (error) {
                     console.error('Error loading practice test:', error);
-                    toast.error('Failed to load practice test');
+                    toast.error('Failed to load test details');
                     navigate('/mcq-test/practice');
                 } finally {
                     setLoading(false);
                 }
-            };
-            fetchTest();
-        }
-    }, [testId, navigate, user?.email]);
+            } else {
+                // If AI test (no testId), ensure we are on setup
+                setCurrentStep('setup');
+            }
+        };
+
+        initializeTest();
+    }, [testId, user?.email, getPersistenceKey, navigate]);
 
     // Submit test function - defined before useEffect hooks that reference it
     const handleSubmitTest = useCallback(async () => {
@@ -220,6 +307,9 @@ const MCQTest = () => {
             const response = await axiosInstance.post(API.MCQ.SUBMIT, submissionData);
 
             if (response.data.success) {
+                // Clear saved progress on successful submission
+                clearProgress();
+                
                 // Close the confirmation dialog on success
                 setShowSubmitConfirmation(false);
 
@@ -698,10 +788,13 @@ const MCQTest = () => {
             toast.error('Please enter a topic for the test');
             return;
         }
-        if (hasAttempted) {
+        if (hasAttempted && currentStep !== 'test') {
             toast.error('You have already attempted this generated test. Create a new one.');
             return;
         }
+
+        // Clear any old progress before starting a new AI test
+        clearProgress();
 
         setLoading(true);
         try {
@@ -2228,6 +2321,22 @@ const MCQTest = () => {
     };
 
     const handleStartPracticeTest = async () => {
+        // Final safety check: If there's already progress, just resume it
+        const key = getPersistenceKey();
+        const saved = key ? localStorage.getItem(key) : null;
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (parsed.questions?.length > 0) {
+                    setCurrentStep('test');
+                    toast.success('Resuming your active session...');
+                    return;
+                }
+            } catch (e) {
+                console.error("Manual resume check failed:", e);
+            }
+        }
+
         if (testId) {
             // Re-validate availability before starting
             if (formData.isTimeRestricted) {
@@ -2342,7 +2451,7 @@ const MCQTest = () => {
                             </li>
                             <li className="flex items-start gap-2">
                                 <span className="text-[rgb(var(--accent))] mt-1">•</span>
-                                <span><strong>Do Not Refresh:</strong> Refreshing or closing the tab during the exam will result in loss of progress.</span>
+                                <span><strong>Safe Resume:</strong> Progress is automatically saved. If your browser reloads or device fails, you can resume exactly where you left off.</span>
                             </li>
                             <li className="flex items-start gap-2">
                                 <span className="text-[rgb(var(--accent))] mt-1">•</span>
@@ -2350,7 +2459,7 @@ const MCQTest = () => {
                             </li>
                             <li className="flex items-start gap-2">
                                 <span className="text-[rgb(var(--accent))] mt-1">•</span>
-                                <span><strong>Exam start:</strong> Once click "I Agree, Start Exam", it's count in attempt Exam so start after you ready.</span>
+                                <span><strong>Exam start:</strong> Once click "I Agree, Start Exam", it's counted as an attempt, so start only when you are ready.</span>
                             </li>
                         </ul>
                     </div>

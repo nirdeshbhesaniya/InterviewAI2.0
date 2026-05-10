@@ -192,31 +192,35 @@ const PracticeTestsManagement = () => {
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Page Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))]">Practice Test Management</h1>
-                    <p className="text-[rgb(var(--text-secondary))] text-sm">Create, manage and analyze expert-curated practice exams</p>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-2">
+                <div className="space-y-1.5">
+                    <h1 className="text-3xl font-extrabold tracking-tight text-[rgb(var(--text-primary))]">Practice Test Management</h1>
+                    <p className="text-[rgb(var(--text-secondary))] text-sm max-w-lg leading-relaxed">Create, manage and analyze expert-curated practice exams to drive student success.</p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="relative">
-                        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))]" />
+                <div className="flex items-center gap-3 w-full lg:w-auto">
+                    <div className="relative flex-1 lg:flex-none group">
+                        <Search className="w-4.5 h-4.5 absolute left-4 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] group-focus-within:text-[rgb(var(--accent))] transition-colors" />
                         <input
                             type="text"
                             placeholder="Search tests..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && fetchTests(1)}
-                            className="pl-9 pr-4 py-2 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-xl text-sm focus:ring-2 focus:ring-[rgb(var(--accent))] outline-none w-64 transition-all"
+                            className="h-12 pl-11 pr-4 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-2xl text-sm focus:ring-4 focus:ring-[rgb(var(--accent))]/10 focus:border-[rgb(var(--accent))] outline-none w-full lg:w-72 transition-all shadow-sm group-hover:border-[rgb(var(--accent))]/30"
                         />
                     </div>
-                    <Button onClick={handleCreateTest} className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent))]/90 text-white rounded-xl shadow-lg shadow-[rgb(var(--accent))]/20">
-                        <Plus className="w-4 h-4 mr-2" /> New Test
+                    <Button 
+                        onClick={handleCreateTest} 
+                        className="h-12 px-5 sm:px-6 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-2xl shadow-xl shadow-[rgb(var(--accent))]/25 flex items-center justify-center gap-2 font-bold transition-all hover:scale-[1.02] active:scale-95 shrink-0"
+                    >
+                        <Plus className="w-5 h-5 stroke-[2.5]" /> 
+                        <span className="hidden sm:inline">New Test</span>
                     </Button>
                 </div>
             </div>
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
                 {[
                     { label: 'Total Tests', value: summaryStats.totalTests, icon: FileQuestion, color: 'text-blue-500', bg: 'bg-blue-500/10' },
                     { label: 'Total Hits', value: summaryStats.totalAttempts, icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
@@ -228,17 +232,17 @@ const PracticeTestsManagement = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
                         key={stat.label} 
-                        className="bg-[rgb(var(--bg-card))] p-5 rounded-2xl border border-[rgb(var(--border))] shadow-sm"
+                        className="bg-[rgb(var(--bg-card))] p-6 rounded-3xl border border-[rgb(var(--border))] shadow-sm hover:shadow-md transition-all duration-300 group"
                     >
-                        <div className="flex items-center justify-between mb-2">
-                            <div className={`${stat.bg} ${stat.color} p-2 rounded-lg`}>
-                                <stat.icon className="w-5 h-5" />
+                        <div className="flex items-start justify-between mb-4">
+                            <div className={`${stat.bg} ${stat.color} p-3 rounded-2xl transition-transform group-hover:scale-110 duration-300`}>
+                                <stat.icon className="w-6 h-6" />
                             </div>
-                            <span className="text-xs font-medium text-[rgb(var(--text-muted))] uppercase tracking-wider">Overview</span>
+                            <span className="text-[10px] font-bold text-[rgb(var(--text-muted))] uppercase tracking-[0.15em] bg-[rgb(var(--bg-body-alt))] px-2.5 py-1 rounded-full">Overview</span>
                         </div>
-                        <div>
-                            <div className="text-2xl font-bold text-[rgb(var(--text-primary))]">{stat.value}</div>
-                            <div className="text-sm text-[rgb(var(--text-secondary))]">{stat.label}</div>
+                        <div className="space-y-0.5">
+                            <div className="text-3xl font-black text-[rgb(var(--text-primary))] tracking-tight">{stat.value}</div>
+                            <div className="text-sm font-medium text-[rgb(var(--text-secondary))]">{stat.label}</div>
                         </div>
                     </motion.div>
                 ))}
@@ -251,16 +255,18 @@ const PracticeTestsManagement = () => {
                     <p className="text-[rgb(var(--text-secondary))] animate-pulse">Fetching practice library...</p>
                 </div>
             ) : practiceTests.length === 0 ? (
-                <div className="bg-[rgb(var(--bg-card))] rounded-3xl border-2 border-dashed border-[rgb(var(--border))] py-20 text-center">
-                    <FileQuestion className="w-16 h-16 text-[rgb(var(--text-muted))] mx-auto mb-4 opacity-20" />
-                    <h3 className="text-lg font-semibold text-[rgb(var(--text-primary))]">No tests found</h3>
-                    <p className="text-[rgb(var(--text-secondary))] mb-6">Create your first expert test to start analyzing performance.</p>
-                    <Button onClick={handleCreateTest} variant="outline" className="rounded-xl">
-                        Create Practice Test
+                <div className="bg-[rgb(var(--bg-card))] rounded-[2rem] border-2 border-dashed border-[rgb(var(--border))] py-20 text-center">
+                    <div className="bg-[rgb(var(--bg-elevated))] w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border border-[rgb(var(--border))]">
+                        <FileQuestion className="w-10 h-10 text-[rgb(var(--text-muted))] opacity-40" />
+                    </div>
+                    <h3 className="text-xl font-bold text-[rgb(var(--text-primary))]">No tests found</h3>
+                    <p className="text-[rgb(var(--text-secondary))] mb-8 max-w-sm mx-auto">Start building your expert test library to provide students with high-quality practice exams.</p>
+                    <Button onClick={handleCreateTest} className="rounded-2xl h-12 px-8 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white shadow-lg shadow-[rgb(var(--accent))]/20">
+                        Create Your First Test
                     </Button>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <AnimatePresence mode='popLayout'>
                         {practiceTests.map((test, i) => (
                             <motion.div
@@ -270,89 +276,89 @@ const PracticeTestsManagement = () => {
                                 exit={{ opacity: 0, scale: 0.95 }}
                                 transition={{ duration: 0.2, delay: i * 0.05 }}
                                 key={test._id}
-                                className="bg-[rgb(var(--bg-card))] rounded-2xl border border-[rgb(var(--border))] hover:border-[rgb(var(--accent))]/40 transition-all group p-5 shadow-sm overflow-hidden"
+                                className="bg-[rgb(var(--bg-card))] rounded-[2rem] border border-[rgb(var(--border))] hover:border-[rgb(var(--accent))]/30 transition-all group p-6 shadow-sm hover:shadow-xl hover:shadow-[rgb(var(--accent))]/5 overflow-hidden flex flex-col"
                             >
-                                <div className="flex justify-between items-start gap-4 mb-4">
-                                    <div className="space-y-1 flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className={`text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-md ${
+                                <div className="flex justify-between items-start gap-4 mb-6">
+                                    <div className="space-y-2 flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1.5">
+                                            <span className={`text-[10px] uppercase font-black tracking-widest px-2.5 py-1 rounded-lg ${
                                                 test.isPublished ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'
                                             }`}>
                                                 {test.isPublished ? 'Live' : 'Draft'}
                                             </span>
-                                            <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-md bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-muted))]">
+                                            <span className="text-[10px] uppercase font-black tracking-widest px-2.5 py-1 rounded-lg bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-muted))]">
                                                 {test.topic}
                                             </span>
                                         </div>
-                                        <h3 className="text-lg font-bold text-[rgb(var(--text-primary))] truncate group-hover:text-[rgb(var(--accent))] transition-colors">
+                                        <h3 className="text-xl font-bold text-[rgb(var(--text-primary))] truncate group-hover:text-[rgb(var(--accent))] transition-colors leading-tight">
                                             {test.title}
                                         </h3>
-                                        <p className="text-xs text-[rgb(var(--text-secondary))] line-clamp-2 leading-relaxed">
+                                        <p className="text-sm text-[rgb(var(--text-secondary))] line-clamp-2 leading-relaxed opacity-80">
                                             {test.description}
                                         </p>
                                     </div>
                                     <div className="flex flex-col gap-2">
                                         <button 
                                             onClick={() => togglePublishStatus(test)}
-                                            className={`p-2 rounded-xl transition-colors ${test.isPublished ? 'text-emerald-500 hover:bg-emerald-500/10' : 'text-amber-500 hover:bg-amber-500/10'}`}
+                                            className={`p-3 rounded-2xl transition-all ${test.isPublished ? 'text-emerald-500 hover:bg-emerald-500/10' : 'text-amber-500 hover:bg-amber-500/10'} bg-[rgb(var(--bg-body-alt))]`}
                                             title={test.isPublished ? 'Unpublish' : 'Publish'}
                                         >
-                                            {test.isPublished ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                                            {test.isPublished ? <Eye className="w-5.5 h-5.5" /> : <EyeOff className="w-5.5 h-5.5" />}
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-4 gap-2 mb-5 p-3 bg-[rgb(var(--bg-elevated))]/50 rounded-xl border border-[rgb(var(--border-subtle))]">
-                                    <div className="text-center border-r border-[rgb(var(--border))]">
-                                        <div className="text-xs font-bold text-[rgb(var(--text-primary))]">{test.questionCount || 0}</div>
-                                        <div className="text-[9px] text-[rgb(var(--text-muted))] uppercase">Quest</div>
+                                <div className="grid grid-cols-4 gap-3 mb-6 p-4 bg-[rgb(var(--bg-body-alt))]/50 rounded-[1.25rem] border border-[rgb(var(--border-subtle))]">
+                                    <div className="text-center border-r border-[rgb(var(--border))] pr-1">
+                                        <div className="text-sm font-black text-[rgb(var(--text-primary))]">{test.questionCount || 0}</div>
+                                        <div className="text-[10px] text-[rgb(var(--text-muted))] font-bold uppercase tracking-tighter">Quest</div>
                                     </div>
-                                    <div className="text-center border-r border-[rgb(var(--border))]">
-                                        <div className="text-xs font-bold text-[rgb(var(--text-primary))]">{test.timeLimit}m</div>
-                                        <div className="text-[9px] text-[rgb(var(--text-muted))] uppercase">Mins</div>
+                                    <div className="text-center border-r border-[rgb(var(--border))] pr-1">
+                                        <div className="text-sm font-black text-[rgb(var(--text-primary))]">{test.timeLimit}m</div>
+                                        <div className="text-[10px] text-[rgb(var(--text-muted))] font-bold uppercase tracking-tighter">Mins</div>
                                     </div>
-                                    <div className="text-center border-r border-[rgb(var(--border))]">
-                                        <div className="text-xs font-bold text-[rgb(var(--text-primary))]">{test.attempts || 0}</div>
-                                        <div className="text-[9px] text-[rgb(var(--text-muted))] uppercase">Hits</div>
+                                    <div className="text-center border-r border-[rgb(var(--border))] pr-1">
+                                        <div className="text-sm font-black text-[rgb(var(--text-primary))]">{test.attempts || 0}</div>
+                                        <div className="text-[10px] text-[rgb(var(--text-muted))] font-bold uppercase tracking-tighter">Hits</div>
                                     </div>
                                     <div className="text-center">
-                                        <div className="text-xs font-bold text-emerald-500">{test.submissions || 0}</div>
-                                        <div className="text-[9px] text-[rgb(var(--text-muted))] uppercase">Done</div>
+                                        <div className="text-sm font-black text-emerald-500">{test.submissions || 0}</div>
+                                        <div className="text-[10px] text-[rgb(var(--text-muted))] font-bold uppercase tracking-tighter">Done</div>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between gap-3">
+                                <div className="mt-auto flex items-center justify-between gap-4">
                                     <div className="flex items-center gap-2">
                                         <Button 
                                             variant="ghost" 
                                             size="sm" 
                                             onClick={() => viewAnalytics(test)}
-                                            className="h-9 px-3 bg-purple-500/10 text-purple-600 hover:bg-purple-500/20 rounded-xl text-xs font-semibold"
+                                            className="h-10 px-4 bg-purple-500/10 text-purple-600 hover:bg-purple-500/20 rounded-xl text-xs font-bold transition-all"
                                         >
-                                            <BarChart2 className="w-4 h-4 mr-1.5" /> Analytics
+                                            <BarChart2 className="w-4 h-4 mr-2" /> Analytics
                                         </Button>
                                         <Button 
                                             variant="ghost" 
                                             size="sm" 
                                             onClick={() => openResetModal(test._id)}
-                                            className="h-9 px-3 bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 rounded-xl text-xs font-semibold"
+                                            className="h-10 px-4 bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 rounded-xl text-xs font-bold transition-all"
                                         >
-                                            <RotateCcw className="w-4 h-4 mr-1.5" /> Reset
+                                            <RotateCcw className="w-4 h-4 mr-2" /> Reset
                                         </Button>
                                     </div>
 
-                                    <div className="flex items-center gap-1.5">
+                                    <div className="flex items-center gap-1">
                                         <button 
                                             onClick={() => handleEditTest(test._id)}
-                                            className="p-2 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] hover:bg-[rgb(var(--bg-elevated))] rounded-xl transition-all"
+                                            className="p-2.5 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] hover:bg-[rgb(var(--accent))]/10 rounded-xl transition-all"
                                         >
-                                            <PenSquare className="w-4.5 h-4.5" />
+                                            <PenSquare className="w-5 h-5" />
                                         </button>
                                         <button 
                                             onClick={() => handleDeleteTest(test._id)}
-                                            className="p-2 text-red-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                                            className="p-2.5 text-red-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
                                         >
-                                            <Trash2 className="w-4.5 h-4.5" />
+                                            <Trash2 className="w-5 h-5" />
                                         </button>
                                     </div>
                                 </div>
@@ -412,20 +418,20 @@ const PracticeTestsManagement = () => {
                             <div className="space-y-4">
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold text-[rgb(var(--text-muted))] uppercase px-1">User Email Address</label>
-                                    <div className="relative">
-                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[rgb(var(--text-muted))]" />
+                                    <div className="relative group">
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[rgb(var(--text-muted))] group-focus-within:text-blue-500 transition-colors" />
                                         <input 
                                             type="email" 
                                             placeholder="student@example.com"
                                             value={resetEmail}
                                             onChange={(e) => setResetEmail(e.target.value)}
-                                            className="w-full pl-11 pr-4 py-3 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                                            className="w-full h-12 pl-11 pr-4 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm"
                                         />
                                     </div>
                                 </div>
-                                <div className="flex gap-3 pt-2">
-                                    <Button variant="ghost" onClick={() => setIsResetModalOpen(false)} className="flex-1 rounded-2xl py-6">Cancel</Button>
-                                    <Button onClick={handleResetAttempts} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl py-6 shadow-lg shadow-blue-600/20">Confirm Reset</Button>
+                                <div className="flex gap-3 pt-4">
+                                    <Button variant="ghost" onClick={() => setIsResetModalOpen(false)} className="flex-1 rounded-2xl h-12 font-bold hover:bg-red-500/5 hover:text-red-500 transition-all">Cancel</Button>
+                                    <Button onClick={handleResetAttempts} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl h-12 font-bold shadow-lg shadow-blue-600/20 transition-all active:scale-95">Confirm Reset</Button>
                                 </div>
                             </div>
                         </motion.div>
@@ -488,26 +494,26 @@ const PracticeTestsManagement = () => {
                                     <div className="space-y-8">
                                         {/* Simple Analysis Header */}
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                            <div className="bg-[rgb(var(--bg-elevated))] p-5 rounded-2xl border border-[rgb(var(--border))]">
-                                                <div className="text-xs font-bold text-[rgb(var(--text-muted))] uppercase mb-2">Average Score</div>
-                                                <div className="text-3xl font-black text-[rgb(var(--accent))]">
+                                            <div className="bg-[rgb(var(--bg-elevated))] p-6 rounded-3xl border border-[rgb(var(--border))] shadow-sm group">
+                                                <div className="text-[10px] font-black text-[rgb(var(--text-muted))] uppercase tracking-widest mb-3">Average Score</div>
+                                                <div className="text-4xl font-black text-[rgb(var(--accent))] tracking-tighter">
                                                     {Math.round(analyticsData.reduce((acc, curr) => acc + curr.score, 0) / analyticsData.length)}%
                                                 </div>
-                                                <p className="text-[10px] text-[rgb(var(--text-secondary))] mt-1">Based on {analyticsData.length} total attempts</p>
+                                                <p className="text-[11px] text-[rgb(var(--text-secondary))] mt-2 font-medium opacity-70">Based on {analyticsData.length} total attempts</p>
                                             </div>
-                                            <div className="bg-[rgb(var(--bg-elevated))] p-5 rounded-2xl border border-[rgb(var(--border))]">
-                                                <div className="text-xs font-bold text-[rgb(var(--text-muted))] uppercase mb-2">Highest Score</div>
-                                                <div className="text-3xl font-black text-emerald-500">
+                                            <div className="bg-[rgb(var(--bg-elevated))] p-6 rounded-3xl border border-[rgb(var(--border))] shadow-sm group">
+                                                <div className="text-[10px] font-black text-[rgb(var(--text-muted))] uppercase tracking-widest mb-3">Highest Score</div>
+                                                <div className="text-4xl font-black text-emerald-500 tracking-tighter">
                                                     {Math.max(...analyticsData.map(d => d.score))}%
                                                 </div>
-                                                <p className="text-[10px] text-[rgb(var(--text-secondary))] mt-1">Exceptional performance recorded</p>
+                                                <p className="text-[11px] text-[rgb(var(--text-secondary))] mt-2 font-medium opacity-70">Exceptional performance recorded</p>
                                             </div>
-                                            <div className="bg-[rgb(var(--bg-elevated))] p-5 rounded-2xl border border-[rgb(var(--border))]">
-                                                <div className="text-xs font-bold text-[rgb(var(--text-muted))] uppercase mb-2">Success Rate</div>
-                                                <div className="text-3xl font-black text-purple-500">
+                                            <div className="bg-[rgb(var(--bg-elevated))] p-6 rounded-3xl border border-[rgb(var(--border))] shadow-sm group">
+                                                <div className="text-[10px] font-black text-[rgb(var(--text-muted))] uppercase tracking-widest mb-3">Success Rate</div>
+                                                <div className="text-4xl font-black text-purple-500 tracking-tighter">
                                                     {Math.round((analyticsData.filter(d => d.score >= 40).length / analyticsData.length) * 100)}%
                                                 </div>
-                                                <p className="text-[10px] text-[rgb(var(--text-secondary))] mt-1">Students scoring above 40%</p>
+                                                <p className="text-[11px] text-[rgb(var(--text-secondary))] mt-2 font-medium opacity-70">Students scoring above 40%</p>
                                             </div>
                                         </div>
 
