@@ -1128,16 +1128,26 @@ router.delete('/:sessionId/questions/:qnaId', authenticateToken, async (req, res
 
 
 // INITIALIZE Session (Generate QnA for approved session)
-router.post('/initialize/:sessionId', checkFeatureEnabled('ai_interview_generation'), async (req, res) => {
+router.post('/initialize/:sessionId', authenticateToken, checkFeatureEnabled('ai_interview_generation'), async (req, res) => {
   try {
     const { sessionId } = req.params;
     const session = await Interview.findOne({ sessionId });
 
     if (!session) return res.status(404).json({ message: 'Session not found' });
+
+    // Check permissions: Admin, Owner, or Creator
+    const isAdmin = req.user.role === 'admin';
+    const isOwner = req.user.role === 'owner';
+    const isCreator = session.creatorEmail === req.user.email;
+
+    if (!isAdmin && !isOwner && !isCreator) {
+      return res.status(403).json({ message: 'Unauthorized. Only admin, owner, or session creator can initialize this session.' });
+    }
+
     if (session.status !== 'approved') return res.status(400).json({ message: 'Session not approved' });
     if (session.qna && session.qna.length > 0) return res.status(400).json({ message: 'Session already initialized' });
 
-    console.log(`Initializing session ${sessionId}...`);
+    console.log(`Initializing session ${sessionId} by ${req.user.email}...`);
 
     // Use LangChain chain to generate Q&A
     const qaChain = await createInterviewQAChain();

@@ -96,9 +96,12 @@ export const Dashboard = () => {
     if (location.state?.highlightId && cards.length > 0) {
       const targetId = location.state.highlightId;
       const targetCard = cards.find(c => c.sessionId === targetId || c._id === targetId);
-      if (targetCard) {
+      if (targetCard && targetCard.qna && targetCard.qna.length > 0) {
         navigate(`/interview-prep/${targetCard.sessionId}`);
         // Clear state so it doesn't reopen on refresh
+        window.history.replaceState({}, document.title);
+      } else if (targetCard) {
+        // If it's empty, just highlight it (stay on dashboard)
         window.history.replaceState({}, document.title);
       }
     }
@@ -526,7 +529,7 @@ export const Dashboard = () => {
                             <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30 w-full justify-center py-1">Pending Approval</Badge>
                           ) : card.status === 'rejected' ? (
                             <Badge className="bg-red-500/20 text-red-500 border-red-500/30 w-full justify-center py-1">Rejected</Badge>
-                          ) : (!card.qna || card.qna.length === 0) ? (
+                          ) : ((!card.qna || card.qna.length === 0) && (card.creatorEmail === userEmail || userRole === 'admin' || userRole === 'owner')) ? (
                             <motion.button
                               whileHover={{ scale: 1.02 }}
                               whileTap={{ scale: 0.98 }}
@@ -535,6 +538,8 @@ export const Dashboard = () => {
                             >
                               Create Now <div className="w-2 h-2 rounded-full bg-white animate-ping" />
                             </motion.button>
+                          ) : (!card.qna || card.qna.length === 0) ? (
+                            <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 w-full justify-center py-1">Initializing...</Badge>
                           ) : null}
                         </div>
 
@@ -655,7 +660,7 @@ export const Dashboard = () => {
                             <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">Pending</Badge>
                           ) : card.status === 'rejected' ? (
                             <Badge className="bg-red-500/20 text-red-500 border-red-500/30">Rejected</Badge>
-                          ) : (!card.qna || card.qna.length === 0) ? (
+                          ) : ((!card.qna || card.qna.length === 0) && (card.creatorEmail === userEmail || userRole === 'admin' || userRole === 'owner')) ? (
                             <motion.button
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
@@ -664,6 +669,8 @@ export const Dashboard = () => {
                             >
                               Create Now
                             </motion.button>
+                          ) : (!card.qna || card.qna.length === 0) ? (
+                            <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">Initializing...</Badge>
                           ) : (
                             <motion.button
                               whileHover={{ scale: 1.1 }}
