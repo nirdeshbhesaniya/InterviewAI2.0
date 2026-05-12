@@ -283,8 +283,12 @@ const MCQTest = () => {
         const endTime = new Date();
         setTestEndTime(endTime);
 
-        // Calculate actual time spent in seconds
-        const actualTimeSpent = testStartTime ? Math.floor((endTime - testStartTime) / 1000) : (formData.numberOfQuestions * 120) - timeLeft;
+        const questionsCount = questions.length;
+        const manualTimeLimit = formData.timeLimit;
+        const totalAllowedSeconds = (manualTimeLimit || (questionsCount * 2)) * 60;
+
+        // Calculate actual time spent in seconds based on timeLeft for consistency with UI
+        const actualTimeSpent = totalAllowedSeconds - timeLeft;
 
         // Exit fullscreen
         try {
@@ -519,7 +523,7 @@ const MCQTest = () => {
 
     // Timer effect - Uses absolute time for strict enforcement and resilience
     useEffect(() => {
-        if (currentStep === 'test' && testStartTime) {
+        if (currentStep === 'test' && testStartTime && !loading) {
             const timer = setInterval(() => {
                 const now = new Date();
                 const questionsCount = questions.length;
