@@ -245,6 +245,7 @@ async function evaluateAnswers(questions, userAnswers, userInfo, timeSpent = 0) 
         detailedResults.push({
             questionNumber: index + 1,
             question: question.question,
+            codeSnippet: question.codeSnippet,
             userAnswer: userAnswer !== undefined ? question.options[userAnswer] : 'Not Answered',
             correctAnswer: question.options[question.correctAnswer],
             isCorrect: isCorrect,
@@ -312,27 +313,31 @@ async function sendResultsEmail(userInfo, results, topic) {
 
     // Build detailed results HTML
     const detailedResultsHTML = results.detailedResults.map((result, index) => `
-        <div style="border: 1px solid ${result.isCorrect ? '#D1FAE5' : '#FECACA'}; margin: 20px 0; padding: 20px; border-radius: 8px; background: ${result.isCorrect ? '#ECFDF5' : '#FEF2F2'};">
+        <div style="border: 1px solid ${result.isCorrect ? '#DCFCE7' : '#FEE2E2'}; margin: 20px 0; padding: 20px; border-radius: 12px; background: ${result.isCorrect ? '#F0FDF4' : '#FEF2F2'};">
             <div style="margin-bottom: 15px;">
-                <p style="margin: 0 0 12px 0; font-weight: bold; font-size: 16px; color: #111827;">Q${result.questionNumber}</p>
-                <div style="margin: 10px 0; line-height: 1.6; color: #374151;">${formatForEmail(result.question)}</div>
+                <p style="margin: 0 0 12px 0; font-weight: bold; font-size: 16px; color: #0F172A;">Question ${result.questionNumber}</p>
+                <div style="margin: 10px 0; line-height: 1.6; color: #334155;">${formatForEmail(result.question)}</div>
+                ${result.codeSnippet ? `
+                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 13px; color: #1E293B; overflow-x: auto;">
+                    <pre style="margin: 0; white-space: pre-wrap;">${result.codeSnippet}</pre>
+                </div>` : ''}
             </div>
             
-            <div style="background: #FFFFFF; padding: 15px; border-radius: 6px; margin: 15px 0; border: 1px solid #E5E7EB;">
-                <p style="margin: 0 0 10px 0; font-weight: 600; color: #6B7280; font-size: 13px; text-transform: uppercase;">Your Answer:</p>
-                <div style="margin: 5px 0; padding: 10px; background: #F9FAFB; border-radius: 4px; color: #1F2937; border-left: 3px solid ${result.isCorrect ? '#10B981' : '#6366F1'};">${formatForEmail(result.userAnswer)}</div>
+            <div style="background: #FFFFFF; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #E2E8F0;">
+                <p style="margin: 0 0 10px 0; font-weight: 600; color: #64748B; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Your Answer:</p>
+                <div style="margin: 5px 0; padding: 12px; background: #F8FAFC; border-radius: 6px; color: #1E293B; border-left: 4px solid ${result.isCorrect ? '#22C55E' : '#6366F1'};">${formatForEmail(result.userAnswer)}</div>
                 
-                <p style="margin: 20px 0 10px 0; font-weight: 600; color: #6B7280; font-size: 13px; text-transform: uppercase;">Correct Answer:</p>
-                <div style="margin: 5px 0; padding: 10px; background: #F9FAFB; border-radius: 4px; color: #1F2937; border-left: 3px solid #10B981;">${formatForEmail(result.correctAnswer)}</div>
+                <p style="margin: 20px 0 10px 0; font-weight: 600; color: #64748B; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Correct Answer:</p>
+                <div style="margin: 5px 0; padding: 12px; background: #F8FAFC; border-radius: 6px; color: #1E293B; border-left: 4px solid #22C55E;">${formatForEmail(result.correctAnswer)}</div>
             </div>
             
-            <p style="margin: 15px 0 10px 0; font-weight: bold; color: ${result.isCorrect ? '#059669' : '#DC2626'}; font-size: 15px;">
-                ${result.isCorrect ? '✅ Correct' : '❌ Incorrect'}
+            <p style="margin: 15px 0 10px 0; font-weight: bold; color: ${result.isCorrect ? '#16A34A' : '#DC2626'}; font-size: 15px;">
+                ${result.isCorrect ? 'Correct' : 'Incorrect'}
             </p>
             
             ${result.explanation ? `
-                <div style="margin: 15px 0 0 0; padding: 15px; background: #EFF6FF; border-left: 4px solid #3B82F6; border-radius: 6px;">
-                    <p style="margin: 0 0 8px 0; font-weight: 600; color: #1E40AF;">💡 Explanation:</p>
+                <div style="margin: 15px 0 0 0; padding: 15px; background: #EFF6FF; border-left: 4px solid #3B82F6; border-radius: 8px;">
+                    <p style="margin: 0 0 8px 0; font-weight: 600; color: #1E40AF;">Explanation:</p>
                     <div style="color: #1E3A8A; line-height: 1.6; font-size: 14px;">${formatForEmail(result.explanation)}</div>
                 </div>
             ` : ''}
@@ -342,34 +347,34 @@ async function sendResultsEmail(userInfo, results, topic) {
     // Main content
     const emailContent = `
         <div>
-            <h2 style="color: #111827; margin-top: 0; font-size: 24px;">Hello ${name}! 👋</h2>
+            <h2 style="color: #0F172A; margin-top: 0; font-size: 24px;">Hello ${name}</h2>
             
-            <div style="background: #F9FAFB; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 5px solid #3B82F6; border: 1px solid #E5E7EB;">
-                <h3 style="color: #111827; margin-top: 0; font-size: 20px;">📊 Test Summary</h3>
-                <table style="width: 100%; color: #374151; border-spacing: 0;">
-                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;"><strong style="color: #6B7280;">Topic:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;">${topic}</td></tr>
-                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;"><strong style="color: #6B7280;">Total Questions:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;">${results.totalQuestions}</td></tr>
-                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;"><strong style="color: #6B7280;">Correct Answers:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;">${results.correctAnswers}</td></tr>
-                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;"><strong style="color: #6B7280;">Score:</strong></td><td style="padding: 8px 0; font-size: 20px; font-weight: bold; color: ${results.score >= 70 ? '#059669' : results.score >= 50 ? '#D97706' : '#DC2626'}; border-bottom: 1px solid #F3F4F6;">${results.score}%</td></tr>
-                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;"><strong style="color: #6B7280;">Grade:</strong></td><td style="padding: 8px 0; font-weight: bold; color: #111827; border-bottom: 1px solid #F3F4F6;">${results.grade}</td></tr>
-                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;"><strong style="color: #6B7280;">Time Taken:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;">${Math.floor(results.timeSpent / 60)}m ${results.timeSpent % 60}s</td></tr>
-                    <tr><td style="padding: 8px 0;"><strong style="color: #6B7280;">Test Date:</strong></td><td style="padding: 8px 0;">${new Date(results.timestamp).toLocaleString()}</td></tr>
+            <div style="background: #F8FAFC; padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 5px solid #3B82F6; border: 1px solid #E2E8F0;">
+                <h3 style="color: #0F172A; margin-top: 0; font-size: 20px;">Test Summary</h3>
+                <table style="width: 100%; color: #334155; border-spacing: 0;">
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #E2E8F0;"><strong style="color: #64748B;">Topic:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #E2E8F0;">${topic}</td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #E2E8F0;"><strong style="color: #64748B;">Total Questions:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #E2E8F0;">${results.totalQuestions}</td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #E2E8F0;"><strong style="color: #64748B;">Correct Answers:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #E2E8F0;">${results.correctAnswers}</td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #E2E8F0;"><strong style="color: #64748B;">Score:</strong></td><td style="padding: 8px 0; font-size: 20px; font-weight: bold; color: ${results.score >= 70 ? '#22C55E' : results.score >= 50 ? '#F59E0B' : '#EF4444'}; border-bottom: 1px solid #E2E8F0;">${results.score}%</td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #E2E8F0;"><strong style="color: #64748B;">Grade:</strong></td><td style="padding: 8px 0; font-weight: bold; color: #0F172A; border-bottom: 1px solid #E2E8F0;">${results.grade}</td></tr>
+                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #E2E8F0;"><strong style="color: #64748B;">Time Taken:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #E2E8F0;">${Math.floor(results.timeSpent / 60)}m ${results.timeSpent % 60}s</td></tr>
+                    <tr><td style="padding: 8px 0;"><strong style="color: #64748B;">Test Date:</strong></td><td style="padding: 8px 0;">${new Date(results.timestamp).toLocaleString()}</td></tr>
                 </table>
             </div>
             
-            <div style="background: #EFF6FF; padding: 20px; border-radius: 8px; margin: 25px 0; border: 1px solid #BFDBFE;">
-                <h3 style="color: #1E40AF; margin-top: 0; font-size: 18px;">🤖 AI Feedback</h3>
+            <div style="background: #EFF6FF; padding: 20px; border-radius: 12px; margin: 25px 0; border: 1px solid #BFDBFE;">
+                <h3 style="color: #1E40AF; margin-top: 0; font-size: 18px;">AI Feedback</h3>
                 <p style="line-height: 1.6; color: #1E3A8A; white-space: pre-line; margin: 0;">${results.aiFeedback}</p>
             </div>
             
             <div style="margin: 30px 0;">
-                <h3 style="color: #111827; font-size: 22px; margin-bottom: 20px;">📝 Detailed Results</h3>
+                <h3 style="color: #0F172A; font-size: 22px; margin-bottom: 20px;">Detailed Results</h3>
                 ${detailedResultsHTML}
             </div>
             
-            <div style="text-align: center; margin-top: 40px; padding: 25px; background: #F9FAFB; border-radius: 8px; border: 1px solid #E5E7EB;">
-                <p style="margin: 0 0 15px 0; color: #374151; font-size: 16px;">🚀 Want to improve your skills?</p>
-                <p style="margin: 0; color: #6B7280;">Visit <a href="https://interviewai.tech" style="color: #2563EB; font-weight: bold; text-decoration: none;">Interview AI</a> for more practice tests!</p>
+            <div style="text-align: center; margin-top: 40px; padding: 25px; background: #F8FAFC; border-radius: 12px; border: 1px solid #E2E8F0;">
+                <p style="margin: 0 0 15px 0; color: #334155; font-size: 16px;">Want to improve your skills?</p>
+                <p style="margin: 0; color: #64748B;">Visit <a href="https://interviewai.tech" style="color: #3B82F6; font-weight: bold; text-decoration: none;">Interview AI</a> for more practice tests!</p>
             </div>
         </div>
     `;
@@ -377,12 +382,12 @@ async function sendResultsEmail(userInfo, results, topic) {
     // Use the new email service with custom template
     const fullEmailHTML = getEmailTemplate(emailContent, {
         preheader: `Your MCQ Test Results - ${results.score}% Score`,
-        title: `📊 MCQ Test Results - ${results.score}%`
+        title: `MCQ Test Results - ${results.score}%`
     });
 
     await sendCustomEmail(
         email,
-        `🎯 Your MCQ Test Results - ${results.score}% Score on ${topic}`,
+        `Your MCQ Test Results - ${results.score}% Score on ${topic}`,
         fullEmailHTML,
         `MCQ Test Results\n\nTopic: ${topic}\nScore: ${results.score}%\nGrade: ${results.grade}\nCorrect: ${results.correctAnswers}/${results.totalQuestions}`
     );
@@ -539,7 +544,6 @@ router.post('/submit', async (req, res) => {
         // Use provided questions if available, otherwise regenerate (fallback for old tests)
         if (practiceTestId) {
             console.log(`Evaluating Practice Test: ${practiceTestId}`);
-            const PracticeTest = require('../models/PracticeTest');
             const practiceTest = await PracticeTest.findById(practiceTestId);
             if (!practiceTest) {
                 return res.status(404).json({ success: false, message: 'Practice test not found' });
@@ -556,12 +560,22 @@ router.post('/submit', async (req, res) => {
         // Evaluate answers
         const results = await evaluateAnswers(questionsWithAnswers, answers, userInfo, timeSpent);
 
-        // Determine test status based on security warnings
+        // Determine test status based on security warnings and time
         let testStatus = 'completed';
         const totalWarnings = (securityWarnings.fullscreenExits || 0) + (securityWarnings.tabSwitches || 0);
+        
+        // Calculate allowed time
+        let allowedTimeSeconds = numberOfQuestions * 120; // Default 2 mins per question
+        if (practiceTestId) {
+            const pt = await PracticeTest.findById(practiceTestId);
+            if (pt && pt.timeLimit) {
+                allowedTimeSeconds = pt.timeLimit * 60;
+            }
+        }
+
         if (totalWarnings >= 3) {
             testStatus = 'auto-submitted';
-        } else if (timeSpent >= numberOfQuestions * 120) {
+        } else if (timeSpent >= allowedTimeSeconds) {
             testStatus = 'timeout';
         }
 
@@ -1030,8 +1044,7 @@ router.get('/practice-tests/:id', checkFeatureEnabled('practice_tests'), async (
             return res.status(404).json({ success: false, message: 'Test not found' });
         }
 
-        // Increment attempts count
-        await PracticeTest.findByIdAndUpdate(id, { $inc: { attempts: 1 } });
+        // Attempts count (Hits) is now handled in the /start route to be more accurate
 
         // Transform for frontend (hide correct answers and explanations initially? 
         // Existing MCQTest expects questions. For practice, we might want to prevent cheating by stripping answers,

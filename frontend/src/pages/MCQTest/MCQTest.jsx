@@ -165,6 +165,17 @@ const MCQTest = () => {
                         const hoursSinceUpdate = (now - lastUpdated) / (1000 * 60 * 60);
 
                         if (hoursSinceUpdate < 4) {
+                            const startTime = parsed.testStartTime ? new Date(parsed.testStartTime) : null;
+                            const questionsCount = parsed.questions.length;
+                            const manualTimeLimit = parsed.formData.timeLimit;
+                            const totalAllowedSeconds = (manualTimeLimit || (questionsCount * 2)) * 60;
+                            
+                            let remaining = parsed.timeLeft;
+                            if (startTime) {
+                                const elapsed = Math.floor((now - startTime) / 1000);
+                                remaining = Math.max(0, totalAllowedSeconds - elapsed);
+                            }
+
                             setQuestions(parsed.questions);
                             setQuestionsWithAnswers(parsed.questionsWithAnswers || []);
                             setAnswers(parsed.answers || {});
@@ -172,17 +183,22 @@ const MCQTest = () => {
                             setMarkedForReview(parsed.markedForReview || {});
                             setVisitedQuestions(parsed.visitedQuestions || {});
                             setCurrentQuestion(parsed.currentQuestion || 0);
-                            setTimeLeft(parsed.timeLeft);
-                            setTestStartTime(parsed.testStartTime ? new Date(parsed.testStartTime) : null);
+                            setTimeLeft(remaining);
+                            setTestStartTime(startTime);
                             setFormData(parsed.formData);
                             setAttemptId(parsed.attemptId);
                             setHasAttempted(true);
                             setCurrentStep('test');
-                            
-                            toast.success('Resuming your active session...', {
-                                icon: '🔄',
-                                duration: 3000
-                            });
+
+                            if (remaining === 0) {
+                                toast.error('Your test session has timed out.');
+                                // The timer useEffect will trigger handleSubmitTest on next tick
+                            } else {
+                                toast.success('Resuming your active session...', {
+                                    icon: '🔄',
+                                    duration: 3000
+                                });
+                            }
                             return; // Stop here, session resumed successfully
                         }
                     }
@@ -501,21 +517,30 @@ const MCQTest = () => {
         );
     };
 
-    // Timer effect
+    // Timer effect - Uses absolute time for strict enforcement and resilience
     useEffect(() => {
-        if (currentStep === 'test' && timeLeft > 0) {
+        if (currentStep === 'test' && testStartTime) {
             const timer = setInterval(() => {
-                setTimeLeft(prev => {
-                    if (prev <= 1) {
-                        handleSubmitTest();
-                        return 0;
-                    }
-                    return prev - 1;
-                });
+                const now = new Date();
+                const questionsCount = questions.length;
+                const manualTimeLimit = formData.timeLimit;
+                // Use manual limit or default 2 mins per question
+                const totalAllowedSeconds = (manualTimeLimit || (questionsCount * 2)) * 60;
+                
+                const elapsed = Math.floor((now - testStartTime) / 1000);
+                const remaining = Math.max(0, totalAllowedSeconds - elapsed);
+                
+                setTimeLeft(remaining);
+                
+                if (remaining <= 0) {
+                    clearInterval(timer);
+                    console.log('⏰ Timer reached zero, auto-submitting test...');
+                    handleSubmitTest();
+                }
             }, 1000);
             return () => clearInterval(timer);
         }
-    }, [currentStep, timeLeft, handleSubmitTest]);
+    }, [currentStep, testStartTime, questions.length, formData.timeLimit, handleSubmitTest]);
 
     // Fullscreen management and hide header/footer when test starts
     useEffect(() => {
