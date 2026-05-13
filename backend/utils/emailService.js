@@ -202,15 +202,21 @@ const getRegistrationOTPEmailContent = (otp, fullName) => {
         Welcome to Interview AI
       </h2>
       <p style="color: #475569; margin: 0 0 32px 0; font-size: 17px;">
-        Hi ${fullName}, please verify your email address to get started.
+        Hi ${fullName}, please use the verification code below to complete your registration.
       </p>
 
-      <div style="text-align: center;">
-        <a href="https://interviewai.tech/verify?otp=${otp}" 
-           style="display: inline-block; background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); color: #FFFFFF; padding: 16px 36px; border-radius: 12px; font-size: 16px; font-weight: 700; text-decoration: none; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);">
-          Verify Email Address
-        </a>
+      <div style="background-color: #F8FAFC; border-radius: 12px; padding: 32px; text-align: center; border: 1px solid #E2E8F0;">
+        <div style="font-size: 42px; font-weight: 800; color: #3B82F6; letter-spacing: 6px; margin-bottom: 8px;">
+            ${otp}
+        </div>
+        <p style="color: #64748B; margin: 0; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+            Verification Code
+        </p>
       </div>
+
+      <p style="color: #64748B; font-size: 15px; margin-top: 32px;">
+        Enter this code in the application to verify your account. The code is valid for 10 minutes.
+      </p>
     </div>
   `;
 };
