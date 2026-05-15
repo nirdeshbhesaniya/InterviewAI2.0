@@ -1,9 +1,113 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Trash2, CheckCircle, AlertCircle, Save } from 'lucide-react';
+import { X, Plus, Trash2, CheckCircle, AlertCircle, Save, Upload, FileText, Sparkles } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import toast from 'react-hot-toast';
+
+/**
+ * Parse bulk MCQ text into structured question objects.
+ * Supports formats:
+ *   1. Question text?
+ *   ```
+ *   code here
+ *   ```
+ *   A) Option A  /  A. Option A  /  a) Option A
+ *   B) Option B
+ *   C) Option C
+ *   D) Option D
+ *   ANSWER: A  /  Answer: B  /  Correct: C  /  Right Answer: D
+ *   Explanation: ...
+ *
+ * Code snippets can also be specified with:
+ *   Code: <single-line code>
+ *   Code Snippet: <single-line code>
+ */
+function parseBulkMCQ(text) {
+    const parsed = [];
+    if (!text || !text.trim()) return parsed;
+
+    // Split into question blocks by numbered pattern (1. / 1) / Q1.)
+    const blocks = text.split(/(?=^\s*(?:Q?\.?\s*)?\d+[.):]\s)/m).filter(b => b.trim());
+
+    for (const block of blocks) {
+        try {
+            // Extract question text (everything before first option)
+            const qMatch = block.match(/^\s*(?:Q?\.?\s*)?\d+[.):]\s*([\s\S]*?)(?=^\s*[Aa][.)\s])/m);
+            if (!qMatch) continue;
+            let rawQuestionText = qMatch[1].trim();
+            if (!rawQuestionText) continue;
+
+            // --- Extract code snippets from question text ---
+            let codeSnippet = '';
+
+            // 1. Fenced code blocks: ```lang\ncode\n``` or ```\ncode\n```
+            const fencedCodeMatch = rawQuestionText.match(/```(?:\w*)?\n?([\s\S]*?)```/);
+            if (fencedCodeMatch) {
+                codeSnippet = fencedCodeMatch[1].trim();
+                // Remove the code block from question text
+                rawQuestionText = rawQuestionText.replace(/```(?:\w*)?\n?[\s\S]*?```/, '').trim();
+            }
+
+            // 2. "Code:" or "Code Snippet:" labeled blocks (if no fenced block found)
+            if (!codeSnippet) {
+                const labeledCodeMatch = rawQuestionText.match(/(?:code\s*snippet|code)\s*[:=]\s*([\s\S]+?)$/im);
+                if (labeledCodeMatch) {
+                    codeSnippet = labeledCodeMatch[1].trim();
+                    rawQuestionText = rawQuestionText.replace(/(?:code\s*snippet|code)\s*[:=]\s*[\s\S]+?$/im, '').trim();
+                }
+            }
+
+            // 3. Also check the full block for a standalone "Code Snippet:" section between question and options
+            if (!codeSnippet) {
+                const standaloneCode = block.match(/(?:code\s*snippet|code)\s*[:=]\s*([\s\S]*?)(?=^\s*[Aa][.)\s])/im);
+                if (standaloneCode) {
+                    codeSnippet = standaloneCode[1].trim();
+                }
+            }
+
+            const questionText = rawQuestionText;
+
+            // Extract options A-D
+            const options = ['', '', '', ''];
+            const optPatterns = [
+                /^\s*[Aa][.)\s]\s*(.+)/m,
+                /^\s*[Bb][.)\s]\s*(.+)/m,
+                /^\s*[Cc][.)\s]\s*(.+)/m,
+                /^\s*[Dd][.)\s]\s*(.+)/m
+            ];
+            for (let i = 0; i < 4; i++) {
+                const m = block.match(optPatterns[i]);
+                if (m) options[i] = m[1].trim();
+            }
+
+            // Extract correct answer
+            const ansMatch = block.match(/(?:answer|correct|right\s*answer)\s*[:=]\s*([A-Da-d])/i);
+            let correctAnswer = 0;
+            if (ansMatch) {
+                correctAnswer = ansMatch[1].toUpperCase().charCodeAt(0) - 65;
+            }
+
+            // Extract explanation if present
+            const expMatch = block.match(/(?:explanation|reason)\s*[:=]\s*(.+)/i);
+            const explanation = expMatch ? expMatch[1].trim() : '';
+
+            if (options.every(o => o)) {
+                parsed.push({
+                    question: questionText,
+                    options,
+                    correctAnswer,
+                    explanation,
+                    codeSnippet
+                });
+            }
+        } catch (e) {
+            // Skip unparseable blocks
+            continue;
+        }
+    }
+    return parsed;
+}
 
 const toLocalDateTimeString = (isoString) => {
     if (!isoString) return '';
@@ -15,6 +119,8 @@ const toLocalDateTimeString = (isoString) => {
 
 const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
     const [step, setStep] = useState(1);
+    const [showBulkImport, setShowBulkImport] = useState(false);
+    const [bulkText, setBulkText] = useState('');
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -60,6 +166,8 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
                 });
                 setStep(1);
             }
+            setShowBulkImport(false);
+            setBulkText('');
         }
     }, [isOpen, testToEdit]);
 
@@ -82,6 +190,21 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
                 }
             ]
         }));
+    };
+
+    const handleBulkImport = () => {
+        const parsed = parseBulkMCQ(bulkText);
+        if (parsed.length === 0) {
+            toast.error('Could not parse any questions. Please check the format.');
+            return;
+        }
+        setFormData(prev => ({
+            ...prev,
+            questions: [...prev.questions, ...parsed]
+        }));
+        toast.success(`${parsed.length} question${parsed.length > 1 ? 's' : ''} imported successfully!`);
+        setBulkText('');
+        setShowBulkImport(false);
     };
 
     const removeQuestion = (index) => {
@@ -300,16 +423,114 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
 
                     {/* Questions Section */}
                     <div className="space-y-4">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between flex-wrap gap-3">
                             <h3 className="text-lg font-semibold text-[rgb(var(--text-primary))]">Questions ({formData.questions.length})</h3>
-                            <Button onClick={addQuestion} size="sm" className="bg-[rgb(var(--accent))] text-white hover:opacity-90">
-                                <Plus className="w-4 h-4 mr-2" /> Add Question
-                            </Button>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    onClick={() => setShowBulkImport(!showBulkImport)}
+                                    size="sm"
+                                    className={`border transition-all ${
+                                        showBulkImport
+                                            ? 'bg-purple-500/10 text-purple-600 border-purple-500/30 hover:bg-purple-500/20'
+                                            : 'bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-secondary))] border-[rgb(var(--border))] hover:border-purple-500/40 hover:text-purple-600'
+                                    }`}
+                                >
+                                    <Upload className="w-4 h-4 mr-2" /> Bulk Import
+                                </Button>
+                                <Button onClick={addQuestion} size="sm" className="bg-[rgb(var(--accent))] text-white hover:opacity-90">
+                                    <Plus className="w-4 h-4 mr-2" /> Add Question
+                                </Button>
+                            </div>
                         </div>
 
-                        {formData.questions.length === 0 ? (
+                        {/* Bulk Import Panel */}
+                        <AnimatePresence>
+                            {showBulkImport && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="overflow-hidden"
+                                >
+                                    <div className="bg-gradient-to-br from-purple-500/5 to-blue-500/5 border border-purple-500/20 rounded-2xl p-5 space-y-4">
+                                        <div className="flex items-start gap-3">
+                                            <div className="bg-purple-500/10 p-2 rounded-xl shrink-0">
+                                                <Sparkles className="w-5 h-5 text-purple-500" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-bold text-[rgb(var(--text-primary))] mb-1">Bulk Import MCQ Questions</h4>
+                                                <p className="text-xs text-[rgb(var(--text-secondary))] leading-relaxed">
+                                                    Paste all your MCQ questions below. Each question should follow this format:
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Format examples - two columns */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div className="bg-[rgb(var(--bg-main))] border border-[rgb(var(--border))] rounded-xl p-3 text-xs font-mono text-[rgb(var(--text-secondary))] leading-relaxed">
+                                                <div className="text-[10px] font-bold text-[rgb(var(--text-muted))] uppercase tracking-wider mb-2 font-sans">Basic Format</div>
+                                                <span className="text-purple-500">1.</span> What is the capital of France?<br/>
+                                                <span className="text-blue-500">A)</span> London<br/>
+                                                <span className="text-blue-500">B)</span> Paris<br/>
+                                                <span className="text-blue-500">C)</span> Berlin<br/>
+                                                <span className="text-blue-500">D)</span> Madrid<br/>
+                                                <span className="text-emerald-500">Answer: B</span><br/>
+                                                <span className="text-amber-500">Explanation: Paris is the capital.</span>
+                                            </div>
+                                            <div className="bg-[rgb(var(--bg-main))] border border-[rgb(var(--border))] rounded-xl p-3 text-xs font-mono text-[rgb(var(--text-secondary))] leading-relaxed">
+                                                <div className="text-[10px] font-bold text-[rgb(var(--text-muted))] uppercase tracking-wider mb-2 font-sans">With Code Snippet</div>
+                                                <span className="text-purple-500">2.</span> What will this code output?<br/>
+                                                <span className="text-cyan-500">{'```'}</span><br/>
+                                                <span className="text-cyan-500">console.log(typeof null);</span><br/>
+                                                <span className="text-cyan-500">{'```'}</span><br/>
+                                                <span className="text-blue-500">A)</span> null<br/>
+                                                <span className="text-blue-500">B)</span> object<br/>
+                                                <span className="text-blue-500">C)</span> undefined<br/>
+                                                <span className="text-blue-500">D)</span> string<br/>
+                                                <span className="text-emerald-500">Answer: B</span>
+                                            </div>
+                                        </div>
+
+                                        <textarea
+                                            value={bulkText}
+                                            onChange={(e) => setBulkText(e.target.value)}
+                                            rows={10}
+                                            className="w-full px-4 py-3 bg-[rgb(var(--bg-main))] border border-[rgb(var(--border))] rounded-xl focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500/50 outline-none text-[rgb(var(--text-primary))] text-sm font-mono placeholder:text-[rgb(var(--text-muted))] resize-y"
+                                            placeholder={`1. What is the output of this code?\n\`\`\`\nlet x = 10;\nconsole.log(x++);\n\`\`\`\nA) 10\nB) 11\nC) undefined\nD) NaN\nAnswer: A\nExplanation: Post-increment returns original value.\n\n2. Your next question here?\nA) Option A\nB) Option B\nC) Option C\nD) Option D\nAnswer: C`}
+                                        />
+
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-xs text-[rgb(var(--text-muted))]">
+                                                <FileText className="w-3.5 h-3.5 inline mr-1" />
+                                                Questions will be parsed and added as editable entries below.
+                                            </p>
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() => { setShowBulkImport(false); setBulkText(''); }}
+                                                    className="text-[rgb(var(--text-muted))] hover:text-red-500"
+                                                >
+                                                    Cancel
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    onClick={handleBulkImport}
+                                                    disabled={!bulkText.trim()}
+                                                    className="bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-40 shadow-lg shadow-purple-600/20"
+                                                >
+                                                    <Sparkles className="w-4 h-4 mr-2" /> Parse & Import
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {formData.questions.length === 0 && !showBulkImport ? (
                             <div className="text-center py-12 border-2 border-dashed border-[rgb(var(--border))] rounded-xl bg-[rgb(var(--bg-elevated))]/30 text-[rgb(var(--text-muted))]">
-                                No questions added yet. Click "Add Question" to start.
+                                No questions added yet. Click "Add Question" or use "Bulk Import" to get started.
                             </div>
                         ) : (
                             <div className="space-y-6">
