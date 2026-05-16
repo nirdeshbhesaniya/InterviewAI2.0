@@ -140,10 +140,11 @@ const MCQTest = () => {
         if (key) localStorage.removeItem(key);
     }, [getPersistenceKey]);
 
-    // Auto-save effect
+    // Auto-save effect — debounced to avoid blocking UI on every selection
     useEffect(() => {
         if (currentStep === 'test') {
-            saveProgress();
+            const timeout = setTimeout(() => saveProgress(), 500);
+            return () => clearTimeout(timeout);
         }
     }, [saveProgress, currentStep, answers, tempAnswer, currentQuestion, timeLeft, markedForReview]);
 
@@ -366,7 +367,8 @@ const MCQTest = () => {
     }, [answers, testStartTime, formData, timeLeft, user, questionsWithAnswers, fullscreenWarnings, tabSwitchWarnings, setCurrentStep, setResults, setTestEndTime, setIsFullscreen, setLoading]);
 
     // Enhanced components for markdown rendering with better code support
-    const components = {
+    // Memoize ReactMarkdown components to prevent unnecessary re-renders on option selection
+    const components = React.useMemo(() => ({
         code({ node, inline, className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || '');
             const language = match ? match[1] : '';
@@ -497,10 +499,10 @@ const MCQTest = () => {
                 </td>
             );
         }
-    };
+    }), []);
 
-    // Utility function to detect if content contains code
-    const containsCode = (text) => {
+    // Utility function to detect if content contains code — memoized to avoid re-computation
+    const containsCode = useCallback((text) => {
         if (!text) return false;
         return (
             text.includes('```') ||
@@ -519,7 +521,7 @@ const MCQTest = () => {
             /\b(for|while|if|else)\s*\(/.test(text) ||
             (text.includes('<') && text.includes('>') && text.includes('/'))
         );
-    };
+    }, []);
 
     // Timer effect - Uses absolute time for strict enforcement and resilience
     useEffect(() => {
@@ -1288,12 +1290,9 @@ const MCQTest = () => {
 
                                     <div className="grid grid-cols-1 gap-3">
                                         {questions[currentQuestion]?.options?.map((option, optionIndex) => (
-                                            <motion.label
+                                            <label
                                                 key={optionIndex}
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ duration: 0.1, delay: optionIndex * 0.02 }}
-                                                className={`group flex items-start p-5 border-2 rounded-xl cursor-pointer transition-all duration-100 hover:shadow-md ${tempAnswer === optionIndex
+                                                className={`group flex items-start p-5 border-2 rounded-xl cursor-pointer transition-colors duration-75 hover:shadow-md ${tempAnswer === optionIndex
                                                     ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10 shadow-lg shadow-[rgb(var(--accent))]/20'
                                                     : 'border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/50 hover:bg-[rgb(var(--bg-body-alt))]'
                                                     }`}
@@ -1306,17 +1305,12 @@ const MCQTest = () => {
                                                     onChange={() => handleAnswerSelect(currentQuestion, optionIndex)}
                                                     className="sr-only"
                                                 />
-                                                <div className={`flex-shrink-0 w-5 h-5 border-2 rounded-full mr-4 mt-1 flex items-center justify-center transition-all duration-100 ${tempAnswer === optionIndex
+                                                <div className={`flex-shrink-0 w-5 h-5 border-2 rounded-full mr-4 mt-1 flex items-center justify-center transition-colors duration-75 ${tempAnswer === optionIndex
                                                     ? 'border-primary bg-primary shadow-md'
                                                     : 'border-[rgb(var(--border-subtle))] group-hover:border-primary'
                                                     }`}>
                                                     {tempAnswer === optionIndex && (
-                                                        <motion.div
-                                                            initial={{ scale: 0 }}
-                                                            animate={{ scale: 1 }}
-                                                            transition={{ duration: 0.1 }}
-                                                            className="w-2 h-2 bg-white rounded-full"
-                                                        />
+                                                        <div className="w-2 h-2 bg-white rounded-full" />
                                                     )}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
@@ -1342,7 +1336,7 @@ const MCQTest = () => {
                                                         </ReactMarkdown>
                                                     </div>
                                                 </div>
-                                            </motion.label>
+                                            </label>
                                         ))}
                                     </div>
                                 </div>
@@ -1470,7 +1464,7 @@ const MCQTest = () => {
                             </button>
 
                             {/* Time Chip */}
-                            <div className="px-3 py-1 rounded-full bg-[rgb(var(--bg-body))] text-xs text-[rgb(var(--text-muted))] flex items-center justify-center whitespace-nowrap">
+                            <div className="px-3 py-1 rounded-full bg-[rgb(var(--bg-body))] text-xs text-[rgb(var(--text-secondary))] flex items-center justify-center whitespace-nowrap">
                                 <Clock className="w-3 h-3 mr-1" />
                                 {formatTime(timeLeft)}
                             </div>
@@ -1578,12 +1572,9 @@ const MCQTest = () => {
                                     {/* Options */}
                                     <div className="space-y-3">
                                         {questions[currentQuestion]?.options?.map((option, optionIndex) => (
-                                            <motion.label
+                                            <label
                                                 key={optionIndex}
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: optionIndex * 0.05 }}
-                                                className={`flex items-start gap-3 bg-[rgb(var(--bg-card))] border rounded p-4 cursor-pointer transition-all shadow-sm hover:shadow-md hover:border-primary/50 ${tempAnswer === optionIndex
+                                                className={`flex items-start gap-3 bg-[rgb(var(--bg-card))] border rounded p-4 cursor-pointer transition-colors duration-75 shadow-sm hover:shadow-md hover:border-primary/50 ${tempAnswer === optionIndex
                                                     ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
                                                     : 'border-[rgb(var(--border-subtle))]'
                                                     }`}
@@ -1607,7 +1598,7 @@ const MCQTest = () => {
                                                         </ReactMarkdown>
                                                     </div>
                                                 </div>
-                                            </motion.label>
+                                            </label>
                                         ))}
                                     </div>
                                 </motion.div>
@@ -1619,9 +1610,9 @@ const MCQTest = () => {
                     <div className="bg-[rgb(var(--bg-card))] border-l-2 border-[rgb(var(--border-subtle))] overflow-y-auto custom-scrollbar">
                         <div className="p-5">
                             {/* Timer Card */}
-                            <div className="bg-bg-elevated border border-[rgb(var(--border-subtle))] rounded p-4 mb-5 text-center shadow-sm">
-                                <div className="text-xs text-[rgb(var(--text-muted))] mb-2 font-medium">Remaining Time:</div>
-                                <div className={`text-3xl font-bold font-mono tracking-wider ${timeLeft < 300 ? 'text-danger' : 'text-[rgb(var(--text-primary))]'
+                            <div className="bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] rounded p-4 mb-5 text-center shadow-sm">
+                                <div className="text-xs text-[rgb(var(--text-secondary))] mb-2 font-medium">Remaining Time:</div>
+                                <div className={`text-3xl font-bold font-mono tracking-wider ${timeLeft < 300 ? 'text-red-400' : 'text-[rgb(var(--text-primary))]'
                                     }`}>
                                     {Math.floor(timeLeft / 3600).toString().padStart(2, '0')} : {Math.floor((timeLeft % 3600) / 60).toString().padStart(2, '0')} : {(timeLeft % 60).toString().padStart(2, '0')}
                                 </div>
@@ -1892,8 +1883,7 @@ const MCQTest = () => {
                                 setAnswers({});
                                 navigate('/mcq-test/practice');
                             }}
-                            variant="primary"
-                            className="px-8"
+                            className="px-8 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white"
                         >
                             Back to Dashboard
                         </Button>

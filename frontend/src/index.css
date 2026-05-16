@@ -306,7 +306,10 @@
   }
 
   .bg-bg-body {
-    background-color: var(--background);
+    background-color: rgb(var(--bg-body));
+  }
+  .bg-bg-elevated {
+    background-color: rgb(var(--bg-elevated));
   }
   .bg-bg-card {
     background-color: var(--card);
