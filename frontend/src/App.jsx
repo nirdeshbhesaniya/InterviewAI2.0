@@ -22,6 +22,9 @@ import NotificationPage from './pages/InterviewPrep/NotificationPage';
 import NotesPage from './pages/NotesPage';
 import ResourcesPage from './pages/ResourcesPage';
 import MockInterviewDashboard from './pages/MockInterview/MockInterviewDashboard';
+import RoadmapsPage from './pages/Roadmaps/RoadmapsPage';
+import RoadmapDetail from './pages/Roadmaps/RoadmapDetail';
+import CareerComparePage from './pages/Roadmaps/CareerComparePage';
 import CreateMockInterview from './pages/MockInterview/CreateMockInterview';
 import ActiveInterview from './pages/MockInterview/ActiveInterview';
 import InterviewResult from './pages/MockInterview/InterviewResult';
@@ -199,6 +202,32 @@ const App = () => {
                     element={
                       <ProtectedRoute>
                         <ResourcesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Career Roadmaps Routes */}
+                  <Route
+                    path="/roadmaps"
+                    element={
+                      <ProtectedRoute>
+                        <RoadmapsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/roadmaps/compare"
+                    element={
+                      <ProtectedRoute>
+                        <CareerComparePage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/roadmaps/:careerId"
+                    element={
+                      <ProtectedRoute>
+                        <RoadmapDetail />
                       </ProtectedRoute>
                     }
                   />

@@ -1,0 +1,237 @@
+import React, { useState, useMemo, useContext } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Map, Zap, Users, TrendingUp, GitCompare, Sparkles, Bot } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ROADMAPS, getRoadmapsByCategory } from './data/roadmapsData';
+import CareerCard from './components/CareerCard';
+import FilterBar from './components/FilterBar';
+import { UserContext } from '../../context/UserContext';
+
+// Animated background blobs
+const BackgroundBlobs = () => (
+  <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div className="absolute top-20 left-10 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl animate-blob1" />
+    <div className="absolute top-40 right-10 w-96 h-96 bg-cyan-500/8 rounded-full blur-3xl animate-blob2" />
+    <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-purple-500/8 rounded-full blur-3xl animate-blob3" />
+  </div>
+);
+
+const StatCard = ({ icon: Icon, value, label, gradient }) => (
+  <motion.div
+    whileHover={{ y: -4 }}
+    className="flex items-center gap-3 px-5 py-4 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))]/80 backdrop-blur-sm"
+  >
+    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+      <Icon className="w-5 h-5 text-white" />
+    </div>
+    <div>
+      <p className="text-xl font-black text-[rgb(var(--text-primary))]">{value}</p>
+      <p className="text-xs text-[rgb(var(--text-muted))]">{label}</p>
+    </div>
+  </motion.div>
+);
+
+const RoadmapsPage = () => {
+  const navigate = useNavigate();
+  const { user } = useContext(UserContext);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeCategory, setActiveCategory] = useState('all');
+
+  const userId = user?._id || user?.email || null;
+
+  const filteredRoadmaps = useMemo(() => {
+    let list = getRoadmapsByCategory(activeCategory);
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      list = list.filter(r =>
+        r.title.toLowerCase().includes(q) ||
+        r.tags.some(t => t.toLowerCase().includes(q)) ||
+        r.description.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [activeCategory, searchTerm]);
+
+  return (
+    <div className="min-h-screen bg-[rgb(var(--bg-body))] relative">
+      <BackgroundBlobs />
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        {/* ─── HERO SECTION ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[rgb(var(--accent))]/10 border border-[rgb(var(--accent))]/30 text-[rgb(var(--accent))] text-sm font-semibold mb-6"
+          >
+            <Sparkles className="w-4 h-4" />
+            AI-Powered Career Roadmaps
+          </motion.div>
+
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-[rgb(var(--text-primary))] mb-4 leading-tight">
+            Explore IT Career{' '}
+            <span className="bg-gradient-to-r from-indigo-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent">
+              Roadmaps
+            </span>
+          </h1>
+          <p className="text-lg text-[rgb(var(--text-secondary))] max-w-2xl mx-auto leading-relaxed mb-8">
+            Choose your dream tech career and follow a step-by-step roadmap from{' '}
+            <span className="text-[rgb(var(--accent))] font-semibold">beginner</span> to{' '}
+            <span className="text-green-400 font-semibold">industry-ready professional</span>.
+          </p>
+
+          {/* Stats row */}
+          <div className="flex flex-wrap items-center justify-center gap-4 mb-10">
+            <StatCard icon={Map} value="20" label="Career Paths" gradient="from-blue-500 to-cyan-500" />
+            <StatCard icon={Zap} value="200+" label="Skill Topics" gradient="from-purple-500 to-violet-500" />
+            <StatCard icon={Bot} value="AI" label="Mentor Guidance" gradient="from-green-500 to-emerald-500" />
+            <StatCard icon={TrendingUp} value="XP" label="Gamified Progress" gradient="from-orange-500 to-red-500" />
+          </div>
+
+          {/* Search */}
+          <div className="relative max-w-xl mx-auto">
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+              <Search className="w-5 h-5 text-[rgb(var(--text-muted))]" />
+            </div>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search careers, skills, technologies..."
+              className="w-full pl-12 pr-6 py-4 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))]/90 backdrop-blur-sm text-[rgb(var(--text-primary))] placeholder-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-all text-base shadow-xl"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute inset-y-0 right-4 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors text-sm"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </motion.div>
+
+        {/* ─── FILTER BAR ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mb-8"
+        >
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="flex-1 min-w-0">
+              <FilterBar activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
+            </div>
+            <motion.button
+              onClick={() => navigate('/roadmaps/compare')}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-[rgb(var(--accent))]/10 border border-[rgb(var(--accent))]/30 text-[rgb(var(--accent))] text-sm font-semibold hover:bg-[rgb(var(--accent))]/20 flex-shrink-0 transition-all"
+            >
+              <GitCompare className="w-4 h-4" />
+              Compare Careers
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {/* ─── RESULTS HEADER ─── */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="flex items-center justify-between mb-6"
+        >
+          <p className="text-sm text-[rgb(var(--text-muted))]">
+            <span className="font-bold text-[rgb(var(--text-primary))]">{filteredRoadmaps.length}</span> career paths found
+          </p>
+          <button
+            onClick={() => navigate('/roadmaps/compare')}
+            className="sm:hidden flex items-center gap-1.5 text-sm text-[rgb(var(--accent))] font-semibold"
+          >
+            <GitCompare className="w-4 h-4" />
+            Compare
+          </button>
+        </motion.div>
+
+        {/* ─── CAREER GRID ─── */}
+        <AnimatePresence mode="popLayout">
+          {filteredRoadmaps.length === 0 ? (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center py-24 text-center"
+            >
+              <div className="w-20 h-20 rounded-2xl bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] flex items-center justify-center mb-4">
+                <Search className="w-8 h-8 text-[rgb(var(--text-muted))]" />
+              </div>
+              <h3 className="text-xl font-bold text-[rgb(var(--text-primary))] mb-2">No careers found</h3>
+              <p className="text-[rgb(var(--text-muted))]">Try a different search term or category</p>
+              <button
+                onClick={() => { setSearchTerm(''); setActiveCategory('all'); }}
+                className="mt-4 text-[rgb(var(--accent))] font-semibold hover:underline"
+              >
+                Clear filters
+              </button>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="grid"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+            >
+              {filteredRoadmaps.map((roadmap, index) => (
+                <CareerCard
+                  key={roadmap.id}
+                  roadmap={roadmap}
+                  userId={userId}
+                  index={index}
+                />
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ─── BOTTOM CTA ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="mt-20 rounded-3xl bg-gradient-to-br from-indigo-500/20 via-purple-500/10 to-cyan-500/10 border border-indigo-500/20 p-8 text-center relative overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-cyan-500/5" />
+          <div className="relative">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mx-auto mb-4 shadow-xl shadow-indigo-500/30">
+              <Bot className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-2xl font-black text-[rgb(var(--text-primary))] mb-3">
+              Not sure which path to choose?
+            </h2>
+            <p className="text-[rgb(var(--text-secondary))] mb-6 max-w-lg mx-auto">
+              Use the Career Comparison tool to compare salaries, demand, difficulty, and required skills side by side.
+            </p>
+            <motion.button
+              onClick={() => navigate('/roadmaps/compare')}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-bold rounded-2xl shadow-xl shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all"
+            >
+              <GitCompare className="w-5 h-5" />
+              Compare Careers Now
+            </motion.button>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+export default RoadmapsPage;

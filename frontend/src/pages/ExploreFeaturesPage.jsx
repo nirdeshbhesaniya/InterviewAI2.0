@@ -12,7 +12,8 @@ import {
   Library,
   Mic,
   ArrowRight,
-  LayoutGrid
+  LayoutGrid,
+  Map
 } from 'lucide-react';
 import Card from '../components/ui/SimpleCard';
 
@@ -76,6 +77,14 @@ const ExploreFeaturesPage = () => {
       icon: <Library className="w-8 h-8 md:w-10 md:h-10 text-teal-500" />,
       route: '/resources',
       colorRef: 'bg-teal-500/10 border-teal-500/20 hover:border-teal-500/40'
+    },
+    {
+      id: 'roadmaps',
+      title: 'Career Roadmaps',
+      description: 'Follow structured IT career roadmaps from beginner to industry-ready with AI guidance and progress tracking.',
+      icon: <Map className="w-8 h-8 md:w-10 md:h-10 text-violet-500" />,
+      route: '/roadmaps',
+      colorRef: 'bg-violet-500/10 border-violet-500/20 hover:border-violet-500/40'
     }
   ];
 

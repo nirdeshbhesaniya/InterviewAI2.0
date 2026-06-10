@@ -498,7 +498,7 @@ const CodeExecution = () => {
                         <div className="h-[300px] sm:h-[400px] lg:h-[500px]">
                             <Editor
                                 height="100%"
-                                language={selectedLanguage?.name.toLowerCase()}
+                                language={selectedLanguage?.name === 'C++' ? 'cpp' : selectedLanguage?.name.toLowerCase()}
                                 value={code}
                                 theme={theme}
                                 onChange={(value) => setCode(value || '')}
