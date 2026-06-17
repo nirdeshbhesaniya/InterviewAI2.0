@@ -31,7 +31,7 @@ const openResourceUrl = async (topic, type, fallbackUrl) => {
   }
 };
 
-const StageNode = ({ stage, phaseColor, completedTopics, clearedModules, onTopicToggle, onModuleClear, careerTitle }) => {
+const StageNode = ({ stage, phaseTitle, phaseColor, completedTopics, clearedModules, onTopicToggle, onModuleClear, careerTitle }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
 
@@ -174,6 +174,8 @@ const StageNode = ({ stage, phaseColor, completedTopics, clearedModules, onTopic
                 <AIFeatureButtons
                   stageName={stage.title}
                   careerTitle={careerTitle}
+                  phaseTitle={phaseTitle}
+                  topics={stage.topics}
                   compact
                 />
               </div>
@@ -251,7 +253,9 @@ const StageNode = ({ stage, phaseColor, completedTopics, clearedModules, onTopic
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(stage.title + ' ' + careerTitle + ' tutorial')}`, '_blank');
+                      const topicsStr = stage.topics.map(t => t.name).join(' ');
+                      const searchQuery = `${careerTitle} ${phaseTitle || ''} ${stage.title} ${topicsStr} tutorial`;
+                      window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`, '_blank');
                     }}
                     className="text-xs px-3 py-1.5 rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] hover:text-[#FF0000] border border-[rgb(var(--border))] hover:border-[#FF0000]/30 transition-colors flex items-center gap-1.5 shadow-sm"
                   >
@@ -261,7 +265,9 @@ const StageNode = ({ stage, phaseColor, completedTopics, clearedModules, onTopic
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      window.open(`https://www.google.com/search?q=${encodeURIComponent(stage.title + ' ' + careerTitle + ' programming resources')}`, '_blank');
+                      const topicsStr = stage.topics.map(t => t.name).join(' ');
+                      const searchQuery = `${careerTitle} ${phaseTitle || ''} ${stage.title} ${topicsStr} programming resources`;
+                      window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
                     }}
                     className="text-xs px-3 py-1.5 rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] hover:text-[#4285F4] border border-[rgb(var(--border))] hover:border-[#4285F4]/30 transition-colors flex items-center gap-1.5 shadow-sm"
                   >

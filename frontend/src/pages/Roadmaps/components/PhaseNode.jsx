@@ -98,6 +98,7 @@ const PhaseNode = ({ phase, index, completedTopics, clearedModules, onTopicToggl
                 <StageNode
                   key={stage.id}
                   stage={stage}
+                  phaseTitle={phase.title}
                   phaseColor={color.bg}
                   completedTopics={completedTopics}
                   clearedModules={clearedModules}

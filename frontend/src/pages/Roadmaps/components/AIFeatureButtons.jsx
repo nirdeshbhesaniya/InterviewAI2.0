@@ -67,7 +67,7 @@ const AI_BUTTONS = [
   },
 ];
 
-const AIFeatureButtons = ({ topicName, stageName, careerTitle, compact = false }) => {
+const AIFeatureButtons = ({ topicName, stageName, phaseTitle, topics, careerTitle, compact = false }) => {
   const navigate = useNavigate();
   const chatbotCtx = useContext(ChatbotContext);
   const [showMCQModal, setShowMCQModal] = useState(false);
@@ -76,7 +76,8 @@ const AIFeatureButtons = ({ topicName, stageName, careerTitle, compact = false }
   const [currentTopicContext, setCurrentTopicContext] = useState('');
 
   const handleAction = (actionId) => {
-    const topicContext = `${topicName || stageName} in ${careerTitle}`;
+    const topicsStr = topics ? topics.map(t => t.name).join(' ') : '';
+    const topicContext = `${careerTitle} ${phaseTitle || ''} ${stageName} ${topicName || ''} ${topicsStr}`.replace(/\s+/g, ' ').trim();
     
     switch (actionId) {
       case 'ask-ai':
