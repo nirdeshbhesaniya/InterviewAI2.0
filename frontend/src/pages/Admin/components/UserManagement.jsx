@@ -9,8 +9,10 @@ import UserEditModal from './UserEditModal';
 import RecruiterProfileViewModal from './RecruiterProfileViewModal';
 import UserActivityModal from './UserActivityModal';
 import Pagination from '../../../components/common/Pagination';
+import { useConfirm } from '../../../context/ConfirmContext';
 
 const UserManagement = () => {
+    const { confirm } = useConfirm();
     const [users, setUsers] = useState([]);
     const [usersPage, setUsersPage] = useState(1);
     const [userSearch, setUserSearch] = useState('');
@@ -87,7 +89,7 @@ const UserManagement = () => {
     };
 
     const handleDeleteUser = async (userId) => {
-        if (!window.confirm("Are you sure you want to permanently delete this user?")) return;
+        if (!await confirm("Are you sure you want to permanently delete this user?")) return;
         try {
             const res = await axios.delete(API.ADMIN.DELETE_USER(userId));
             toast.success(res.data.message || 'User deleted successfully');
@@ -99,7 +101,7 @@ const UserManagement = () => {
     };
 
     const handleDeleteAllBanned = async () => {
-        if (!window.confirm("CRITICAL WARNING: Are you absolutely sure you want to delete ALL banned users? This cannot be undone!")) return;
+        if (!await confirm("CRITICAL WARNING: Are you absolutely sure you want to delete ALL banned users? This cannot be undone!")) return;
         try {
             const res = await axios.delete(API.ADMIN.DELETE_ALL_BANNED_USERS);
             toast.success(res.data.message || 'All banned users deleted successfully');
@@ -228,7 +230,7 @@ const UserManagement = () => {
                                     )}
                                 </Button>
                             )}
-                            {currentUserRole === 'owner' && (
+                            {currentUserRole === 'owner' && user.role !== 'admin' && user.role !== 'owner' && (
                                 <Button
                                     size="sm"
                                     variant="outline"
@@ -341,7 +343,7 @@ const UserManagement = () => {
                                                 {user.isBanned ? <CheckCircle className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
                                             </Button>
                                         )}
-                                        {currentUserRole === 'owner' && (
+                                        {currentUserRole === 'owner' && user.role !== 'admin' && user.role !== 'owner' && (
                                             <Button
                                                 size="sm"
                                                 variant="outline"

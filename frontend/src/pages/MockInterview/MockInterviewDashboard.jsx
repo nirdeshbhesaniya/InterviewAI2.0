@@ -7,8 +7,10 @@ import { motion } from 'framer-motion';
 import InterviewCreationWizard from './InterviewCreationWizard';
 import { BRANCHES } from '../../utils/constants';
 import BranchModal from '../../components/BranchModal';
+import { useConfirm } from '../../context/ConfirmContext';
 
 const MockInterviewDashboard = () => {
+    const { confirm } = useConfirm();
     const [interviews, setInterviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedBranch, setSelectedBranch] = useState(
@@ -97,7 +99,7 @@ const MockInterviewDashboard = () => {
 
     const handleDelete = async (e, mockId) => {
         e.stopPropagation(); // Prevent card click
-        if (!window.confirm("Are you sure you want to delete this interview? This action cannot be undone.")) return;
+        if (!await confirm("Are you sure you want to delete this interview? This action cannot be undone.")) return;
 
         try {
             await axios.delete(`/mock-interview/${mockId}`);

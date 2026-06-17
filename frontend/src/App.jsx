@@ -46,6 +46,9 @@ import ChatbotProvider from './context/ChatBotContext';
 import Chatbot from './components/Chatbot';
 import FloatingHelpButton from './components/FloatingHelpButton';
 
+// Global Confirm Provider
+import { ConfirmProvider } from './context/ConfirmContext';
+
 // Test Mode Context
 import { TestModeProvider } from './context/TestModeContext';
 import { InterviewModeProvider } from './context/InterviewModeContext';
@@ -55,7 +58,8 @@ const App = () => {
     <ChatbotProvider>
       <TestModeProvider>
         <InterviewModeProvider>
-          <Router>
+          <ConfirmProvider>
+            <Router>
             <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
               <Routes>
                 {/* Public routes (no header) */}
@@ -380,6 +384,7 @@ const App = () => {
               />
             </div>
           </Router>
+        </ConfirmProvider>
         </InterviewModeProvider>
       </TestModeProvider>
     </ChatbotProvider>

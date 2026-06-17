@@ -27,11 +27,13 @@ import PhaseNode from './components/PhaseNode';
 import StatsPanel from './components/StatsPanel';
 import JobSearchModal from './components/JobSearchModal';
 import { toast } from 'react-hot-toast';
+import { useConfirm } from '../../context/ConfirmContext';
 
 const RoadmapDetail = () => {
   const { careerId } = useParams();
   const navigate = useNavigate();
   const { user } = useContext(UserContext);
+  const { confirm } = useConfirm();
 
   const userId = user?._id || user?.email || 'guest';
   const roadmap = getRoadmapById(careerId);
@@ -109,7 +111,7 @@ const RoadmapDetail = () => {
   };
 
   const handleReset = async () => {
-    if (window.confirm('Reset all progress for this roadmap?')) {
+    if (await confirm('Reset all progress for this roadmap?')) {
       try {
         setCompletedTopics([]);
         setClearedModules([]);

@@ -6,9 +6,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, CheckCircle, Trash2, Filter } from 'lucide-react';
 import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import toast from 'react-hot-toast';
+import { useConfirm } from '../../context/ConfirmContext';
 
 const NotificationPage = () => {
     const { user } = useContext(UserContext);
+    const { confirm } = useConfirm();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all'); // all, unread
@@ -68,7 +70,7 @@ const NotificationPage = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Delete this notification?")) return;
+        if (!await confirm("Delete this notification?")) return;
         try {
             await axios.delete(API.NOTIFICATIONS.DELETE, {
                 data: { notificationIds: [id], userId: user._id }

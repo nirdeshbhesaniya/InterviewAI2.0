@@ -38,10 +38,13 @@ import { API } from '../../utils/apiPaths';
 import toast, { Toaster } from 'react-hot-toast';
 import { ButtonLoader } from '../../components/ui/Loader';
 import { motion } from 'framer-motion';
+import { useConfirm } from '../../context/ConfirmContext';
+
 const AnswerEditor = () => {
     const { sessionId } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
+    const { confirm } = useConfirm();
 
     // Get question data from navigation state
     const { question, answer, category: initialCategory, index } = location.state || {};
@@ -194,16 +197,16 @@ const AnswerEditor = () => {
         }
     };
 
-    const handleReset = () => {
-        if (window.confirm('Are you sure you want to reset all changes?')) {
+    const handleReset = async () => {
+        if (await confirm('Are you sure you want to reset all changes?')) {
             setEditedContent(originalContent);
             toast.success('Changes reset');
         }
     };
 
-    const handleCancel = () => {
+    const handleCancel = async () => {
         if (hasChanges) {
-            if (window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
+            if (await confirm('You have unsaved changes. Are you sure you want to leave?')) {
                 navigate(-1);
             }
         } else {

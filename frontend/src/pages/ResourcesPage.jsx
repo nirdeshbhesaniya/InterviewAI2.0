@@ -19,6 +19,7 @@ import axios from '../utils/axiosInstance';
 import { API } from '../utils/apiPaths';
 import { useUser } from '../context/UserContext';
 import Pagination from '../components/common/Pagination';
+import { useConfirm } from '../context/ConfirmContext';
 
 import { BRANCHES } from '../utils/constants';
 
@@ -69,6 +70,7 @@ const SAMPLE_RESOURCES = {
 
 const ResourcesPage = () => {
     const { user } = useUser();
+    const { confirm } = useConfirm();
     const [selectedBranch, setSelectedBranch] = useState('computer');
     const [searchQuery, setSearchQuery] = useState('');
     const [filterType, setFilterType] = useState('all');
@@ -327,7 +329,7 @@ const ResourcesPage = () => {
     };
 
     const handleDelete = async (resourceId) => {
-        if (!window.confirm('Are you sure you want to delete this resource?')) {
+        if (!await confirm('Are you sure you want to delete this resource?')) {
             return;
         }
 

@@ -407,38 +407,32 @@ router.patch('/feature-locks/:featureKey', async (req, res) => {
     }
 });
 
-// DELETE user (Admin)
+// DELETE user (Admin/Owner)
 router.delete('/users/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
+
+        if (req.user.role !== 'owner') {
+            return res.status(403).json({ message: 'Only the Owner can delete users.' });
+        }
 
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Prevent deleting self
+        // Prevent deleting self, owner, or admin
         if (user._id.toString() === req.user._id.toString()) {
             return res.status(400).json({ message: 'Cannot delete yourself' });
         }
+        
+        if (user.role === 'admin' || user.role === 'owner') {
+            return res.status(403).json({ message: 'Cannot delete admin or owner accounts' });
+        }
 
-        // Soft delete (or hard delete if preferred, but usually soft first)
-        // User requested "delete any user account", implying removal. 
-        // We will perform a hard delete for "Delete" action to fully remove data as requested, 
-        // OR a strict soft delete. Given "isDeleted" exists in schema, let's use that but ensure it BLOCKS access.
-        // Actually, for "Delete" button in Admin, typically means hard delete or irreversible soft delete.
-        // Let's do Soft Delete + Ban to be safe, or Hard Delete if they want to clean up.
-        // User said "if any user account deleted... not able to use any service".
-        // Use soft delete with isDeleted flag.
+        await User.findByIdAndDelete(userId);
 
-        user.isDeleted = true;
-        user.isBanned = true; // Double ensure lock
-        user.sessions = []; // Kill sessions
-        await user.save();
-
-        // Optionally remove related data? For now, we keep data but user is gone.
-
-        res.json({ message: 'User account deleted and access revoked successfully' });
+        res.json({ message: 'User permanently deleted from database' });
     } catch (err) {
         console.error('Error deleting user:', err);
         res.status(500).json({ message: 'Failed to delete user' });
@@ -1179,26 +1173,7 @@ router.delete('/users/banned/all', async (req, res) => {
     }
 });
 
-// DELETE Specific User (Owner Only)
-router.delete('/users/:userId', async (req, res) => {
-    try {
-        if (req.user.role !== 'owner') {
-            return res.status(403).json({ message: 'Only the Owner can delete users.' });
-        }
 
-        const { userId } = req.params;
-        const user = await User.findByIdAndDelete(userId);
-        
-        if (!user) {
-            return res.status(404).json({ message: 'User not found.' });
-        }
-
-        res.json({ message: 'User deleted successfully.' });
-    } catch (err) {
-        console.error('Error deleting user:', err);
-        res.status(500).json({ message: 'Failed to delete user' });
-    }
-});
 
 // GET Roadmap Analytics (Admin)
 router.get('/roadmaps/:roadmapId/analytics', async (req, res) => {

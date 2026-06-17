@@ -18,9 +18,11 @@ import axios from '../utils/axiosInstance';
 import { API } from '../utils/apiPaths';
 import toast from 'react-hot-toast';
 import moment from 'moment';
+import { useConfirm } from '../context/ConfirmContext';
 
 const NotificationsPageNew = () => {
     const { user } = useContext(UserContext);
+    const { confirm } = useConfirm();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [notifications, setNotifications] = useState([]);
@@ -105,7 +107,7 @@ const NotificationsPageNew = () => {
     };
 
     const handleDeleteAll = async () => {
-        if (!window.confirm('Are you sure you want to delete all notifications?')) return;
+        if (!await confirm('Are you sure you want to delete all notifications?')) return;
 
         try {
             await axios.delete(API.NOTIFICATIONS.DELETE, {

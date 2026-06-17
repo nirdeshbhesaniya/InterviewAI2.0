@@ -9,8 +9,10 @@ import toast from 'react-hot-toast';
 import { Button } from '../../../components/ui/button';
 import Pagination from '../../../components/common/Pagination';
 import PracticeTestModal from './PracticeTestModal';
+import { useConfirm } from '../../../context/ConfirmContext';
 
 const PracticeTestsManagement = () => {
+    const { confirm } = useConfirm();
     // List State
     const [practiceTests, setPracticeTests] = useState([]);
     const [pagination, setPagination] = useState({
@@ -130,7 +132,7 @@ const PracticeTestsManagement = () => {
     };
 
     const handleDeleteTest = async (id) => {
-        if (!window.confirm('Delete this practice test? All related attempt data will be orphaned.')) return;
+        if (!await confirm('Delete this practice test? All related attempt data will be orphaned.')) return;
         try {
             await axios.delete(API.ADMIN.DELETE_PRACTICE_TEST(id));
             toast.success('Test deleted');

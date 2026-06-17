@@ -5,8 +5,10 @@ import { API } from '../../../utils/apiPaths';
 import toast from 'react-hot-toast';
 import { Button } from '../../../components/ui/button';
 import useDebounce from '../../../hooks/useDebounce';
+import { useConfirm } from '../../../context/ConfirmContext';
 
 const NotificationCenter = () => {
+    const { confirm } = useConfirm();
     // Notification State
     const [notifForm, setNotifForm] = useState({
         title: '',
@@ -93,7 +95,7 @@ const NotificationCenter = () => {
     };
 
     const handleDeleteBroadcast = async (id) => {
-        if (window.confirm('SYSTEM ALERT: Are you sure you want to permanently delete this broadcast? This will remove it from all users\' notifications.')) {
+        if (await confirm('SYSTEM ALERT: Are you sure you want to permanently delete this broadcast? This will remove it from all users\' notifications.')) {
             try {
                 await axios.delete(API.ADMIN.DELETE_BROADCAST(id));
                 toast.success('Broadcast deleted permanently');

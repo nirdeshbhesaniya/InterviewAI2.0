@@ -29,9 +29,11 @@ import DuplicateContentModal from '../components/ui/DuplicateContentModal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { BRANCHES } from '../utils/constants';
 import { Loader } from '../components/ui/Loader';
+import { useConfirm } from '../context/ConfirmContext';
 
 const NotesPage = () => {
     const { user } = useContext(UserContext);
+    const { confirm } = useConfirm();
     const [notes, setNotes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
@@ -238,7 +240,7 @@ const NotesPage = () => {
     };
 
     const handleDeleteNote = async (noteId) => {
-        if (!window.confirm('Are you sure you want to delete this note?')) {
+        if (!await confirm('Are you sure you want to delete this note?')) {
             return;
         }
 

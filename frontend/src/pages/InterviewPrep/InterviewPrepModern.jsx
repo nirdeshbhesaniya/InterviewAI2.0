@@ -59,6 +59,7 @@ import { ButtonLoader } from '../../components/ui/Loader';
 import toast, { Toaster } from 'react-hot-toast';
 import moment from 'moment';
 import AnswerRenderer from '../../components/interview/AnswerRenderer';
+import { useConfirm } from '../../context/ConfirmContext';
 
 // ==================== CONSTANTS ====================
 const ITEMS_PER_PAGE = 10;
@@ -515,6 +516,7 @@ const InterviewPrepModern = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { user } = useContext(UserContext);
+    const { confirm } = useConfirm();
 
     // ==================== STATE ====================
     const [session, setSession] = useState(null);
@@ -792,7 +794,7 @@ const InterviewPrepModern = () => {
 
     const handleReject = useCallback(async (index) => {
         if (!session?.qna[index]) return;
-        if (!window.confirm('Are you sure you want to reject this question?')) return;
+        if (!await confirm('Are you sure you want to reject this question?')) return;
 
         const questionId = session.qna[index]._id;
         const toastId = toast.loading('Rejecting question...');

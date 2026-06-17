@@ -30,6 +30,7 @@ import {
     Tooltip,
     ResponsiveContainer
 } from 'recharts';
+import { useConfirm } from '../../../context/ConfirmContext';
 
 const API_PATH = {
     DASHBOARD: '/ai/dashboard',
@@ -40,6 +41,7 @@ const API_PATH = {
 };
 
 const AIServicePanel = ({ currentUserRole }) => {
+    const { confirm } = useConfirm();
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState(null);
     const [logs, setLogs] = useState([]);
@@ -151,7 +153,7 @@ const AIServicePanel = ({ currentUserRole }) => {
             ? 'Are you sure you want to LOCK this key? It will not be used for any requests.'
             : 'Are you sure you want to UNLOCK this key? It will be immediately available for rotation.';
 
-        if (!window.confirm(confirmMsg)) return;
+        if (!await confirm(confirmMsg)) return;
 
         try {
             const res = await axios.post(API_PATH.CONTROL, {

@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { Button } from '../../../components/ui/button';
 import AnswerRenderer from '../../../components/interview/AnswerRenderer';
 import Pagination from '../../../components/common/Pagination';
+import { useConfirm } from '../../../context/ConfirmContext';
 
 const ApprovalItem = ({ req, onApprove, onReject }) => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -100,6 +101,7 @@ const ApprovalItem = ({ req, onApprove, onReject }) => {
 };
 
 const ContentApprovals = () => {
+    const { confirm } = useConfirm();
     const [qnaRequests, setQnaRequests] = useState([]);
     const [qnaPage, setQnaPage] = useState(1);
     const [qnaTotalPages, setQnaTotalPages] = useState(1);
@@ -150,7 +152,7 @@ const ContentApprovals = () => {
     };
 
     const handleApproveAll = async () => {
-        if (!window.confirm('Are you sure you want to approve ALL pending questions? This cannot be undone.')) {
+        if (!await confirm('Are you sure you want to approve ALL pending questions? This cannot be undone.')) {
             return;
         }
 
