@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState, useImperativeHandle, forwardRef } f
 import Webcam from 'react-webcam';
 import { FaceMesh } from '@mediapipe/face_mesh';
 import { Camera } from '@mediapipe/camera_utils';
-import { Loader2, Eye, Smile, AlertCircle, Zap } from 'lucide-react';
+import { Eye, Smile, AlertCircle, Zap } from 'lucide-react';
+import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 
 const BehaviorAnalysis = forwardRef(({ onStatusChange }, ref) => {
     const webcamRef = useRef(null);

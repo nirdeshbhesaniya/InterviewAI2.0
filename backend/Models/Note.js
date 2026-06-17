@@ -24,6 +24,11 @@ const noteSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    branch: {
+        type: String,
+        default: 'computer',
+        index: true
+    },
     description: {
         type: String,
         trim: true,

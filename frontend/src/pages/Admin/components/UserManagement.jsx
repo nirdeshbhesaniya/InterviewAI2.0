@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Users, ShieldAlert, CheckCircle, PenSquare, Loader2 } from 'lucide-react';
+import { Search, Users, ShieldAlert, CheckCircle, PenSquare, Activity, Trash2 } from 'lucide-react';
+import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import axios from '../../../utils/axiosInstance';
 import { API } from '../../../utils/apiPaths';
 import toast from 'react-hot-toast';
 import { Button } from '../../../components/ui/button';
 import UserEditModal from './UserEditModal';
 import RecruiterProfileViewModal from './RecruiterProfileViewModal';
+import UserActivityModal from './UserActivityModal';
 import Pagination from '../../../components/common/Pagination';
 
 const UserManagement = () => {
@@ -18,7 +20,10 @@ const UserManagement = () => {
     // Edit Modal State
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isRecruiterModalOpen, setIsRecruiterModalOpen] = useState(false);
+    const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
+
+    const currentUserRole = JSON.parse(localStorage.getItem("user"))?.role || 'admin';
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -62,6 +67,11 @@ const UserManagement = () => {
         setIsRecruiterModalOpen(true);
     };
 
+    const handleViewActivity = (user) => {
+        setSelectedUser(user);
+        setIsActivityModalOpen(true);
+    };
+
     const handleSaveUser = async (userId, updatedData) => {
         try {
             await axios.put(API.ADMIN.UPDATE_USER(userId), updatedData);
@@ -73,6 +83,30 @@ const UserManagement = () => {
         } catch (error) {
             console.error('Update failed:', error);
             toast.error(error.response?.data?.message || 'Failed to update user');
+        }
+    };
+
+    const handleDeleteUser = async (userId) => {
+        if (!window.confirm("Are you sure you want to permanently delete this user?")) return;
+        try {
+            const res = await axios.delete(API.ADMIN.DELETE_USER(userId));
+            toast.success(res.data.message || 'User deleted successfully');
+            setUsers(users.filter(u => u._id !== userId));
+        } catch (error) {
+            console.error('Delete failed:', error);
+            toast.error(error.response?.data?.message || 'Failed to delete user');
+        }
+    };
+
+    const handleDeleteAllBanned = async () => {
+        if (!window.confirm("CRITICAL WARNING: Are you absolutely sure you want to delete ALL banned users? This cannot be undone!")) return;
+        try {
+            const res = await axios.delete(API.ADMIN.DELETE_ALL_BANNED_USERS);
+            toast.success(res.data.message || 'All banned users deleted successfully');
+            setUsers(users.filter(u => !u.isBanned));
+        } catch (error) {
+            console.error('Delete all banned failed:', error);
+            toast.error(error.response?.data?.message || 'Failed to delete banned users');
         }
     };
 
@@ -98,7 +132,19 @@ const UserManagement = () => {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center gap-4 flex-wrap">
-                <h2 className="text-xl font-bold text-[rgb(var(--text-primary))]">User Management</h2>
+                <div className="flex items-center gap-4 flex-wrap">
+                    <h2 className="text-xl font-bold text-[rgb(var(--text-primary))]">User Management</h2>
+                    {currentUserRole === 'owner' && users.some(u => u.isBanned) && (
+                        <Button
+                            onClick={handleDeleteAllBanned}
+                            variant="destructive"
+                            size="sm"
+                            className="text-xs bg-red-600 hover:bg-red-700 text-white"
+                        >
+                            <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Delete All Banned
+                        </Button>
+                    )}
+                </div>
                 <div className="relative w-full max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-muted))]" />
                     <input
@@ -156,6 +202,9 @@ const UserManagement = () => {
                         </div>
 
                         <div className="flex items-center justify-end gap-2 flex-wrap">
+                            <Button size="sm" variant="outline" onClick={() => handleViewActivity(user)} className="h-9 px-3 text-xs bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20 border-indigo-500/20">
+                                <Activity className="w-3.5 h-3.5 mr-1.5" /> Activity
+                            </Button>
                             <Button size="sm" variant="outline" onClick={() => handleViewRecruiter(user)} className="h-9 px-3 text-xs bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] hover:bg-[rgb(var(--accent))]/20 border-[rgb(var(--accent))]/20">
                                 <Search className="w-3.5 h-3.5 mr-1.5" /> View Recruiter
                             </Button>
@@ -177,6 +226,16 @@ const UserManagement = () => {
                                     ) : (
                                         <> <ShieldAlert className="w-3.5 h-3.5 mr-1.5" /> Ban </>
                                     )}
+                                </Button>
+                            )}
+                            {currentUserRole === 'owner' && (
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleDeleteUser(user._id)}
+                                    className="h-9 px-3 text-xs bg-red-500/10 text-red-600 hover:bg-red-500/20 border-red-500/20"
+                                >
+                                    <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Delete
                                 </Button>
                             )}
                         </div>
@@ -243,6 +302,15 @@ const UserManagement = () => {
                                         <Button
                                             size="sm"
                                             variant="outline"
+                                            onClick={() => handleViewActivity(user)}
+                                            className="h-8 w-8 p-0 rounded-full border-indigo-500/20 bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20"
+                                            title="View User Activity"
+                                        >
+                                            <Activity className="w-4 h-4" />
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
                                             onClick={() => handleViewRecruiter(user)}
                                             className="h-8 px-3 rounded-full border-[rgb(var(--accent))]/20 bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] hover:bg-[rgb(var(--accent))]/20 text-xs font-medium"
                                             title="View Recruiter Profile"
@@ -273,6 +341,17 @@ const UserManagement = () => {
                                                 {user.isBanned ? <CheckCircle className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
                                             </Button>
                                         )}
+                                        {currentUserRole === 'owner' && (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => handleDeleteUser(user._id)}
+                                                className="h-8 w-8 p-0 rounded-full border-red-500/20 bg-red-500/10 text-red-600 hover:bg-red-500/20"
+                                                title="Delete User"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        )}
                                     </div>
                                 </td>
                             </tr>
@@ -299,7 +378,7 @@ const UserManagement = () => {
                 onClose={() => setIsEditModalOpen(false)}
                 user={selectedUser}
                 onSave={handleSaveUser}
-                currentUserRole={JSON.parse(localStorage.getItem("user"))?.role}
+                currentUserRole={currentUserRole}
             />
 
             {/* Recruiter Profile Modal */}
@@ -307,6 +386,13 @@ const UserManagement = () => {
                 isOpen={isRecruiterModalOpen}
                 onClose={() => setIsRecruiterModalOpen(false)}
                 user={selectedUser}
+            />
+
+            {/* User Activity Dashboard Modal */}
+            <UserActivityModal
+                isOpen={isActivityModalOpen}
+                onClose={() => setIsActivityModalOpen(false)}
+                userId={selectedUser?._id}
             />
         </div>
     );

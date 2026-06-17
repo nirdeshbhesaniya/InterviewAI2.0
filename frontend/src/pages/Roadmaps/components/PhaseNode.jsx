@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Lock } from 'lucide-react';
 import StageNode from './StageNode';
 
-const PhaseNode = ({ phase, index, completedTopics, onTopicToggle, careerTitle, totalPhases }) => {
+const PhaseNode = ({ phase, index, completedTopics, clearedModules, onTopicToggle, onModuleClear, careerTitle, totalPhases }) => {
   const [isOpen, setIsOpen] = useState(index === 0);
 
   const phaseTopics = phase.stages.flatMap(s => s.topics);
@@ -100,7 +100,9 @@ const PhaseNode = ({ phase, index, completedTopics, onTopicToggle, careerTitle, 
                   stage={stage}
                   phaseColor={color.bg}
                   completedTopics={completedTopics}
+                  clearedModules={clearedModules}
                   onTopicToggle={onTopicToggle}
+                  onModuleClear={onModuleClear}
                   careerTitle={careerTitle}
                 />
               ))}

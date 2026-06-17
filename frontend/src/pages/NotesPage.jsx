@@ -26,6 +26,9 @@ import toast from 'react-hot-toast';
 import moment from 'moment';
 import Pagination from '../components/common/Pagination';
 import DuplicateContentModal from '../components/ui/DuplicateContentModal';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { BRANCHES } from '../utils/constants';
+import { Loader } from '../components/ui/Loader';
 
 const NotesPage = () => {
     const { user } = useContext(UserContext);
@@ -43,8 +46,27 @@ const NotesPage = () => {
         title: '',
         description: '',
         link: '',
-        tags: ''
+        tags: '',
+        branch: localStorage.getItem('dashboard_branch') || 'computer'
     });
+    
+    const [currentBranch, setCurrentBranch] = useState(
+        () => localStorage.getItem('dashboard_branch') || 'computer'
+    );
+
+    // Listen for branch changes from Navbar
+    useEffect(() => {
+        const handleStorageChange = () => {
+            const branch = localStorage.getItem('dashboard_branch') || 'computer';
+            setCurrentBranch(branch);
+        };
+        window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('branchChanged', handleStorageChange); // Custom event often used in this app
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('branchChanged', handleStorageChange);
+        };
+    }, []);
 
     const [totalNotes, setTotalNotes] = useState(0);
     const [showDuplicateModal, setShowDuplicateModal] = useState(false);
@@ -53,7 +75,7 @@ const NotesPage = () => {
     useEffect(() => {
         setCurrentPage(1);
         fetchNotes(1);
-    }, [filter, searchQuery]);
+    }, [filter, searchQuery, currentBranch]);
 
     useEffect(() => {
         fetchNotes(currentPage);
@@ -146,6 +168,7 @@ const NotesPage = () => {
             if (searchQuery) {
                 params.search = searchQuery;
             }
+            params.branch = currentBranch;
 
             const response = await axios.get(API.NOTES.GET_ALL, { params });
 
@@ -186,7 +209,8 @@ const NotesPage = () => {
                 title: formData.title,
                 description: formData.description,
                 link: formData.link,
-                tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : []
+                tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : [],
+                branch: formData.branch
             });
 
             if (response.data.success) {
@@ -198,7 +222,8 @@ const NotesPage = () => {
                     title: '',
                     description: '',
                     link: '',
-                    tags: ''
+                    tags: '',
+                    branch: currentBranch
                 });
             }
         } catch (error) {
@@ -262,7 +287,8 @@ const NotesPage = () => {
             title: note.title,
             description: note.description || '',
             link: note.link,
-            tags: note.tags ? note.tags.join(', ') : ''
+            tags: note.tags ? note.tags.join(', ') : '',
+            branch: note.branch || 'computer'
         });
         setShowAddModal(true);
     };
@@ -291,7 +317,7 @@ const NotesPage = () => {
             setEditingNote(null);
             setShowAddModal(false);
             setFormData({
-                type: 'pdf', title: '', description: '', link: '', tags: ''
+                type: 'pdf', title: '', description: '', link: '', tags: '', branch: currentBranch
             });
             fetchNotes(); // Refresh list
         } catch (error) {
@@ -373,7 +399,7 @@ const NotesPage = () => {
                             onClick={() => {
                                 setEditingNote(null);
                                 setFormData({
-                                    type: 'pdf', title: '', description: '', link: '', tags: ''
+                                    type: 'pdf', title: '', description: '', link: '', tags: '', branch: currentBranch
                                 });
                                 setShowAddModal(true);
                             }}
@@ -415,20 +441,32 @@ const NotesPage = () => {
                                 </div>
 
                                 {/* Filter Tabs */}
-                                <div className="mt-3 sm:mt-4 flex flex-wrap gap-2">
-                                    {filterButtons.map(({ id, label, icon: Icon }) => (
-                                        <button
-                                            key={id}
-                                            onClick={() => setFilter(id)}
-                                            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition-all text-xs sm:text-sm ${filter === id
-                                                ? 'bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white shadow-md shadow-[rgb(var(--accent))]/30'
-                                                : 'bg-[rgb(var(--bg-card))] text-[rgb(var(--text-secondary))] border border-[rgb(var(--border-subtle))] hover:bg-[rgb(var(--bg-body-alt))] hover:text-[rgb(var(--text-primary))]'
-                                                }`}
-                                        >
-                                            <Icon size={16} className="sm:w-[18px] sm:h-[18px]" />
-                                            <span>{label}</span>
-                                        </button>
-                                    ))}
+                                <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between">
+                                    <div className="flex flex-wrap gap-2">
+                                        {filterButtons.map(({ id, label, icon: Icon }) => (
+                                            <button
+                                                key={id}
+                                                onClick={() => setFilter(id)}
+                                                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition-all text-xs sm:text-sm ${filter === id
+                                                    ? 'bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white shadow-md shadow-[rgb(var(--accent))]/30'
+                                                    : 'bg-[rgb(var(--bg-card))] text-[rgb(var(--text-secondary))] border border-[rgb(var(--border-subtle))] hover:bg-[rgb(var(--bg-body-alt))] hover:text-[rgb(var(--text-primary))]'
+                                                    }`}
+                                            >
+                                                <Icon size={16} className="sm:w-[18px] sm:h-[18px]" />
+                                                <span>{label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                    
+                                    <select
+                                        value={currentBranch}
+                                        onChange={(e) => setCurrentBranch(e.target.value)}
+                                        className="px-3 sm:px-4 py-1.5 sm:py-2 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-card))] text-[rgb(var(--text-primary))] text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent outline-none cursor-pointer w-full sm:w-auto"
+                                    >
+                                        {BRANCHES.map(branch => (
+                                            <option key={branch.id} value={branch.id}>{branch.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </motion.div>
                         )}
@@ -440,20 +478,17 @@ const NotesPage = () => {
             <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8">
                 {loading ? (
                     <div className="flex justify-center items-center py-20">
-                        <div className="animate-spin rounded-full h-12 w-12 border-4 border-[rgb(var(--accent))] border-t-transparent"></div>
+                        <Loader size="xl" text="Loading Notes..." />
                     </div>
                 ) : notes.length === 0 ? (
-                    <div className="text-center py-12 sm:py-20 px-4">
-                        <FileText size={48} className="sm:w-16 sm:h-16 mx-auto text-[rgb(var(--text-muted))]/30 mb-4" />
-                        <h3 className="text-lg sm:text-xl font-bold text-[rgb(var(--text-secondary))] mb-2">
-                            No notes found
-                        </h3>
-                        <p className="text-sm sm:text-base text-[rgb(var(--text-muted))]">
-                            {filter === 'my-notes'
-                                ? 'You haven\'t added any notes yet. Click "Add Note" to get started!'
-                                : 'Be the first to share a note with the community!'}
-                        </p>
-                    </div>
+                    <EmptyState
+                        title={searchQuery ? 'No notes found for your search' : 'No notes found'}
+                        description={filter === 'my-notes'
+                            ? 'You haven\'t added any notes yet. Click "Add Note" to get started!'
+                            : 'Be the first to share a note with the community!'}
+                        icon={FileText}
+                        isSearch={!!searchQuery}
+                    />
                 ) : (
                     <>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -663,6 +698,22 @@ const NotesPage = () => {
                                             <span className="font-bold text-sm sm:text-base">YouTube Video</span>
                                         </button>
                                     </div>
+                                </div>
+
+                                {/* Branch Selection */}
+                                <div>
+                                    <label className="block text-sm font-bold text-[rgb(var(--text-primary))] mb-2">
+                                        Branch *
+                                    </label>
+                                    <select
+                                        value={formData.branch}
+                                        onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent text-sm sm:text-base outline-none cursor-pointer"
+                                    >
+                                        {BRANCHES.map(branch => (
+                                            <option key={branch.id} value={branch.id}>{branch.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
 
                                 {/* Title */}

@@ -104,7 +104,7 @@ async function createAnswerChain() {
 const mcqPrompt = ChatPromptTemplate.fromMessages([
   ['system', `You are an expert at creating diverse, high-quality multiple-choice questions for technical assessments.
 Create UNIQUE questions that test real understanding, not just memorization.`],
-  ['human', `Generate exactly {numberOfQuestions} UNIQUE and VARIED multiple-choice questions about "{topic}" with {difficulty} difficulty level.
+  ['human', `Generate exactly {numberOfQuestions} UNIQUE and VARIED multiple-choice questions about "{topic}" with {difficulty} difficulty level, specifically tailored for a candidate in the {branch} engineering field.
 
 Session ID for uniqueness: {sessionId}
 Focus areas: {focusAreas}
@@ -143,7 +143,8 @@ async function createMCQChain() {
           'performance considerations'
         ];
         return areas.sort(() => Math.random() - 0.5).slice(0, 4).join(', ');
-      }
+      },
+      branch: (input) => input.branch || 'Computer Engineering (includes IT)'
     },
     mcqPrompt,
     mcqModel, // Use optimized MCQ model
@@ -173,11 +174,26 @@ async function createChatbotChain(sessionId = 'default') {
 - Industry-specific interview tips
 - Mock interview practice
 
+Website Features Context:
+Here are the direct links to features on the InterviewAI platform:
+- Mock Interviews (AI voice/video interviews): /mock-interview/create
+- Career Roadmaps (Step-by-step career paths and progress tracking): /roadmaps
+- MCQ Practice Tests (Technical multiple-choice tests): /mcq
+- Interview Prep (Q&A, flashcards, answer validation): /interview-prep
+- Codebase/Coding Practice (In-browser IDE for coding challenges): /codebase
+- Resources (PDFs and study materials): /resources
+- Notes (Personal note-taking space): /notes
+
 Provide short, concise, and easily understandable advice. Avoid long paragraphs. Use simple language. Use markdown formatting including:
 - Code blocks with language identifiers
 - Bullet points for lists
 - Bold/italic for emphasis
-- Headers for sections`],
+- Headers for sections
+
+CRITICAL: For EVERY response, you MUST provide exactly one quick link button at the very end of your message that directs the user to the most relevant feature based on their query or your advice. 
+Use this exact markdown format: [Button Text](/url "btn")
+For example: [Start a Mock Interview](/mock-interview/create "btn")
+You must include the "btn" title in quotes.`],
     ['placeholder', '{history}'],
     ['human', '{input}']
   ]);

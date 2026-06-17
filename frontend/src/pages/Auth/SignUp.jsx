@@ -21,6 +21,7 @@ const SignUp = ({ onSwitch }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
 
   // ─ Password strength helpers ───────────────────────────────────
   const pwdChecks = [
@@ -60,6 +61,12 @@ const SignUp = ({ onSwitch }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!agreeToTerms) {
+      toast.error('❌ You must agree to the Terms and Conditions and Privacy Policy.');
+      return;
+    }
+
     setLoading(true);
 
     // ── Full name check ────────────────────────────────────────
@@ -289,12 +296,33 @@ const SignUp = ({ onSwitch }) => {
           </div>
         )}
 
+        {/* Terms and Conditions Checkbox */}
+        <div className="flex items-start gap-2 pt-1 pb-1">
+          <input
+            type="checkbox"
+            id="terms"
+            checked={agreeToTerms}
+            onChange={(e) => setAgreeToTerms(e.target.checked)}
+            className="mt-0.5 w-4 h-4 rounded border-[rgb(var(--border))] text-[rgb(var(--accent))] focus:ring-[rgb(var(--accent))] bg-[rgb(var(--bg-body-alt))]"
+          />
+          <label htmlFor="terms" className="text-xs sm:text-sm text-[rgb(var(--text-secondary))] leading-tight">
+            I agree to the{' '}
+            <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-[rgb(var(--accent))] hover:underline">
+              Terms and Conditions
+            </a>{' '}
+            and{' '}
+            <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-[rgb(var(--accent))] hover:underline">
+              Privacy Policy
+            </a>
+          </label>
+        </div>
+
         {/* Submit */}
         <motion.button
           type="submit"
           whileTap={{ scale: 0.97 }}
-          disabled={loading}
-          className={`w-full py-2.5 sm:py-2 rounded-md transition font-semibold tracking-wide shadow-md text-sm sm:text-base ${loading
+          disabled={loading || !agreeToTerms}
+          className={`w-full py-2.5 sm:py-2 rounded-md transition font-semibold tracking-wide shadow-md text-sm sm:text-base ${loading || !agreeToTerms
             ? 'bg-[rgb(var(--text-muted))]/50 text-[rgb(var(--text-secondary))] cursor-not-allowed'
             : 'bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] hover:shadow-lg text-white'
             }`}

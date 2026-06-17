@@ -229,7 +229,7 @@ router.post('/check-duplicates', async (req, res) => {
 
 // CREATE card using LangChain
 router.post('/', checkFeatureEnabled('ai_interview_generation'), async (req, res) => {
-  const { title, tag, initials, experience, desc, color, creatorEmail, requestApproval } = req.body;
+  const { title, tag, branch, initials, experience, desc, color, creatorEmail, requestApproval } = req.body;
 
   if (!title || !tag || !initials || !experience || !desc || !creatorEmail) {
     return res.status(400).json({ message: 'All fields are required' });
@@ -276,6 +276,7 @@ router.post('/', checkFeatureEnabled('ai_interview_generation'), async (req, res
         sessionId,
         title,
         tag,
+        branch: branch || 'computer',
         initials,
         experience,
         desc,
@@ -334,6 +335,7 @@ router.post('/', checkFeatureEnabled('ai_interview_generation'), async (req, res
       sessionId,
       title,
       tag,
+      branch: branch || 'computer',
       initials,
       experience,
       desc,
@@ -354,7 +356,7 @@ router.post('/', checkFeatureEnabled('ai_interview_generation'), async (req, res
 
 // CREATE card using LangGraph Workflow (with validation)
 router.post('/workflow', checkFeatureEnabled('ai_interview_generation'), async (req, res) => {
-  const { title, tag, initials, experience, desc, color, creatorEmail } = req.body;
+  const { title, tag, branch, initials, experience, desc, color, creatorEmail } = req.body;
 
   if (!title || !tag || !initials || !experience || !desc || !creatorEmail) {
     return res.status(400).json({ message: 'All fields are required' });
@@ -410,6 +412,7 @@ router.post('/workflow', checkFeatureEnabled('ai_interview_generation'), async (
       sessionId,
       title,
       tag,
+      branch: branch || 'computer',
       initials,
       experience,
       desc,

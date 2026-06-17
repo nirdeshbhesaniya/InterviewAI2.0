@@ -13,6 +13,7 @@ import { Button } from '../components/ui/button';
 import UploadResourceModal from '../components/ui/UploadResourceModal';
 import DuplicateContentModal from '../components/ui/DuplicateContentModal';
 import { Loader } from '../components/ui/Loader';
+import { EmptyState } from '@/components/ui/EmptyState';
 import toast from 'react-hot-toast';
 import axios from '../utils/axiosInstance';
 import { API } from '../utils/apiPaths';
@@ -567,24 +568,23 @@ const ResourcesPage = () => {
                     <>
                         <div className="space-y-4">
                             {resources.length === 0 ? (
-                                <Card className="p-8 sm:p-12 text-center bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">
-                                    <Folder className="w-12 h-12 sm:w-16 sm:h-16 text-[rgb(var(--text-muted))] mx-auto mb-3 sm:mb-4" />
-                                    <h3 className="text-lg sm:text-xl font-semibold text-[rgb(var(--text-primary))] mb-2">
-                                        No Resources Found
-                                    </h3>
-                                    <p className="text-[rgb(var(--text-secondary))] mb-4">
-                                        {searchQuery
-                                            ? 'Try adjusting your search or filters'
-                                            : 'Resources for this branch are being uploaded. Check back soon!'}
-                                    </p>
-                                    <Button
-                                        onClick={() => setShowUploadModal(true)}
-                                        className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white"
-                                    >
-                                        <Upload className="w-4 h-4 mr-2" />
-                                        Be the First to Upload
-                                    </Button>
-                                </Card>
+                                <EmptyState
+                                    title="No Resources Found"
+                                    description={searchQuery
+                                        ? 'Try adjusting your search or filters'
+                                        : 'Resources for this branch are being uploaded. Check back soon!'}
+                                    icon={Folder}
+                                    isSearch={!!searchQuery}
+                                    actionButton={
+                                        <Button
+                                            onClick={() => setShowUploadModal(true)}
+                                            className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white"
+                                        >
+                                            <Upload className="w-4 h-4 mr-2" />
+                                            Be the First to Upload
+                                        </Button>
+                                    }
+                                />
                             ) : (
                                 resources.map((resource) => {
                                     const TypeIcon = getTypeIcon(resource.type);

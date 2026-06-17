@@ -28,7 +28,8 @@ router.post('/', authenticateToken, upload.single('resume'), async (req, res) =>
             questionCount = 5,
             jobRole,
             jobExperience,
-            resumeContext
+            resumeContext,
+            branch
         } = req.body;
 
         if (!skills || !degree || !interviewType || !difficulty || !focusArea) {
@@ -276,7 +277,8 @@ router.post('/', authenticateToken, upload.single('resume'), async (req, res) =>
                 jobRole,
                 jobExperience,
                 resumeContext: finalResumeContext,
-                candidateProfile
+                candidateProfile,
+                branch
             }
         );
 
@@ -286,6 +288,7 @@ router.post('/', authenticateToken, upload.single('resume'), async (req, res) =>
             jsonMockResp: JSON.stringify(questions),
 
             // New Fields
+            branch: branch || 'computer',
             skills,
             degree,
             interviewType,

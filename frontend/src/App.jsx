@@ -12,6 +12,8 @@ import AnswerEditor from './pages/InterviewPrep/AnswerEditor';
 import AddQuestionPage from './pages/InterviewPrep/AddQuestionPage';
 import ContactSupportPage from './pages/ContactSupportPage';
 import ExploreFeaturesPage from './pages/ExploreFeaturesPage';
+import PrivacyPolicy from './pages/Legal/PrivacyPolicy';
+import TermsAndConditions from './pages/Legal/TermsAndConditions';
 
 import MCQTest from './pages/MCQTest/MCQTest';
 import TestHistoryPage from './pages/MCQTest/TestHistoryPage';
@@ -62,6 +64,8 @@ const App = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<SignUp />} />
                 <Route path="/support" element={<ContactSupportPage />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
 
                 {/* Routes with header */}
                 <Route element={<MainLayout />}>

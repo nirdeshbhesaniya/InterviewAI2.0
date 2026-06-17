@@ -398,7 +398,8 @@ async function generateMockInterviewData(skills, degree, interviewType, difficul
     jobRole = 'General',
     jobExperience = 0,
     resumeContext = '',
-    candidateProfile = null
+    candidateProfile = null,
+    branch = 'computer'
   } = options;
 
   const profileSkills = Array.isArray(candidateProfile?.skills) ? candidateProfile.skills.join(', ') : '';
@@ -427,12 +428,13 @@ async function generateMockInterviewData(skills, degree, interviewType, difficul
 
   const userPrompt = `Generate exactly ${questionCount} ${difficulty}-level ${interviewType} interview questions for a candidate with the following profile:
 - Degree: ${degree}
+- Branch: ${branch} Engineering
 - Skills: ${skills}
 - Job Role: ${jobRole}
 - Experience: ${jobExperience} years
 - Focus Area: ${focusArea}
 
-Use the resume-derived context below to personalize questions when available. At least 2 questions should reference the candidate's real project/work details if present.
+Make sure to heavily tailor the technical questions to standard concepts, theory, and practical applications specific to the **${branch} Engineering** branch. Use the resume-derived context below to personalize questions when available. At least 2 questions should reference the candidate's real project/work details if present.
 
 RESUME SUMMARY CONTEXT:
 ${condensedResumeContext || 'N/A'}
@@ -621,6 +623,66 @@ EVALUATION GUIDELINES:
   }
 }
 
+/**
+ * Generate highly realistic job postings for a given role via Gemini/OpenRouter.
+ * Returns a strict JSON object containing 'freshers' and 'experienced' arrays.
+ */
+async function generateJobs(role, branch = '') {
+  const systemPrompt = `You are a professional IT Career Recruiter. You always respond with ONLY valid JSON objects — no markdown formatting, no code fences.`;
+
+  const userPrompt = `Generate exactly 6 highly realistic, current job openings for the role of "${role}" in INDIA. 
+The industry branch/domain for this role is "${branch} Engineering".
+Split them into exactly 3 for 'freshers' (0-2 years experience) and 3 for 'experienced' (3+ years experience).
+Make the company names ONLY top real Indian companies or MNCs that are highly relevant to the "${branch}" engineering sector. 
+(For example: If Mechanical, use L&T, Tata Motors, Mahindra. If Electrical, use Tata Power, Adani Power. If Software, use TCS, Zomato, Google. If Civil, use L&T, Shapoorji. If Chemical, use Reliance, UPL, etc.).
+For the applyUrl, DO NOT make up fake direct job URLs. Instead, provide the ACTUAL official career page root URL for that company (e.g., "https://www.tatamotors.com/careers" or "https://www.larsentoubro.com/corporate/careers/") so the user can genuinely search and apply there.
+
+Return ONLY a JSON object following this exact schema:
+{
+  "freshers": [
+    {
+      "companyName": "TCS",
+      "role": "${role} - Entry Level",
+      "location": "Bangalore / Pune",
+      "salary": "₹4L - ₹7L",
+      "description": "Short 2-sentence description of the role.",
+      "applyUrl": "https://www.tcs.com/careers"
+    }
+  ],
+  "experienced": [
+    {
+      "companyName": "Zomato",
+      "role": "Senior ${role}",
+      "location": "Gurgaon",
+      "salary": "₹25L - ₹40L",
+      "description": "Short 2-sentence description of the senior role.",
+      "applyUrl": "https://www.zomato.com/careers"
+    }
+  ]
+}`;
+
+  try {
+    const { content } = await generateWithFallback(QA_MODEL_PREFERENCES, systemPrompt, userPrompt);
+
+    // Strip any accidental markdown fences
+    const jsonString = content
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim();
+
+    const jobsData = JSON.parse(jsonString);
+    if (!jobsData.freshers || !jobsData.experienced) {
+      throw new Error('Invalid jobs schema returned by AI');
+    }
+    
+    return jobsData;
+  } catch (err) {
+    console.error('[JobSearch] generateJobs failed:', err.message);
+    throw err;
+  }
+}
+
 module.exports = {
   generateInterviewQuestions,
   chatWithAI,
@@ -629,5 +691,6 @@ module.exports = {
   summarizeText,
   extractResumeProfile,
   generateMockInterviewData,
-  generateInterviewFeedback
+  generateInterviewFeedback,
+  generateJobs
 };

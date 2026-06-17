@@ -3,13 +3,15 @@ import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Target, Tag, User, Clock, Mail, FileText } from 'lucide-react';
+import { X, Sparkles, Target, Tag, User, Clock, Mail, FileText, BookOpen } from 'lucide-react';
 import { ButtonLoader } from '../ui/Loader';
+import { BRANCHES } from '../../utils/constants';
 
-const CreateCardModal = ({ onClose, onCreated }) => {
+const CreateCardModal = ({ onClose, onCreated, defaultBranch = 'computer' }) => {
   const [form, setForm] = useState({
     title: '',
     tag: '',
+    branch: defaultBranch,
     initials: '',
     experience: '',
     desc: '',
@@ -19,6 +21,35 @@ const CreateCardModal = ({ onClose, onCreated }) => {
   const [loading, setLoading] = useState(false);
   const [similarSessions, setSimilarSessions] = useState([]);
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+
+  const branchName = BRANCHES.find(b => b.id === form.branch)?.name || 'Interview';
+
+  const getPlaceholders = (branchId) => {
+    switch (branchId) {
+      case 'electrical':
+        return { title: 'e.g., Power Systems Engineer Interview', tags: 'e.g., Circuit Analysis, MATLAB, Power Systems' };
+      case 'mechanical':
+        return { title: 'e.g., Mechanical Design Engineer Interview', tags: 'e.g., AutoCAD, SolidWorks, Thermodynamics' };
+      case 'civil':
+        return { title: 'e.g., Structural Engineer Interview', tags: 'e.g., AutoCAD, Structural Analysis, Concrete' };
+      case 'electronics':
+        return { title: 'e.g., VLSI Design Engineer Interview', tags: 'e.g., Verilog, VHDL, Embedded Systems' };
+      case 'chemical':
+        return { title: 'e.g., Process Engineer Interview', tags: 'e.g., Thermodynamics, Fluid Mechanics, Aspen Plus' };
+      case 'cs-ds':
+        return { title: 'e.g., Data Scientist Interview', tags: 'e.g., Python, Machine Learning, SQL' };
+      case 'instrumentation':
+        return { title: 'e.g., Automation Engineer Interview', tags: 'e.g., PLC, SCADA, Process Control' };
+      case 'power-electronics':
+        return { title: 'e.g., Power Electronics Engineer', tags: 'e.g., Converters, Motor Drives, Power Supplies' };
+      case 'it':
+      case 'computer':
+      default:
+        return { title: 'e.g., Frontend Developer Interview', tags: 'e.g., React, JavaScript, Node.js' };
+    }
+  };
+
+  const placeholders = getPlaceholders(form.branch);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -97,7 +128,7 @@ const CreateCardModal = ({ onClose, onCreated }) => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <h2 className="text-sm sm:text-lg lg:text-xl font-bold truncate leading-tight">
-                    {showDuplicateWarning ? 'Similar Sessions Found' : 'Create Interview Session'}
+                    {showDuplicateWarning ? 'Similar Sessions Found' : `Create ${branchName} Session`}
                   </h2>
                   <p className="text-white/80 text-xs sm:text-sm lg:text-sm truncate opacity-90">
                     {showDuplicateWarning ? 'Avoid duplication by checking these results' : 'AI-powered preparation journey'}
@@ -181,7 +212,7 @@ const CreateCardModal = ({ onClose, onCreated }) => {
                   <input
                     name="title"
                     type="text"
-                    placeholder="e.g., Frontend Developer Interview"
+                    placeholder={placeholders.title}
                     value={form.title}
                     onChange={handleChange}
                     required
@@ -198,7 +229,7 @@ const CreateCardModal = ({ onClose, onCreated }) => {
                   <input
                     name="tag"
                     type="text"
-                    placeholder="e.g., React, JavaScript, Node.js"
+                    placeholder={placeholders.tags}
                     value={form.tag}
                     onChange={handleChange}
                     required
@@ -206,6 +237,8 @@ const CreateCardModal = ({ onClose, onCreated }) => {
                   />
                   <p className="text-xs text-[rgb(var(--text-muted))]">Separate multiple tags with commas</p>
                 </div>
+
+                {/* Branch Selection is hidden and handled automatically based on the Dashboard context */}
 
                 {/* Grid for smaller inputs - Responsive columns */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
@@ -294,7 +327,7 @@ const CreateCardModal = ({ onClose, onCreated }) => {
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
-                      <span>Create Interview Session</span>
+                      <span>Create {branchName} Session</span>
                     </>
                   )}
                 </motion.button>

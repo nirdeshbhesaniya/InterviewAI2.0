@@ -1,11 +1,14 @@
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useState, useMemo, useContext, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Map, Zap, Users, TrendingUp, GitCompare, Sparkles, Bot } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { ROADMAPS, getRoadmapsByCategory } from './data/roadmapsData';
+import { ROADMAPS, getRoadmapsByCategory, countTotalTopics, getCategoriesForBranch, getEffectiveCompletedTopics } from './data/roadmapsData';
 import CareerCard from './components/CareerCard';
 import FilterBar from './components/FilterBar';
 import { UserContext } from '../../context/UserContext';
+import BranchModal from '../../components/BranchModal';
+import { BRANCHES } from '../../utils/constants';
+import { roadmapService } from '../../services/roadmapService';
 
 // Animated background blobs
 const BackgroundBlobs = () => (
@@ -37,10 +40,80 @@ const RoadmapsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
 
+  const [currentBranch, setCurrentBranch] = useState(localStorage.getItem('dashboard_branch') || 'computer');
+  const [showBranchModal, setShowBranchModal] = useState(false);
+  const [allProgress, setAllProgress] = useState({});
+
+  useEffect(() => {
+      if (currentBranch) {
+          localStorage.setItem('dashboard_branch', currentBranch);
+      }
+  }, [currentBranch]);
+
   const userId = user?._id || user?.email || null;
 
+  useEffect(() => {
+    let isMounted = true;
+    const fetchAllProgress = async () => {
+      if (userId && userId !== 'guest') {
+        try {
+          const progresses = await roadmapService.getAllProgress();
+          const progressMap = {};
+          progresses.forEach(p => {
+            const rmap = ROADMAPS.find(r => r.id === p.roadmapId);
+            if (rmap) {
+               const effective = getEffectiveCompletedTopics(rmap, p.completedTopics, p.clearedModules);
+               progressMap[p.roadmapId] = effective.length;
+            } else {
+               progressMap[p.roadmapId] = p.completedTopics?.length || 0;
+            }
+          });
+          if (isMounted) setAllProgress(progressMap);
+        } catch (error) {
+          console.error('Failed to fetch all roadmap progress:', error);
+        }
+      }
+    };
+    fetchAllProgress();
+    return () => { isMounted = false; };
+  }, [userId]);
+
+  const currentBranchInfo = BRANCHES.find(b => b.id === currentBranch) || BRANCHES[0];
+
+  const isComputerBranch = ['computer', 'it', 'cs-ds'].includes(currentBranch);
+
+  const branchRoadmaps = useMemo(() => {
+    let list = isComputerBranch ? getRoadmapsByCategory(activeCategory) : ROADMAPS;
+    if (isComputerBranch) {
+        list = list.filter(r => !['ece-core', 'ee-core', 'mech-core', 'civil-core', 'chem-core'].includes(r.id) && !r.branch);
+    } else if (currentBranch === 'electronics') {
+        list = list.filter(r => r.id === 'ece-core' || r.branch === 'electronics');
+    } else if (currentBranch === 'electrical') {
+        list = list.filter(r => r.id === 'ee-core' || r.branch === 'electrical');
+    } else if (currentBranch === 'mechanical') {
+        list = list.filter(r => r.id === 'mech-core' || r.branch === 'mechanical');
+    } else if (currentBranch === 'civil') {
+        list = list.filter(r => r.id === 'civil-core' || r.branch === 'civil');
+    } else if (currentBranch === 'chemical') {
+        list = list.filter(r => r.id === 'chem-core' || r.branch === 'chemical');
+    } else {
+        list = list.filter(r => !['ece-core', 'ee-core', 'mech-core', 'civil-core', 'chem-core'].includes(r.id) && !r.branch);
+    }
+    return list;
+  }, [activeCategory, currentBranch, isComputerBranch]);
+
+  const totalCareerPaths = branchRoadmaps.length;
+  const totalSkillTopics = useMemo(() => {
+    return branchRoadmaps.reduce((acc, roadmap) => acc + countTotalTopics(roadmap), 0);
+  }, [branchRoadmaps]);
+
   const filteredRoadmaps = useMemo(() => {
-    let list = getRoadmapsByCategory(activeCategory);
+    let list = branchRoadmaps;
+
+    if (activeCategory !== 'all') {
+      list = list.filter(r => r.category === activeCategory);
+    }
+
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
       list = list.filter(r =>
@@ -50,7 +123,7 @@ const RoadmapsPage = () => {
       );
     }
     return list;
-  }, [activeCategory, searchTerm]);
+  }, [searchTerm, branchRoadmaps, activeCategory]);
 
   return (
     <div className="min-h-screen bg-[rgb(var(--bg-body))] relative">
@@ -76,12 +149,24 @@ const RoadmapsPage = () => {
             AI-Powered Career Roadmaps
           </motion.div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-[rgb(var(--text-primary))] mb-4 leading-tight">
-            Explore IT Career{' '}
-            <span className="bg-gradient-to-r from-indigo-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent">
-              Roadmaps
-            </span>
-          </h1>
+          <div className="flex flex-col items-center justify-center mb-4">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-[rgb(var(--text-primary))] leading-tight text-center">
+              Explore <span className="text-[rgb(var(--text-secondary))]">{currentBranchInfo?.name || 'Computer Engineering'}</span> Career{' '}
+              <span className="bg-gradient-to-r from-indigo-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                Roadmaps
+              </span>
+            </h1>
+          </div>
+          
+          <div className="flex justify-center mb-6">
+              <button
+                  onClick={() => setShowBranchModal(true)}
+                  className="px-4 py-1.5 rounded-full text-sm font-medium border border-[rgb(var(--border))] text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--accent))] hover:border-[rgb(var(--accent))] transition-colors"
+              >
+                  Change Branch
+              </button>
+          </div>
+
           <p className="text-lg text-[rgb(var(--text-secondary))] max-w-2xl mx-auto leading-relaxed mb-8">
             Choose your dream tech career and follow a step-by-step roadmap from{' '}
             <span className="text-[rgb(var(--accent))] font-semibold">beginner</span> to{' '}
@@ -90,8 +175,8 @@ const RoadmapsPage = () => {
 
           {/* Stats row */}
           <div className="flex flex-wrap items-center justify-center gap-4 mb-10">
-            <StatCard icon={Map} value="20" label="Career Paths" gradient="from-blue-500 to-cyan-500" />
-            <StatCard icon={Zap} value="200+" label="Skill Topics" gradient="from-purple-500 to-violet-500" />
+            <StatCard icon={Map} value={totalCareerPaths} label="Career Paths" gradient="from-blue-500 to-cyan-500" />
+            <StatCard icon={Zap} value={`${totalSkillTopics}+`} label="Skill Topics" gradient="from-purple-500 to-violet-500" />
             <StatCard icon={Bot} value="AI" label="Mentor Guidance" gradient="from-green-500 to-emerald-500" />
             <StatCard icon={TrendingUp} value="XP" label="Gamified Progress" gradient="from-orange-500 to-red-500" />
           </div>
@@ -128,7 +213,11 @@ const RoadmapsPage = () => {
         >
           <div className="flex items-center justify-between gap-4 mb-4">
             <div className="flex-1 min-w-0">
-              <FilterBar activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
+              <FilterBar 
+                activeCategory={activeCategory} 
+                onCategoryChange={setActiveCategory} 
+                categories={getCategoriesForBranch(currentBranch)}
+              />
             </div>
             <motion.button
               onClick={() => navigate('/roadmaps/compare')}
@@ -194,6 +283,7 @@ const RoadmapsPage = () => {
                   roadmap={roadmap}
                   userId={userId}
                   index={index}
+                  completedTopicsCount={allProgress[roadmap.id] || 0}
                 />
               ))}
             </motion.div>
@@ -230,6 +320,16 @@ const RoadmapsPage = () => {
           </div>
         </motion.div>
       </div>
+
+      <BranchModal
+        isOpen={showBranchModal}
+        onClose={() => setShowBranchModal(false)}
+        onSelectBranch={(branchId) => {
+            setCurrentBranch(branchId);
+            setShowBranchModal(false);
+        }}
+        currentBranch={currentBranch}
+      />
     </div>
   );
 };

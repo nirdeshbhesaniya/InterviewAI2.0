@@ -5,11 +5,32 @@ const { authenticateToken, identifyUser } = require('../middlewares/auth');
 const { normalizeUrl, getVideoId } = require('../utils/urlHelper');
 
 // Get all notes (global view with optional filters)
+router.get('/migrate', async (req, res) => {
+    try {
+        const result = await Note.updateMany(
+            { branch: { $exists: false } },
+            { $set: { branch: 'computer' } }
+        );
+        const result2 = await Note.updateMany(
+            { branch: null },
+            { $set: { branch: 'computer' } }
+        );
+        res.json({ success: true, message: `Migrated ${result.modifiedCount} + ${result2.modifiedCount} notes to computer branch.` });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 router.get('/', identifyUser, require('../middlewares/cache')(60), async (req, res) => {
     try {
-        const { type, userId, tags, search, limit = 50, skip = 0 } = req.query;
+        const { type, userId, tags, search, branch, limit = 50, skip = 0 } = req.query;
 
         let query = {};
+
+        // Filter by branch
+        if (branch) {
+            query.branch = branch;
+        }
 
         // Filter by type (pdf/youtube)
         if (type) {
@@ -129,7 +150,7 @@ router.get('/:id', identifyUser, require('../middlewares/cache')(300), async (re
 // Create new note
 router.post('/', async (req, res) => {
     try {
-        const { userId, userName, userEmail, type, title, description, link, tags } = req.body;
+        const { userId, userName, userEmail, type, title, description, link, tags, branch } = req.body;
 
         // Validate required fields
         if (!userId || !userName || !userEmail || !type || !title || !link) {
@@ -198,7 +219,8 @@ router.post('/', async (req, res) => {
             title,
             description: description || '',
             link: normalizedLink,
-            tags: tags || []
+            tags: tags || [],
+            branch: branch || 'computer'
         });
 
         await note.save();

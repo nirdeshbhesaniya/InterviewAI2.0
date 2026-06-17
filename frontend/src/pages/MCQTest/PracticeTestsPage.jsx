@@ -6,6 +6,9 @@ import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import { Button } from '../../components/ui/button';
 import toast from 'react-hot-toast';
+import BranchModal from '../../components/BranchModal';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { BRANCHES } from '../../utils/constants';
 
 const PracticeTestsPage = () => {
     const navigate = useNavigate();
@@ -15,11 +18,22 @@ const PracticeTestsPage = () => {
     const [totalPages, setTotalPages] = useState(1);
     const TESTS_PER_PAGE = 9;
 
+    const [selectedBranch, setSelectedBranch] = useState(
+        localStorage.getItem('dashboard_branch') || 'computer'
+    );
+    const [showBranchModal, setShowBranchModal] = useState(!localStorage.getItem('dashboard_branch'));
+
+    useEffect(() => {
+        if (selectedBranch) {
+            localStorage.setItem('dashboard_branch', selectedBranch);
+        }
+    }, [selectedBranch]);
+
     useEffect(() => {
         const fetchTests = async () => {
             setLoading(true); // Ensure loading state shows on page change
             try {
-                const res = await axios.get(`${API.MCQ.PRACTICE_LIST}?page=${currentPage}&limit=${TESTS_PER_PAGE}`);
+                const res = await axios.get(`${API.MCQ.PRACTICE_LIST}?page=${currentPage}&limit=${TESTS_PER_PAGE}&branch=${selectedBranch}`);
                 // Debug: log API response to inspect time restriction fields
                 console.debug('Practice tests API response:', res.data);
 
@@ -47,7 +61,7 @@ const PracticeTestsPage = () => {
             }
         };
         fetchTests();
-    }, [currentPage]); // Re-fetch when page changes
+    }, [currentPage, selectedBranch]); // Re-fetch when page or branch changes
 
     const handleStartTest = (testId) => {
         navigate(`/mcq-test/practice/${testId}`);
@@ -72,13 +86,13 @@ const PracticeTestsPage = () => {
         <div className="min-h-screen pt-24 px-6 pb-12 bg-background">
             <div className="max-w-6xl mx-auto space-y-8">
                 {/* Header */}
-                <div className="text-center space-y-4">
+                <div className="text-center space-y-4 relative">
                     <motion.h1
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-4xl font-bold bg-gradient-to-r from-[rgb(var(--accent))] to-purple-500 bg-clip-text text-transparent"
+                        className="text-4xl font-bold bg-gradient-to-r from-[rgb(var(--accent))] to-purple-500 bg-clip-text text-transparent flex justify-center items-center gap-2"
                     >
-                        Practice Tests
+                        <span>Practice Tests</span>
                     </motion.h1>
                     <motion.p
                         initial={{ opacity: 0 }}
@@ -86,17 +100,29 @@ const PracticeTestsPage = () => {
                         transition={{ delay: 0.1 }}
                         className="text-[rgb(var(--text-secondary))] text-lg max-w-2xl mx-auto"
                     >
-                        Challenge yourself with curated practice tests created by experts.
+                        Challenge yourself with curated practice tests created by experts for {BRANCHES.find(b => b.id === selectedBranch)?.name || 'Computer Engineering'}.
                     </motion.p>
+                    <div className="flex justify-center mt-4">
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setShowBranchModal(true);
+                            }}
+                            className="text-sm px-4 py-2 bg-[rgb(var(--bg-card))]/80 hover:bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] rounded-lg text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] hover:border-[rgb(var(--accent))]/30 transition-all flex items-center gap-1.5 shadow-sm"
+                        >
+                            Change Branch
+                        </button>
+                    </div>
                 </div>
 
                 {/* Tests Grid */}
                 {tests.length === 0 ? (
-                    <div className="text-center py-16 bg-[rgb(var(--bg-card))] rounded-2xl border border-[rgb(var(--border))]">
-                        <FileQuestion className="w-16 h-16 text-[rgb(var(--text-muted))] mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-[rgb(var(--text-primary))]">No Practice Tests Available</h3>
-                        <p className="text-[rgb(var(--text-secondary))] mt-2">Check back later for new tests.</p>
-                    </div>
+                    <EmptyState
+                        title="No Practice Tests Available"
+                        description="Check back later for new tests."
+                        icon={FileQuestion}
+                    />
                 ) : (
                     <div className="space-y-8">
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -253,6 +279,16 @@ const PracticeTestsPage = () => {
                     </div>
                 )}
             </div>
+            <BranchModal 
+                isOpen={showBranchModal} 
+                onClose={() => setShowBranchModal(false)}
+                onSelectBranch={(branchId) => {
+                    setSelectedBranch(branchId);
+                    setShowBranchModal(false);
+                    setCurrentPage(1); // Reset to first page on branch change
+                }}
+                currentBranch={selectedBranch}
+            />
         </div>
     );
 };

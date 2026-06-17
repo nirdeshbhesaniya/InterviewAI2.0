@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useContext, useCallback, useRef,useMemo  } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -13,7 +13,9 @@ import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Clock, CheckCircle, XCircle, Award, Mail, Brain, Timer, BookOpen, Settings, ChevronLeft, ChevronRight, Code, Copy, History, AlertTriangle } from 'lucide-react';
 import { ButtonLoader } from '../../components/ui/Loader';
-import { useParams } from 'react-router-dom';
+
+import BranchModal from '../../components/BranchModal';
+import { BRANCHES } from '../../utils/constants';
 
 const getLanguageFromTopic = (topic) => {
     if (!topic) return 'javascript';
@@ -58,12 +60,46 @@ const getLanguageFromTopic = (topic) => {
     return 'javascript'; // Default
 };
 
+const getTopicPlaceholder = (branchId) => {
+    switch (branchId) {
+        case 'electronics':
+            return 'e.g., VLSI Design, Signal Processing, Microcontrollers...';
+        case 'electrical':
+            return 'e.g., Power Systems, Control Theory, Electric Machines...';
+        case 'mechanical':
+            return 'e.g., Thermodynamics, Fluid Mechanics, Machine Design...';
+        case 'civil':
+            return 'e.g., Structural Analysis, Soil Mechanics, Fluid Dynamics...';
+        case 'chemical':
+            return 'e.g., Process Engineering, Mass Transfer, Chemical Kinetics...';
+        case 'computer':
+        default:
+            return 'e.g., React Hooks, System Design, Data Structures...';
+    }
+};
+
 const MCQTest = () => {
     const { user } = useContext(UserContext);
     const { setIsTestActive } = useTestMode();
     const navigate = useNavigate();
+    const location = useLocation();
     const { testId } = useParams(); // Get testId for practice mode
     const isSubmitting = useRef(false); // Synchronous lock to prevent double submissions
+    
+    // Branch Selection State
+    const [selectedBranch, setSelectedBranch] = useState(
+        localStorage.getItem('dashboard_branch') || 'Computer Engineering (includes IT)'
+    );
+    const [showBranchModal, setShowBranchModal] = useState(!localStorage.getItem('dashboard_branch'));
+
+    useEffect(() => {
+        if (selectedBranch) {
+            localStorage.setItem('dashboard_branch', selectedBranch);
+        }
+    }, [selectedBranch]);
+
+    const currentBranchInfo = BRANCHES.find(b => b.id === selectedBranch) || BRANCHES[0];
+
     const [currentStep, setCurrentStep] = useState('setup'); // setup, test, results
     const [formData, setFormData] = useState({
         topic: '',
@@ -79,6 +115,36 @@ const MCQTest = () => {
     const [visitedQuestions, setVisitedQuestions] = useState({});
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [timeLeft, setTimeLeft] = useState(1800); // Default 30 minutes
+
+    const getSpecializationSuggestions = (branchId) => {
+        switch (branchId) {
+            case 'electrical':
+                return ['Power Systems', 'Control Systems', 'Machines', 'Power Electronics'];
+            case 'mechanical':
+                return ['Thermodynamics', 'Fluid Mechanics', 'Automobile', 'Manufacturing'];
+            case 'civil':
+                return ['Structural', 'Transportation', 'Geotechnical', 'Construction'];
+            case 'electronics':
+                return ['VLSI Design', 'Embedded Systems', 'Signal Processing', 'Communication Systems'];
+            case 'chemical':
+                return ['Process Engineering', 'Thermodynamics', 'Transport Phenomena', 'Reaction Engineering'];
+            case 'computer':
+            default:
+                return ['Frontend Development', 'Backend Development', 'Machine Learning', 'Data Science', 'Cybersecurity'];
+        }
+    };
+
+    const getSpecializationPlaceholder = (branchId) => {
+        switch (branchId) {
+            case 'electrical': return "e.g., Power Systems, Control Systems...";
+            case 'mechanical': return "e.g., Thermodynamics, Automobile...";
+            case 'civil': return "e.g., Structural Analysis, Geotechnical...";
+            case 'electronics': return "e.g., VLSI, Embedded Systems...";
+            case 'chemical': return "e.g., Process Engineering, Reactor Design...";
+            case 'computer':
+            default: return "e.g., Frontend Development, Machine Learning...";
+        }
+    };
     const [testStartTime, setTestStartTime] = useState(null);
     const [testEndTime, setTestEndTime] = useState(null);
     const [results, setResults] = useState(null);
@@ -100,13 +166,92 @@ const MCQTest = () => {
     const [fullscreenWarnings, setFullscreenWarnings] = useState(0);
     const [tabSwitchWarnings, setTabSwitchWarnings] = useState(0);
     const [notificationWarnings, setNotificationWarnings] = useState(0);
-    const [availableTopics] = useState([
-        'JavaScript', 'React', 'Node.js', 'Python', 'Java', 'C++', 'Database',
-        'System Design', 'Data Structures', 'Algorithms', 'Machine Learning',
-        'DevOps', 'Cloud Computing', 'Cybersecurity', 'Frontend Development',
-        'Frontend Development',
-        'Backend Development'
-    ]);
+    const autoStartedRef = useRef(false);
+
+    useEffect(() => {
+        if (!user?.email || !location.state?.autoGenerateMCQ || autoStartedRef.current) return;
+
+        const startAutoTest = async () => {
+            autoStartedRef.current = true;
+            
+            const topic = location.state.topic;
+            const numQuestions = location.state.numberOfQuestions || 10;
+            
+            setFormData(prev => ({
+                ...prev,
+                topic,
+                numberOfQuestions: numQuestions
+            }));
+
+            setLoading(true);
+            try {
+                const response = await axiosInstance.post(API.MCQ.GENERATE, {
+                    topic,
+                    experience: 'intermediate',
+                    specialization: '',
+                    numberOfQuestions: numQuestions,
+                    userEmail: user.email,
+                    email: user.email,
+                    branch: selectedBranch
+                });
+
+                if (response.data.success) {
+                    const rawQuestions = response.data.questions || response.data.data?.questions;
+                    const transformedQuestions = rawQuestions.map(q => {
+                        if (q.options && typeof q.options === 'object' && !Array.isArray(q.options)) {
+                            return {
+                                ...q,
+                                options: [q.options.A, q.options.B, q.options.C, q.options.D],
+                                correctAnswer: q.correctAnswer
+                            };
+                        }
+                        return q;
+                    });
+
+                    setQuestions(transformedQuestions);
+                    if (response.data.questionsWithAnswers || response.data.data?.questionsWithAnswers) {
+                        setQuestionsWithAnswers(response.data.questionsWithAnswers || response.data.data.questionsWithAnswers);
+                    }
+                    setCurrentStep('test');
+                    setTimeLeft(numQuestions * 120);
+                    setTestStartTime(new Date());
+                    setHasAttempted(true);
+                    toast.success(`Test started! You have ${Math.ceil(numQuestions * 2)} minutes to complete.`);
+                }
+            } catch (error) {
+                console.error('Error generating test:', error);
+                toast.error(error.response?.data?.message || 'Failed to generate test');
+                setCurrentStep('setup');
+            } finally {
+                setLoading(false);
+                // Clean up state to prevent re-triggering on refresh
+                window.history.replaceState({}, document.title);
+            }
+        };
+
+        startAutoTest();
+    }, [location.state, user?.email, selectedBranch]);
+    const availableTopics = useMemo(() => {
+        switch (selectedBranch) {
+            case 'electronics':
+                return ['VLSI Design', 'Digital Electronics', 'Signal Processing', 'Microprocessors', 'Embedded Systems', 'Communication Systems'];
+            case 'electrical':
+                return ['Power Systems', 'Control Systems', 'Electric Machines', 'Circuit Theory', 'Power Electronics', 'Electromagnetics'];
+            case 'mechanical':
+                return ['Thermodynamics', 'Fluid Mechanics', 'Machine Design', 'Heat Transfer', 'Manufacturing', 'Solid Mechanics'];
+            case 'civil':
+                return ['Structural Analysis', 'Soil Mechanics', 'Fluid Dynamics', 'Transportation Engineering', 'Environmental Engineering'];
+            case 'chemical':
+                return ['Process Engineering', 'Mass Transfer', 'Chemical Kinetics', 'Thermodynamics', 'Transport Phenomena'];
+            case 'computer':
+            default:
+                return [
+                    'JavaScript', 'React', 'Node.js', 'Python', 'Java', 'C++', 'Database',
+                    'System Design', 'Data Structures', 'Algorithms', 'Machine Learning',
+                    'DevOps', 'Cloud Computing', 'Cybersecurity'
+                ];
+        }
+    }, [selectedBranch]);
 
     // --- Persistence Logic ---
     const getPersistenceKey = useCallback(() => {
@@ -832,7 +977,8 @@ const MCQTest = () => {
             const response = await axiosInstance.post(API.MCQ.GENERATE, {
                 ...formData,
                 userEmail: user?.email, // Add user email for uniqueness tracking
-                email: user?.email
+                email: user?.email,
+                branch: selectedBranch
             });
 
             if (response.data.success) {
@@ -1077,15 +1223,28 @@ const MCQTest = () => {
 
                 <div className="space-y-4 sm:space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-[rgb(var(--text-primary))] mb-2">
-                            Test Topic *
-                        </label>
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="block text-sm font-medium text-[rgb(var(--text-primary))]">
+                                Test Topic for {currentBranchInfo?.name || 'Computer Engineering'} *
+                            </label>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    console.log('Change branch clicked');
+                                    setShowBranchModal(true);
+                                }}
+                                className="text-xs text-[rgb(var(--accent))] hover:underline"
+                            >
+                                Change Branch
+                            </button>
+                        </div>
                         <div className="relative">
                             <input
                                 type="text"
                                 value={formData.topic}
                                 onChange={(e) => setFormData(prev => ({ ...prev, topic: e.target.value }))}
-                                placeholder="e.g., React Hooks, System Design, Data Structures..."
+                                placeholder={getTopicPlaceholder(selectedBranch)}
                                 className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-[rgb(var(--border-subtle))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] transition-all duration-200"
                                 list="topics"
                             />
@@ -1145,9 +1304,22 @@ const MCQTest = () => {
                             type="text"
                             value={formData.specialization}
                             onChange={(e) => setFormData(prev => ({ ...prev, specialization: e.target.value }))}
-                            placeholder="e.g., Frontend Development, Machine Learning..."
+                            placeholder={getSpecializationPlaceholder(selectedBranch)}
                             className="w-full px-4 py-3 border border-[rgb(var(--border-subtle))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))]"
                         />
+                        <div className="mt-3 flex flex-wrap gap-2">
+                            <span className="text-xs text-[rgb(var(--text-muted))] self-center mr-1">Suggestions:</span>
+                            {getSpecializationSuggestions(selectedBranch).map(topic => (
+                                <button
+                                    key={topic}
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, specialization: formData.specialization ? `${formData.specialization}, ${topic}` : topic })}
+                                    className="text-xs px-2.5 py-1 rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-secondary))] hover:border-[rgb(var(--accent))] hover:text-[rgb(var(--accent))] transition-colors"
+                                >
+                                    + {topic}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     <div className="bg-primary/10 rounded-lg p-4 border border-primary/30">
@@ -2529,6 +2701,17 @@ const MCQTest = () => {
                 {currentStep === 'test' && renderTest()}
                 {currentStep === 'results' && (testId ? renderPracticeResults() : renderResults())}
             </div>
+
+            {/* Branch Selection Modal */}
+            <BranchModal 
+                isOpen={showBranchModal} 
+                onClose={() => setShowBranchModal(false)}
+                onSelectBranch={(branchId) => {
+                    setSelectedBranch(branchId);
+                    setShowBranchModal(false);
+                }}
+                currentBranch={selectedBranch}
+            />
 
             {/* Submit Confirmation Modal */}
             {renderConfirmationDialog()}

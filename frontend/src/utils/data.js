@@ -9,6 +9,14 @@ export const APP_FEATURES = [
     link: '/mock-interview'
   },
   {
+    id: '01b',
+    title: 'Career Roadmaps',
+    description: 'Follow curated learning paths with structured modules, topics, and AI assessments to guide your journey to success.',
+    icon: 'Map',
+    color: 'from-teal-500 to-emerald-600',
+    link: '/roadmaps'
+  },
+  {
     id: '02',
     title: 'AI Interview Q&A Sessions',
     description: 'Create personalized interview preparation sessions with AI-generated questions and detailed answers tailored to your role and experience level.',

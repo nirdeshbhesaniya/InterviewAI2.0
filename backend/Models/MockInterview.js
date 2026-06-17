@@ -11,6 +11,7 @@ const MockInterviewSchema = new mongoose.Schema({
     skills: { type: String, required: true },
 
     // Interview Config
+    branch: { type: String, default: 'computer' },
     interviewType: { type: String, enum: ['Technical', 'Behavioral', 'DSA'], required: true },
     difficulty: { type: String, enum: ['Basic', 'Intermediate', 'Advanced'], required: true },
     focusArea: { type: String, required: true }, // Topics

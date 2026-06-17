@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Play, Code2, Sparkles, Users, Star, Trophy, Terminal, Cpu, Clock, CheckCircle, AlertCircle, MessageSquare, ChevronRight, BookOpen, Target, TrendingUp, Filter, Grid, List, PlusCircle, Search, Calendar, Trash2, Eye, Bot, Loader2, FileCode } from 'lucide-react';
+import { ArrowRight, Play, Code2, Sparkles, Users, Star, Trophy, Terminal, Cpu, Clock, CheckCircle, AlertCircle, MessageSquare, ChevronRight, BookOpen, Target, TrendingUp, Filter, Grid, List, PlusCircle, Search, Calendar, Trash2, Eye, Bot, FileCode } from 'lucide-react';
+import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { API, API_BASE_URL } from '../../../utils/apiPaths';

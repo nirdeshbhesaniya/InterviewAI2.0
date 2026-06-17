@@ -9,7 +9,7 @@ const { createMCQChain } = require('./langchain-chains');
  * @param {Function} progressCallback - Optional callback for progress updates
  * @returns {Promise<Array>} Array of generated questions
  */
-async function generateMCQBatch(topic, difficulty = 'medium', totalQuestions = 30, progressCallback = null) {
+async function generateMCQBatch(topic, difficulty = 'medium', totalQuestions = 30, progressCallback = null, branch = 'Computer Engineering (includes IT)') {
     const BATCH_SIZE = 10; // Generate 10 questions per batch
     const numBatches = Math.ceil(totalQuestions / BATCH_SIZE);
 
@@ -29,7 +29,8 @@ async function generateMCQBatch(topic, difficulty = 'medium', totalQuestions = 3
                 questionsInBatch,
                 i + 1,
                 numBatches,
-                progressCallback
+                progressCallback,
+                branch
             );
 
             batchPromises.push(batchPromise);
@@ -61,7 +62,8 @@ async function generateMCQBatch(topic, difficulty = 'medium', totalQuestions = 3
                 totalQuestions - uniqueQuestions.length,
                 numBatches + 1,
                 numBatches + 1,
-                progressCallback
+                progressCallback,
+                branch
             );
             uniqueQuestions.push(...additionalQuestions);
         }
@@ -77,7 +79,7 @@ async function generateMCQBatch(topic, difficulty = 'medium', totalQuestions = 3
 /**
  * Generate a single batch of questions
  */
-async function generateSingleBatch(topic, difficulty, numberOfQuestions, batchNum, totalBatches, progressCallback) {
+async function generateSingleBatch(topic, difficulty, numberOfQuestions, batchNum, totalBatches, progressCallback, branch = 'Computer Engineering (includes IT)') {
     try {
         console.log(`📦 Batch ${batchNum}/${totalBatches}: Generating ${numberOfQuestions} questions...`);
 
@@ -85,7 +87,8 @@ async function generateSingleBatch(topic, difficulty, numberOfQuestions, batchNu
         const result = await chain.invoke({
             topic,
             difficulty,
-            numberOfQuestions
+            numberOfQuestions,
+            branch
         });
 
         // Parse the result (assuming it returns a string that needs parsing)

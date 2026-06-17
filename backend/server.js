@@ -96,6 +96,7 @@ app.use('/api/auth', authRoutes);
 // Apply rate limiting specifically to login endpoint
 app.use('/api/auth/login', loginLimiter);
 app.use('/api/profile', require('./Routes/profileRoutes'));
+app.use('/api/jobs', require('./Routes/jobRoutes'));
 
 // LangChain-powered routes (new implementations with memory & structured outputs)
 app.use('/api/interview', require('./Routes/interview-langchain'));
@@ -114,6 +115,8 @@ app.use('/api/ai', require('./Routes/aiRoutes'));
 app.use('/api/public', require('./Routes/publicRoutes'));
 app.use('/api/feedback', require('./Routes/feedbackRoutes'));
 app.use('/api/mock-interview', require('./Routes/mockInterviewRoutes'));
+app.use('/api/roadmaps', require('./Routes/roadmapRoutes'));
+app.use('/api/assessment', require('./Routes/assessmentRoutes'));
 // Mock Interview Route Registered
 
 // 404 handler

@@ -396,7 +396,7 @@ async function sendResultsEmail(userInfo, results, topic) {
 // Generate MCQ test with OPTIMIZED batch processing and caching
 router.post('/generate', checkFeatureEnabled('ai_mcq_generation'), async (req, res) => {
     try {
-        const { topic, difficulty = 'medium', numberOfQuestions = 30, userEmail } = req.body;
+        const { topic, difficulty = 'medium', numberOfQuestions = 30, userEmail, branch = 'Computer Engineering (includes IT)' } = req.body;
 
         if (!topic) {
             return res.status(400).json({
@@ -431,7 +431,8 @@ router.post('/generate', checkFeatureEnabled('ai_mcq_generation'), async (req, r
                 numberOfQuestions,
                 (progress) => {
                     console.log(`Progress: Batch ${progress.batch}/${progress.totalBatches} - ${progress.questionsGenerated} questions`);
-                }
+                },
+                branch
             );
 
             if (questions.length < numberOfQuestions) {
@@ -767,6 +768,7 @@ router.get('/cache-stats', (req, res) => {
 router.get('/history', async (req, res) => {
     try {
         const userEmail = req.headers['user-email'] || req.query.email;
+        const branch = req.query.branch;
 
         if (!userEmail) {
             return res.status(400).json({
@@ -775,14 +777,42 @@ router.get('/history', async (req, res) => {
             });
         }
 
+        let query = { userEmail };
+        if (branch) {
+            if (branch === 'computer') {
+                query.$or = [
+                    { branch: 'computer' }, 
+                    { branch: 'Computer Engineering' },
+                    { branch: 'Computer Engineering (includes IT)' }, 
+                    { branch: { $exists: false } }, 
+                    { branch: null },
+                    { branch: '' }
+                ];
+            } else {
+                query.branch = branch;
+            }
+        }
+
         // Fetch from both models for user history
-        const aiTests = await MCQTest.find({ userEmail }).sort({ createdAt: -1 }).lean();
+        const aiTests = await MCQTest.find(query).sort({ createdAt: -1 }).lean();
         const practiceTests = await PracticeTestResult.find({ userEmail }).populate('practiceTestId').sort({ createdAt: -1 }).lean();
+
+        let filteredPracticeTests = practiceTests;
+        if (branch) {
+            filteredPracticeTests = practiceTests.filter(t => {
+                if (!t.practiceTestId) return false;
+                const tBranch = t.practiceTestId.branch;
+                if (branch === 'computer') {
+                    return !tBranch || tBranch === 'computer' || tBranch === 'Computer Engineering' || tBranch === 'Computer Engineering (includes IT)' || tBranch === '';
+                }
+                return tBranch === branch;
+            });
+        }
 
         // Merge and normalize for unified view
         const history = [
             ...aiTests.map(t => ({ ...t, type: 'ai' })),
-            ...practiceTests.map(t => ({ 
+            ...filteredPracticeTests.map(t => ({ 
                 ...t, 
                 type: 'practice',
                 topic: t.practiceTestId?.topic || t.topic,
@@ -979,6 +1009,10 @@ router.get('/practice-tests', checkFeatureEnabled('practice_tests'), async (req,
 
         // specific filter if needed (e.g. search, difficulty) - strictly published only
         const filter = { isPublished: true };
+
+        if (req.query.branch) {
+            filter.branch = req.query.branch;
+        }
 
         if (req.query.search) {
             filter.$or = [

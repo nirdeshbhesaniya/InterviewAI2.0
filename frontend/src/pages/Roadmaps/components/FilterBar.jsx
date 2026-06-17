@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { CATEGORIES } from '../data/roadmapsData';
 
-const FilterBar = ({ activeCategory, onCategoryChange }) => {
+const FilterBar = ({ activeCategory, onCategoryChange, categories = CATEGORIES }) => {
   return (
     <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-      {CATEGORIES.map((category) => {
+      {categories.map((category) => {
         const IconComp = Icons[category.icon] || Icons.Grid;
         const isActive = activeCategory === category.id;
         return (

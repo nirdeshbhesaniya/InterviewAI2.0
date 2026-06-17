@@ -14,7 +14,7 @@ import {
   Filter,
   Grid,
   List,
-
+  X,
   MoreVertical,
   Eye,
   Library
@@ -23,13 +23,17 @@ import CreateCardModal from '../../components/Cards/CreateCardForm';
 import CreatorInfoModal from '../../components/Cards/CreatorInfoModal';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Badge } from '@/components/ui/badge';
+import { Loader } from '../../components/ui/Loader';
 import emptyStateImg from '../../assets/empty-state.jpg';
 import { Input } from '@/components/ui/input';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import Pagination from '../../components/common/Pagination';
 import { UserContext } from '../../context/UserContext';
+import { BRANCHES } from '../../utils/constants';
+import BranchModal from '../../components/BranchModal';
 
 export const Dashboard = () => {
   const { user } = useContext(UserContext);
@@ -44,6 +48,8 @@ export const Dashboard = () => {
   const [creatorModalOpen, setCreatorModalOpen] = useState(false);
   const [selectedCreator, setSelectedCreator] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedBranch, setSelectedBranch] = useState(localStorage.getItem('dashboard_branch') || '');
+  const [showBranchModal, setShowBranchModal] = useState(!localStorage.getItem('dashboard_branch'));
   const ITEMS_PER_PAGE = 12;
   const navigate = useNavigate();
 
@@ -171,18 +177,21 @@ export const Dashboard = () => {
     }
   };
 
-  // Debounced Search
+  // Debounced Search and Branch Filtering
   useEffect(() => {
     setCurrentPage(1); // Reset to first page on search
     const delayDebounce = setTimeout(() => {
       const filtered = cards.filter((card) => {
         const combinedText = `${card.title} ${card.desc} ${card.tag}`.toLowerCase();
-        return combinedText.includes(searchTerm.toLowerCase());
+        const matchesSearch = combinedText.includes(searchTerm.toLowerCase());
+        const cardBranch = card.branch || 'computer';
+        const matchesBranch = !selectedBranch || cardBranch === selectedBranch;
+        return matchesSearch && matchesBranch;
       });
       setFilteredCards(filtered);
     }, 300);
     return () => clearTimeout(delayDebounce);
-  }, [searchTerm, cards]);
+  }, [searchTerm, cards, selectedBranch]);
 
   // Pagination Logic
   const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
@@ -195,6 +204,8 @@ export const Dashboard = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const branchCards = cards.filter(card => !selectedBranch || (card.branch || 'computer') === selectedBranch);
+
   return (
     <div className="min-h-screen bg-[rgb(var(--bg-body))]">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 font-[Urbanist]">
@@ -203,21 +214,28 @@ export const Dashboard = () => {
           <div className="flex flex-col space-y-4 xl:space-y-0 xl:flex-row xl:items-center xl:justify-between xl:gap-6">
             {/* Title Section */}
             <div className="space-y-2">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[rgb(var(--accent))] rounded-xl flex items-center justify-center shadow-md">
-                    <Bot className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[rgb(var(--accent))] rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+                    <Bot className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
                   </div>
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[rgb(var(--text-primary))]">
-                    Interview AI
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[rgb(var(--text-primary))] leading-tight flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span>{selectedBranch ? BRANCHES.find(b => b.id === selectedBranch)?.name : ''}</span>
+                    <span className="text-[rgb(var(--accent))]">Interview AI</span>
+                    <button
+                      onClick={() => setShowBranchModal(true)}
+                      className="ml-1 text-xs sm:text-sm px-2.5 py-1.5 bg-[rgb(var(--bg-card))]/80 hover:bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] rounded-lg text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] hover:border-[rgb(var(--accent))]/30 transition-all flex items-center gap-1.5 shadow-sm"
+                    >
+                      <Filter className="w-3.5 h-3.5" /> Change Branch
+                    </button>
                   </h1>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs sm:text-sm">
-                    {cards.length} Sessions
+                <div className="flex flex-wrap items-center gap-2 mt-1 sm:mt-0">
+                  <Badge className="bg-green-500/10 hover:bg-green-500/20 text-green-500 border-green-500/20 text-xs sm:text-sm py-1">
+                    {branchCards.length} Sessions
                   </Badge>
-                  <Badge className="bg-[rgb(var(--accent))]/20 text-[rgb(var(--accent))] border-[rgb(var(--accent))]/30 text-xs sm:text-sm sm:hidden">
-                    {cards.reduce((acc, card) => acc + (card.qna?.length || 0), 0)} Q&A
+                  <Badge className="bg-[rgb(var(--accent))]/10 hover:bg-[rgb(var(--accent))]/20 text-[rgb(var(--accent))] border-[rgb(var(--accent))]/20 text-xs sm:text-sm py-1 sm:hidden">
+                    {branchCards.reduce((acc, card) => acc + (card.qna?.length || 0), 0)} Q&A
                   </Badge>
                 </div>
               </div>
@@ -312,21 +330,21 @@ export const Dashboard = () => {
               {
                 icon: BookOpen,
                 label: 'Total Sessions',
-                value: cards.length,
+                value: branchCards.length,
                 color: 'from-blue-500 to-cyan-500',
                 shortLabel: 'Sessions'
               },
               {
                 icon: Target,
                 label: 'Questions',
-                value: cards.reduce((acc, card) => acc + (card.qna?.length || 0), 0),
+                value: branchCards.reduce((acc, card) => acc + (card.qna?.length || 0), 0),
                 color: 'from-green-500 to-emerald-500',
                 shortLabel: 'Questions'
               },
               {
                 icon: TrendingUp,
                 label: 'This Week',
-                value: cards.filter(card => {
+                value: branchCards.filter(card => {
                   const cardDate = new Date(card.createdAt);
                   const weekAgo = new Date();
                   weekAgo.setDate(weekAgo.getDate() - 7);
@@ -339,7 +357,7 @@ export const Dashboard = () => {
                 icon: Clock,
                 label: 'Total Prep Time',
                 value: (() => {
-                  const totalQuestions = cards.reduce((acc, card) => acc + (card.qna?.length || 0), 0);
+                  const totalQuestions = branchCards.reduce((acc, card) => acc + (card.qna?.length || 0), 0);
                   // Estimate: 5 mins per question
                   const totalMinutes = totalQuestions * 5;
 
@@ -377,55 +395,30 @@ export const Dashboard = () => {
         {/* Content Section - Enhanced Loading */}
         {loading ? (
           <div className="min-h-[50vh] sm:min-h-[60vh] flex items-center justify-center px-4">
-            <div className="flex flex-col items-center gap-4 sm:gap-6">
-              <div className="flex space-x-2 sm:space-x-3">
-                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-[rgb(var(--accent))] animate-ping [animation-delay:-0.30s]"></div>
-                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-[rgb(var(--accent))] animate-ping [animation-delay:-0.35s]"></div>
-                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-[rgb(var(--accent))] animate-ping"></div>
-              </div>
-              <div className="flex items-center justify-center gap-2 sm:gap-3 animate-pulse">
-                <Bot className="w-6 h-6 sm:w-8 sm:h-8 text-[rgb(var(--accent))] drop-shadow-md" />
-                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-[rgb(var(--accent))] tracking-wide">Loading Dashboard</h1>
-              </div>
-              <p className="text-xs sm:text-sm text-[rgb(var(--text-secondary))] text-center px-4">Setting up your smart dashboard...</p>
-            </div>
+            <Loader size="xl" text="Setting up your smart dashboard..." />
           </div>
         ) : filteredCards.length === 0 ? (
-          <motion.div
-            className="flex flex-col items-center justify-center h-[50vh] sm:h-[60vh] text-center px-4 sm:px-6"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="relative mb-6 sm:mb-8">
-              <img
-                src={emptyStateImg}
-                alt="No Sessions"
-                className="w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 opacity-80 animate-pulse"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent rounded-full"></div>
-            </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-[rgb(var(--text-primary))] mb-2">
-              {searchTerm ? 'No matching sessions found' : 'No interview sessions yet'}
-            </h3>
-            <p className="text-[rgb(var(--text-secondary))] mb-4 sm:mb-6 max-w-md text-sm sm:text-base">
-              {searchTerm
-                ? 'Try adjusting your search terms or create a new session'
-                : 'Start your interview preparation journey by creating your first session'
-              }
-            </p>
-            {!searchTerm && (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setModalOpen(true)}
-                className="flex items-center gap-2 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-xl shadow-lg shadow-[rgb(var(--accent))]/30 hover:shadow-xl hover:shadow-[rgb(var(--accent))]/40 transition-all duration-200 text-sm sm:text-base"
-              >
-                <PlusCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                Create Your First Session
-              </motion.button>
-            )}
-          </motion.div>
+          <EmptyState
+            title={searchTerm ? 'No matching sessions found' : 'No interview sessions yet'}
+            description={searchTerm 
+              ? 'Try adjusting your search terms or create a new session' 
+              : 'Start your interview preparation journey by creating your first session'}
+            icon={Bot}
+            isSearch={!!searchTerm}
+            actionButton={
+              !searchTerm && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setModalOpen(true)}
+                  className="flex items-center gap-2 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-xl shadow-lg shadow-[rgb(var(--accent))]/30 hover:shadow-xl hover:shadow-[rgb(var(--accent))]/40 transition-all duration-200 text-sm sm:text-base"
+                >
+                  <PlusCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                  Create Your First Session
+                </motion.button>
+              )
+            }
+          />
         ) : (
           <>
             {/* Grid View - Enhanced Mobile Responsive */}
@@ -721,6 +714,7 @@ export const Dashboard = () => {
             <CreateCardModal
               onClose={() => setModalOpen(false)}
               onCreated={handleCreated}
+              defaultBranch={selectedBranch || 'computer'}
             />
           )
         }
@@ -785,6 +779,20 @@ export const Dashboard = () => {
                 </div>
               </motion.div>
             </motion.div>
+          )}
+
+          {/* Branch Selection Modal */}
+          {showBranchModal && (
+            <BranchModal
+              isOpen={showBranchModal}
+              onClose={() => setShowBranchModal(false)}
+              currentBranch={selectedBranch}
+              onSelectBranch={(branchId) => {
+                setSelectedBranch(branchId);
+                localStorage.setItem('dashboard_branch', branchId);
+                setShowBranchModal(false);
+              }}
+            />
           )}
         </AnimatePresence>
 

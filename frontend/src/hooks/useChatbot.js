@@ -7,7 +7,7 @@ export const useChatbot = () => {
     const [messages, setMessages] = useState([
         {
             id: 1,
-            text: "Hi! I'm your AI Interview Assistant. I can help you with interview preparation, coding questions, system design, and much more. How can I assist you today?",
+            text: "Hi! I'm your AI Interview Assistant. I can help you with interview preparation, How can I assist you today?",
             isBot: true,
             timestamp: new Date(),
         }
@@ -68,7 +68,7 @@ export const useChatbot = () => {
         setMessages([
             {
                 id: 1,
-                text: "Hi! I'm your AI Interview Assistant. I can help you with interview preparation, coding questions, system design, and much more. How can I assist you today?",
+                text: "Hi! I'm your AI Interview Assistant. I can help you with interview preparation, How can I assist you today?",
                 isBot: true,
                 timestamp: new Date(),
             }

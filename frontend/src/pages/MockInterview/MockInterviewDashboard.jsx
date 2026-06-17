@@ -1,14 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../../utils/axiosInstance';
-import { Loader2, Mic, CheckCircle, Briefcase, Code, Target, Clock, Award, TrendingUp, ExternalLink, Trash2 } from 'lucide-react';
+import { Mic, CheckCircle, Briefcase, Code, Target, Clock, Award, TrendingUp, ExternalLink, Trash2 } from 'lucide-react';
+import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import { motion } from 'framer-motion';
 import InterviewCreationWizard from './InterviewCreationWizard';
+import { BRANCHES } from '../../utils/constants';
+import BranchModal from '../../components/BranchModal';
 
 const MockInterviewDashboard = () => {
     const [interviews, setInterviews] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedBranch, setSelectedBranch] = useState(
+        localStorage.getItem('selectedMockBranch') || 'computer'
+    );
+    const [showBranchModal, setShowBranchModal] = useState(!localStorage.getItem('selectedMockBranch'));
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (selectedBranch) {
+            localStorage.setItem('selectedMockBranch', selectedBranch);
+        }
+    }, [selectedBranch]);
 
     useEffect(() => {
         fetchInterviews();
@@ -98,12 +111,25 @@ const MockInterviewDashboard = () => {
     return (
         <div className="p-6 md:p-10 max-w-7xl mx-auto min-h-[calc(100vh-200px)]">
             <div className="mb-10">
-                <h2 className="font-bold text-3xl text-[rgb(var(--text-primary))] mb-2">Mock Interview AI</h2>
-                <p className="text-[rgb(var(--text-muted))]">Create a new interview session or continue your preparation history.</p>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 className="font-bold text-3xl text-[rgb(var(--text-primary))] mb-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <span>{selectedBranch ? BRANCHES.find(b => b.id === selectedBranch)?.name : ''}</span>
+                            <span className="text-[rgb(var(--accent))]">Mock Interview AI</span>
+                        </h2>
+                        <p className="text-[rgb(var(--text-muted))]">Create a new interview session or continue your preparation history.</p>
+                    </div>
+                    <button
+                        onClick={() => setShowBranchModal(true)}
+                        className="self-start sm:self-auto text-sm px-3.5 py-2 bg-[rgb(var(--bg-card))]/80 hover:bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] rounded-lg text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] hover:border-[rgb(var(--accent))]/30 transition-all flex items-center gap-1.5 shadow-sm"
+                    >
+                        Change Branch
+                    </button>
+                </div>
             </div>
 
             {/* Creation Wizard */}
-            <InterviewCreationWizard onInterviewCreated={handleInterviewCreated} />
+            <InterviewCreationWizard onInterviewCreated={handleInterviewCreated} selectedBranch={selectedBranch} />
 
             <div className="mt-12">
                 <h3 className="text-xl font-bold text-[rgb(var(--text-primary))] mb-6 flex items-center gap-2">
@@ -116,9 +142,11 @@ const MockInterviewDashboard = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-8">
-                        {interviews.length > 0 ? (
-                            interviews.map((interview) => {
-                                const statusConfig = getStatusConfig(interview.status);
+                        {(() => {
+                            const filteredInterviews = interviews.filter(i => !selectedBranch || (i.branch || 'computer') === selectedBranch);
+                            return filteredInterviews.length > 0 ? (
+                                filteredInterviews.map((interview) => {
+                                    const statusConfig = getStatusConfig(interview.status);
                                 const StatusIcon = statusConfig.icon;
 
                                 return (
@@ -263,17 +291,31 @@ const MockInterviewDashboard = () => {
                                         </div>
                                     </motion.div>
                                 );
-                            })
-                        ) : (
-                            <div className="col-span-full text-center py-20 text-[rgb(var(--text-muted))]">
-                                <Mic className="w-16 h-16 mx-auto mb-4 opacity-20" />
-                                <p className="text-lg font-medium">No previous interviews found.</p>
-                                <p className="text-sm mt-2">Use the form above to create your first interview session!</p>
-                            </div>
-                        )}
+                                })
+                            ) : (
+                                <div className="col-span-full text-center py-20 text-[rgb(var(--text-muted))]">
+                                    <Mic className="w-16 h-16 mx-auto mb-4 opacity-20" />
+                                    <p className="text-lg font-medium">No previous interviews found for this branch.</p>
+                                    <p className="text-sm mt-2">Use the form above to create your first interview session!</p>
+                                </div>
+                            )
+                        })()}
                     </div>
                 )}
             </div>
+
+            {/* Branch Selection Modal */}
+            {showBranchModal && (
+                <BranchModal
+                    isOpen={showBranchModal}
+                    onClose={() => setShowBranchModal(false)}
+                    currentBranch={selectedBranch}
+                    onSelectBranch={(branchId) => {
+                        setSelectedBranch(branchId);
+                        setShowBranchModal(false);
+                    }}
+                />
+            )}
         </div>
     );
 };

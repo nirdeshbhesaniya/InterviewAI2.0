@@ -12,8 +12,8 @@ import {
     CheckCircle,
     AlertTriangle,
     Trash2
-} from 'lucide-react';
 import { Loader } from '../components/ui/Loader';
+import { EmptyState } from '@/components/ui/EmptyState';
 import axios from '../utils/axiosInstance';
 import { API } from '../utils/apiPaths';
 import toast from 'react-hot-toast';
@@ -203,15 +203,11 @@ const NotificationsPageNew = () => {
 
                 {/* Notifications List */}
                 {notifications.length === 0 ? (
-                    <div className="text-center py-12">
-                        <Bell className="w-16 h-16 text-[rgb(var(--text-muted))]/30 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-[rgb(var(--text-secondary))] mb-2">
-                            No notifications
-                        </h3>
-                        <p className="text-[rgb(var(--text-muted))]">
-                            You're all caught up!
-                        </p>
-                    </div>
+                    <EmptyState
+                        title="No notifications"
+                        description="You're all caught up!"
+                        icon={Bell}
+                    />
                 ) : (
                     <div className="space-y-3">
                         {notifications.map((notification) => (

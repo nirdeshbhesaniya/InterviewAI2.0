@@ -9,6 +9,7 @@ const InterviewSchema = new mongoose.Schema({
   sessionId: String,
   title: String,
   tag: String,
+  branch: { type: String, default: 'computer' },
   initials: String,
   experience: String,
   desc: String,

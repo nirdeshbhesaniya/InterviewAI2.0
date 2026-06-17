@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Trash2, CheckCircle, AlertCircle, Save, Upload, FileText, Sparkles } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import toast from 'react-hot-toast';
+import { BRANCHES } from '../../../utils/constants';
 
 /**
  * Parse bulk MCQ text into structured question objects.
@@ -125,6 +126,7 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
         title: '',
         description: '',
         topic: '',
+        branch: 'computer',
         difficulty: 'medium',
         maxAttempts: 1,
         timeLimit: 30,
@@ -154,6 +156,7 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
                     title: '',
                     description: '',
                     topic: '',
+                    branch: 'computer',
                     difficulty: 'medium',
                     maxAttempts: 1,
                     timeLimit: 30,
@@ -316,6 +319,19 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
                                 className="w-full px-4 py-2 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] outline-none text-[rgb(var(--text-primary))]"
                                 placeholder="e.g. JavaScript"
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-[rgb(var(--text-secondary))]">Branch</label>
+                            <select
+                                name="branch"
+                                value={formData.branch}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] outline-none text-[rgb(var(--text-primary))]"
+                            >
+                                {BRANCHES.map(branch => (
+                                    <option key={branch.id} value={branch.id}>{branch.name}</option>
+                                ))}
+                            </select>
                         </div>
                         <div className="md:col-span-2 space-y-2">
                             <label className="text-sm font-medium text-[rgb(var(--text-secondary))]">Description</label>

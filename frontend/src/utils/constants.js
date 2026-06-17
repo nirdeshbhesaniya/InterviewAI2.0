@@ -1,36 +1,21 @@
 import {
-    Cpu, Cloud, Database, Radio, Zap, Wrench, Building,
-    Gauge, Battery, FlaskConical, Briefcase
+    Cpu, Radio, Zap, Wrench, Building, FlaskConical
 } from 'lucide-react';
 
 export const BRANCHES = [
     {
         id: 'computer',
-        name: 'Computer Engineering',
+        name: 'Computer Engineering (includes IT)',
         icon: Cpu,
         color: 'from-blue-500 to-cyan-500',
-        description: 'Software, Hardware, and System Design'
-    },
-    {
-        id: 'it',
-        name: 'Information Technology',
-        icon: Cloud,
-        color: 'from-purple-500 to-pink-500',
-        description: 'Web Development, Cloud Computing, and Networks'
-    },
-    {
-        id: 'cs-ds',
-        name: 'Computer Science (Data Science)',
-        icon: Database,
-        color: 'from-green-500 to-emerald-500',
-        description: 'AI, ML, Data Analytics, and Big Data'
+        description: 'Software, Web Dev, AI/ML, and System Design'
     },
     {
         id: 'electronics',
-        name: 'Electronics & Communication',
+        name: 'Electronics & Communication Engineering',
         icon: Radio,
         color: 'from-orange-500 to-red-500',
-        description: 'Communication Systems, Signal Processing'
+        description: 'Communication Systems, Signal Processing, VLSI'
     },
     {
         id: 'electrical',
@@ -54,31 +39,10 @@ export const BRANCHES = [
         description: 'Structures, Construction, Transportation'
     },
     {
-        id: 'instrumentation',
-        name: 'Instrumentation & Control',
-        icon: Gauge,
-        color: 'from-teal-500 to-cyan-500',
-        description: 'Process Control, Automation, Sensors'
-    },
-    {
-        id: 'power-electronics',
-        name: 'Power Electronics',
-        icon: Battery,
-        color: 'from-indigo-500 to-purple-500',
-        description: 'Converters, Inverters, Motor Drives'
-    },
-    {
         id: 'chemical',
         name: 'Chemical Engineering',
         icon: FlaskConical,
         color: 'from-lime-500 to-green-500',
         description: 'Process Engineering, Thermodynamics, Reactors'
-    },
-    {
-        id: 'interview',
-        name: 'Interview Preparation',
-        icon: Briefcase,
-        color: 'from-rose-500 to-pink-500',
-        description: 'Technical Interviews, HR, Aptitude, and Resume'
     }
 ];

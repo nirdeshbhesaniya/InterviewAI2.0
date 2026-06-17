@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../utils/axiosInstance';
-import { Loader2, ArrowLeft, Award, Lightbulb, CheckCircle, XCircle, AlertCircle, TrendingUp, Target, Eye, Brain, MessageSquare, Shield, Zap, ArrowRight, Star, BookOpen, Crosshair } from 'lucide-react';
+import { ArrowLeft, Award, Lightbulb, CheckCircle, XCircle, AlertCircle, TrendingUp, Target, Eye, Brain, MessageSquare, Shield, Zap, ArrowRight, Star, BookOpen, Crosshair } from 'lucide-react';
+import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import { ScoreRing, RadarChart, ReadinessBadge, ScoreBar, CollapsibleQuestion } from './FeedbackComponents';
 
 const InterviewResult = () => {

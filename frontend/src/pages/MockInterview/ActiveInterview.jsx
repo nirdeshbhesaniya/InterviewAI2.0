@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from '../../utils/axiosInstance';
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Clock, Bot, AlertCircle, Loader2, Maximize2, Minimize2, X, Globe, Briefcase, Building2 } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Clock, Bot, AlertCircle, Maximize2, Minimize2, X, Globe, Briefcase, Building2 } from 'lucide-react';
+import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import toast from 'react-hot-toast';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import { useUser } from '../../context/UserContext';

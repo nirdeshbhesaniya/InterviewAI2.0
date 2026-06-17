@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bot, Twitter, Linkedin, Github, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 const socialLinks = [
   {
@@ -60,8 +61,18 @@ const Footer = () => {
         </div>
       </div>
 
-      <div className="text-center py-6 text-sm text-[rgb(var(--text-muted))] border-t border-[rgb(var(--border))]">
-        © {new Date().getFullYear()} Interview AI. All rights reserved.
+      <div className="text-center py-6 border-t border-[rgb(var(--border))] flex flex-col md:flex-row items-center justify-between gap-4 max-w-6xl mx-auto px-6">
+        <div className="text-sm text-[rgb(var(--text-muted))]">
+          © {new Date().getFullYear()} Interview AI. All rights reserved.
+        </div>
+        <div className="flex gap-6 text-sm">
+          <Link to="/privacy-policy" className="text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] transition-colors">
+            Privacy Policy
+          </Link>
+          <Link to="/terms-and-conditions" className="text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] transition-colors">
+            Terms & Conditions
+          </Link>
+        </div>
       </div>
     </footer>
   );

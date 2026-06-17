@@ -110,7 +110,10 @@ export const API = {
     DELETE_BROADCAST: (id) => `${API_BASE_URL}/admin/notifications/broadcasts/${id}`,
     FEATURE_LOCKS: `${API_BASE_URL}/ai/features`,
     TOGGLE_FEATURE_LOCK: `${API_BASE_URL}/ai/features/toggle`,
-    PATCH_FEATURE_LOCK: (key) => `${API_BASE_URL}/ai/features/${key}`
+    PATCH_FEATURE_LOCK: (key) => `${API_BASE_URL}/ai/features/${key}`,
+    GET_USER_ACTIVITY: (userId) => `${API_BASE_URL}/admin/users/${userId}/activity`,
+    DELETE_USER: (userId) => `${API_BASE_URL}/admin/users/${userId}`,
+    DELETE_ALL_BANNED_USERS: `${API_BASE_URL}/admin/users/banned/all`
   },
   NOTIFICATIONS: {
     GET_ALL: (userId) => `${API_BASE_URL}/notifications/${userId}`,

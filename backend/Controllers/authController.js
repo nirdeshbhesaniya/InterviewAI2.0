@@ -84,7 +84,8 @@ exports.registerUser = async (req, res) => {
           username: username.toLowerCase(),
           email,
           password: hashedPassword,
-          photo: uploadedPhotoUrl
+          photo: uploadedPhotoUrl,
+          hasAcceptedTerms: true
         };
         existingUser.emailVerificationOTP = otp;
         existingUser.emailVerificationOTPExpires = otpExpires;
@@ -150,7 +151,8 @@ exports.registerUser = async (req, res) => {
         username: username.toLowerCase(),
         email,
         password: hashedPassword,
-        photo: uploadedPhotoUrl
+        photo: uploadedPhotoUrl,
+        hasAcceptedTerms: true
       }
     });
 
@@ -224,6 +226,8 @@ exports.verifyRegistrationOTP = async (req, res) => {
     user.username = user.tempUserData.username;
     user.password = user.tempUserData.password;
     user.photo = user.tempUserData.photo;
+    user.hasAcceptedTerms = user.tempUserData.hasAcceptedTerms || true;
+    user.termsAcceptedAt = new Date();
     user.isEmailVerified = true;
     user.emailVerificationOTP = undefined;
     user.emailVerificationOTPExpires = undefined;

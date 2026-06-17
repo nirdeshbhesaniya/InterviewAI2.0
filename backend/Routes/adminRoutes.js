@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const Interview = require('../models/Interview');
 const Notification = require('../models/Notification');
@@ -1052,6 +1053,170 @@ router.delete('/notifications/broadcasts/:id', async (req, res) => {
     } catch (err) {
         console.error('Error deleting broadcast:', err);
         res.status(500).json({ message: 'Failed to delete broadcast' });
+    }
+});
+
+// GET User specific activity and stats (Admin)
+router.get('/users/:userId/activity', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const user = await User.findById(userId);
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const email = user.email;
+
+        // Dynamically load models
+        const RoadmapProgress = require('../models/RoadmapProgress');
+        const Note = require('../models/Note');
+        const Resource = require('../models/Resource');
+        const PracticeTestResult = require('../models/PracticeTestResult');
+        const MockInterview = require('../models/MockInterview');
+        const MCQTest = require('../models/MCQTest');
+
+        // Fetch counts
+        const [
+            interviewsCount, // This is actually Q&A sessions
+            roadmapsCount,
+            notesCount,
+            resourcesCount,
+            testsCount,
+            aiInterviewsCount,
+            aiMcqTestsCount
+        ] = await Promise.all([
+            Interview.countDocuments({ creatorEmail: email }),
+            RoadmapProgress.countDocuments({ userId }),
+            Note.countDocuments({ authorId: userId }),
+            Resource.countDocuments({ uploadedBy: userId }),
+            PracticeTestResult.countDocuments({ userEmail: email }),
+            MockInterview.countDocuments({ userId }),
+            MCQTest.countDocuments({ userId })
+        ]);
+
+        // Aggregate chronological activity for the timeline chart
+        // We will pull the last 6 months of data
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+        // Function to group by month 'YYYY-MM'
+        const getMonthlyAggregation = async (Model, dateField, matchQuery) => {
+            return Model.aggregate([
+                { $match: { ...matchQuery, [dateField]: { $gte: sixMonthsAgo } } },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: "%Y-%m", date: `$${dateField}` } },
+                        count: { $sum: 1 }
+                    }
+                }
+            ]);
+        };
+
+        const [monthlyInterviews, monthlyTests, monthlyRoadmaps, monthlyAiInterviews, monthlyAiTests] = await Promise.all([
+            getMonthlyAggregation(Interview, 'createdAt', { creatorEmail: email }),
+            getMonthlyAggregation(PracticeTestResult, 'createdAt', { userEmail: email }),
+            getMonthlyAggregation(RoadmapProgress, 'lastUpdated', { userId: new mongoose.Types.ObjectId(userId) }),
+            getMonthlyAggregation(MockInterview, 'createdAt', { userId: new mongoose.Types.ObjectId(userId) }),
+            getMonthlyAggregation(MCQTest, 'createdAt', { userId: new mongoose.Types.ObjectId(userId) })
+        ]);
+
+        // Merge monthly stats into a unified array
+        const timelineMap = {};
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            const monthStr = d.toISOString().substring(0, 7); // 'YYYY-MM'
+            timelineMap[monthStr] = { month: monthStr, interviews: 0, tests: 0, roadmaps: 0, aiInterviews: 0, aiTests: 0 };
+        }
+
+        monthlyInterviews.forEach(item => { if (timelineMap[item._id]) timelineMap[item._id].interviews = item.count; });
+        monthlyTests.forEach(item => { if (timelineMap[item._id]) timelineMap[item._id].tests = item.count; });
+        monthlyRoadmaps.forEach(item => { if (timelineMap[item._id]) timelineMap[item._id].roadmaps = item.count; });
+        monthlyAiInterviews.forEach(item => { if (timelineMap[item._id]) timelineMap[item._id].aiInterviews = item.count; });
+        monthlyAiTests.forEach(item => { if (timelineMap[item._id]) timelineMap[item._id].aiTests = item.count; });
+
+        const timeline = Object.values(timelineMap);
+
+        res.json({
+            success: true,
+            user: {
+                fullName: user.fullName,
+                email: user.email,
+                role: user.role,
+                joinedAt: user.createdAt
+            },
+            stats: {
+                interviewsCount, // Q&A
+                roadmapsCount,
+                notesCount,
+                resourcesCount,
+                testsCount,
+                aiInterviewsCount,
+                aiMcqTestsCount
+            },
+            timeline
+        });
+
+    } catch (err) {
+        console.error('Error fetching user activity:', err);
+        res.status(500).json({ message: 'Failed to fetch user activity' });
+    }
+});
+
+// DELETE All Banned Users (Owner Only)
+router.delete('/users/banned/all', async (req, res) => {
+    try {
+        if (req.user.role !== 'owner') {
+            return res.status(403).json({ message: 'Only the Owner can delete users.' });
+        }
+
+        const result = await User.deleteMany({ isBanned: true });
+        res.json({ message: `Successfully deleted ${result.deletedCount} banned users.` });
+    } catch (err) {
+        console.error('Error deleting banned users:', err);
+        res.status(500).json({ message: 'Failed to delete banned users' });
+    }
+});
+
+// DELETE Specific User (Owner Only)
+router.delete('/users/:userId', async (req, res) => {
+    try {
+        if (req.user.role !== 'owner') {
+            return res.status(403).json({ message: 'Only the Owner can delete users.' });
+        }
+
+        const { userId } = req.params;
+        const user = await User.findByIdAndDelete(userId);
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        res.json({ message: 'User deleted successfully.' });
+    } catch (err) {
+        console.error('Error deleting user:', err);
+        res.status(500).json({ message: 'Failed to delete user' });
+    }
+});
+
+// GET Roadmap Analytics (Admin)
+router.get('/roadmaps/:roadmapId/analytics', async (req, res) => {
+    try {
+        const { roadmapId } = req.params;
+        const RoadmapProgress = require('../models/RoadmapProgress');
+        
+        const progresses = await RoadmapProgress.find({ roadmapId })
+            .populate('userId', 'fullName email avatar')
+            .sort({ lastUpdated: -1 });
+
+        res.json({
+            success: true,
+            data: progresses
+        });
+    } catch (err) {
+        console.error('Error fetching roadmap analytics:', err);
+        res.status(500).json({ message: 'Failed to fetch roadmap analytics' });
     }
 });
 

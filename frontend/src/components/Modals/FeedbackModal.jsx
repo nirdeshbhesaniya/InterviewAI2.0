@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, X, Send, Loader2 } from 'lucide-react';
+import { Star, X, Send } from 'lucide-react';
+import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import toast from 'react-hot-toast';

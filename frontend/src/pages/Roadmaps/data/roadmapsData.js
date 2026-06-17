@@ -1,16 +1,66 @@
 // IT Career Roadmaps Data - All 20 Careers
 // Each roadmap has: id, title, category, icon, gradient, difficulty, duration, salary, demand, phases
 
-export const CATEGORIES = [
-  { id: 'all', label: 'All Careers', icon: 'Globe' },
-  { id: 'development', label: 'Development', icon: 'Code2' },
-  { id: 'ai-data', label: 'AI & Data', icon: 'Brain' },
-  { id: 'cloud', label: 'Cloud', icon: 'Cloud' },
-  { id: 'security', label: 'Security', icon: 'ShieldCheck' },
-  { id: 'networking', label: 'Networking', icon: 'Network' },
-  { id: 'management', label: 'Management', icon: 'BarChart3' },
-  { id: 'emerging', label: 'Emerging Tech', icon: 'Rocket' },
-];
+import { eceRoadmaps } from './eceRoadmaps';
+import { eeRoadmaps } from './eeRoadmaps';
+import { mechRoadmaps } from './mechRoadmaps';
+import { civilRoadmaps } from './civilRoadmaps';
+import { chemRoadmaps } from './chemRoadmaps';
+export const BRANCH_CATEGORIES = {
+  computer: [
+    { id: 'all', label: 'All Careers', icon: 'Globe' },
+    { id: 'development', label: 'Development', icon: 'Code2' },
+    { id: 'ai-data', label: 'AI & Data', icon: 'Brain' },
+    { id: 'cloud', label: 'Cloud', icon: 'Cloud' },
+    { id: 'security', label: 'Security', icon: 'ShieldCheck' },
+    { id: 'networking', label: 'Networking', icon: 'Network' },
+    { id: 'management', label: 'Management', icon: 'BarChart3' },
+    { id: 'emerging', label: 'Emerging Tech', icon: 'Rocket' },
+  ],
+  electronics: [
+    { id: 'all', label: 'All Careers', icon: 'Globe' },
+    { id: 'hardware', label: 'Hardware', icon: 'Cpu' },
+    { id: 'telecom', label: 'Telecom', icon: 'Radio' },
+    { id: 'embedded', label: 'Embedded', icon: 'Microchip' },
+    { id: 'automation', label: 'Automation', icon: 'Bot' }
+  ],
+  electrical: [
+    { id: 'all', label: 'All Careers', icon: 'Globe' },
+    { id: 'power', label: 'Power Systems', icon: 'Zap' },
+    { id: 'renewable', label: 'Renewable Energy', icon: 'Sun' },
+    { id: 'control', label: 'Control Systems', icon: 'Activity' },
+    { id: 'design', label: 'Design', icon: 'PenTool' }
+  ],
+  mechanical: [
+    { id: 'all', label: 'All Careers', icon: 'Globe' },
+    { id: 'design', label: 'Design', icon: 'PenTool' },
+    { id: 'thermal', label: 'Thermal', icon: 'Thermometer' },
+    { id: 'manufacturing', label: 'Manufacturing', icon: 'Factory' },
+    { id: 'robotics', label: 'Robotics', icon: 'Bot' }
+  ],
+  civil: [
+    { id: 'all', label: 'All Careers', icon: 'Globe' },
+    { id: 'structural', label: 'Structural', icon: 'Building' },
+    { id: 'construction', label: 'Construction', icon: 'HardHat' },
+    { id: 'environmental', label: 'Environmental', icon: 'Leaf' },
+    { id: 'transportation', label: 'Transportation', icon: 'Map' }
+  ],
+  chemical: [
+    { id: 'all', label: 'All Careers', icon: 'Globe' },
+    { id: 'process', label: 'Process', icon: 'Settings' },
+    { id: 'biotech', label: 'Biotech', icon: 'Microscope' },
+    { id: 'materials', label: 'Materials', icon: 'Layers' },
+    { id: 'environmental', label: 'Environmental', icon: 'Leaf' }
+  ]
+};
+
+export const getCategoriesForBranch = (branch) => {
+  if (['computer', 'it', 'cs-ds'].includes(branch)) return BRANCH_CATEGORIES.computer;
+  if (BRANCH_CATEGORIES[branch]) return BRANCH_CATEGORIES[branch];
+  return BRANCH_CATEGORIES.computer;
+};
+
+export const CATEGORIES = BRANCH_CATEGORIES.computer;
 
 export const ROADMAPS = [
   // ─────────────────────────────────────────────────────────────
@@ -2153,39 +2203,169 @@ export const ROADMAPS = [
       },
     ],
   },
+
+  // ─────────────────────────────────────────────────────────────
+  // NEW GENERIC ROADMAPS FOR OTHER BRANCHES
+  // ─────────────────────────────────────────────────────────────
+  {
+    id: 'ece-core',
+    title: 'Electronics & Communication Engineering',
+    category: 'engineering',
+    branch: 'Electronics & Communication Engineering',
+    icon: 'Cpu',
+    iconColor: 'text-yellow-400',
+    gradient: 'from-yellow-500 to-orange-500',
+    cardGradient: 'from-yellow-500/20 via-orange-500/10 to-transparent',
+    borderColor: 'border-yellow-500/30',
+    difficulty: 'Advanced',
+    difficultyColor: 'bg-red-500/20 text-red-400',
+    duration: '1-2 years',
+    salary: '₹4L - ₹15L',
+    demand: 'High',
+    demandColor: 'text-green-400',
+    tags: ['VLSI', 'Embedded Systems', 'IoT', 'Signals'],
+    description: 'Core roadmap for Electronics & Communication Engineers.',
+    phases: [
+      {
+        id: 'phase-1', title: 'Phase 1: Foundations', color: 'bg-yellow-500', ringColor: 'ring-yellow-500/30', estimatedTime: '3 months',
+        stages: [
+          { id: 'ece-1', title: 'Basic Electronics', estimatedTime: '3 months', topics: [ { id: 'ece-1-1', name: 'Circuit Theory', description: 'Ohm, Kirchhoff, Thevenin' }, { id: 'ece-1-2', name: 'Digital Logic', description: 'Gates, flip-flops, counters' } ], projects: ['Circuit Simulation'], resources: [] }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ee-core',
+    title: 'Electrical Engineering',
+    category: 'engineering',
+    branch: 'Electrical Engineering',
+    icon: 'Zap',
+    iconColor: 'text-orange-400',
+    gradient: 'from-orange-500 to-red-500',
+    cardGradient: 'from-orange-500/20 via-red-500/10 to-transparent',
+    borderColor: 'border-orange-500/30',
+    difficulty: 'Advanced',
+    difficultyColor: 'bg-red-500/20 text-red-400',
+    duration: '1-2 years',
+    salary: '₹4L - ₹12L',
+    demand: 'High',
+    demandColor: 'text-green-400',
+    tags: ['Power Systems', 'Machines', 'Control Systems'],
+    description: 'Core roadmap for Electrical Engineers.',
+    phases: [
+      {
+        id: 'phase-1', title: 'Phase 1: Foundations', color: 'bg-orange-500', ringColor: 'ring-orange-500/30', estimatedTime: '3 months',
+        stages: [
+          { id: 'ee-1', title: 'Power & Machines', estimatedTime: '3 months', topics: [ { id: 'ee-1-1', name: 'Electrical Machines', description: 'Transformers, Motors' }, { id: 'ee-1-2', name: 'Power Systems', description: 'Generation, Transmission' } ], projects: ['Motor Analysis'], resources: [] }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'mech-core',
+    title: 'Mechanical Engineering',
+    category: 'engineering',
+    branch: 'Mechanical Engineering',
+    icon: 'Wrench',
+    iconColor: 'text-gray-400',
+    gradient: 'from-gray-500 to-slate-500',
+    cardGradient: 'from-gray-500/20 via-slate-500/10 to-transparent',
+    borderColor: 'border-gray-500/30',
+    difficulty: 'Advanced',
+    difficultyColor: 'bg-red-500/20 text-red-400',
+    duration: '1-2 years',
+    salary: '₹3L - ₹10L',
+    demand: 'High',
+    demandColor: 'text-green-400',
+    tags: ['Thermodynamics', 'Fluid Mechanics', 'CAD'],
+    description: 'Core roadmap for Mechanical Engineers.',
+    phases: [
+      {
+        id: 'phase-1', title: 'Phase 1: Foundations', color: 'bg-gray-500', ringColor: 'ring-gray-500/30', estimatedTime: '3 months',
+        stages: [
+          { id: 'mech-1', title: 'Design & Thermo', estimatedTime: '3 months', topics: [ { id: 'mech-1-1', name: 'Thermodynamics', description: 'Laws, Cycles' }, { id: 'mech-1-2', name: 'CAD/CAM', description: 'AutoCAD, SolidWorks' } ], projects: ['CAD Model'], resources: [] }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'civil-core',
+    title: 'Civil Engineering',
+    category: 'engineering',
+    branch: 'Civil Engineering',
+    icon: 'Building',
+    iconColor: 'text-amber-400',
+    gradient: 'from-amber-500 to-orange-500',
+    cardGradient: 'from-amber-500/20 via-orange-500/10 to-transparent',
+    borderColor: 'border-amber-500/30',
+    difficulty: 'Advanced',
+    difficultyColor: 'bg-red-500/20 text-red-400',
+    duration: '1-2 years',
+    salary: '₹3L - ₹10L',
+    demand: 'High',
+    demandColor: 'text-green-400',
+    tags: ['Structures', 'Geotech', 'AutoCAD'],
+    description: 'Core roadmap for Civil Engineers.',
+    phases: [
+      {
+        id: 'phase-1', title: 'Phase 1: Foundations', color: 'bg-amber-500', ringColor: 'ring-amber-500/30', estimatedTime: '3 months',
+        stages: [
+          { id: 'civil-1', title: 'Structures & Materials', estimatedTime: '3 months', topics: [ { id: 'civil-1-1', name: 'Structural Analysis', description: 'Beams, Frames' }, { id: 'civil-1-2', name: 'Concrete Tech', description: 'Mix design, testing' } ], projects: ['Structural Design'], resources: [] }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'chem-core',
+    title: 'Chemical Engineering',
+    category: 'engineering',
+    branch: 'Chemical Engineering',
+    icon: 'FlaskConical',
+    iconColor: 'text-green-400',
+    gradient: 'from-green-500 to-teal-500',
+    cardGradient: 'from-green-500/20 via-teal-500/10 to-transparent',
+    borderColor: 'border-green-500/30',
+    difficulty: 'Advanced',
+    difficultyColor: 'bg-red-500/20 text-red-400',
+    duration: '1-2 years',
+    salary: '₹4L - ₹12L',
+    demand: 'High',
+    demandColor: 'text-green-400',
+    tags: ['Mass Transfer', 'Thermodynamics', 'Process Control'],
+    description: 'Core roadmap for Chemical Engineers.',
+    phases: [
+      {
+        id: 'phase-1', title: 'Phase 1: Foundations', color: 'bg-green-500', ringColor: 'ring-green-500/30', estimatedTime: '3 months',
+        stages: [
+          { id: 'chem-1', title: 'Process & Thermo', estimatedTime: '3 months', topics: [ { id: 'chem-1-1', name: 'Heat & Mass Transfer', description: 'Distillation, Exchangers' }, { id: 'chem-1-2', name: 'Chemical Thermo', description: 'Phase eq, reaction eq' } ], projects: ['Process Simulation'], resources: [] }
+        ]
+      }
+    ]
+  },
+  
+  ...eceRoadmaps,
+  ...eeRoadmaps,
+  ...mechRoadmaps,
+  ...civilRoadmaps,
+  ...chemRoadmaps
 ];
 
 // Helper to get roadmap by ID
 export const getRoadmapById = (id) => ROADMAPS.find(r => r.id === id);
 
 // Helper to get roadmaps by category
-export const getRoadmapsByCategory = (category) => {
-  if (category === 'all') return ROADMAPS;
-  return ROADMAPS.filter(r => r.category === category);
-};
-
-// Progress helpers
-export const getProgressKey = (userId, roadmapId) => `roadmap_progress_${userId}_${roadmapId}`;
-
-export const getProgress = (userId, roadmapId) => {
-  try {
-    const key = getProgressKey(userId, roadmapId);
-    const data = localStorage.getItem(key);
-    if (!data) return { completedTopics: [], lastUpdated: null };
-    return JSON.parse(data);
-  } catch {
-    return { completedTopics: [], lastUpdated: null };
+export const getRoadmapsByCategory = (category, userBranch) => {
+  let filtered = ROADMAPS;
+  if (userBranch && userBranch !== 'Computer Engineering') {
+      filtered = ROADMAPS.filter(r => r.branch === userBranch);
+  } else {
+      filtered = ROADMAPS.filter(r => !r.branch || r.branch === 'Computer Engineering');
   }
+  if (category === 'all') return filtered;
+  return filtered.filter(r => r.category === category);
 };
 
-export const saveProgress = (userId, roadmapId, completedTopics) => {
-  try {
-    const key = getProgressKey(userId, roadmapId);
-    localStorage.setItem(key, JSON.stringify({ completedTopics, lastUpdated: new Date().toISOString() }));
-  } catch (e) {
-    console.error('Failed to save progress', e);
-  }
-};
+// Deprecated localStorage helpers removed. Use roadmapService for fetching/saving progress.
 
 export const countTotalTopics = (roadmap) => {
   return roadmap.phases.reduce((total, phase) => {
@@ -2195,11 +2375,23 @@ export const countTotalTopics = (roadmap) => {
   }, 0);
 };
 
-export const computeProgressPercent = (userId, roadmap) => {
-  const { completedTopics } = getProgress(userId, roadmap.id);
+export const getEffectiveCompletedTopics = (roadmap, completedTopics = [], clearedModules = []) => {
+  if (!roadmap) return [];
+  const effectiveSet = new Set(completedTopics);
+  roadmap.phases.forEach(phase => {
+    phase.stages.forEach(stage => {
+      if (clearedModules.includes(stage.id)) {
+        stage.topics.forEach(t => effectiveSet.add(t.id));
+      }
+    });
+  });
+  return Array.from(effectiveSet);
+};
+
+export const computeProgressPercent = (completedTopicsCount, roadmap) => {
   const total = countTotalTopics(roadmap);
   if (total === 0) return 0;
-  return Math.round((completedTopics.length / total) * 100);
+  return Math.round((completedTopicsCount / total) * 100);
 };
 
 // XP system

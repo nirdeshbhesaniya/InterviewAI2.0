@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useUser } from '../../context/UserContext';
-import { Loader2, Check, ArrowRight, ArrowLeft, Briefcase, User, GraduationCap, Code, Target, Sliders, Zap, X } from 'lucide-react';
+import { Check, ArrowRight, ArrowLeft, Briefcase, User, GraduationCap, Code, Target, Sliders, Zap, X } from 'lucide-react';
+import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from '../../utils/axiosInstance';
 import toast from 'react-hot-toast';
@@ -11,7 +12,7 @@ const steps = [
     { number: 3, title: "Configuration", icon: Sliders }
 ];
 
-const InterviewCreationWizard = ({ onInterviewCreated }) => {
+const InterviewCreationWizard = ({ onInterviewCreated, selectedBranch }) => {
     const { user } = useUser();
     const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
@@ -39,6 +40,33 @@ const InterviewCreationWizard = ({ onInterviewCreated }) => {
         resumeContext: '',
         resumeFile: null
     });
+
+    const getPlaceholders = (branchId) => {
+        switch (branchId) {
+            case 'electrical':
+                return { role: 'Ex. Power Systems Engineer', tags: 'Ex. Circuit Analysis, MATLAB, Power Systems' };
+            case 'mechanical':
+                return { role: 'Ex. Mechanical Design Engineer', tags: 'Ex. AutoCAD, SolidWorks, Thermodynamics' };
+            case 'civil':
+                return { role: 'Ex. Structural Engineer', tags: 'Ex. AutoCAD, Structural Analysis, Concrete' };
+            case 'electronics':
+                return { role: 'Ex. VLSI Design Engineer', tags: 'Ex. Verilog, VHDL, Embedded Systems' };
+            case 'chemical':
+                return { role: 'Ex. Process Engineer', tags: 'Ex. Thermodynamics, Fluid Mechanics, Aspen Plus' };
+            case 'cs-ds':
+                return { role: 'Ex. Data Scientist', tags: 'Ex. Python, Machine Learning, SQL' };
+            case 'instrumentation':
+                return { role: 'Ex. Automation Engineer', tags: 'Ex. PLC, SCADA, Process Control' };
+            case 'power-electronics':
+                return { role: 'Ex. Power Electronics Engineer', tags: 'Ex. Converters, Motor Drives, Power Supplies' };
+            case 'it':
+            case 'computer':
+            default:
+                return { role: 'Ex. Senior React Developer', tags: 'Enter your key skills (press Enter or comma to add)' };
+        }
+    };
+
+    const placeholders = getPlaceholders(selectedBranch);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -131,7 +159,8 @@ const InterviewCreationWizard = ({ onInterviewCreated }) => {
                 questionCount: formData.questionCount,
                 jobRole: formData.jobRole,
                 jobExperience: formData.jobExperience,
-                resumeContext: formData.resumeContext
+                resumeContext: formData.resumeContext,
+                branch: selectedBranch || 'computer'
             };
 
             Object.entries(payload).forEach(([key, value]) => {
@@ -282,7 +311,7 @@ const InterviewCreationWizard = ({ onInterviewCreated }) => {
                                         onChange={e => setSkillInput(e.target.value)}
                                         onKeyDown={handleSkillKeyDown}
                                         onBlur={() => { if (skillInput.trim()) { addSkillTag(skillInput); setSkillInput(''); } }}
-                                        placeholder={skillTags.length === 0 ? 'Enter your key skills (press Enter or comma to add)' : 'Add more...'}
+                                        placeholder={skillTags.length === 0 ? placeholders.tags : 'Add more...'}
                                         className="bg-transparent outline-none text-sm text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] w-full min-w-[160px]"
                                     />
                                 </div>
@@ -299,7 +328,7 @@ const InterviewCreationWizard = ({ onInterviewCreated }) => {
                                             name="jobRole"
                                             value={formData.jobRole}
                                             required
-                                            placeholder="Ex. Senior React Developer"
+                                            placeholder={placeholders.role}
                                             className="w-full p-3 pl-10 rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated-alt))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] outline-none transition-all"
                                             onChange={handleChange}
                                         />

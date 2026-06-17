@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from '../../utils/axiosInstance';
-import { Loader2, Play, Briefcase, Code, Award, Target, FileText, Globe, Clock, CheckCircle, Mic, Volume2, AlertCircle } from 'lucide-react';
+import { Play, Briefcase, Code, Award, Target, FileText, Globe, Clock, CheckCircle, Mic, Volume2, AlertCircle } from 'lucide-react';
+import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import toast from 'react-hot-toast';
 
 const InterviewDetails = () => {

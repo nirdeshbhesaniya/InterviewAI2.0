@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Editor from '@monaco-editor/react';
-import { X, Play, Send, Loader2, CheckCircle2, RotateCcw } from 'lucide-react';
+import { X, Play, Send, CheckCircle2, RotateCcw } from 'lucide-react';
+import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import axios from '../../utils/axiosInstance';
 import toast from 'react-hot-toast';
 

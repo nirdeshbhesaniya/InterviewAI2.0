@@ -15,7 +15,9 @@ import {
     Brain, Timer, BarChart3, Trash2, AlertTriangle, Copy
 } from 'lucide-react';
 import { Loader, ButtonLoader } from '../../components/ui/Loader';
+import { EmptyState } from '@/components/ui/EmptyState';
 import Pagination from '../../components/common/Pagination';
+import { BRANCHES } from '../../utils/constants';
 
 const TestHistoryPage = () => {
     const navigate = useNavigate();
@@ -25,6 +27,7 @@ const TestHistoryPage = () => {
     const [viewingDetails, setViewingDetails] = useState(false);
     const [deleteConfirmation, setDeleteConfirmation] = useState({ show: false, testId: null, testTopic: '' });
     const [currentPage, setCurrentPage] = useState(1);
+    const [currentBranch] = useState(localStorage.getItem('dashboard_branch') || 'computer');
     const ITEMS_PER_PAGE = 10;
 
     // Markdown components for rendering code blocks and formatted content
@@ -129,13 +132,13 @@ const TestHistoryPage = () => {
 
     useEffect(() => {
         fetchTestHistory();
-    }, []);
+    }, [currentBranch]);
 
     // Fetch test history
     const fetchTestHistory = async () => {
         setLoadingHistory(true);
         try {
-            const response = await axiosInstance.get(API.MCQ.HISTORY);
+            const response = await axiosInstance.get(`${API.MCQ.HISTORY}?branch=${currentBranch}`);
             if (response.data.success) {
                 setTestHistory(response.data.data.history || []);
             }
@@ -259,7 +262,9 @@ const TestHistoryPage = () => {
                                 <Trophy className="w-6 h-6 md:w-8 md:h-8 text-[rgb(var(--accent))]" />
                                 Test History
                             </h1>
-                            <p className="text-sm md:text-base text-[rgb(var(--text-secondary))] mt-1">View your past test performance and progress</p>
+                            <p className="text-sm md:text-base text-[rgb(var(--text-secondary))] mt-1">
+                                View your past test performance for <span className="font-semibold text-[rgb(var(--accent))]">{BRANCHES.find(b => b.id === currentBranch)?.name || 'Computer Engineering'}</span>
+                            </p>
                         </div>
                     </div>
                 </motion.div>
@@ -275,21 +280,19 @@ const TestHistoryPage = () => {
                 {!viewingDetails && !loadingHistory && (
                     <AnimatePresence mode="wait">
                         {testHistory.length === 0 ? (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="text-center py-20"
-                            >
-                                <BookOpen className="w-16 h-16 text-[rgb(var(--text-muted))] mx-auto mb-4" />
-                                <h3 className="text-xl font-semibold text-[rgb(var(--text-secondary))] mb-2">No Test History</h3>
-                                <p className="text-[rgb(var(--text-muted))] mb-6">You haven't taken any tests yet</p>
-                                <Button
-                                    onClick={() => navigate('/mcq-test')}
-                                    className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))]"
-                                >
-                                    Take Your First Test
-                                </Button>
-                            </motion.div>
+                            <EmptyState
+                                title="No Test History"
+                                description="You haven't taken any tests yet"
+                                icon={BookOpen}
+                                actionButton={
+                                    <Button
+                                        onClick={() => navigate('/mcq-test')}
+                                        className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))]"
+                                    >
+                                        Take Your First Test
+                                    </Button>
+                                }
+                            />
                         ) : (
                             <>
                                 <div className="grid grid-cols-1 gap-4">

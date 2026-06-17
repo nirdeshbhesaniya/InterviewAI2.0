@@ -2,7 +2,8 @@
 import React, { useState, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import { motion } from 'framer-motion';
-import { Play, Code, Terminal, Loader2, Copy, Download, RotateCcw, Settings, ChevronDown } from 'lucide-react';
+import { Play, Code, Terminal, Copy, Download, RotateCcw, Settings, ChevronDown } from 'lucide-react';
+import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import { ButtonLoader } from '../../components/ui/Loader.jsx';
 import { API } from '../../utils/apiPaths';
 import axios from '../../utils/axiosInstance';

@@ -5,9 +5,9 @@ import * as Icons from 'lucide-react';
 import { computeProgressPercent } from '../data/roadmapsData';
 import { useNavigate } from 'react-router-dom';
 
-const CareerCard = ({ roadmap, userId, index }) => {
+const CareerCard = ({ roadmap, userId, index, completedTopicsCount = 0 }) => {
   const navigate = useNavigate();
-  const progress = userId ? computeProgressPercent(userId, roadmap) : 0;
+  const progress = computeProgressPercent(completedTopicsCount, roadmap);
 
   // Dynamically resolve icon component from lucide-react
   const IconComponent = Icons[roadmap.icon] || Icons.Briefcase;
@@ -40,7 +40,7 @@ const CareerCard = ({ roadmap, userId, index }) => {
         </div>
 
         {/* Title */}
-        <h3 className="text-base font-bold text-[rgb(var(--text-primary))] mb-1 group-hover:text-white transition-colors duration-300 line-clamp-1">
+        <h3 className="text-base font-bold text-[rgb(var(--text-primary))] mb-1 group-hover:text-blue-500 transition-colors duration-300 line-clamp-1">
           {roadmap.title}
         </h3>
         <p className="text-xs text-[rgb(var(--text-muted))] mb-4 line-clamp-2 leading-relaxed">
@@ -103,7 +103,7 @@ const CareerCard = ({ roadmap, userId, index }) => {
           className="flex items-center justify-between"
           whileHover={{ x: 4 }}
         >
-          <span className="text-xs font-semibold text-[rgb(var(--text-secondary))] group-hover:text-white transition-colors">
+          <span className="text-xs font-semibold text-[rgb(var(--text-secondary))] group-hover:text-blue-500 transition-colors">
             {progress > 0 ? 'Continue Learning' : 'Start Roadmap'}
           </span>
           <div className={`w-7 h-7 rounded-full bg-gradient-to-r ${roadmap.gradient} flex items-center justify-center shadow-md group-hover:scale-110 transition-transform`}>

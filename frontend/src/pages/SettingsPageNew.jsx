@@ -2,16 +2,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { UserContext } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
-import {
-    ArrowLeft,
-    Bell,
-    Moon,
-    Sun,
-    Globe,
-    Shield,
-    Save,
-    Loader2
-} from 'lucide-react';
+import { ArrowLeft, Bell, Moon, Sun, Globe, Shield, Save } from 'lucide-react';
+import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import { Loader } from '../components/ui/Loader';
 import axios from '../utils/axiosInstance';
 import { API } from '../utils/apiPaths';

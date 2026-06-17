@@ -12,7 +12,7 @@ const { sendOTPEmail } = require('../utils/emailService');
 
 // CREATE card
 router.post('/', async (req, res) => {
-  const { title, tag, initials, experience, desc, color, creatorEmail, requestApproval } = req.body;
+  const { title, tag, branch, initials, experience, desc, color, creatorEmail, requestApproval } = req.body;
   // const creatorEmail = req.user?.email; // <- Get from auth middleware
   console.log('Creating interview card with:', creatorEmail);
 
@@ -43,6 +43,7 @@ router.post('/', async (req, res) => {
         sessionId,
         title,
         tag,
+        branch: branch || 'computer',
         initials,
         experience,
         desc,
@@ -88,6 +89,7 @@ router.post('/', async (req, res) => {
       sessionId,
       title,
       tag,
+      branch: branch || 'computer',
       initials,
       experience,
       desc,

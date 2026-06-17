@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from '../../utils/axiosInstance';
 import { Loader2, ArrowLeft, BrainCircuit, Briefcase } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -7,6 +7,8 @@ import toast from 'react-hot-toast';
 const CreateMockInterview = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+    const autoStartedRef = useRef(false);
 
     const [formData, setFormData] = useState({
         degree: '',
@@ -34,6 +36,58 @@ const CreateMockInterview = () => {
             toast.error("Please upload a valid PDF file");
         }
     };
+
+    useEffect(() => {
+        if (!location.state?.autoGenerateInterview || autoStartedRef.current) return;
+        
+        const startAutoInterview = async () => {
+            autoStartedRef.current = true;
+            
+            const topic = location.state.topic;
+            
+            const autoFormData = {
+                degree: 'Student/Professional',
+                skills: topic,
+                interviewType: 'Technical',
+                difficulty: 'Intermediate',
+                focusArea: topic,
+                questionCount: '5',
+                resumeFile: null
+            };
+            
+            setFormData(autoFormData);
+            setLoading(true);
+
+            try {
+                const submitData = new FormData();
+                Object.keys(autoFormData).forEach(key => {
+                    if (key !== 'resumeFile') {
+                        submitData.append(key, autoFormData[key]);
+                    }
+                });
+
+                const response = await axios.post('/mock-interview', submitData);
+
+                if (response.data) {
+                    toast.success("Interview Created Successfully!");
+                    const newId = response.data._id || response.data.data?._id || response.data.interview?._id;
+                    if (newId) {
+                        navigate(`/mock-interview/${newId}`);
+                    } else {
+                        navigate('/mock-interview');
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+                toast.error("Failed to create interview. Please try again.");
+            } finally {
+                setLoading(false);
+                window.history.replaceState({}, document.title);
+            }
+        };
+
+        startAutoInterview();
+    }, [location.state, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

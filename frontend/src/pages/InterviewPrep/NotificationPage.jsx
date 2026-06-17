@@ -3,7 +3,8 @@ import { UserContext } from '../../context/UserContext';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, CheckCircle, Trash2, Loader2, Filter } from 'lucide-react';
+import { Bell, CheckCircle, Trash2, Filter } from 'lucide-react';
+import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import toast from 'react-hot-toast';
 
 const NotificationPage = () => {

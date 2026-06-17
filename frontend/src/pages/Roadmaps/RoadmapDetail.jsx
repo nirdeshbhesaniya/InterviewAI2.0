@@ -13,18 +13,19 @@ import {
   Mic,
   Map,
   Trophy,
+  Search,
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import {
   getRoadmapById,
-  getProgress,
-  saveProgress,
   countTotalTopics,
   computeXP,
 } from './data/roadmapsData';
+import { roadmapService } from '../../services/roadmapService';
 import PhaseNode from './components/PhaseNode';
 import StatsPanel from './components/StatsPanel';
+import JobSearchModal from './components/JobSearchModal';
 import { toast } from 'react-hot-toast';
 
 const RoadmapDetail = () => {
@@ -36,44 +37,104 @@ const RoadmapDetail = () => {
   const roadmap = getRoadmapById(careerId);
 
   const [completedTopics, setCompletedTopics] = useState([]);
+  const [clearedModules, setClearedModules] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
 
-  // Load progress from localStorage on mount
+  // Compute effective completed topics: includes raw completedTopics PLUS all topics inside clearedModules
+  const effectiveCompletedTopics = useMemo(() => {
+    if (!roadmap) return [];
+    const effectiveSet = new Set(completedTopics);
+    roadmap.phases.forEach(phase => {
+      phase.stages.forEach(stage => {
+        if (clearedModules.includes(stage.id)) {
+          stage.topics.forEach(t => effectiveSet.add(t.id));
+        }
+      });
+    });
+    return Array.from(effectiveSet);
+  }, [roadmap, completedTopics, clearedModules]);
+
+  // Load progress from API on mount
   useEffect(() => {
-    if (roadmap) {
-      const { completedTopics: saved } = getProgress(userId, roadmap.id);
-      setCompletedTopics(saved || []);
-    }
+    let isMounted = true;
+    const fetchProgress = async () => {
+      if (!roadmap) return;
+      try {
+        setIsLoading(true);
+        if (userId && userId !== 'guest') {
+          const progressData = await roadmapService.getProgress(roadmap.id);
+          if (isMounted) {
+            setCompletedTopics(progressData?.completedTopics || []);
+            setClearedModules(progressData?.clearedModules || []);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load roadmap progress:', error);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    fetchProgress();
+
+    return () => { isMounted = false; };
   }, [userId, roadmap?.id]);
 
-  // Save on change
-  useEffect(() => {
-    if (roadmap && userId) {
-      saveProgress(userId, roadmap.id, completedTopics);
+  const handleTopicToggle = async (topicId) => {
+    try {
+      let updated = [];
+      setCompletedTopics(prev => {
+        updated = prev.includes(topicId)
+          ? prev.filter(id => id !== topicId)
+          : [...prev, topicId];
+        
+        // Milestone toasts
+        const total = countTotalTopics(roadmap);
+        const pct = Math.round((updated.length / total) * 100);
+        if (pct === 25 && !prev.includes(topicId)) toast.success('🌱 25% done! Keep going!', { icon: '🎉' });
+        if (pct === 50 && !prev.includes(topicId)) toast.success('⚡ Halfway there! You\'re amazing!', { icon: '🎊' });
+        if (pct === 75 && !prev.includes(topicId)) toast.success('🔥 Almost there! Final stretch!', { icon: '💪' });
+        if (pct === 100 && !prev.includes(topicId)) toast.success('🏆 Roadmap Complete! You\'re a champion!', { icon: '🚀' });
+
+        return updated;
+      });
+
+      if (userId && userId !== 'guest') {
+        await roadmapService.saveProgress(roadmap.id, updated, clearedModules);
+      }
+    } catch (error) {
+      console.error('Failed to save roadmap progress:', error);
+      toast.error('Failed to save progress. Please try again.');
     }
-  }, [completedTopics, userId, roadmap?.id]);
-
-  const handleTopicToggle = (topicId) => {
-    setCompletedTopics(prev => {
-      const updated = prev.includes(topicId)
-        ? prev.filter(id => id !== topicId)
-        : [...prev, topicId];
-      
-      // Milestone toasts
-      const total = countTotalTopics(roadmap);
-      const pct = Math.round((updated.length / total) * 100);
-      if (pct === 25 && !prev.includes(topicId)) toast.success('🌱 25% done! Keep going!', { icon: '🎉' });
-      if (pct === 50 && !prev.includes(topicId)) toast.success('⚡ Halfway there! You\'re amazing!', { icon: '🎊' });
-      if (pct === 75 && !prev.includes(topicId)) toast.success('🔥 Almost there! Final stretch!', { icon: '💪' });
-      if (pct === 100 && !prev.includes(topicId)) toast.success('🏆 Roadmap Complete! You\'re a champion!', { icon: '🚀' });
-
-      return updated;
-    });
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (window.confirm('Reset all progress for this roadmap?')) {
-      setCompletedTopics([]);
-      toast.success('Progress reset');
+      try {
+        setCompletedTopics([]);
+        setClearedModules([]);
+        if (userId && userId !== 'guest') {
+          await roadmapService.saveProgress(roadmap.id, [], []);
+        }
+        toast.success('Progress reset');
+      } catch (error) {
+        console.error('Failed to reset roadmap progress:', error);
+        toast.error('Failed to reset progress. Please try again.');
+      }
+    }
+  };
+
+  const handleModuleClear = async (moduleId) => {
+    try {
+      const updatedClearedModules = [...clearedModules, moduleId];
+      setClearedModules(updatedClearedModules);
+      if (userId && userId !== 'guest') {
+        await roadmapService.saveProgress(roadmap.id, completedTopics, updatedClearedModules);
+      }
+      toast.success('Module Mastered! Topics are now green.', { icon: '🎓' });
+    } catch (error) {
+      console.error('Failed to save module clear progress:', error);
+      toast.error('Failed to save module progress.');
     }
   };
 
@@ -97,8 +158,8 @@ const RoadmapDetail = () => {
   }
 
   const totalTopics = countTotalTopics(roadmap);
-  const progressPercent = totalTopics > 0 ? Math.round((completedTopics.length / totalTopics) * 100) : 0;
-  const xp = computeXP(completedTopics);
+  const progressPercent = totalTopics > 0 ? Math.round((effectiveCompletedTopics.length / totalTopics) * 100) : 0;
+  const xp = computeXP(effectiveCompletedTopics);
 
   return (
     <div className="min-h-screen bg-[rgb(var(--bg-body))]">
@@ -208,7 +269,7 @@ const RoadmapDetail = () => {
           <div className="mt-6">
             <div className="flex items-center justify-between text-xs text-[rgb(var(--text-muted))] mb-2">
               <span>Overall Progress</span>
-              <span className="font-bold text-[rgb(var(--text-primary))]">{progressPercent}% ({completedTopics.length}/{totalTopics} topics)</span>
+              <span className="font-bold text-[rgb(var(--text-primary))]">{progressPercent}% ({effectiveCompletedTopics.length}/{totalTopics} topics)</span>
             </div>
             <div className="w-full h-3 bg-[rgb(var(--border))] rounded-full overflow-hidden">
               <motion.div
@@ -244,8 +305,10 @@ const RoadmapDetail = () => {
                   phase={phase}
                   index={idx}
                   totalPhases={roadmap.phases.length}
-                  completedTopics={completedTopics}
+                  completedTopics={effectiveCompletedTopics}
+                  clearedModules={clearedModules}
                   onTopicToggle={handleTopicToggle}
+                  onModuleClear={handleModuleClear}
                   careerTitle={roadmap.title}
                 />
               ))}
@@ -278,6 +341,33 @@ const RoadmapDetail = () => {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Search Jobs Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="mt-8 p-6 sm:p-8 rounded-3xl bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] flex flex-col sm:flex-row items-center justify-between gap-6"
+            >
+              <div>
+                <h3 className="text-xl font-black text-[rgb(var(--text-primary))] mb-2 flex items-center gap-2">
+                  <Search className="w-5 h-5 text-blue-500" />
+                  Ready to apply?
+                </h3>
+                <p className="text-[rgb(var(--text-secondary))] text-sm">
+                  Find the latest hand-picked job openings for {roadmap.title}. We have opportunities for both freshers and experienced professionals.
+                </p>
+              </div>
+              <motion.button
+                onClick={() => setIsJobModalOpen(true)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-xl shadow-lg hover:shadow-blue-500/25 transition-all flex items-center justify-center gap-2 flex-shrink-0"
+              >
+                <Search className="w-4 h-4" />
+                Search Jobs
+              </motion.button>
+            </motion.div>
           </div>
 
           {/* Stats sidebar (sticky) */}
@@ -286,7 +376,7 @@ const RoadmapDetail = () => {
               <StatsPanel
                 roadmap={roadmap}
                 progressPercent={progressPercent}
-                completedCount={completedTopics.length}
+                completedCount={effectiveCompletedTopics.length}
                 totalCount={totalTopics}
                 xp={xp}
               />
@@ -294,6 +384,14 @@ const RoadmapDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <JobSearchModal 
+        isOpen={isJobModalOpen} 
+        onClose={() => setIsJobModalOpen(false)} 
+        careerTitle={roadmap.title} 
+        branch={roadmap.branch || roadmap.category || 'software'}
+      />
     </div>
   );
 };

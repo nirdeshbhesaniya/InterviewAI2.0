@@ -8,17 +8,41 @@ import {
   Zap,
   Rocket,
   Library,
+  Youtube,
+  Search,
 } from 'lucide-react';
 import TopicNode from './TopicNode';
 import AIFeatureButtons from './AIFeatureButtons';
+import AssessmentModal from './AssessmentModal';
+import axiosInstance from '../../../utils/axiosInstance';
 
-const StageNode = ({ stage, phaseColor, completedTopics, onTopicToggle, careerTitle }) => {
+// Helper: use Gemini AI (via backend) to get a direct resource URL and open it
+const openResourceUrl = async (topic, type, fallbackUrl) => {
+  try {
+    const res = await axiosInstance.get(`/roadmaps/resource-urls?topic=${encodeURIComponent(topic)}&type=${type}`);
+    const url = res.data?.url;
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+    }
+  } catch {
+    window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+  }
+};
+
+const StageNode = ({ stage, phaseColor, completedTopics, clearedModules, onTopicToggle, onModuleClear, careerTitle }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
 
   const completedCount = stage.topics.filter(t => completedTopics.includes(t.id)).length;
   const totalTopics = stage.topics.length;
   const progressPct = totalTopics > 0 ? Math.round((completedCount / totalTopics) * 100) : 0;
-  const isAllDone = completedCount === totalTopics && totalTopics > 0;
+  
+  // A stage is fully done ONLY if it's in clearedModules
+  const isCleared = clearedModules?.includes(stage.id);
+  const allTopicsLearned = completedCount === totalTopics && totalTopics > 0;
+  const isAllDone = isCleared; // The checkmark in Stage header relies on this
 
   return (
     <motion.div
@@ -118,11 +142,28 @@ const StageNode = ({ stage, phaseColor, completedTopics, onTopicToggle, careerTi
                       key={topic.id}
                       topic={topic}
                       isCompleted={completedTopics.includes(topic.id)}
+                      isCleared={isCleared}
                       onToggle={onTopicToggle}
                     />
                   ))}
                 </div>
               </div>
+
+              {/* Assessment Test Button */}
+              {allTopicsLearned && !isCleared && (
+                <div className="pt-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsAssessmentModalOpen(true);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl shadow-lg hover:shadow-orange-500/25 transition-all animate-pulse"
+                  >
+                    <Zap className="w-5 h-5" />
+                    Assessment Test
+                  </button>
+                </div>
+              )}
 
               {/* AI Feature Buttons */}
               <div>
@@ -158,30 +199,92 @@ const StageNode = ({ stage, phaseColor, completedTopics, onTopicToggle, careerTi
                 </div>
               )}
 
-              {/* Resources */}
-              {stage.resources?.length > 0 && (
-                <div>
-                  <h5 className="text-xs font-bold text-[rgb(var(--text-muted))] uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <Library className="w-3.5 h-3.5" />
-                    Recommended Resources
-                  </h5>
-                  <div className="flex flex-wrap gap-2">
-                    {stage.resources.map((resource, idx) => (
-                      <span
-                        key={idx}
-                        className="text-xs px-3 py-1.5 rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-secondary))] border border-[rgb(var(--border))] flex items-center gap-1.5"
-                      >
-                        <BookOpen className="w-3 h-3 flex-shrink-0" />
-                        {resource}
-                      </span>
-                    ))}
-                  </div>
+              {/* Suggested Resources */}
+              <div>
+                <h5 className="text-xs font-bold text-[rgb(var(--text-muted))] uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Library className="w-3.5 h-3.5" />
+                  Suggested Resources
+                </h5>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openResourceUrl(
+                        `${stage.title} ${careerTitle}`,
+                        'gfg',
+                        `https://www.geeksforgeeks.org/search/?q=${encodeURIComponent(stage.title)}`
+                      );
+                    }}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] hover:text-[#0f9d58] border border-[rgb(var(--border))] hover:border-[#0f9d58]/30 transition-colors flex items-center gap-1.5 shadow-sm"
+                  >
+                    <BookOpen className="w-3 h-3 flex-shrink-0" />
+                    GFG Article
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openResourceUrl(
+                        `${stage.title} ${careerTitle}`,
+                        'w3s',
+                        `https://www.w3schools.com/search/search_result.php?q=${encodeURIComponent(stage.title)}`
+                      );
+                    }}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] hover:text-[#04AA6D] border border-[rgb(var(--border))] hover:border-[#04AA6D]/30 transition-colors flex items-center gap-1.5 shadow-sm"
+                  >
+                    <BookOpen className="w-3 h-3 flex-shrink-0" />
+                    W3Schools
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openResourceUrl(
+                        `${stage.title} ${careerTitle}`,
+                        'docs',
+                        `https://developer.mozilla.org/search?q=${encodeURIComponent(stage.title)}`
+                      );
+                    }}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] hover:text-blue-500 border border-[rgb(var(--border))] hover:border-blue-500/30 transition-colors flex items-center gap-1.5 shadow-sm"
+                  >
+                    <BookOpen className="w-3 h-3 flex-shrink-0" />
+                    Official Docs
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(stage.title + ' ' + careerTitle + ' tutorial')}`, '_blank');
+                    }}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] hover:text-[#FF0000] border border-[rgb(var(--border))] hover:border-[#FF0000]/30 transition-colors flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Youtube className="w-3 h-3 flex-shrink-0" />
+                    YouTube Search
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(`https://www.google.com/search?q=${encodeURIComponent(stage.title + ' ' + careerTitle + ' programming resources')}`, '_blank');
+                    }}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] hover:text-[#4285F4] border border-[rgb(var(--border))] hover:border-[#4285F4]/30 transition-colors flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Search className="w-3 h-3 flex-shrink-0" />
+                    Google Search
+                  </button>
                 </div>
-              )}
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AssessmentModal
+        isOpen={isAssessmentModalOpen}
+        onClose={() => setIsAssessmentModalOpen(false)}
+        moduleTitle={stage.title}
+        topics={stage.topics.map(t => t.name)}
+        onClear={() => {
+          onModuleClear(stage.id);
+          setIsAssessmentModalOpen(false);
+        }}
+      />
     </motion.div>
   );
 };

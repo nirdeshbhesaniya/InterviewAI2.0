@@ -1,4 +1,5 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Send,
@@ -18,6 +19,7 @@ import CodeBlock from './CodeBlock';
 import MessageActions from './MessageActions';
 
 const ChatbotWindow = () => {
+    const navigate = useNavigate();
     const {
         isOpen,
         messages,
@@ -263,6 +265,26 @@ const ChatbotWindow = () => {
                                                                     {children}
                                                                 </CodeBlock>
                                                             ),
+                                                            a: ({ node, href, title, children, ...props }) => {
+                                                                if (title === "btn") {
+                                                                    return (
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                closeChatbot();
+                                                                                navigate(href);
+                                                                            }}
+                                                                            className="mt-4 block w-full bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow-md transition-all text-center"
+                                                                        >
+                                                                            {children}
+                                                                        </button>
+                                                                    );
+                                                                }
+                                                                return (
+                                                                    <a href={href} title={title} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline" {...props}>
+                                                                        {children}
+                                                                    </a>
+                                                                );
+                                                            }
                                                         }}
                                                     >
                                                         {message.text}

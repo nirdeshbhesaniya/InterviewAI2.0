@@ -20,6 +20,7 @@ const practiceTestSchema = new mongoose.Schema({
     title: { type: String, required: true, trim: true },
     description: { type: String, trim: true },
     topic: { type: String, required: true, trim: true },
+    branch: { type: String, default: 'computer' },
     difficulty: {
         type: String,
         enum: ['easy', 'medium', 'hard'],

@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-    Search, Plus, Trash2, Clock, FileQuestion, 
-    ChevronDown, CheckCircle, PenSquare, RotateCcw, 
-    X, Mail, Users, Loader2, Calendar, 
-    BarChart2, MoreVertical, Eye, EyeOff,
-    TrendingUp, Award, Activity
-} from 'lucide-react';
+import { Search, Plus, Trash2, Clock, FileQuestion, ChevronDown, CheckCircle, PenSquare, RotateCcw, X, Mail, Users, Calendar, BarChart2, MoreVertical, Eye, EyeOff, TrendingUp, Award, Activity } from 'lucide-react';
+import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from '../../../utils/axiosInstance';
@@ -288,6 +283,9 @@ const PracticeTestsManagement = () => {
                                             </span>
                                             <span className="text-[10px] uppercase font-black tracking-widest px-2.5 py-1 rounded-lg bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-muted))]">
                                                 {test.topic}
+                                            </span>
+                                            <span className="text-[10px] uppercase font-black tracking-widest px-2.5 py-1 rounded-lg bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] border border-[rgb(var(--accent))]/20">
+                                                {test.branch || 'computer'}
                                             </span>
                                         </div>
                                         <h3 className="text-xl font-bold text-[rgb(var(--text-primary))] truncate group-hover:text-[rgb(var(--accent))] transition-colors leading-tight">

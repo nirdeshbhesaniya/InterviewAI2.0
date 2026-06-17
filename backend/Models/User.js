@@ -167,6 +167,8 @@ const userSchema = new mongoose.Schema({
     language: { type: String, default: 'en' },
     timezone: { type: String, default: 'UTC' }
   },
+  hasAcceptedTerms: { type: Boolean, default: false },
+  termsAcceptedAt: { type: Date },
   twoFactorEnabled: { type: Boolean, default: false },
   twoFactorSecret: String,
   sessions: [sessionSchema],
@@ -188,7 +190,8 @@ const userSchema = new mongoose.Schema({
     username: String,
     email: String,
     password: String,
-    photo: String
+    photo: String,
+    hasAcceptedTerms: Boolean
   }
 }, {
   timestamps: true

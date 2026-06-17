@@ -1,27 +1,9 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import { UserContext } from '../../../context/UserContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
-  LogOut,
-  UserCircle2,
-  Bot,
-  Settings,
-  User,
-  ShieldAlert,
-  Shield,
-  Bell,
-  ChevronDown,
-  Code,
-  Moon,
-  Sun,
-  Loader2,
-  FileQuestion, // Added
-  Camera,
-  Edit3,
-  BookOpen,
-  Library,
-  LayoutGrid
-} from 'lucide-react';
+import { LogOut, UserCircle2, Bot, Settings, User, ShieldAlert, Shield, Bell, ChevronDown, Code, Moon, Sun, FileQuestion, // Added
+  Camera, Edit3, BookOpen, Library, LayoutGrid } from 'lucide-react';
+import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from '../../../utils/axiosInstance';
 import { API } from '../../../utils/apiPaths';

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Loader2, Lock, Sparkles, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Lock, Sparkles, ShieldAlert } from 'lucide-react';
+import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import { useNavigate } from 'react-router-dom';
 import { publicAxiosInstance } from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
