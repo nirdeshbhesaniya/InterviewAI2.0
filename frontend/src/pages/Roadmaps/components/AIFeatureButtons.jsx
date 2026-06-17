@@ -332,11 +332,7 @@ const AIFeatureButtons = ({ topicName, stageName, phaseTitle, topics, careerTitl
                 <button
                   onClick={(e) => { 
                     e.stopPropagation(); 
-                    openResourceUrl(
-                      currentTopicContext,
-                      'gfg',
-                      `https://www.geeksforgeeks.org/search/?q=${encodeURIComponent(currentTopicContext)}`
-                    );
+                    window.open(`https://www.google.com/search?q=site:geeksforgeeks.org+${encodeURIComponent(currentTopicContext)}`, '_blank');
                   }}
                   className="w-full px-4 py-3 rounded-xl font-medium bg-[#0f9d58]/10 text-[#0f9d58] border border-[#0f9d58]/20 hover:bg-[#0f9d58]/20 transition-colors flex items-center justify-center gap-2"
                 >

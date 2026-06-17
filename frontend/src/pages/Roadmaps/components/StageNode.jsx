@@ -211,11 +211,9 @@ const StageNode = ({ stage, phaseTitle, phaseColor, completedTopics, clearedModu
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      openResourceUrl(
-                        `${stage.title} ${careerTitle}`,
-                        'gfg',
-                        `https://www.geeksforgeeks.org/search/?q=${encodeURIComponent(stage.title)}`
-                      );
+                      const topicsStr = stage.topics.map(t => t.name).join(' ');
+                      const searchQuery = `${careerTitle} ${phaseTitle || ''} ${stage.title} ${topicsStr}`;
+                      window.open(`https://www.google.com/search?q=site:geeksforgeeks.org+${encodeURIComponent(searchQuery)}`, '_blank');
                     }}
                     className="text-xs px-3 py-1.5 rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] hover:text-[#0f9d58] border border-[rgb(var(--border))] hover:border-[#0f9d58]/30 transition-colors flex items-center gap-1.5 shadow-sm"
                   >
@@ -225,11 +223,9 @@ const StageNode = ({ stage, phaseTitle, phaseColor, completedTopics, clearedModu
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      openResourceUrl(
-                        `${stage.title} ${careerTitle}`,
-                        'w3s',
-                        `https://www.w3schools.com/search/search_result.php?q=${encodeURIComponent(stage.title)}`
-                      );
+                      const topicsStr = stage.topics.map(t => t.name).join(' ');
+                      const searchQuery = `${careerTitle} ${phaseTitle || ''} ${stage.title} ${topicsStr}`;
+                      window.open(`https://www.google.com/search?q=site:w3schools.com+${encodeURIComponent(searchQuery)}`, '_blank');
                     }}
                     className="text-xs px-3 py-1.5 rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] hover:text-[#04AA6D] border border-[rgb(var(--border))] hover:border-[#04AA6D]/30 transition-colors flex items-center gap-1.5 shadow-sm"
                   >
@@ -239,11 +235,9 @@ const StageNode = ({ stage, phaseTitle, phaseColor, completedTopics, clearedModu
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      openResourceUrl(
-                        `${stage.title} ${careerTitle}`,
-                        'docs',
-                        `https://developer.mozilla.org/search?q=${encodeURIComponent(stage.title)}`
-                      );
+                      const topicsStr = stage.topics.map(t => t.name).join(' ');
+                      const searchQuery = `${careerTitle} ${phaseTitle || ''} ${stage.title} ${topicsStr}`;
+                      window.open(`https://www.google.com/search?q=site:developer.mozilla.org+${encodeURIComponent(searchQuery)}`, '_blank');
                     }}
                     className="text-xs px-3 py-1.5 rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] hover:text-blue-500 border border-[rgb(var(--border))] hover:border-blue-500/30 transition-colors flex items-center gap-1.5 shadow-sm"
                   >
