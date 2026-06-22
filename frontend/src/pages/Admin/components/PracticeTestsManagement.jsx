@@ -493,29 +493,43 @@ const PracticeTestsManagement = () => {
                                 ) : (
                                     <div className="space-y-8">
                                         {/* Simple Analysis Header */}
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                            <div className="bg-[rgb(var(--bg-elevated))] p-6 rounded-3xl border border-[rgb(var(--border))] shadow-sm group">
-                                                <div className="text-[10px] font-black text-[rgb(var(--text-muted))] uppercase tracking-widest mb-3">Average Score</div>
-                                                <div className="text-4xl font-black text-[rgb(var(--accent))] tracking-tighter">
-                                                    {Math.round(analyticsData.reduce((acc, curr) => acc + curr.score, 0) / analyticsData.length)}%
+                                        {(() => {
+                                            const completedAttempts = analyticsData.filter(d => ['completed', 'auto-submitted', 'timeout'].includes(d.testStatus));
+                                            const totalCompleted = completedAttempts.length;
+                                            const avgScore = totalCompleted > 0 
+                                                ? Math.round(completedAttempts.reduce((acc, curr) => acc + (curr.score || 0), 0) / totalCompleted)
+                                                : 0;
+                                            const highestScore = analyticsData.length > 0 ? Math.max(...analyticsData.map(d => d.score || 0)) : 0;
+                                            const successRate = totalCompleted > 0 
+                                                ? Math.round((completedAttempts.filter(d => (d.score || 0) >= 40).length / totalCompleted) * 100)
+                                                : 0;
+
+                                            return (
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                    <div className="bg-[rgb(var(--bg-elevated))] p-6 rounded-3xl border border-[rgb(var(--border))] shadow-sm group">
+                                                        <div className="text-[10px] font-black text-[rgb(var(--text-muted))] uppercase tracking-widest mb-3">Average Score</div>
+                                                        <div className="text-4xl font-black text-[rgb(var(--accent))] tracking-tighter">
+                                                            {avgScore}%
+                                                        </div>
+                                                        <p className="text-[11px] text-[rgb(var(--text-secondary))] mt-2 font-medium opacity-70">Based on {totalCompleted} completed attempts</p>
+                                                    </div>
+                                                    <div className="bg-[rgb(var(--bg-elevated))] p-6 rounded-3xl border border-[rgb(var(--border))] shadow-sm group">
+                                                        <div className="text-[10px] font-black text-[rgb(var(--text-muted))] uppercase tracking-widest mb-3">Highest Score</div>
+                                                        <div className="text-4xl font-black text-emerald-500 tracking-tighter">
+                                                            {highestScore}%
+                                                        </div>
+                                                        <p className="text-[11px] text-[rgb(var(--text-secondary))] mt-2 font-medium opacity-70">Exceptional performance recorded</p>
+                                                    </div>
+                                                    <div className="bg-[rgb(var(--bg-elevated))] p-6 rounded-3xl border border-[rgb(var(--border))] shadow-sm group">
+                                                        <div className="text-[10px] font-black text-[rgb(var(--text-muted))] uppercase tracking-widest mb-3">Success Rate</div>
+                                                        <div className="text-4xl font-black text-purple-500 tracking-tighter">
+                                                            {successRate}%
+                                                        </div>
+                                                        <p className="text-[11px] text-[rgb(var(--text-secondary))] mt-2 font-medium opacity-70">Students scoring above 40%</p>
+                                                    </div>
                                                 </div>
-                                                <p className="text-[11px] text-[rgb(var(--text-secondary))] mt-2 font-medium opacity-70">Based on {analyticsData.length} total attempts</p>
-                                            </div>
-                                            <div className="bg-[rgb(var(--bg-elevated))] p-6 rounded-3xl border border-[rgb(var(--border))] shadow-sm group">
-                                                <div className="text-[10px] font-black text-[rgb(var(--text-muted))] uppercase tracking-widest mb-3">Highest Score</div>
-                                                <div className="text-4xl font-black text-emerald-500 tracking-tighter">
-                                                    {Math.max(...analyticsData.map(d => d.score))}%
-                                                </div>
-                                                <p className="text-[11px] text-[rgb(var(--text-secondary))] mt-2 font-medium opacity-70">Exceptional performance recorded</p>
-                                            </div>
-                                            <div className="bg-[rgb(var(--bg-elevated))] p-6 rounded-3xl border border-[rgb(var(--border))] shadow-sm group">
-                                                <div className="text-[10px] font-black text-[rgb(var(--text-muted))] uppercase tracking-widest mb-3">Success Rate</div>
-                                                <div className="text-4xl font-black text-purple-500 tracking-tighter">
-                                                    {Math.round((analyticsData.filter(d => d.score >= 40).length / analyticsData.length) * 100)}%
-                                                </div>
-                                                <p className="text-[11px] text-[rgb(var(--text-secondary))] mt-2 font-medium opacity-70">Students scoring above 40%</p>
-                                            </div>
-                                        </div>
+                                            );
+                                        })()}
 
                                         <div className="overflow-hidden rounded-2xl border border-[rgb(var(--border))]">
                                             <table className="w-full text-left">

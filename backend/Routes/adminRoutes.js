@@ -634,6 +634,7 @@ router.get('/practice-tests', async (req, res) => {
                     submissions: 1,
                     maxAttempts: 1,
                     timeLimit: 1,
+                    passingScore: 1,
                     isTimeRestricted: 1,
                     startTime: 1,
                     endTime: 1,
@@ -660,7 +661,7 @@ router.get('/practice-tests', async (req, res) => {
 // CREATE Practice Test (Admin)
 router.post('/practice-tests', async (req, res) => {
     try {
-        const { title, description, topic, difficulty, questions, isPublished, maxAttempts, timeLimit, guidelines, isTimeRestricted, startTime, endTime } = req.body;
+        const { title, description, topic, difficulty, questions, isPublished, maxAttempts, timeLimit, guidelines, isTimeRestricted, startTime, endTime, passingScore } = req.body;
         const PracticeTest = require('../models/PracticeTest');
         const hasScheduleWindow = isTimeRestricted || !!startTime || !!endTime;
 
@@ -675,6 +676,7 @@ router.post('/practice-tests', async (req, res) => {
             maxAttempts: maxAttempts !== undefined ? maxAttempts : 1,
             timeLimit: timeLimit !== undefined ? timeLimit : 30,
             guidelines: guidelines || '',
+            passingScore: passingScore !== undefined ? passingScore : 40,
             isTimeRestricted: hasScheduleWindow,
             startTime: startTime || null,
             endTime: endTime || null
@@ -738,7 +740,11 @@ router.get('/practice-tests/analytics', async (req, res) => {
                     attempts: { $sum: 1 },
                     submissions: { $sum: { $cond: [{ $in: ['$testStatus', ['completed', 'auto-submitted']] }, 1, 0] } },
                     users: { $addToSet: '$userEmail' },
-                    avgScore: { $avg: '$score' },
+                    avgScore: { 
+                        $avg: {
+                            $cond: [{ $in: ['$testStatus', ['completed', 'auto-submitted', 'timeout']] }, '$score', null]
+                        } 
+                    },
                     lastAttempt: { $max: '$createdAt' }
                 }
             },
@@ -756,7 +762,7 @@ router.get('/practice-tests/analytics', async (req, res) => {
 
         const testIds = agg.map(a => a._id);
         const tests = await PracticeTest.find({ _id: { $in: testIds } })
-            .select('title description topic createdBy createdAt maxAttempts timeLimit isTimeRestricted startTime endTime attempts submissions');
+            .select('title description topic createdBy createdAt maxAttempts timeLimit passingScore isTimeRestricted startTime endTime attempts submissions');
 
         const perTest = tests.map(t => {
             const a = agg.find(x => x._id && x._id.toString() === t._id.toString()) || {};
@@ -767,6 +773,7 @@ router.get('/practice-tests/analytics', async (req, res) => {
                 createdAt: t.createdAt,
                 maxAttempts: t.maxAttempts,
                 timeLimit: t.timeLimit,
+                passingScore: t.passingScore || 40,
                 isTimeRestricted: t.isTimeRestricted,
                 startTime: t.startTime,
                 endTime: t.endTime,

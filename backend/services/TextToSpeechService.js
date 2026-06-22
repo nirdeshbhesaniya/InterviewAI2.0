@@ -1,12 +1,12 @@
-const DeepgramService = require('./DeepgramService');
+const AWSPollyService = require('./AWSPollyService');
 
-let deepgramInstance = null;
+let pollyInstance = null;
 
-function getDeepgramInstance() {
-    if (!deepgramInstance) {
-        deepgramInstance = new DeepgramService();
+function getPollyInstance() {
+    if (!pollyInstance) {
+        pollyInstance = new AWSPollyService();
     }
-    return deepgramInstance;
+    return pollyInstance;
 }
 
 /**
@@ -23,16 +23,16 @@ module.exports = {
         const safeText = (text || '').toString().trim();
         if (!safeText) return null;
 
-        if (!process.env.DEEPGRAM_API_KEY) {
-            console.error('TextToSpeechService Error: DEEPGRAM_API_KEY is missing. Audio generation skipped.');
+        if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+            console.error('TextToSpeechService Error: AWS credentials missing. Audio generation skipped.');
             return null;
         }
 
         try {
-            const deepgram = getDeepgramInstance();
-            return await deepgram.generateAudio(safeText);
+            const polly = getPollyInstance();
+            return await polly.generateAudio(safeText);
         } catch (error) {
-            console.error('TextToSpeechService Deepgram Error:', error);
+            console.error('TextToSpeechService AWS Polly Error:', error);
             return null;
         }
     },

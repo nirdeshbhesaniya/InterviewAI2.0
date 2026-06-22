@@ -130,6 +130,7 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
         difficulty: 'medium',
         maxAttempts: 1,
         timeLimit: 30,
+        passingScore: 40,
         guidelines: '',
         isTimeRestricted: false,
         startTime: '',
@@ -160,6 +161,7 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
                     difficulty: 'medium',
                     maxAttempts: 1,
                     timeLimit: 30,
+                    passingScore: 40,
                     guidelines: '',
                     isTimeRestricted: false,
                     startTime: '',
@@ -264,6 +266,7 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
         const payload = {
             ...formData,
             timeLimit: parseInt(formData.timeLimit) || 30,
+            passingScore: parseInt(formData.passingScore) || 40,
             maxAttempts: parseInt(formData.maxAttempts) || 1,
             startTime: (formData.isTimeRestricted && formData.startTime) ? new Date(formData.startTime).toISOString() : null,
             endTime: (formData.isTimeRestricted && formData.endTime) ? new Date(formData.endTime).toISOString() : null
@@ -375,6 +378,18 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
                                 min="1"
                                 name="timeLimit"
                                 value={formData.timeLimit}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] outline-none text-[rgb(var(--text-primary))]"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-[rgb(var(--text-secondary))]">Passing Score (%)</label>
+                            <input
+                                type="number"
+                                min="1"
+                                max="100"
+                                name="passingScore"
+                                value={formData.passingScore}
                                 onChange={handleChange}
                                 className="w-full px-4 py-2 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] outline-none text-[rgb(var(--text-primary))]"
                             />

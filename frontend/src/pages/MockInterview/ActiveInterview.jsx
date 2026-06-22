@@ -57,6 +57,7 @@ const ActiveInterview = () => {
     });
 
     const {
+        transcript: liveTranscript,
         finalTranscript,
         resetTranscript,
         browserSupportsSpeechRecognition,
@@ -182,6 +183,12 @@ const ActiveInterview = () => {
 
         resetTranscript();
     }, [finalTranscript, isCallActive, resetTranscript]);
+
+    useEffect(() => {
+        if (liveTranscript) {
+            transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [liveTranscript]);
 
     const normalizeTranscript = (rawText) => {
         return (rawText || '')
@@ -1095,6 +1102,16 @@ ${questionsList}
                                     </div>
                                 </div>
                             ))}
+                            {liveTranscript && aiStatus === 'listening' && (
+                                <div className="flex flex-col animate-pulse">
+                                    <div className="text-sm font-bold text-[rgb(var(--text-primary))] mb-1">
+                                        You (Speaking...)
+                                    </div>
+                                    <div className="text-[15px] leading-relaxed text-[rgb(var(--text-secondary))] italic">
+                                        <p>{liveTranscript}</p>
+                                    </div>
+                                </div>
+                            )}
                             <div ref={transcriptEndRef} />
                         </div>
                     </div>

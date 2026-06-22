@@ -1,6 +1,7 @@
 const { WebSocketServer } = require('ws');
 const InterviewLLMService = require('./InterviewLLMService');
 const TextToSpeechService = require('./TextToSpeechService');
+const AWSTranscribeService = require('./AWSTranscribeService');
 
 class SocketService {
     constructor() {
@@ -58,7 +59,74 @@ class SocketService {
 
             // Initialize services for this connection
             let llm = null;
+            let transcribeService = null;
             const tts = TextToSpeechService;
+
+            const handleUserMessage = async (userText) => {
+                try {
+                    if (!llm) {
+                        ws.send(JSON.stringify({ type: 'error', message: 'Interview not started yet' }));
+                        return;
+                    }
+
+                    userText = (userText || '').toString().trim();
+                    if (!userText) {
+                        return;
+                    }
+
+                    const risk = this.assessTranscriptRisk(userText);
+                    if (risk.blocked) {
+                        console.warn(`🛑 Moderation flag (${risk.severity}): ${risk.reason}`);
+                        await this.sendRefusal(ws, tts, risk.reason, risk.severity);
+
+                        if (risk.severity === 'severe') {
+                            llm = null;
+                            if (transcribeService) transcribeService.stopStream();
+                            ws.send(JSON.stringify({ type: 'stop_interview', reason: risk.reason }));
+                        }
+
+                        return;
+                    }
+
+                    console.log('📝 User message received:', userText.substring(0, 120));
+
+                    // Send transcript to client for display
+                    ws.send(JSON.stringify({ type: 'transcript', role: 'user', text: userText }));
+
+                    // Generate AI Response
+                    ws.send(JSON.stringify({ type: 'status', status: 'thinking' }));
+                    const aiResponse = await llm.generateResponse(userText);
+                    console.log('💭 AI Response:', aiResponse);
+
+                    // Sanitize audio string so it doesn't read code out loud
+                    const ttsSanitizedResponse = aiResponse
+                        .replace(/```[\s\S]*?```/g, '\nI have provided the code example on your screen, please observe it while I explain the logic.\n')
+                        .replace(/`/g, '')
+                        .replace(/\*\*/g, '')
+                        .replace(/\*/g, '')
+                        .replace(/#/g, '');
+
+                    // Generate Audio (slow part)
+                    ws.send(JSON.stringify({ type: 'status', status: 'speaking' }));
+                    const audioBuffer = await tts.generateAudio(ttsSanitizedResponse);
+
+                    if (audioBuffer) {
+                        // Send Assistant text and audio together for better synchronization
+                        ws.send(JSON.stringify({ type: 'transcript', role: 'assistant', text: aiResponse }));
+                        console.log('🔊 Sending audio buffer:', audioBuffer.length, 'bytes');
+                        ws.send(audioBuffer);
+                    } else {
+                        // Fallback: send transcript even if audio fails
+                        ws.send(JSON.stringify({ type: 'transcript', role: 'assistant', text: aiResponse }));
+                        console.error('❌ Failed to generate audio');
+                    }
+
+                    ws.send(JSON.stringify({ type: 'status', status: 'listening' }));
+                } catch (error) {
+                    console.error('❌ Error handling user_message:', error);
+                    ws.send(JSON.stringify({ type: 'error', message: error.message }));
+                }
+            };
 
             ws.on('message', async (message, isBinary) => {
                 try {
@@ -66,9 +134,9 @@ class SocketService {
                     // Note: 'isBinary' argument is reliable in 'ws' library
 
                     if (isBinary) {
-                        // Previously: mic audio -> Deepgram STT.
-                        // Now: STT is handled client-side (react-speech-recognition), so ignore binary.
-                        // Keeping this branch prevents server errors if older clients still stream audio.
+                        if (transcribeService) {
+                            transcribeService.sendAudio(message);
+                        }
                         return;
                     } else {
                         // Text Data (Control Messages)
@@ -85,6 +153,16 @@ class SocketService {
                                 llm = new InterviewLLMService();
                                 llm.initialize(systemMessage);
                                 console.log('🤖 LLM initialized with system message');
+
+                                // Initialize Transcribe
+                                try {
+                                    transcribeService = new AWSTranscribeService();
+                                    transcribeService.startStream((transcript) => {
+                                        handleUserMessage(transcript);
+                                    }).catch(err => console.error('Transcribe Stream Error:', err));
+                                } catch (err) {
+                                    console.error('❌ Failed to initialize AWS Transcribe:', err.message);
+                                }
 
                                 // Send initial greeting
                                 const greeting = "Hello! I'm your AI interviewer. I'm excited to learn more about you and your experience. Best of luck! Shall we begin?";
@@ -109,72 +187,13 @@ class SocketService {
                             }
 
                         } else if (data.type === 'user_message') {
-                            try {
-                                if (!llm) {
-                                    ws.send(JSON.stringify({ type: 'error', message: 'Interview not started yet' }));
-                                    return;
-                                }
-
-                                const userText = (data.text || '').toString().trim();
-                                if (!userText) {
-                                    return;
-                                }
-
-                                const risk = this.assessTranscriptRisk(userText);
-                                if (risk.blocked) {
-                                    console.warn(`🛑 Moderation flag (${risk.severity}): ${risk.reason}`);
-                                    await this.sendRefusal(ws, tts, risk.reason, risk.severity);
-
-                                    if (risk.severity === 'severe') {
-                                        llm = null;
-                                        ws.send(JSON.stringify({ type: 'stop_interview', reason: risk.reason }));
-                                    }
-
-                                    return;
-                                }
-
-                                console.log('📝 User message received:', userText.substring(0, 120));
-
-                                // Send transcript to client for display
-                                ws.send(JSON.stringify({ type: 'transcript', role: 'user', text: userText }));
-
-                                // Generate AI Response
-                                ws.send(JSON.stringify({ type: 'status', status: 'thinking' }));
-                                const aiResponse = await llm.generateResponse(userText);
-                                console.log('💭 AI Response:', aiResponse);
-
-                                // Sanitize audio string so it doesn't read code out loud
-                                const ttsSanitizedResponse = aiResponse
-                                    .replace(/```[\s\S]*?```/g, '\nI have provided the code example on your screen, please observe it while I explain the logic.\n')
-                                    .replace(/`/g, '')
-                                    .replace(/\*\*/g, '')
-                                    .replace(/\*/g, '')
-                                    .replace(/#/g, '');
-
-                                // Generate Audio (slow part)
-                                ws.send(JSON.stringify({ type: 'status', status: 'speaking' }));
-                                const audioBuffer = await tts.generateAudio(ttsSanitizedResponse);
-
-                                if (audioBuffer) {
-                                    // Send Assistant text and audio together for better synchronization
-                                    ws.send(JSON.stringify({ type: 'transcript', role: 'assistant', text: aiResponse }));
-                                    console.log('🔊 Sending audio buffer:', audioBuffer.length, 'bytes');
-                                    ws.send(audioBuffer);
-                                } else {
-                                    // Fallback: send transcript even if audio fails
-                                    ws.send(JSON.stringify({ type: 'transcript', role: 'assistant', text: aiResponse }));
-                                    console.error('❌ Failed to generate audio');
-                                }
-
-                                ws.send(JSON.stringify({ type: 'status', status: 'listening' }));
-                            } catch (error) {
-                                console.error('❌ Error handling user_message:', error);
-                                ws.send(JSON.stringify({ type: 'error', message: error.message }));
-                            }
+                            // Support text fallback
+                            handleUserMessage(data.text);
 
                         } else if (data.type === 'stop_interview') {
                             console.log('🛑 Stopping interview');
                             llm = null;
+                            if (transcribeService) transcribeService.stopStream();
                         }
                     }
                 } catch (e) {
@@ -184,6 +203,7 @@ class SocketService {
 
             ws.on('close', () => {
                 console.log('🔌 Client disconnected');
+                if (transcribeService) transcribeService.stopStream();
             });
 
             ws.on('error', (error) => {

@@ -38,7 +38,7 @@ const StageNode = ({ stage, phaseTitle, phaseColor, completedTopics, clearedModu
   const completedCount = stage.topics.filter(t => completedTopics.includes(t.id)).length;
   const totalTopics = stage.topics.length;
   const progressPct = totalTopics > 0 ? Math.round((completedCount / totalTopics) * 100) : 0;
-  
+
   // A stage is fully done ONLY if it's in clearedModules
   const isCleared = clearedModules?.includes(stage.id);
   const allTopicsLearned = completedCount === totalTopics && totalTopics > 0;
@@ -47,13 +47,12 @@ const StageNode = ({ stage, phaseTitle, phaseColor, completedTopics, clearedModu
   return (
     <motion.div
       layout
-      className={`rounded-2xl border overflow-hidden transition-all duration-300 ${
-        isAllDone
+      className={`rounded-2xl border overflow-hidden transition-all duration-300 ${isAllDone
           ? 'border-green-500/40 bg-green-500/5'
           : isOpen
-          ? 'border-[rgb(var(--accent))]/40 bg-[rgb(var(--bg-elevated))]'
-          : 'border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))] hover:border-[rgb(var(--accent))]/30'
-      }`}
+            ? 'border-[rgb(var(--accent))]/40 bg-[rgb(var(--bg-elevated))]'
+            : 'border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))] hover:border-[rgb(var(--accent))]/30'
+        }`}
     >
       {/* Stage Header */}
       <button
@@ -61,13 +60,12 @@ const StageNode = ({ stage, phaseTitle, phaseColor, completedTopics, clearedModu
         className="w-full flex items-center gap-4 p-4 text-left"
       >
         {/* Status circle */}
-        <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${
-          isAllDone
+        <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${isAllDone
             ? 'bg-green-500 shadow-lg shadow-green-500/30'
             : progressPct > 0
-            ? `${phaseColor} opacity-80`
-            : 'bg-[rgb(var(--bg-body))] border border-[rgb(var(--border))]'
-        }`}>
+              ? `${phaseColor} opacity-80`
+              : 'bg-[rgb(var(--bg-body))] border border-[rgb(var(--border))]'
+          }`}>
           {isAllDone ? (
             <Zap className="w-5 h-5 text-white" />
           ) : progressPct > 0 ? (

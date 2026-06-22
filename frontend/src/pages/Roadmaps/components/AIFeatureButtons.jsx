@@ -78,7 +78,7 @@ const AIFeatureButtons = ({ topicName, stageName, phaseTitle, topics, careerTitl
   const handleAction = (actionId) => {
     const topicsStr = topics ? topics.map(t => t.name).join(' ') : '';
     const topicContext = `${careerTitle} ${phaseTitle || ''} ${stageName} ${topicName || ''} ${topicsStr}`.replace(/\s+/g, ' ').trim();
-    
+
     switch (actionId) {
       case 'ask-ai':
         if (chatbotCtx) {
@@ -178,20 +178,20 @@ const AIFeatureButtons = ({ topicName, stageName, phaseTitle, topics, careerTitl
               onClick={(e) => e.stopPropagation()}
               className="bg-[rgb(var(--bg-card))] rounded-2xl shadow-2xl border border-[rgb(var(--border-subtle))] w-full max-w-md p-6 relative overflow-hidden"
             >
-              <button 
+              <button
                 onClick={(e) => { e.stopPropagation(); setShowMCQModal(false); }}
                 className="absolute top-4 right-4 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
-              
+
               <div className="flex items-center gap-3 mb-4 text-[rgb(var(--accent))]">
                 <div className="w-10 h-10 rounded-full bg-[rgb(var(--accent))]/10 flex items-center justify-center">
                   <Brain className="w-5 h-5" />
                 </div>
                 <h3 className="text-xl font-bold text-[rgb(var(--text-primary))]">AI Practice Test</h3>
               </div>
-              
+
               <div className="text-[rgb(var(--text-secondary))] mb-6 space-y-3 text-sm">
                 <p>You are about to start a practice test for:</p>
                 <p className="font-semibold text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-body-alt))] p-3 rounded-lg border border-[rgb(var(--border-subtle))]">
@@ -203,7 +203,7 @@ const AIFeatureButtons = ({ topicName, stageName, phaseTitle, topics, careerTitl
                   <li>Instant results & explanations</li>
                 </ul>
               </div>
-              
+
               <div className="flex gap-3">
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowMCQModal(false); }}
@@ -232,20 +232,20 @@ const AIFeatureButtons = ({ topicName, stageName, phaseTitle, topics, careerTitl
               onClick={(e) => e.stopPropagation()}
               className="bg-[rgb(var(--bg-card))] rounded-2xl shadow-2xl border border-[rgb(var(--border-subtle))] w-full max-w-md p-6 relative overflow-hidden"
             >
-              <button 
+              <button
                 onClick={(e) => { e.stopPropagation(); setShowInterviewModal(false); }}
                 className="absolute top-4 right-4 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
-              
+
               <div className="flex items-center gap-3 mb-4 text-[rgb(var(--accent))]">
                 <div className="w-10 h-10 rounded-full bg-[rgb(var(--accent))]/10 flex items-center justify-center">
                   <Mic className="w-5 h-5" />
                 </div>
                 <h3 className="text-xl font-bold text-[rgb(var(--text-primary))]">AI Mock Interview</h3>
               </div>
-              
+
               <div className="text-[rgb(var(--text-secondary))] mb-6 space-y-3 text-sm">
                 <p>You are about to start a mock interview for:</p>
                 <p className="font-semibold text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-body-alt))] p-3 rounded-lg border border-[rgb(var(--border-subtle))]">
@@ -257,7 +257,7 @@ const AIFeatureButtons = ({ topicName, stageName, phaseTitle, topics, careerTitl
                   <li>Real-time AI feedback</li>
                 </ul>
               </div>
-              
+
               <div className="flex gap-3">
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowInterviewModal(false); }}
@@ -286,20 +286,20 @@ const AIFeatureButtons = ({ topicName, stageName, phaseTitle, topics, careerTitl
               onClick={(e) => e.stopPropagation()}
               className="bg-[rgb(var(--bg-card))] rounded-2xl shadow-2xl border border-[rgb(var(--border-subtle))] w-full max-w-md p-6 relative overflow-hidden"
             >
-              <button 
+              <button
                 onClick={(e) => { e.stopPropagation(); setShowProjectsModal(false); }}
                 className="absolute top-4 right-4 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
-              
+
               <div className="flex items-center gap-3 mb-4 text-[rgb(var(--accent))]">
                 <div className="w-10 h-10 rounded-full bg-[rgb(var(--accent))]/10 flex items-center justify-center">
                   <Lightbulb className="w-5 h-5" />
                 </div>
                 <h3 className="text-xl font-bold text-[rgb(var(--text-primary))]">Project Resources</h3>
               </div>
-              
+
               <div className="text-[rgb(var(--text-secondary))] mb-6 space-y-3 text-sm">
                 <p>Find related projects and tutorials for:</p>
                 <p className="font-semibold text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-body-alt))] p-3 rounded-lg border border-[rgb(var(--border-subtle))]">
@@ -307,11 +307,11 @@ const AIFeatureButtons = ({ topicName, stageName, phaseTitle, topics, careerTitl
                 </p>
                 <p>Choose where you want to search for resources:</p>
               </div>
-              
+
               <div className="flex flex-col gap-3">
                 <button
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
+                  onClick={(e) => {
+                    e.stopPropagation();
                     window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(currentTopicContext + ' projects tutorial')}`, '_blank');
                   }}
                   className="w-full px-4 py-3 rounded-xl font-medium bg-[#FF0000]/10 text-[#FF0000] border border-[#FF0000]/20 hover:bg-[#FF0000]/20 transition-colors flex items-center justify-center gap-2"
@@ -320,8 +320,8 @@ const AIFeatureButtons = ({ topicName, stageName, phaseTitle, topics, careerTitl
                   Search on YouTube
                 </button>
                 <button
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
+                  onClick={(e) => {
+                    e.stopPropagation();
                     window.open(`https://github.com/search?q=${encodeURIComponent(currentTopicContext + ' projects')}&type=repositories`, '_blank');
                   }}
                   className="w-full px-4 py-3 rounded-xl font-medium bg-[#333]/10 text-[rgb(var(--text-primary))] dark:bg-white/10 border border-[#333]/20 dark:border-white/20 hover:bg-[#333]/20 dark:hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
@@ -330,8 +330,8 @@ const AIFeatureButtons = ({ topicName, stageName, phaseTitle, topics, careerTitl
                   Search on GitHub
                 </button>
                 <button
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
+                  onClick={(e) => {
+                    e.stopPropagation();
                     window.open(`https://www.google.com/search?q=site:geeksforgeeks.org+${encodeURIComponent(currentTopicContext)}`, '_blank');
                   }}
                   className="w-full px-4 py-3 rounded-xl font-medium bg-[#0f9d58]/10 text-[#0f9d58] border border-[#0f9d58]/20 hover:bg-[#0f9d58]/20 transition-colors flex items-center justify-center gap-2"
@@ -340,8 +340,8 @@ const AIFeatureButtons = ({ topicName, stageName, phaseTitle, topics, careerTitl
                   Read on GeeksforGeeks
                 </button>
                 <button
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
+                  onClick={(e) => {
+                    e.stopPropagation();
                     window.open(`https://www.google.com/search?q=${encodeURIComponent(currentTopicContext + ' programming projects and resources')}`, '_blank');
                   }}
                   className="w-full px-4 py-3 rounded-xl font-medium bg-[#4285F4]/10 text-[#4285F4] border border-[#4285F4]/20 hover:bg-[#4285F4]/20 transition-colors flex items-center justify-center gap-2"
