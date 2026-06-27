@@ -8,36 +8,36 @@ const steps = [
         title: "Create Profile",
         description: "Sign up and tell us your target role (e.g., Frontend Dev) and experience level.",
         icon: UserPlus,
-        color: "text-blue-400",
-        bg: "bg-blue-400/10",
-        border: "border-blue-400/20"
+        color: "text-[#cc785c]",
+        bg: "bg-[#cc785c]/10",
+        border: "border-[#cc785c]/20"
     },
     {
         id: 2,
         title: "Customize Session",
         description: "Select detailed topics, company style, or upload your resume for a personalized Mock Interview.",
         icon: Settings,
-        color: "text-purple-400",
-        bg: "bg-purple-400/10",
-        border: "border-purple-400/20"
+        color: "text-[#5db8a6]",
+        bg: "bg-[#5db8a6]/10",
+        border: "border-[#5db8a6]/20"
     },
     {
         id: 3,
         title: "Mock Interview & Code",
         description: "Engage in AI-powered voice mock interviews and solve coding challenges with real-time feedback.",
         icon: Code2,
-        color: "text-orange-400",
-        bg: "bg-orange-400/10",
-        border: "border-orange-400/20"
+        color: "text-[#e8a55a]",
+        bg: "bg-[#e8a55a]/10",
+        border: "border-[#e8a55a]/20"
     },
     {
         id: 4,
         title: "Get Hired",
         description: "Review your detailed analytics, improve, and ace the real interview.",
         icon: Award,
-        color: "text-green-400",
-        bg: "bg-green-400/10",
-        border: "border-green-400/20"
+        color: "text-[#5db872]",
+        bg: "bg-[#5db872]/10",
+        border: "border-[#5db872]/20"
     }
 ];
 

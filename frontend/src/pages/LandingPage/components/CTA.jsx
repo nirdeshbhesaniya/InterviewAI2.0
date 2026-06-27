@@ -23,7 +23,7 @@ const CTA = ({ onJoin }) => {
                 >
                     <h2 className="text-4xl md:text-6xl font-bold text-[rgb(var(--text-primary))] mb-8 tracking-tight">
                         Ready to Ace Your Next <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgb(var(--accent))] to-purple-600">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgb(var(--accent))] to-[#e8a55a]">
                             Interview?
                         </span>
                     </h2>

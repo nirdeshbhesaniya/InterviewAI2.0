@@ -19,9 +19,9 @@ const Icon3D = ({
 
     const colorClasses = {
         primary: 'bg-[rgb(var(--accent))] text-white shadow-[rgb(var(--accent))]/25',
-        secondary: 'bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-500 text-white shadow-blue-500/25',
-        success: 'bg-gradient-to-br from-green-500 via-emerald-500 to-teal-500 text-white shadow-green-500/25',
-        dark: 'bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 text-white shadow-gray-700/25'
+        secondary: 'bg-gradient-to-br from-[rgb(var(--accent))] via-[rgb(var(--accent-warm))] to-[rgb(var(--secondary-accent))] text-white shadow-[rgb(var(--accent))]/25',
+        success: 'bg-gradient-to-br from-[rgb(var(--success))] to-[rgb(var(--secondary-accent))] text-white shadow-[rgb(var(--success))]/25',
+        dark: 'bg-gradient-to-br from-[rgb(var(--text-secondary))] to-[rgb(var(--text-primary))] text-white shadow-[rgb(var(--text-primary))]/25'
     };
 
     const baseClasses = `

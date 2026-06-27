@@ -64,7 +64,7 @@ const Testimonials = ({ onRate }) => {
                             onClick={onRate}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[rgb(var(--accent))] to-purple-600 text-white rounded-xl font-medium shadow-lg shadow-purple-500/20"
+                            className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[rgb(var(--accent))] to-[#e8a55a] text-white rounded-xl font-medium shadow-lg shadow-[rgb(var(--accent))]/20"
                         >
                             <Star className="w-4 h-4 fill-current" />
                             Rate Your Experience
@@ -98,7 +98,7 @@ const Testimonials = ({ onRate }) => {
                             </p>
 
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[rgb(var(--accent))] to-purple-600 flex items-center justify-center text-white font-bold text-xl overflow-hidden">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[rgb(var(--accent))] to-[#e8a55a] flex items-center justify-center text-white font-bold text-xl overflow-hidden">
                                     {item.user?.photo ? (
                                         <img src={item.user.photo} alt={item.user.fullName} className="w-full h-full object-cover" />
                                     ) : (

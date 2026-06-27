@@ -307,7 +307,7 @@ const CodeExecution = () => {
             initial="hidden"
             animate="visible"
             variants={containerVariants}
-            className="min-h-screen bg-[rgb(var(--bg-body))] p-3 sm:p-6 font-[Urbanist]"
+            className="min-h-screen bg-[rgb(var(--bg-body))] p-3 sm:p-6"
         >
             <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
                 {/* Enhanced Header */}

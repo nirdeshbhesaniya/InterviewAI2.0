@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Ubuntu:ital@0;1&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import 'highlight.js/styles/github.css';
@@ -8,13 +8,15 @@
 /* Custom CSS begins here */  
 @layer base {
   :root {
-    --font-display: "Urbanist", sans-serif;
+    --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-serif: "Cormorant Garamond", "EB Garamond", Garamond, "Times New Roman", serif;
+    --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
     --breakpoint-3xl: 1920px;
-    --color-primary: #6366F1;
+    --color-primary: #cc785c;
   }
 
   .poppins-regular {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 400;
   font-style: normal;
 }
@@ -268,7 +270,7 @@
     
     /* Better text selection in dark mode */
     ::selection {
-      background-color: rgba(99, 179, 237, 0.3);
+      background-color: rgba(204, 120, 92, 0.3);
       color: rgb(var(--text-primary));
     }
     
@@ -431,124 +433,128 @@
   /* Radius */
   --radius: 0.75rem;
   
-  /* Backgrounds - Soft and comfortable for reading */
-  --bg-body: 248 250 252;              /* soft off-white page background */
-  --bg-body-alt: 241 245 249;          /* subtle section separation */
-  --bg-elevated: 255 255 255;          /* cards, modals */
-  --bg-elevated-alt: 248 250 252;      /* hover / secondary cards */
-  --bg-card: 255 255 255;
-  --bg-card-alt: 248 250 252;
+  /* Backgrounds — Warm cream canvas (Claude editorial palette) */
+  --bg-body: 250 249 245;              /* #faf9f5 — warm cream canvas */
+  --bg-body-alt: 245 240 232;          /* #f5f0e8 — surface-soft */
+  --bg-elevated: 250 249 245;          /* #faf9f5 — cards blend with canvas */
+  --bg-elevated-alt: 239 233 222;      /* #efe9de — hover / surface-card */
+  --bg-card: 239 233 222;              /* #efe9de — feature cards */
+  --bg-card-alt: 232 224 210;          /* #e8e0d2 — cream-strong */
   
-  /* Text - High readability hierarchy */
-  --text-primary: 15 23 42;            /* headings, titles */
-  --text-secondary: 51 65 85;          /* paragraphs */
-  --text-muted: 100 116 139;           /* hints, meta info */
-  --text-disabled: 148 163 184;
+  /* Text — Warm ink hierarchy */
+  --text-primary: 20 20 19;            /* #141413 — ink */
+  --text-secondary: 61 61 58;          /* #3d3d3a — body */
+  --text-muted: 108 106 100;           /* #6c6a64 — muted */
+  --text-disabled: 142 139 130;        /* #8e8b82 — muted-soft */
   
-  /* Borders - Subtle and soft */
-  --border: 226 232 240;               /* default borders */
-  --border-subtle: 226 232 240;
-  --border-strong: 203 213 225;
+  /* Borders — Warm hairlines */
+  --border: 230 223 216;               /* #e6dfd8 — hairline */
+  --border-subtle: 235 230 223;        /* #ebe6df — hairline-soft */
+  --border-strong: 232 224 210;        /* #e8e0d2 — cream-strong */
   
-  /* Accent - Modern blue for actions */
-  --accent: 59 130 246;                /* primary actions */
-  --accent-hover: 37 99 235;
-  --accent-foreground: 255 255 255;
+  /* Accent — Coral (Anthropic signature) */
+  --accent: 204 120 92;                /* #cc785c — coral primary */
+  --accent-hover: 169 88 62;           /* #a9583e — coral active/pressed */
+  --accent-foreground: 255 255 255;    /* white on coral */
+  --secondary-accent: 93 184 166;      /* #5db8a6 — teal secondary */
+  --accent-warm: 232 165 90;           /* #e8a55a — amber warm CTA */
   
   /* Gradients */
-  --gradient-start: 255 255 255;
-  --gradient-end: 241 245 249;
+  --gradient-start: 250 249 245;       /* cream */
+  --gradient-end: 245 240 232;         /* surface-soft */
   
   /* Warning colors */
-  --warning: 245 158 11;
-  --warning-bg: 254 252 232;
-  --warning-border: 253 224 71;
+  --warning: 212 160 23;               /* #d4a017 */
+  --warning-bg: 252 248 232;           /* warm warning bg */
+  --warning-border: 232 165 90;        /* #e8a55a amber */
   
   /* Success colors */
-  --success: 34 197 94;
-  --success-hover: 22 163 74;
+  --success: 93 184 114;               /* #5db872 */
+  --success-hover: 75 160 95;          /* darker success */
   
   /* Danger colors */
-  --danger: 239 68 68;
+  --danger: 198 69 69;                 /* #c64545 */
   
   /* Legacy mappings for shadcn components */
-  --background: 248 250 252;
-  --foreground: 15 23 42;
-  --card: 255 255 255;
-  --card-foreground: 15 23 42;
-  --popover: 255 255 255;
-  --popover-foreground: 15 23 42;
-  --primary: 59 130 246;
+  --background: 250 249 245;
+  --foreground: 20 20 19;
+  --card: 239 233 222;
+  --card-foreground: 20 20 19;
+  --popover: 250 249 245;
+  --popover-foreground: 20 20 19;
+  --primary: 204 120 92;
   --primary-foreground: 255 255 255;
-  --secondary: 241 245 249;
-  --secondary-foreground: 15 23 42;
-  --muted: 241 245 249;
-  --muted-foreground: 100 116 139;
-  --destructive: 239 68 68;
-  --border: 226 232 240;
-  --input: 226 232 240;
-  --ring: 59 130 246;
+  --secondary: 245 240 232;
+  --secondary-foreground: 20 20 19;
+  --muted: 245 240 232;
+  --muted-foreground: 108 106 100;
+  --destructive: 198 69 69;
+  --border: 230 223 216;
+  --input: 230 223 216;
+  --ring: 204 120 92;
 }
 
 /* Dark mode - Optimized for late-night reading with reduced eye strain */
 .dark {
-  /* Backgrounds - Warm dark tones with reduced blue light */
-  --bg-body: 15 15 20;                 /* Deep charcoal base - easier on eyes than pure black */
-  --bg-body-alt: 20 20 27;             /* Slightly elevated sections */
-  --bg-elevated: 25 25 35;             /* Cards and elevated surfaces */
-  --bg-elevated-alt: 28 28 38;         /* Hover states */
-  --bg-card: 22 22 30;                 /* Card backgrounds */
-  --bg-card-alt: 28 28 38;             /* Alternative card backgrounds */
+  /* Backgrounds — Warm dark navy (Claude product chrome surfaces) */
+  --bg-body: 24 23 21;                 /* #181715 — surface-dark */
+  --bg-body-alt: 31 30 27;             /* #1f1e1b — surface-dark-soft */
+  --bg-elevated: 37 35 32;             /* #252320 — surface-dark-elevated */
+  --bg-elevated-alt: 45 43 39;         /* slightly lighter hover */
+  --bg-card: 31 30 27;                 /* #1f1e1b */
+  --bg-card-alt: 37 35 32;             /* #252320 */
   
-  /* Text - High contrast but not harsh, warm tones */
-  --text-primary: 240 240 245;         /* Primary text - off-white, not pure white */
-  --text-secondary: 200 200 210;       /* Secondary text - excellent readability */
-  --text-muted: 140 140 160;           /* Muted text - still readable */
-  --text-disabled: 100 100 120;        /* Disabled text */
+  /* Text — Cream-tinted whites for warmth */
+  --text-primary: 250 249 245;         /* #faf9f5 — on-dark (echoes canvas) */
+  --text-secondary: 200 197 190;       /* warm gray body */
+  --text-muted: 160 157 150;           /* #a09d96 — on-dark-soft */
+  --text-disabled: 108 106 100;        /* #6c6a64 — dim warm */
   
-  /* Borders - Subtle but visible */
-  --border: 45 45 60;                  /* Default borders */
-  --border-subtle: 35 35 50;           /* Subtle borders */
-  --border-strong: 60 60 80;           /* Strong borders */
+  /* Borders — Warm dark hairlines */
+  --border: 55 52 48;                  /* warm dark border */
+  --border-subtle: 45 43 39;           /* subtle warm */
+  --border-strong: 70 67 62;           /* strong warm */
   
-  /* Accent - Softer, less harsh blue for dark mode */
-  --accent: 99 179 237;                /* Softer blue, less strain */
-  --accent-hover: 129 199 247;         /* Lighter on hover */
-  --accent-foreground: 15 15 20;       /* Dark text on accent */
+  /* Accent — Coral stays consistent across modes */
+  --accent: 204 120 92;                /* #cc785c — same coral */
+  --accent-hover: 222 148 120;         /* lighter coral for dark hover */
+  --accent-foreground: 255 255 255;    /* white on coral */
+  --secondary-accent: 93 184 166;      /* #5db8a6 — teal secondary */
+  --accent-warm: 232 165 90;           /* #e8a55a — amber warm CTA */
   
   /* Gradients for dark mode */
-  --gradient-start: 25 25 35;
-  --gradient-end: 15 15 20;
+  --gradient-start: 37 35 32;
+  --gradient-end: 24 23 21;
   
-  /* Warning colors - adjusted for dark mode */
-  --warning: 251 191 36;               /* Amber for better visibility */
-  --warning-bg: 30 27 18;              /* Dark amber background */
-  --warning-border: 120 90 20;         /* Amber border */
+  /* Warning colors — warm amber */
+  --warning: 232 165 90;               /* #e8a55a — accent-amber */
+  --warning-bg: 40 35 25;              /* dark amber background */
+  --warning-border: 140 110 50;        /* amber border */
   
-  /* Success colors - adjusted for dark mode */
-  --success: 74 222 128;               /* Brighter green for visibility */
-  --success-hover: 34 197 94;          /* Slightly darker on hover */
+  /* Success colors */
+  --success: 93 184 114;               /* #5db872 — same success */
+  --success-hover: 75 160 95;          /* darker on hover */
   
-  /* Danger colors - adjusted for dark mode */
-  --danger: 248 113 113;               /* Softer red */
+  /* Danger colors */
+  --danger: 198 69 69;                 /* #c64545 — same error */
   
   /* Legacy mappings for shadcn components in dark mode */
-  --background: 15 15 20;
-  --foreground: 240 240 245;
-  --card: 22 22 30;
-  --card-foreground: 240 240 245;
-  --popover: 25 25 35;
-  --popover-foreground: 240 240 245;
-  --primary: 99 179 237;
-  --primary-foreground: 15 15 20;
-  --secondary: 28 28 38;
-  --secondary-foreground: 240 240 245;
-  --muted: 28 28 38;
-  --muted-foreground: 140 140 160;
-  --destructive: 248 113 113;
-  --border: 45 45 60;
-  --input: 45 45 60;
-  --ring: 99 179 237;
+  --background: 24 23 21;
+  --foreground: 250 249 245;
+  --card: 31 30 27;
+  --card-foreground: 250 249 245;
+  --popover: 37 35 32;
+  --popover-foreground: 250 249 245;
+  --primary: 204 120 92;
+  --primary-foreground: 255 255 255;
+  --secondary: 37 35 32;
+  --secondary-foreground: 250 249 245;
+  --muted: 37 35 32;
+  --muted-foreground: 160 157 150;
+  --destructive: 198 69 69;
+  --border: 55 52 48;
+  --input: 55 52 48;
+  --ring: 204 120 92;
 }
 
 @layer base {

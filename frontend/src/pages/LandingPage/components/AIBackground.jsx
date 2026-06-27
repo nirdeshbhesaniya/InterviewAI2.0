@@ -46,7 +46,7 @@ const AIBackground = () => {
             }
 
             draw(time) {
-                const particleColor = '129, 140, 248'; // Indigo-400 equivalent
+                const particleColor = '204, 120, 92'; // Coral — Claude primary
 
                 // Pulsing effect
                 const pulse = Math.sin(time * this.pulseSpeed + this.pulsePhase) * 0.3 + 0.7;
@@ -80,7 +80,7 @@ const AIBackground = () => {
 
         // Draw connections with gradient
         const drawConnections = () => {
-            const connectionColor = '129, 140, 248';
+            const connectionColor = '204, 120, 92';
 
             for (let i = 0; i < particles.length; i++) {
                 for (let j = i + 1; j < particles.length; j++) {
@@ -140,8 +140,8 @@ const AIBackground = () => {
                 style={{ opacity: 0.6 }}
             />
             {/* Ambient Gradients - Deep AI/Space Theme */}
-            <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-purple-600/10 rounded-full blur-[120px]" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-600/10 rounded-full blur-[120px]" />
+            <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-[#cc785c]/10 rounded-full blur-[120px]" />
+            <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-[#5db8a6]/10 rounded-full blur-[120px]" />
         </div>
     );
 };

@@ -188,7 +188,7 @@ const HeroSection = ({ onStart, onLogin }) => {
             initials: "FD",
             qnaCount: 15,
             updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-            gradient: "from-blue-500/20 via-cyan-500/10 to-[rgb(var(--bg-card))]"
+            gradient: "from-[#cc785c]/20 via-[#e8a55a]/10 to-[rgb(var(--bg-card))]"
         },
         {
             sessionId: 'mock-2',
@@ -198,7 +198,7 @@ const HeroSection = ({ onStart, onLogin }) => {
             initials: "BD",
             qnaCount: 24,
             updatedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-            gradient: "from-purple-500/20 via-pink-500/10 to-[rgb(var(--bg-card))]"
+            gradient: "from-[#5db8a6]/20 via-[#5db8a6]/10 to-[rgb(var(--bg-card))]"
         },
         {
             sessionId: 'mock-3',
@@ -208,7 +208,7 @@ const HeroSection = ({ onStart, onLogin }) => {
             initials: "FS",
             qnaCount: 12,
             updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-            gradient: "from-green-500/20 via-emerald-500/10 to-[rgb(var(--bg-card))]"
+            gradient: "from-[#5db872]/20 via-[#5db872]/10 to-[rgb(var(--bg-card))]"
         }
     ];
 
@@ -360,7 +360,7 @@ const HeroSection = ({ onStart, onLogin }) => {
                 >
                     Master Your Interview <br className="hidden sm:block" />
                     <span className="sm:hidden"> </span>
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgb(var(--accent))] to-purple-500">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgb(var(--accent))] to-[#e8a55a]">
                         With AI Confidence
                     </span>
                 </motion.h1>
@@ -508,8 +508,8 @@ const HeroSection = ({ onStart, onLogin }) => {
                                         {/* Mock Stats Row */}
                                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
                                             {[
-                                                { label: "Total Sessions", value: userSessions.length || "12", icon: BookOpen, color: "text-blue-400" },
-                                                { label: "Questions", value: stats.questionsSolved === "50K+" ? "145" : stats.questionsSolved, icon: Target, color: "text-green-400" },
+                                                { label: "Total Sessions", value: userSessions.length || "12", icon: BookOpen, color: "text-[#cc785c]" },
+                                                { label: "Questions", value: stats.questionsSolved === "50K+" ? "145" : stats.questionsSolved, icon: Target, color: "text-[#5db872]" },
                                                 {
                                                     label: "This Week",
                                                     value: user && userSessions.length > 0 ? userSessions.filter(s => {
@@ -519,7 +519,7 @@ const HeroSection = ({ onStart, onLogin }) => {
                                                         return cardDate >= weekAgo;
                                                     }).length : "4",
                                                     icon: TrendingUp,
-                                                    color: "text-purple-400"
+                                                    color: "text-[#5db8a6]"
                                                 },
                                                 {
                                                     label: "Prep Time",
@@ -530,7 +530,7 @@ const HeroSection = ({ onStart, onLogin }) => {
                                                         return `${(totalMinutes / 60).toFixed(1)}h`;
                                                     })() : "12h",
                                                     icon: Clock,
-                                                    color: "text-orange-400"
+                                                    color: "text-[#e8a55a]"
                                                 },
                                             ].map((s, i) => (
                                                 <div key={i} className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] p-2 sm:p-2.5 md:p-3 rounded-lg sm:rounded-xl flex items-center gap-2 sm:gap-3">
@@ -573,7 +573,7 @@ const HeroSection = ({ onStart, onLogin }) => {
 
                                                         <div className="flex flex-wrap gap-1 mb-3 sm:mb-4">
                                                             {(session.tag || "").split(',').slice(0, 3).map((t, i) => (
-                                                                <span key={i} className="px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] border border-blue-500/20 bg-blue-500/10 text-blue-300">{t.trim()}</span>
+                                                                <span key={i} className="px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] border border-[rgb(var(--accent))]/20 bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))]">{t.trim()}</span>
                                                             ))}
                                                         </div>
 

@@ -119,43 +119,43 @@ const getEmailTemplate = (content, { title = 'Interview AI Notification', prehea
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <title>${title}</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important; }
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; }
   </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #F8FAFC; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased;">
+<body style="margin: 0; padding: 0; background-color: #faf9f5; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased;">
   
   <!-- Email Container -->
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F8FAFC; padding: 40px 10px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #faf9f5; padding: 40px 10px;">
     <tr>
       <td align="center">
         <!-- Inner Wrapper -->
-        <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05); border: 1px solid #E2E8F0;">
+        <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(20, 20, 19, 0.04); border: 1px solid #e6dfd8;">
           
-          <!-- Modern Gradient Header -->
+          <!-- Modern Warm Gradient Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); padding: 40px 40px 30px 40px; text-align: center;">
-              <h1 style="color: #FFFFFF; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">
+            <td style="background: linear-gradient(135deg, #cc785c 0%, #a9583e 100%); padding: 40px 40px 30px 40px; text-align: center;">
+              <h1 style="color: #FFFFFF; margin: 0; font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif; font-size: 32px; font-weight: 500; letter-spacing: -0.5px;">
                 Interview AI
               </h1>
-              <div style="height: 4px; width: 40px; background-color: rgba(255, 255, 255, 0.3); margin: 15px auto 0; border-radius: 2px;"></div>
+              <div style="height: 2px; width: 40px; background-color: rgba(255, 255, 255, 0.3); margin: 15px auto 0; border-radius: 1px;"></div>
             </td>
           </tr>
           
           <!-- Content Area -->
           <tr>
-            <td style="padding: 48px; color: #1F2937; font-size: 16px; line-height: 1.6;">
+            <td style="padding: 44px; color: #3d3d3a; font-size: 16px; line-height: 1.6;">
               ${content}
             </td>
           </tr>
           
           <!-- Footer -->
           <tr>
-            <td style="padding: 32px 40px; background-color: #F8FAFC; text-align: center; border-top: 1px solid #E2E8F0;">
-              <p style="color: #64748B; margin: 0 0 8px 0; font-size: 14px;">
+            <td style="padding: 32px 40px; background-color: #f5f0e8; text-align: center; border-top: 1px solid #e6dfd8;">
+              <p style="color: #6c6a64; margin: 0 0 8px 0; font-size: 14px;">
                 &copy; ${new Date().getFullYear()} Interview AI. All rights reserved.
               </p>
-              <p style="color: #94A3B8; margin: 0; font-size: 12px;">
+              <p style="color: #8e8b82; margin: 0; font-size: 12px;">
                 Elevating your professional interview journey.
               </p>
             </td>
@@ -172,23 +172,23 @@ const getEmailTemplate = (content, { title = 'Interview AI Notification', prehea
 const getOTPEmailContent = (otp) => {
   return `
     <div style="text-align: center;">
-      <h2 style="color: #0F172A; margin: 0 0 24px 0; font-size: 24px; font-weight: 700;">
+      <h2 style="color: #141413; font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif; margin: 0 0 24px 0; font-size: 26px; font-weight: 500; letter-spacing: -0.3px;">
         Reset Your Password
       </h2>
-      <p style="color: #475569; margin: 0 0 32px 0; font-size: 16px; line-height: 1.6;">
+      <p style="color: #3d3d3a; margin: 0 0 32px 0; font-size: 16px; line-height: 1.6;">
         We received a request to reset your password for your Interview AI account. Use the verification code below to choose a new password.
       </p>
       
-      <div style="background-color: #F8FAFC; border-radius: 12px; padding: 32px; text-align: center; border: 1px solid #E2E8F0;">
-        <div style="font-size: 42px; font-weight: 800; color: #3B82F6; letter-spacing: 6px; margin-bottom: 8px;">
+      <div style="background-color: #f5f0e8; border-radius: 8px; padding: 32px; text-align: center; border: 1px solid #e6dfd8;">
+        <div style="font-size: 42px; font-weight: 700; color: #cc785c; letter-spacing: 6px; margin-bottom: 8px;">
             ${otp}
         </div>
-        <p style="color: #64748B; margin: 0; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+        <p style="color: #6c6a64; margin: 0; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px;">
             Verification Code
         </p>
       </div>
 
-      <p style="color: #64748B; font-size: 15px; margin-top: 32px;">
+      <p style="color: #8e8b82; font-size: 14px; margin-top: 32px;">
         If you did not request a password reset, you can safely ignore this email.
       </p>
     </div>
@@ -198,23 +198,23 @@ const getOTPEmailContent = (otp) => {
 const getRegistrationOTPEmailContent = (otp, fullName) => {
   return `
     <div style="text-align: center;">
-      <h2 style="color: #0F172A; margin: 0 0 16px 0; font-size: 26px; font-weight: 700;">
+      <h2 style="color: #141413; font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif; margin: 0 0 16px 0; font-size: 28px; font-weight: 500; letter-spacing: -0.3px;">
         Welcome to Interview AI
       </h2>
-      <p style="color: #475569; margin: 0 0 32px 0; font-size: 17px;">
+      <p style="color: #3d3d3a; margin: 0 0 32px 0; font-size: 17px;">
         Hi ${fullName}, please use the verification code below to complete your registration.
       </p>
 
-      <div style="background-color: #F8FAFC; border-radius: 12px; padding: 32px; text-align: center; border: 1px solid #E2E8F0;">
-        <div style="font-size: 42px; font-weight: 800; color: #3B82F6; letter-spacing: 6px; margin-bottom: 8px;">
+      <div style="background-color: #f5f0e8; border-radius: 8px; padding: 32px; text-align: center; border: 1px solid #e6dfd8;">
+        <div style="font-size: 42px; font-weight: 700; color: #cc785c; letter-spacing: 6px; margin-bottom: 8px;">
             ${otp}
         </div>
-        <p style="color: #64748B; margin: 0; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+        <p style="color: #6c6a64; margin: 0; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px;">
             Verification Code
         </p>
       </div>
 
-      <p style="color: #64748B; font-size: 15px; margin-top: 32px;">
+      <p style="color: #8e8b82; font-size: 14px; margin-top: 32px;">
         Enter this code in the application to verify your account. The code is valid for 10 minutes.
       </p>
     </div>
@@ -224,17 +224,17 @@ const getRegistrationOTPEmailContent = (otp, fullName) => {
 const getNotificationEmailContent = (title, message, action, actionUrl) => {
   return `
     <div>
-      <h2 style="color: #0F172A; margin: 0 0 24px 0; font-size: 24px; font-weight: 700;">
+      <h2 style="color: #141413; font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif; margin: 0 0 24px 0; font-size: 26px; font-weight: 500; letter-spacing: -0.3px;">
         ${title}
       </h2>
       
-      <p style="color: #334155; font-size: 16px; line-height: 1.8; white-space: pre-line; margin-bottom: 32px;">
+      <p style="color: #3d3d3a; font-size: 16px; line-height: 1.8; white-space: pre-line; margin-bottom: 32px;">
         ${message}
       </p>
 
       ${action && actionUrl ? `
         <div style="text-align: center; margin: 40px 0;">
-            <a href="${actionUrl}" style="display: inline-block; background-color: #3B82F6; color: #FFFFFF; font-weight: 600; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 16px;">
+            <a href="${actionUrl}" style="display: inline-block; background-color: #cc785c; color: #FFFFFF; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 15px;">
                 ${action}
             </a>
         </div>
@@ -246,15 +246,15 @@ const getNotificationEmailContent = (title, message, action, actionUrl) => {
 const getWelcomeEmailContent = (fullName) => {
   return `
     <div>
-      <h2 style="color: #0F172A; margin: 0 0 20px 0; font-size: 26px; font-weight: 700;">
+      <h2 style="color: #141413; font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif; margin: 0 0 20px 0; font-size: 28px; font-weight: 500; letter-spacing: -0.3px;">
         Welcome aboard, ${fullName}
       </h2>
-      <p style="color: #334155; margin-bottom: 24px; font-size: 17px; line-height: 1.6;">
+      <p style="color: #3d3d3a; margin-bottom: 24px; font-size: 17px; line-height: 1.6;">
         We're thrilled to have you join <strong>Interview AI</strong>. You've taken a significant step towards mastering your technical interviews.
       </p>
       
       <div style="text-align: center; margin: 40px 0;">
-        <a href="${APP_URL}/dashboard" style="display: inline-block; background-color: #3B82F6; color: #FFFFFF; font-weight: 600; text-decoration: none; padding: 18px 48px; border-radius: 8px; font-size: 16px;">
+        <a href="${APP_URL}/dashboard" style="display: inline-block; background-color: #cc785c; color: #FFFFFF; font-weight: 600; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 15px;">
             Get Started Now
         </a>
       </div>
@@ -265,13 +265,13 @@ const getWelcomeEmailContent = (fullName) => {
 const getSupportEmailToTeam = (name, email, subject, category, priority, message) => {
   return `
     <div>
-      <h2 style="color: #0F172A; margin: 0 0 24px 0; font-size: 20px; font-weight: 700;">
+      <h2 style="color: #141413; font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif; margin: 0 0 24px 0; font-size: 22px; font-weight: 500;">
         New Support Request
       </h2>
-      <div style="background: #F8FAFC; padding: 24px; border-radius: 8px; border: 1px solid #E2E8F0;">
-        <p style="color: #334155;"><strong>From:</strong> ${name} (${email})</p>
-        <p style="color: #334155;"><strong>Subject:</strong> ${subject}</p>
-        <p style="color: #334155;"><strong>Message:</strong> ${message}</p>
+      <div style="background: #faf9f5; padding: 24px; border-radius: 8px; border: 1px solid #e6dfd8;">
+        <p style="color: #3d3d3a; margin: 0 0 8px 0;"><strong>From:</strong> ${name} (${email})</p>
+        <p style="color: #3d3d3a; margin: 0 0 8px 0;"><strong>Subject:</strong> ${subject}</p>
+        <p style="color: #3d3d3a; margin: 0;"><strong>Message:</strong> ${message}</p>
       </div>
     </div>
   `;
@@ -280,28 +280,28 @@ const getSupportEmailToTeam = (name, email, subject, category, priority, message
 const getSupportAutoReply = (name, subject, category, priority, aiResponse, userMessage) => {
   return `
     <div>
-      <h2 style="color: #0F172A; margin: 0 0 16px 0; font-size: 24px; font-weight: 700;">
+      <h2 style="color: #141413; font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif; margin: 0 0 16px 0; font-size: 26px; font-weight: 500; letter-spacing: -0.3px;">
         Hello ${name}
       </h2>
-      <p style="color: #475569; margin: 0 0 32px 0; font-size: 16px; line-height: 1.6;">
+      <p style="color: #3d3d3a; margin: 0 0 32px 0; font-size: 16px; line-height: 1.6;">
         Thank you for contacting Interview AI support. We've received your message and our team is already looking into it. In the meantime, our AI assistant has prepared an initial response for you.
       </p>
       
       <!-- AI Response -->
-      <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 12px; margin-bottom: 32px; padding: 24px;">
-          <div style="color: #1E3A8A; font-size: 15px; line-height: 1.8; white-space: pre-line;">
+      <div style="background: #f5f0e8; border: 1px solid #efe9de; border-radius: 12px; margin-bottom: 32px; padding: 24px;">
+          <div style="color: #3d3d3a; font-size: 15px; line-height: 1.8; white-space: pre-line;">
             ${aiResponse}
           </div>
       </div>
       
       <!-- Request Summary -->
-      <div style="background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 24px;">
-         <h4 style="color: #374151; margin: 0 0 12px 0; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Your Request</h4>
+      <div style="background: #faf9f5; border: 1px solid #e6dfd8; border-radius: 8px; padding: 24px;">
+         <h4 style="color: #141413; margin: 0 0 12px 0; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px;">Your Request</h4>
          <p style="margin: 0 0 10px 0; font-size: 14px;">
-            <strong style="color: #6B7280;">Subject:</strong> <span style="color: #111827; font-weight: 600;">${subject}</span>
+            <strong style="color: #6c6a64;">Subject:</strong> <span style="color: #141413; font-weight: 600;">${subject}</span>
          </p>
          <p style="margin: 0; font-size: 14px;">
-            <strong style="color: #6B7280;">Category:</strong> <span style="color: #111827; font-weight: 600;">${category}</span>
+            <strong style="color: #6c6a64;">Category:</strong> <span style="color: #141413; font-weight: 600;">${category}</span>
          </p>
       </div>
     </div>

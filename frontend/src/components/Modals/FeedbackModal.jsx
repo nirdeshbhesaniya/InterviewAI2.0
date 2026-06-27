@@ -49,7 +49,7 @@ const FeedbackModal = ({ isOpen, onClose }) => {
                     className="bg-[rgb(var(--bg-card))] w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-[rgb(var(--border))]"
                 >
                     {/* Header */}
-                    <div className="relative p-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+                    <div className="relative p-6 bg-gradient-to-r from-[rgb(var(--accent))] to-[#e8a55a] text-white">
                         <button
                             onClick={onClose}
                             className="absolute top-4 right-4 p-1 hover:bg-white/20 rounded-full transition-colors"
@@ -115,7 +115,7 @@ const FeedbackModal = ({ isOpen, onClose }) => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-bold font-[Urbanist] flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20 transition-all transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="w-full py-3 bg-gradient-to-r from-[rgb(var(--accent))] to-[#e8a55a] hover:from-[rgb(var(--accent-hover))] hover:to-[#cc8a3a] text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-[rgb(var(--accent))]/20 transition-all transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             {loading ? (
                                 <>

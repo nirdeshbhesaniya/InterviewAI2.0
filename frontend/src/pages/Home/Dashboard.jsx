@@ -208,7 +208,7 @@ export const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-[rgb(var(--bg-body))]">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 font-[Urbanist]">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
         {/* Enhanced Header */}
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col space-y-4 xl:space-y-0 xl:flex-row xl:items-center xl:justify-between xl:gap-6">

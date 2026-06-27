@@ -26,65 +26,65 @@ const ExploreFeaturesPage = () => {
       id: 'dashboard',
       title: 'Dashboard',
       description: 'Your central hub for tracking progress, recent activity, and quick stats.',
-      icon: <Bot className="w-8 h-8 md:w-10 md:h-10 text-blue-500" />,
+      icon: <Bot className="w-8 h-8 md:w-10 md:h-10 text-[rgb(var(--accent))]" />,
       route: '/dashboard',
-      colorRef: 'bg-blue-500/10 border-blue-500/20 hover:border-blue-500/40'
+      colorRef: 'hover:border-[rgb(var(--accent))]/40 hover:shadow-[rgb(var(--accent))]/10'
     },
     {
       id: 'mock-interview',
       title: 'Mock Interview',
       description: 'AI-driven, real-time voice and text mock interviews tailored to your resume.',
-      icon: <Mic className="w-8 h-8 md:w-10 md:h-10 text-purple-500" />,
+      icon: <Mic className="w-8 h-8 md:w-10 md:h-10 text-[rgb(var(--secondary-accent))]" />,
       route: '/mock-interview',
-      colorRef: 'bg-purple-500/10 border-purple-500/20 hover:border-purple-500/40'
+      colorRef: 'hover:border-[rgb(var(--secondary-accent))]/40 hover:shadow-[rgb(var(--secondary-accent))]/10'
     },
     {
       id: 'ai-tests',
       title: 'AI MCQ Tests',
       description: 'Test your knowledge with adaptive AI-generated multiple choice questions.',
-      icon: <Shield className="w-8 h-8 md:w-10 md:h-10 text-emerald-500" />,
+      icon: <Shield className="w-8 h-8 md:w-10 md:h-10 text-[rgb(var(--accent-warm))]" />,
       route: '/mcq-test',
-      colorRef: 'bg-emerald-500/10 border-emerald-500/20 hover:border-emerald-500/40'
+      colorRef: 'hover:border-[rgb(var(--accent-warm))]/40 hover:shadow-[rgb(var(--accent-warm))]/10'
     },
     {
       id: 'practice-tests',
       title: 'Practice Tests',
       description: 'Take pre-defined practice tests curated for popular tech interview topics.',
-      icon: <FileQuestion className="w-8 h-8 md:w-10 md:h-10 text-amber-500" />,
+      icon: <FileQuestion className="w-8 h-8 md:w-10 md:h-10 text-[rgb(var(--accent))]" />,
       route: '/mcq-test/practice',
-      colorRef: 'bg-amber-500/10 border-amber-500/20 hover:border-amber-500/40'
+      colorRef: 'hover:border-[rgb(var(--accent))]/40 hover:shadow-[rgb(var(--accent))]/10'
     },
     {
       id: 'code-editor',
       title: 'Code Editor',
       description: 'Fully featured multi-language code playground to test out your algorithms.',
-      icon: <Code className="w-8 h-8 md:w-10 md:h-10 text-rose-500" />,
+      icon: <Code className="w-8 h-8 md:w-10 md:h-10 text-[rgb(var(--secondary-accent))]" />,
       route: '/codebase',
-      colorRef: 'bg-rose-500/10 border-rose-500/20 hover:border-rose-500/40'
+      colorRef: 'hover:border-[rgb(var(--secondary-accent))]/40 hover:shadow-[rgb(var(--secondary-accent))]/10'
     },
     {
       id: 'notes',
       title: 'Notes',
       description: 'Organize your study notes, code snippets, and interview prep highlights.',
-      icon: <BookOpen className="w-8 h-8 md:w-10 md:h-10 text-indigo-500" />,
+      icon: <BookOpen className="w-8 h-8 md:w-10 md:h-10 text-[rgb(var(--accent-warm))]" />,
       route: '/notes',
-      colorRef: 'bg-indigo-500/10 border-indigo-500/20 hover:border-indigo-500/40'
+      colorRef: 'hover:border-[rgb(var(--accent-warm))]/40 hover:shadow-[rgb(var(--accent-warm))]/10'
     },
     {
       id: 'resources',
       title: 'Resources',
       description: 'Explore a rich library of learning materials, cheat sheets, and guides.',
-      icon: <Library className="w-8 h-8 md:w-10 md:h-10 text-teal-500" />,
+      icon: <Library className="w-8 h-8 md:w-10 md:h-10 text-[rgb(var(--accent))]" />,
       route: '/resources',
-      colorRef: 'bg-teal-500/10 border-teal-500/20 hover:border-teal-500/40'
+      colorRef: 'hover:border-[rgb(var(--accent))]/40 hover:shadow-[rgb(var(--accent))]/10'
     },
     {
       id: 'roadmaps',
       title: 'Career Roadmaps',
       description: 'Follow structured IT career roadmaps from beginner to industry-ready with AI guidance and progress tracking.',
-      icon: <Map className="w-8 h-8 md:w-10 md:h-10 text-violet-500" />,
+      icon: <Map className="w-8 h-8 md:w-10 md:h-10 text-[rgb(var(--secondary-accent))]" />,
       route: '/roadmaps',
-      colorRef: 'bg-violet-500/10 border-violet-500/20 hover:border-violet-500/40'
+      colorRef: 'hover:border-[rgb(var(--secondary-accent))]/40 hover:shadow-[rgb(var(--secondary-accent))]/10'
     }
   ];
 
@@ -92,9 +92,9 @@ const ExploreFeaturesPage = () => {
     id: 'admin',
     title: 'Admin Console',
     description: 'System administration, user management, and advanced platform analytics.',
-    icon: <ShieldAlert className="w-8 h-8 md:w-10 md:h-10 text-red-500" />,
+    icon: <ShieldAlert className="w-8 h-8 md:w-10 md:h-10 text-[rgb(var(--danger))]" />,
     route: '/admin',
-    colorRef: 'bg-red-500/10 border-red-500/30 hover:border-red-500/50 hover:bg-red-500/20'
+    colorRef: 'hover:border-[rgb(var(--danger))]/40 hover:shadow-[rgb(var(--danger))]/10'
   };
 
   const containerVariants = {
@@ -115,7 +115,7 @@ const ExploreFeaturesPage = () => {
       {/* Background decoration elements */}
       <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-[rgb(var(--accent))]/5 to-transparent pointer-events-none" />
       <div className="absolute top-10 right-10 w-64 h-64 bg-[rgb(var(--accent))]/10 rounded-full blur-[100px] pointer-events-none hidden md:block" />
-      <div className="absolute bottom-10 left-10 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] pointer-events-none hidden md:block" />
+      <div className="absolute bottom-10 left-10 w-96 h-96 bg-[rgb(var(--secondary))]/10 rounded-full blur-[120px] pointer-events-none hidden md:block" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
@@ -128,7 +128,7 @@ const ExploreFeaturesPage = () => {
             <LayoutGrid className="w-8 h-8 sm:w-10 sm:h-10" />
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[rgb(var(--text-primary))] tracking-tight mb-6">
-            Explore <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgb(var(--accent))] to-purple-500 dark:to-purple-400">Hub</span>
+            Explore <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgb(var(--accent))] to-[#e8a55a]">Hub</span>
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-[rgb(var(--text-secondary))] leading-relaxed">
             Your centralized portal for accessing every tool, assessment, and resource designed to elevate your interview game.
@@ -144,7 +144,7 @@ const ExploreFeaturesPage = () => {
           {features.map((feature) => (
             <motion.div key={feature.id} variants={itemVariants}>
               <Card
-                className={`group cursor-pointer h-full border ${feature.colorRef} bg-[rgb(var(--bg-card))]/80 backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col`}
+                className={`group cursor-pointer h-full border border-[rgb(var(--border-subtle))] ${feature.colorRef} bg-[rgb(var(--bg-card))]/80 backdrop-blur-xl shadow-md transition-all duration-300 flex flex-col`}
                 onClick={() => navigate(feature.route)}
               >
                 <div className="p-6 md:p-8 flex-grow flex flex-col h-full rounded-2xl relative overflow-hidden">
@@ -152,7 +152,7 @@ const ExploreFeaturesPage = () => {
                     {feature.icon}
                   </div>
 
-                  <div className="mb-6 inline-block p-4 rounded-2xl bg-[rgb(var(--bg-body-alt))] shadow-sm group-hover:scale-110 transition-transform duration-300 ease-out z-10 w-fit">
+                  <div className="mb-6 inline-block p-4 rounded-2xl bg-[rgb(var(--bg-elevated-alt))] shadow-sm group-hover:scale-110 transition-transform duration-300 ease-out z-10 w-fit">
                     {feature.icon}
                   </div>
 
