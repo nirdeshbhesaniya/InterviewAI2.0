@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -27,6 +27,8 @@ const TestHistoryPage = () => {
     const [viewingDetails, setViewingDetails] = useState(false);
     const [deleteConfirmation, setDeleteConfirmation] = useState({ show: false, testId: null, testTopic: '' });
     const [currentPage, setCurrentPage] = useState(1);
+    const location = useLocation();
+    const [filterType, setFilterType] = useState(location.state?.filterType || 'all');
     const [currentBranch] = useState(localStorage.getItem('dashboard_branch') || 'computer');
     const ITEMS_PER_PAGE = 10;
 
@@ -229,10 +231,21 @@ const TestHistoryPage = () => {
     };
 
     // Pagination Logic
+    const filteredHistory = testHistory.filter(test => {
+        if (filterType === 'practice') return test.practiceTestId;
+        if (filterType === 'ai') return !test.practiceTestId;
+        return true;
+    });
+
     const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
     const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
-    const currentHistory = testHistory.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(testHistory.length / ITEMS_PER_PAGE);
+    const currentHistory = filteredHistory.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredHistory.length / ITEMS_PER_PAGE);
+
+    // Reset pagination when filter changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filterType]);
 
     const handlePageChange = (page) => {
         setCurrentPage(page);
@@ -276,10 +289,48 @@ const TestHistoryPage = () => {
                     </div>
                 )}
 
+                {/* Filter Controls */}
+                {!viewingDetails && !loadingHistory && testHistory.length > 0 && (
+                    <div className="mb-6 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        <button
+                            onClick={() => setFilterType('all')}
+                            className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 border ${
+                                filterType === 'all'
+                                    ? 'bg-[rgb(var(--accent))] text-white border-[rgb(var(--accent))] shadow-lg shadow-[rgb(var(--accent))]/30'
+                                    : 'bg-[rgb(var(--bg-elevated))]/60 backdrop-blur-sm text-[rgb(var(--text-secondary))] border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/40 hover:text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-elevated))]'
+                            }`}
+                        >
+                            All Tests
+                        </button>
+                        <button
+                            onClick={() => setFilterType('ai')}
+                            className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 border ${
+                                filterType === 'ai'
+                                    ? 'bg-[rgb(var(--accent))] text-white border-[rgb(var(--accent))] shadow-lg shadow-[rgb(var(--accent))]/30'
+                                    : 'bg-[rgb(var(--bg-elevated))]/60 backdrop-blur-sm text-[rgb(var(--text-secondary))] border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/40 hover:text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-elevated))]'
+                            }`}
+                        >
+                            <Brain className="w-4 h-4 inline-block mr-1.5" />
+                            AI Tests
+                        </button>
+                        <button
+                            onClick={() => setFilterType('practice')}
+                            className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 border ${
+                                filterType === 'practice'
+                                    ? 'bg-[rgb(var(--accent))] text-white border-[rgb(var(--accent))] shadow-lg shadow-[rgb(var(--accent))]/30'
+                                    : 'bg-[rgb(var(--bg-elevated))]/60 backdrop-blur-sm text-[rgb(var(--text-secondary))] border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/40 hover:text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-elevated))]'
+                            }`}
+                        >
+                            <BookOpen className="w-4 h-4 inline-block mr-1.5" />
+                            Practice Tests
+                        </button>
+                    </div>
+                )}
+
                 {/* Test History List */}
                 {!viewingDetails && !loadingHistory && (
                     <AnimatePresence mode="wait">
-                        {testHistory.length === 0 ? (
+                        {filteredHistory.length === 0 ? (
                             <EmptyState
                                 title="No Test History"
                                 description="You haven't taken any tests yet"

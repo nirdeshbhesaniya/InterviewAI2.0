@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mail, ArrowLeft, RefreshCw, Bot, Sparkles } from 'lucide-react';
+import { Mail, ArrowLeft, RefreshCw, Sparkles, CheckCircle2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
+import { Link } from 'react-router-dom';
 
 const VerifyOTP = ({ email, onBack, onVerified }) => {
     const [otp, setOtp] = useState(['', '', '', '']);
@@ -129,59 +130,51 @@ const VerifyOTP = ({ email, onBack, onVerified }) => {
     };
 
     return (
-        <div className="w-full max-w-[380px] sm:max-w-[420px] mx-auto px-3 sm:px-0">
-            {/* Header with Bot Icon */}
-            {/* <motion.div 
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center mb-8"
-            >
-                <div className="flex items-center justify-center gap-3 mb-4">
-                    <div className="relative">
-                        <Bot className="w-12 h-12 text-[rgb(var(--accent))] drop-shadow-lg" />
-                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-[rgb(var(--accent))] rounded-full animate-pulse"></div>
-                    </div>
-                    <h1 className="text-3xl font-bold text-[rgb(var(--text-primary))]">
-                        Interview<span className="bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 bg-clip-text text-transparent">AI</span>
-                    </h1>
-                </div>
-            </motion.div> */}
+        <div className="min-h-screen bg-[rgb(var(--bg-body))] relative flex items-center justify-center p-4 overflow-hidden">
+            {/* Background Orbs */}
+            <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-[rgb(var(--accent))]/20 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-purple-500/15 rounded-full blur-[150px] pointer-events-none hidden md:block" />
+
+            <Link to="/" className="absolute top-6 left-6 md:top-10 md:left-10 text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--accent))] flex items-center gap-2 transition-colors z-20 font-medium">
+                <ArrowLeft className="w-5 h-5" />
+                Back to Home
+            </Link>
 
             <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-[rgb(var(--bg-elevated))] shadow-lg rounded-xl p-5 sm:p-6 border border-[rgb(var(--border))]"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="w-full max-w-md bg-[rgb(var(--bg-card))]/80 backdrop-blur-xl border border-[rgb(var(--border-subtle))] rounded-3xl p-8 sm:p-10 shadow-2xl relative z-10"
             >
-
                 {/* Back Button */}
                 <button
                     onClick={onBack}
-                    className="flex items-center gap-1.5 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] transition mb-4"
+                    className="flex items-center gap-1.5 text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--accent))] transition mb-6 font-medium"
                 >
                     <ArrowLeft className="w-4 h-4" />
-                    <span className="text-xs">Back to Sign Up</span>
+                    <span>Back</span>
                 </button>
 
                 {/* Header */}
-                <div className="text-center mb-4">
-                    <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[rgb(var(--accent))] mb-3 shadow-lg">
-                        <Mail className="text-white w-6 h-6 sm:w-7 sm:h-7" />
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-[rgb(var(--accent))]/10 mb-4 shadow-inner border border-[rgb(var(--accent))]/20">
+                        <CheckCircle2 className="w-8 h-8 text-[rgb(var(--accent))]" />
                     </div>
-                    <h2 className="text-base sm:text-lg font-bold text-[rgb(var(--text-primary))] mb-1.5 flex items-center justify-center gap-1.5">
-                        Verify Your Email <Sparkles className="w-4 h-4 text-yellow-500" />
+                    <h2 className="text-3xl font-extrabold text-[rgb(var(--text-primary))] mb-2 flex items-center justify-center gap-2">
+                        Verify Email <Sparkles className="w-5 h-5 text-yellow-500" />
                     </h2>
-                    <p className="text-xs text-[rgb(var(--text-muted))]">
+                    <p className="text-sm text-[rgb(var(--text-secondary))] mb-2">
                         We've sent a 4-digit code to
                     </p>
-                    <p className="text-xs font-semibold text-[rgb(var(--accent))] mt-1 px-2 break-words">
+                    <p className="text-sm font-bold text-[rgb(var(--accent))] break-words">
                         {email}
                     </p>
                 </div>
 
                 {/* OTP Form */}
-                <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-6">
                     {/* OTP Input */}
-                    <div className="flex justify-center gap-2">
+                    <div className="flex justify-center gap-3">
                         {otp.map((digit, index) => (
                             <input
                                 key={index}
@@ -193,7 +186,7 @@ const VerifyOTP = ({ email, onBack, onVerified }) => {
                                 onChange={(e) => handleChange(index, e.target.value)}
                                 onKeyDown={(e) => handleKeyDown(index, e)}
                                 onPaste={handlePaste}
-                                className="w-11 h-11 sm:w-12 sm:h-12 text-center text-lg sm:text-xl font-bold bg-[rgb(var(--bg-body-alt))] border-2 border-[rgb(var(--border))] rounded-lg text-[rgb(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition"
+                                className="w-14 h-16 text-center text-2xl font-bold bg-[rgb(var(--bg-elevated))]/50 border-2 border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]/50 focus:border-[rgb(var(--accent))] transition-all shadow-sm"
                                 disabled={loading}
                             />
                         ))}
@@ -202,14 +195,14 @@ const VerifyOTP = ({ email, onBack, onVerified }) => {
                     {/* Timer */}
                     <div className="text-center">
                         {timer > 0 ? (
-                            <p className="text-xs text-[rgb(var(--text-muted))]">
+                            <p className="text-sm text-[rgb(var(--text-muted))]">
                                 Code expires in{' '}
                                 <span className="font-semibold text-[rgb(var(--accent))]">
                                     {formatTime(timer)}
                                 </span>
                             </p>
                         ) : (
-                            <p className="text-xs text-red-500 font-semibold">
+                            <p className="text-sm text-red-500 font-semibold">
                                 ⚠️ Code expired. Please request a new one.
                             </p>
                         )}
@@ -218,42 +211,45 @@ const VerifyOTP = ({ email, onBack, onVerified }) => {
                     {/* Submit Button */}
                     <motion.button
                         type="submit"
-                        whileTap={{ scale: 0.97 }}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.98 }}
                         disabled={loading || otp.join('').length !== 4}
-                        className={`w-full py-2.5 rounded-lg text-sm transition font-semibold tracking-wide shadow-md ${loading || otp.join('').length !== 4
-                            ? 'bg-[rgb(var(--text-muted))]/50 text-[rgb(var(--text-secondary))] cursor-not-allowed'
-                            : 'bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] hover:shadow-lg text-white'
+                        className={`w-full py-3.5 rounded-xl transition-all font-bold tracking-wide shadow-lg text-base flex justify-center items-center ${loading || otp.join('').length !== 4
+                            ? 'bg-[rgb(var(--text-muted))]/30 text-[rgb(var(--text-secondary))] cursor-not-allowed'
+                            : 'bg-gradient-to-r from-[rgb(var(--accent))] to-purple-500 hover:shadow-[0_0_20px_rgba(var(--accent),0.4)] text-white'
                             }`}
                     >
-                        {loading ? 'Verifying...' : 'Verify Email'}
+                        {loading ? (
+                           <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : 'Verify Email'}
                     </motion.button>
                 </form>
 
                 {/* Resend Code */}
-                <div className="mt-4 text-center">
-                    <p className="text-xs text-[rgb(var(--text-muted))] mb-1.5">
+                <div className="mt-6 text-center">
+                    <p className="text-sm text-[rgb(var(--text-secondary))] mb-2">
                         Didn't receive the code?
                     </p>
                     <button
                         onClick={handleResend}
                         disabled={resending || timer > 540} // Allow resend after 1 minute
-                        className={`inline-flex items-center gap-1.5 text-xs font-semibold transition ${resending || timer > 540
+                        className={`inline-flex items-center gap-1.5 text-sm font-bold transition ${resending || timer > 540
                             ? 'text-[rgb(var(--text-muted))] cursor-not-allowed'
                             : 'text-[rgb(var(--accent))] hover:text-[rgb(var(--accent-hover))]'
                             }`}
                     >
-                        <RefreshCw className={`w-3 h-3 ${resending ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`w-4 h-4 ${resending ? 'animate-spin' : ''}`} />
                         {resending ? 'Sending...' : 'Resend Code'}
                     </button>
                     {timer > 540 && (
-                        <p className="text-xs text-[rgb(var(--text-muted))] mt-1">
+                        <p className="text-xs text-[rgb(var(--text-muted))] mt-2">
                             Available in {formatTime(timer - 540)}
                         </p>
                     )}
                 </div>
 
                 {/* Help Text */}
-                <div className="mt-4 p-2.5 sm:p-3 bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-lg">
+                <div className="mt-8 p-4 bg-[rgb(var(--bg-elevated))]/30 border border-[rgb(var(--border-subtle))] rounded-xl">
                     <p className="text-xs text-[rgb(var(--text-muted))] text-center leading-relaxed">
                         💡 <strong>Tip:</strong> Check your spam folder if you don't see the email.
                         The code is valid for 10 minutes.

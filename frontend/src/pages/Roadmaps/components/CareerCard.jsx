@@ -19,10 +19,10 @@ const CareerCard = ({ roadmap, userId, index, completedTopicsCount = 0 }) => {
       transition={{ duration: 0.4, delay: index * 0.05 }}
       whileHover={{ y: -6, transition: { duration: 0.2 } }}
       onClick={() => navigate(`/roadmaps/${roadmap.id}`)}
-      className="group relative cursor-pointer rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))] overflow-hidden hover:shadow-2xl hover:shadow-black/20 transition-all duration-300"
+      className="group relative cursor-pointer rounded-2xl border border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-card))]/60 backdrop-blur-md overflow-hidden shadow-lg hover:shadow-2xl hover:border-[rgb(var(--accent))]/50 hover:-translate-y-1 transition-all duration-300"
     >
       {/* Gradient overlay */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${roadmap.cardGradient} opacity-60 group-hover:opacity-90 transition-opacity duration-300`} />
+      <div className={`absolute inset-0 bg-gradient-to-br ${roadmap.cardGradient} opacity-30 group-hover:opacity-50 transition-opacity duration-300`} />
 
       {/* Animated border on hover */}
       <div className={`absolute inset-0 rounded-2xl border-2 ${roadmap.borderColor} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
@@ -50,12 +50,12 @@ const CareerCard = ({ roadmap, userId, index, completedTopicsCount = 0 }) => {
         {/* Tags */}
         <div className="flex flex-wrap gap-1.5 mb-4">
           {roadmap.tags.slice(0, 3).map(tag => (
-            <span key={tag} className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-[rgb(var(--text-muted))] border border-white/10">
+            <span key={tag} className="text-[10px] px-2 py-0.5 rounded-full bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-secondary))] border-[rgb(var(--border-subtle))]">
               {tag}
             </span>
           ))}
           {roadmap.tags.length > 3 && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-[rgb(var(--text-muted))] border border-white/10">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-secondary))] border-[rgb(var(--border-subtle))]">
               +{roadmap.tags.length - 3}
             </span>
           )}

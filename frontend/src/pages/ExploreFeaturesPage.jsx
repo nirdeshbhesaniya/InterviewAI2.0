@@ -15,7 +15,6 @@ import {
   LayoutGrid,
   Map
 } from 'lucide-react';
-import Card from '../components/ui/SimpleCard';
 
 const ExploreFeaturesPage = () => {
   const { user } = useContext(UserContext);
@@ -111,11 +110,11 @@ const ExploreFeaturesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[rgb(var(--bg-body))] relative overflow-hidden py-12">
-      {/* Background decoration elements */}
-      <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-[rgb(var(--accent))]/5 to-transparent pointer-events-none" />
-      <div className="absolute top-10 right-10 w-64 h-64 bg-[rgb(var(--accent))]/10 rounded-full blur-[100px] pointer-events-none hidden md:block" />
-      <div className="absolute bottom-10 left-10 w-96 h-96 bg-[rgb(var(--secondary))]/10 rounded-full blur-[120px] pointer-events-none hidden md:block" />
+    <div className="min-h-screen bg-[rgb(var(--bg-body))] relative overflow-hidden pb-20 pt-12">
+      {/* Immersive Glowing Orbs (Glassmorphism aesthetics) */}
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[rgb(var(--accent))]/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[150px] pointer-events-none hidden md:block" />
+      <div className="absolute top-[40%] right-[10%] w-[300px] h-[300px] bg-[rgb(var(--secondary-accent))]/10 rounded-full blur-[100px] pointer-events-none hidden lg:block" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
@@ -124,13 +123,18 @@ const ExploreFeaturesPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="inline-flex items-center justify-center p-3 sm:p-4 rounded-2xl bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] mb-6 shadow-inner border border-[rgb(var(--accent))]/20">
-            <LayoutGrid className="w-8 h-8 sm:w-10 sm:h-10" />
-          </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[rgb(var(--text-primary))] tracking-tight mb-6">
-            Explore <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgb(var(--accent))] to-[#e8a55a]">Hub</span>
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[rgb(var(--bg-elevated))]/80 backdrop-blur-md border border-[rgb(var(--border-subtle))] text-sm font-bold text-[rgb(var(--accent))] uppercase tracking-wider mb-6 shadow-sm"
+          >
+            <LayoutGrid className="w-5 h-5" />
+            Platform Capabilities
+          </motion.div>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-[rgb(var(--text-primary))] tracking-tight mb-6">
+            Explore <span className="bg-clip-text text-transparent bg-gradient-to-r from-[rgb(var(--accent))] to-purple-500">Hub</span>
           </h1>
-          <p className="text-base sm:text-lg md:text-xl text-[rgb(var(--text-secondary))] leading-relaxed">
+          <p className="text-lg md:text-xl text-[rgb(var(--text-secondary))] leading-relaxed max-w-2xl mx-auto">
             Your centralized portal for accessing every tool, assessment, and resource designed to elevate your interview game.
           </p>
         </motion.div>
@@ -143,20 +147,24 @@ const ExploreFeaturesPage = () => {
         >
           {features.map((feature) => (
             <motion.div key={feature.id} variants={itemVariants}>
-              <Card
-                className={`group cursor-pointer h-full border border-[rgb(var(--border-subtle))] ${feature.colorRef} bg-[rgb(var(--bg-card))]/80 backdrop-blur-xl shadow-md transition-all duration-300 flex flex-col`}
+              <div
+                className="group cursor-pointer h-full border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]/40 bg-[rgb(var(--bg-card))]/60 backdrop-blur-md hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 flex flex-col rounded-3xl relative overflow-hidden"
                 onClick={() => navigate(feature.route)}
               >
-                <div className="p-6 md:p-8 flex-grow flex flex-col h-full rounded-2xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 group-hover:scale-150 transition-all duration-500 pointer-events-none">
+                {/* Interactive Animated Gradient Hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--accent))]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                
+                <div className="p-6 sm:p-8 flex-grow flex flex-col h-full relative z-10">
+                  {/* Subtle Background Icon */}
+                  <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] group-hover:scale-125 transition-all duration-500 pointer-events-none transform origin-top-right text-[rgb(var(--accent))]">
+                    {React.cloneElement(feature.icon, { className: 'w-32 h-32' })}
+                  </div>
+
+                  <div className="mb-6 inline-flex p-4 rounded-2xl bg-[rgb(var(--bg-elevated))] shadow-inner border border-[rgb(var(--border-subtle))] group-hover:scale-110 group-hover:border-[rgb(var(--accent))]/30 transition-all duration-300 ease-out z-10 w-fit">
                     {feature.icon}
                   </div>
 
-                  <div className="mb-6 inline-block p-4 rounded-2xl bg-[rgb(var(--bg-elevated-alt))] shadow-sm group-hover:scale-110 transition-transform duration-300 ease-out z-10 w-fit">
-                    {feature.icon}
-                  </div>
-
-                  <h3 className="text-xl md:text-2xl font-bold text-[rgb(var(--text-primary))] mb-3 z-10">
+                  <h3 className="text-xl sm:text-2xl font-bold text-[rgb(var(--text-primary))] group-hover:text-[rgb(var(--accent))] transition-colors mb-3 z-10">
                     {feature.title}
                   </h3>
 
@@ -165,47 +173,51 @@ const ExploreFeaturesPage = () => {
                   </p>
 
                   <div className="mt-auto flex items-center justify-between z-10 pt-4 border-t border-[rgb(var(--border-subtle))]">
-                    <span className="text-[rgb(var(--accent))] font-semibold text-sm group-hover:underline">Explore</span>
-                    <div className="w-8 h-8 rounded-full bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] flex items-center justify-center group-hover:bg-[rgb(var(--accent))] group-hover:text-white transition-all duration-300">
-                      <ArrowRight className="w-4 h-4" />
+                    <span className="text-[rgb(var(--accent))] font-bold text-sm tracking-wide">Explore</span>
+                    <div className="w-10 h-10 rounded-full bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))] flex items-center justify-center group-hover:bg-[rgb(var(--accent))] group-hover:text-white group-hover:border-[rgb(var(--accent))] transition-all duration-300 shadow-sm">
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
                 </div>
-              </Card>
+              </div>
             </motion.div>
           ))}
 
           {/* Admin Block conditional */}
           {(user?.role === 'admin' || user?.role === 'owner') && (
             <motion.div key={adminFeature.id} variants={itemVariants}>
-              <Card
-                className={`group cursor-pointer h-full border ${adminFeature.colorRef} bg-[rgb(var(--bg-card))]/80 backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col relative overflow-hidden`}
+              <div
+                className="group cursor-pointer h-full border border-[rgb(var(--border-subtle))] hover:border-red-500/40 bg-[rgb(var(--bg-card))]/60 backdrop-blur-md hover:shadow-[0_8px_30px_rgb(239,68,68,0.15)] transition-all duration-300 flex flex-col rounded-3xl relative overflow-hidden"
                 onClick={() => navigate(adminFeature.route)}
               >
-                {/* Pattern overlay for admin card */}
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0i MiIgY3k9IjIiIHI9IjEiIGZpbGw9IiNGRjAwMDAiIGZpbGwtb3BhY2l0eT0iMC4xIi8+PC9zdmc+')] opacity-50 z-0"></div>
+                {/* Admin Animated Gradient Hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-                <div className="p-6 md:p-8 flex-grow flex flex-col h-full rounded-2xl relative z-10">
-                  <div className="mb-6 inline-block p-4 rounded-2xl bg-red-500/10 shadow-sm group-hover:scale-110 transition-transform duration-300 ease-out w-fit">
+                <div className="p-6 sm:p-8 flex-grow flex flex-col h-full relative z-10">
+                  <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] group-hover:scale-125 transition-all duration-500 pointer-events-none transform origin-top-right text-red-500">
+                    {React.cloneElement(adminFeature.icon, { className: 'w-32 h-32' })}
+                  </div>
+
+                  <div className="mb-6 inline-flex p-4 rounded-2xl bg-[rgb(var(--bg-elevated))] shadow-inner border border-[rgb(var(--border-subtle))] group-hover:scale-110 group-hover:border-red-500/30 transition-all duration-300 ease-out z-10 w-fit">
                     {adminFeature.icon}
                   </div>
 
-                  <h3 className="text-xl md:text-2xl font-bold text-red-500 mb-3 drop-shadow-sm">
+                  <h3 className="text-xl sm:text-2xl font-bold text-[rgb(var(--text-primary))] group-hover:text-red-500 transition-colors mb-3 z-10 drop-shadow-sm">
                     {adminFeature.title}
                   </h3>
 
-                  <p className="text-[rgb(var(--text-secondary))] text-sm leading-relaxed mb-8 flex-grow">
+                  <p className="text-[rgb(var(--text-secondary))] text-sm leading-relaxed mb-8 flex-grow z-10">
                     {adminFeature.description}
                   </p>
 
-                  <div className="mt-auto flex items-center justify-between pt-4 border-t border-red-500/20">
-                    <span className="text-red-500 font-semibold text-sm group-hover:underline">Access Console</span>
-                    <div className="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition-colors duration-300">
-                      <ArrowRight className="w-4 h-4" />
+                  <div className="mt-auto flex items-center justify-between z-10 pt-4 border-t border-[rgb(var(--border-subtle))] group-hover:border-red-500/20">
+                    <span className="text-red-500 font-bold text-sm tracking-wide">Access Console</span>
+                    <div className="w-10 h-10 rounded-full bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))] flex items-center justify-center group-hover:bg-red-500 group-hover:text-white group-hover:border-red-500 transition-all duration-300 shadow-sm">
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
                 </div>
-              </Card>
+              </div>
             </motion.div>
           )}
         </motion.div>

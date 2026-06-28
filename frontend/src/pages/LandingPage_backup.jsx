@@ -18,7 +18,6 @@ import {
 
 import Header from '../pages/InterviewPrep/components/Header';
 import Footer from '../pages/InterviewPrep/components/Footer';
-import AuthModal from '../pages/Auth/AuthModel';
 import SignUp from '../pages/Auth/SignUp';
 import Login from '../pages/Auth/Login';
 import ForgotPassword from '../pages/Auth/ForgotPassword';
@@ -75,7 +74,6 @@ const LandingPage = () => {
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loading, setLoading] = useState(true);
   const { user } = useContext(UserContext);
-  const { setIsAuthModalOpen } = useContext(ChatbotContext);
   const navigate = useNavigate();
 
   const [stats, setStats] = useState({ totalUsers: '10K+' });
@@ -121,14 +119,12 @@ const LandingPage = () => {
     fetchFeedbacks();
   }, []);
 
-  const openModal = () => {
-    setShowModal(true);
-    setIsAuthModalOpen(true);
+  const openModal = (type = 'login') => {
+    navigate(type === 'login' ? '/login' : '/signup');
   };
 
   const closeModal = () => {
-    setShowModal(false);
-    setIsAuthModalOpen(false);
+    // No-op
   };
   const toggleAuth = () => {
     setIsLogin((prev) => !prev);
@@ -137,6 +133,15 @@ const LandingPage = () => {
 
   const showForgotPassword = () => {
     setIsForgotPassword(true);
+  };
+
+  const handleRateExperience = () => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      setShowFeedbackModal(true);
+    } else {
+      navigate('/login');
+    }
   };
 
   const navigateToAuth = (type) => {
@@ -443,13 +448,7 @@ const LandingPage = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                if (user || localStorage.getItem('user')) {
-                  setShowFeedbackModal(true);
-                } else {
-                  openModal();
-                }
-              }}
+              onClick={handleRateExperience}
               className="mt-8 px-6 py-2.5 bg-gradient-to-r from-[rgb(var(--accent))] to-purple-600 text-white rounded-xl font-medium shadow-lg shadow-purple-500/20 flex items-center gap-2 mx-auto"
             >
               <Star className="w-4 h-4 fill-current" />
@@ -743,19 +742,9 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <AuthModal show={showModal} onClose={closeModal}>
-        {isForgotPassword ? (
-          <ForgotPassword onSwitch={toggleAuth} onNavigate={navigateToAuth} />
-        ) : isLogin ? (
-          <Login onSwitch={toggleAuth} onForgotPassword={showForgotPassword} />
-        ) : (
-          <SignUp onSwitch={toggleAuth} />
-        )}
-      </AuthModal>
-
-      <FeedbackModal
-        isOpen={showFeedbackModal}
-        onClose={() => setShowFeedbackModal(false)}
+      <FeedbackModal 
+        isOpen={showFeedbackModal} 
+        onClose={() => setShowFeedbackModal(false)} 
       />
 
       <Footer />

@@ -6,13 +6,14 @@ import MobileChatbotWindow from './MobileChatbotWindow';
 import { ChatbotContext } from '../../context/ChatBotContext';
 
 const Chatbot = () => {
-    const { isOpen, isAuthModalOpen } = useContext(ChatbotContext);
+    const { isOpen } = useContext(ChatbotContext);
     const location = useLocation();
 
-    // Hide chatbot on MCQ test pages OR when Auth Modal is open
+    // Hide chatbot on MCQ test pages OR auth pages
     const isMCQTest = location.pathname.startsWith('/mcq-test');
+    const isAuthPage = ['/login', '/signup', '/forgot-password'].includes(location.pathname);
 
-    if (isMCQTest || isAuthModalOpen) {
+    if (isMCQTest || isAuthPage) {
         return null;
     }
 

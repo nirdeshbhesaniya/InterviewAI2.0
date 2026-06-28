@@ -4,10 +4,6 @@ import { motion } from 'framer-motion';
 import { MessageSquare } from 'lucide-react';
 import Header from '../../pages/InterviewPrep/components/Header';
 import Footer from '../../pages/InterviewPrep/components/Footer';
-import AuthModal from '../../pages/Auth/AuthModel';
-import SignUp from '../../pages/Auth/SignUp';
-import Login from '../../pages/Auth/Login';
-import ForgotPassword from '../../pages/Auth/ForgotPassword';
 import FeedbackModal from '../../components/Modals/FeedbackModal';
 
 import HeroSection from './components/HeroSection';
@@ -18,52 +14,31 @@ import Testimonials from './components/Testimonials';
 import CTA from './components/CTA';
 
 const LandingPage = () => {
-    const [authModal, setAuthModal] = useState({ isOpen: false, view: 'login' }); // login, signup, forgot-password
     const [showFeedbackModal, setShowFeedbackModal] = useState(false);
     const navigate = useNavigate();
-
-    const openAuthModal = (view = 'login') => {
-        setAuthModal({ isOpen: true, view });
-    };
-
-    const closeAuthModal = () => {
-        setAuthModal(prev => ({ ...prev, isOpen: false }));
-    };
 
     const handleRateExperience = () => {
         const userStr = localStorage.getItem('user');
         if (userStr) {
             setShowFeedbackModal(true);
         } else {
-            openAuthModal('login');
-        }
-    };
-
-    const renderAuthContent = () => {
-        switch (authModal.view) {
-            case 'signup':
-                return <SignUp onSwitch={() => openAuthModal('login')} />;
-            case 'forgot-password':
-                return <ForgotPassword onSwitch={() => openAuthModal('login')} onNavigate={(type) => openAuthModal(type)} />;
-            case 'login':
-            default:
-                return <Login onSwitch={() => openAuthModal('signup')} onForgotPassword={() => openAuthModal('forgot-password')} />;
+            navigate('/login');
         }
     };
 
     return (
         <div className="min-h-screen bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] font-sans selection:bg-[rgb(var(--accent))]/30 overflow-x-hidden">
             {/* Header */}
-            <Header onLoginClick={() => openAuthModal('login')} />
+            <Header onLoginClick={() => navigate('/login')} />
 
             {/* Hero Section */}
-            <HeroSection onStart={() => openAuthModal('signup')} onLogin={() => openAuthModal('login')} />
+            <HeroSection onStart={() => navigate('/signup')} onLogin={() => navigate('/login')} />
 
             {/* Features */}
-            <Features onLogin={() => openAuthModal('login')} />
+            <Features onLogin={() => navigate('/login')} />
 
             {/* Old Way vs New Way Comparison */}
-            <OldVsNewWay onJoin={() => openAuthModal('signup')} />
+            <OldVsNewWay onJoin={() => navigate('/signup')} />
 
             {/* How It Works */}
             <HowItWorks />
@@ -72,7 +47,7 @@ const LandingPage = () => {
             <Testimonials onRate={handleRateExperience} />
 
             {/* Call to Action */}
-            <CTA onJoin={() => openAuthModal('signup')} />
+            <CTA onJoin={() => navigate('/signup')} />
 
             {/* Contact Support Section */}
             <section className="py-16 px-4 sm:px-6 lg:px-8 bg-[rgb(var(--bg-body-alt))]">
@@ -104,11 +79,6 @@ const LandingPage = () => {
 
             {/* Footer */}
             <Footer />
-
-            {/* Auth Modal */}
-            <AuthModal show={authModal.isOpen} onClose={closeAuthModal}>
-                {renderAuthContent()}
-            </AuthModal>
 
             {/* Feedback Modal */}
             <FeedbackModal

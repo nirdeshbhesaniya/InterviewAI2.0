@@ -11,7 +11,7 @@ import axiosInstance from '../../utils/axiosInstance';
 import toast from 'react-hot-toast';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
-import { Clock, CheckCircle, XCircle, Award, Mail, Brain, Timer, BookOpen, Settings, ChevronLeft, ChevronRight, Code, Copy, History, AlertTriangle } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, Award, Mail, Brain, Timer, BookOpen, Settings, ChevronLeft, ChevronRight, ChevronDown, Code, Copy, History, AlertTriangle } from 'lucide-react';
 import { ButtonLoader } from '../../components/ui/Loader';
 
 import BranchModal from '../../components/BranchModal';
@@ -1206,161 +1206,193 @@ const MCQTest = () => {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-2xl mx-auto px-4 sm:px-6"
+            className="max-w-3xl mx-auto px-4 sm:px-6 my-10"
         >
-            <Card className="p-4 sm:p-6 lg:p-8 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] shadow-xl">
-                <div className="text-center mb-6 sm:mb-8">
-                    <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-[rgb(var(--accent))] rounded-full mb-4 shadow-lg">
-                        <Brain className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                    </div>
-                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[rgb(var(--text-primary))] mb-2">
-                        MCQ Test Setup
-                    </h2>
-                    <p className="text-sm sm:text-base text-[rgb(var(--text-secondary))]">
-                        Configure your personalized test with AI-generated questions
-                    </p>
-                </div>
+            <div className="relative">
+                {/* Background Glow */}
+                <div className="absolute inset-0 bg-gradient-to-r from-[rgb(var(--accent))]/20 to-purple-500/20 rounded-3xl blur-2xl opacity-60 -z-10"></div>
+                
+                <Card className="p-6 sm:p-8 lg:p-10 bg-[rgb(var(--bg-card))]/80 backdrop-blur-xl border border-[rgb(var(--border-subtle))] shadow-2xl rounded-3xl relative overflow-hidden">
+                    {/* Corner Decoration */}
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-[rgb(var(--accent))]/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
 
-                <div className="space-y-4 sm:space-y-6">
-                    <div>
-                        <div className="flex justify-between items-center mb-2">
-                            <label className="block text-sm font-medium text-[rgb(var(--text-primary))]">
-                                Test Topic for {currentBranchInfo?.name || 'Computer Engineering'} *
-                            </label>
-                            <button
-                                type="button"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    console.log('Change branch clicked');
-                                    setShowBranchModal(true);
-                                }}
-                                className="text-xs text-[rgb(var(--accent))] hover:underline"
-                            >
-                                Change Branch
-                            </button>
+                    <div className="text-center mb-8 relative z-10">
+                        <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-[rgb(var(--accent))] to-[rgb(var(--accent-hover))] rounded-2xl mb-6 shadow-lg shadow-[rgb(var(--accent))]/30 transform rotate-3">
+                            <Brain className="w-8 h-8 sm:w-10 sm:h-10 text-white transform -rotate-3" />
                         </div>
-                        <div className="relative">
-                            <input
-                                type="text"
-                                value={formData.topic}
-                                onChange={(e) => setFormData(prev => ({ ...prev, topic: e.target.value }))}
-                                placeholder={getTopicPlaceholder(selectedBranch)}
-                                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-[rgb(var(--border-subtle))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] transition-all duration-200"
-                                list="topics"
-                            />
-                            <datalist id="topics">
-                                {availableTopics.map(topic => (
-                                    <option key={topic} value={topic} />
-                                ))}
-                            </datalist>
-                            <BookOpen className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[rgb(var(--text-muted))]" />
-                        </div>
+                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[rgb(var(--text-primary))] to-[rgb(var(--accent))] mb-3">
+                            Configure Your Test
+                        </h2>
+                        <p className="text-sm sm:text-base text-[rgb(var(--text-secondary))] max-w-md mx-auto">
+                            Personalize your AI-generated MCQ test by selecting a topic, experience level, and length.
+                        </p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-[rgb(var(--text-primary))] mb-2">
-                                Experience Level
-                            </label>
-                            <select
-                                value={formData.experience}
-                                onChange={(e) => setFormData(prev => ({ ...prev, experience: e.target.value }))}
-                                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-[rgb(var(--border-subtle))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))]"
-                            >
-                                <option value="beginner">Beginner (0-1 years)</option>
-                                <option value="intermediate">Intermediate (1-3 years)</option>
-                                <option value="advanced">Advanced (3-5 years)</option>
-                                <option value="expert">Expert (5+ years)</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-[rgb(var(--text-primary))] mb-2">
-                                Number of Questions
-                            </label>
-                            <select
-                                value={formData.numberOfQuestions}
-                                onChange={(e) => {
-                                    const numQuestions = parseInt(e.target.value);
-                                    setFormData(prev => ({ ...prev, numberOfQuestions: numQuestions }));
-                                    setTimeLeft(numQuestions * 120); // 2 minutes per question
-                                }}
-                                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-[rgb(var(--border-subtle))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))]"
-                            >
-                                <option value={10}>10 Questions (20 min)</option>
-                                <option value={15}>15 Questions (30 min)</option>
-                                <option value={20}>20 Questions (40 min)</option>
-                                <option value={25}>25 Questions (50 min)</option>
-                                <option value={30}>30 Questions (60 min)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-[rgb(var(--text-primary))] mb-2">
-                            Specialization (Optional)
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.specialization}
-                            onChange={(e) => setFormData(prev => ({ ...prev, specialization: e.target.value }))}
-                            placeholder={getSpecializationPlaceholder(selectedBranch)}
-                            className="w-full px-4 py-3 border border-[rgb(var(--border-subtle))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))]"
-                        />
-                        <div className="mt-3 flex flex-wrap gap-2">
-                            <span className="text-xs text-[rgb(var(--text-muted))] self-center mr-1">Suggestions:</span>
-                            {getSpecializationSuggestions(selectedBranch).map(topic => (
+                    <div className="space-y-6 relative z-10">
+                        {/* Topic Input */}
+                        <div className="group">
+                            <div className="flex justify-between items-center mb-2">
+                                <label className="block text-sm font-semibold text-[rgb(var(--text-primary))]">
+                                    Test Topic <span className="text-[rgb(var(--text-muted))] font-normal">for {currentBranchInfo?.name || 'Computer Engineering'}</span> *
+                                </label>
                                 <button
-                                    key={topic}
                                     type="button"
-                                    onClick={() => setFormData({ ...formData, specialization: formData.specialization ? `${formData.specialization}, ${topic}` : topic })}
-                                    className="text-xs px-2.5 py-1 rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-secondary))] hover:border-[rgb(var(--accent))] hover:text-[rgb(var(--accent))] transition-colors"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setShowBranchModal(true);
+                                    }}
+                                    className="text-xs font-medium text-[rgb(var(--accent))] hover:text-[rgb(var(--accent-hover))] hover:underline transition-all"
                                 >
-                                    + {topic}
+                                    Change Branch
                                 </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="bg-primary/10 rounded-lg p-4 border border-primary/30">
-                        <div className="flex items-start space-x-3">
-                            <Timer className="w-5 h-5 text-primary mt-0.5" />
-                            <div>
-                                <h4 className="font-medium text-[rgb(var(--text-primary))]">Test Rules</h4>
-                                <ul className="text-sm text-[rgb(var(--text-secondary))] mt-1 space-y-1 list-disc list-inside">
-                                    {rules.map((r, i) => (
-                                        <li key={i}>{r}</li>
+                            </div>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <BookOpen className="h-5 w-5 text-[rgb(var(--text-muted))] group-focus-within:text-[rgb(var(--accent))] transition-colors" />
+                                </div>
+                                <input
+                                    type="text"
+                                    value={formData.topic}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, topic: e.target.value }))}
+                                    placeholder={getTopicPlaceholder(selectedBranch)}
+                                    className="w-full pl-11 pr-4 py-3.5 text-sm sm:text-base border border-[rgb(var(--border-subtle))] rounded-xl bg-[rgb(var(--bg-elevated))]/50 text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]/50 focus:border-[rgb(var(--accent))] transition-all shadow-inner"
+                                    list="topics"
+                                />
+                                <datalist id="topics">
+                                    {availableTopics.map(topic => (
+                                        <option key={topic} value={topic} />
                                     ))}
-                                </ul>
+                                </datalist>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <Button
-                            onClick={handleStartTest}
-                            disabled={loading || !formData.topic.trim()}
-                            className="flex-1 bg-[rgb(var(--accent))] hover:shadow-lg hover:shadow-primary/50 text-white py-3 font-medium transition-all"
-                        >
-                            {loading ? (
-                                <ButtonLoader text="Generating Questions..." />
-                            ) : (
-                                'Start MCQ Test'
-                            )}
-                        </Button>
-                        <Button
-                            onClick={() => navigate('/mcq-test/history')}
-                            className="flex-1 sm:flex-none bg-bg-elevated hover:bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-primary))] border border-[rgb(var(--border-subtle))] px-6 py-3 font-medium transition-all flex items-center justify-center gap-2"
-                        >
-                            <History className="w-5 h-5" />
-                            View History
-                        </Button>
+                        {/* Experience and Questions */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+                            <div className="group">
+                                <label className="block text-sm font-semibold text-[rgb(var(--text-primary))] mb-2">
+                                    Experience Level
+                                </label>
+                                <div className="relative">
+                                    <select
+                                        value={formData.experience}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, experience: e.target.value }))}
+                                        className="w-full px-4 py-3.5 text-sm sm:text-base border border-[rgb(var(--border-subtle))] rounded-xl bg-[rgb(var(--bg-elevated))]/50 text-[rgb(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]/50 focus:border-[rgb(var(--accent))] transition-all appearance-none cursor-pointer shadow-inner"
+                                    >
+                                        <option value="beginner">Beginner (0-1 years)</option>
+                                        <option value="intermediate">Intermediate (1-3 years)</option>
+                                        <option value="advanced">Advanced (3-5 years)</option>
+                                        <option value="expert">Expert (5+ years)</option>
+                                    </select>
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-[rgb(var(--text-muted))] group-focus-within:text-[rgb(var(--accent))] transition-colors">
+                                        <ChevronDown className="h-4 w-4" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="group">
+                                <label className="block text-sm font-semibold text-[rgb(var(--text-primary))] mb-2">
+                                    Number of Questions
+                                </label>
+                                <div className="relative">
+                                    <select
+                                        value={formData.numberOfQuestions}
+                                        onChange={(e) => {
+                                            const numQuestions = parseInt(e.target.value);
+                                            setFormData(prev => ({ ...prev, numberOfQuestions: numQuestions }));
+                                            setTimeLeft(numQuestions * 120);
+                                        }}
+                                        className="w-full px-4 py-3.5 text-sm sm:text-base border border-[rgb(var(--border-subtle))] rounded-xl bg-[rgb(var(--bg-elevated))]/50 text-[rgb(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]/50 focus:border-[rgb(var(--accent))] transition-all appearance-none cursor-pointer shadow-inner"
+                                    >
+                                        <option value={10}>10 Questions (20 min)</option>
+                                        <option value={15}>15 Questions (30 min)</option>
+                                        <option value={20}>20 Questions (40 min)</option>
+                                        <option value={25}>25 Questions (50 min)</option>
+                                        <option value={30}>30 Questions (60 min)</option>
+                                    </select>
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-[rgb(var(--text-muted))] group-focus-within:text-[rgb(var(--accent))] transition-colors">
+                                        <ChevronDown className="h-4 w-4" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Specialization */}
+                        <div className="group">
+                            <label className="block text-sm font-semibold text-[rgb(var(--text-primary))] mb-2">
+                                Specialization <span className="text-[rgb(var(--text-muted))] font-normal">(Optional)</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.specialization}
+                                onChange={(e) => setFormData(prev => ({ ...prev, specialization: e.target.value }))}
+                                placeholder={getSpecializationPlaceholder(selectedBranch)}
+                                className="w-full px-4 py-3.5 text-sm sm:text-base border border-[rgb(var(--border-subtle))] rounded-xl bg-[rgb(var(--bg-elevated))]/50 text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]/50 focus:border-[rgb(var(--accent))] transition-all shadow-inner"
+                            />
+                            <div className="mt-4 flex flex-wrap gap-2 items-center">
+                                <span className="text-xs font-medium text-[rgb(var(--text-muted))] mr-1 uppercase tracking-wider">Suggestions:</span>
+                                {getSpecializationSuggestions(selectedBranch).map(topic => (
+                                    <button
+                                        key={topic}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, specialization: formData.specialization ? `${formData.specialization}, ${topic}` : topic })}
+                                        className="text-xs font-medium px-3 py-1.5 rounded-full border border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-card))] text-[rgb(var(--text-secondary))] hover:border-[rgb(var(--accent))] hover:text-[rgb(var(--accent))] hover:bg-[rgb(var(--accent))]/5 transition-all shadow-sm"
+                                    >
+                                        + {topic}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Test Rules */}
+                        <div className="mt-8 bg-gradient-to-br from-[rgb(var(--accent))]/5 to-transparent rounded-2xl p-5 border border-[rgb(var(--accent))]/20 shadow-sm relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-1.5 h-full bg-[rgb(var(--accent))]"></div>
+                            <div className="flex items-start space-x-4">
+                                <div className="p-2.5 bg-[rgb(var(--accent))]/10 rounded-xl shrink-0">
+                                    <Timer className="w-6 h-6 text-[rgb(var(--accent))]" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-[rgb(var(--text-primary))] mb-2">Important Guidelines</h4>
+                                    <ul className="text-sm text-[rgb(var(--text-secondary))] space-y-1.5 list-disc list-inside">
+                                        {rules.map((r, i) => (
+                                            <li key={i} className="pl-1 leading-relaxed">{r}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-4 pt-6 mt-8">
+                            <Button
+                                onClick={handleStartTest}
+                                disabled={loading || !formData.topic.trim()}
+                                className="flex-1 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white py-6 rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(var(--accent),0.3)] hover:shadow-[0_0_30px_rgba(var(--accent),0.5)] transform hover:-translate-y-0.5 disabled:hover:translate-y-0 disabled:shadow-none relative overflow-hidden group/btn"
+                            >
+                                {loading ? (
+                                    <ButtonLoader text="Generating Magic..." />
+                                ) : (
+                                    <span className="flex items-center justify-center gap-2 text-base">
+                                        Start Your Test <ChevronRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
+                                    </span>
+                                )}
+                                {/* Shimmer Effect */}
+                                {!loading && formData.topic.trim() && (
+                                    <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover/btn:animate-[shimmer_1.5s_infinite]"></div>
+                                )}
+                            </Button>
+                            <Button
+                                onClick={() => navigate('/mcq-test/history')}
+                                className="flex-1 sm:flex-none bg-[rgb(var(--bg-elevated))] hover:bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] border border-[rgb(var(--border-subtle))] px-8 py-6 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                            >
+                                <History className="w-5 h-5 text-[rgb(var(--text-muted))]" />
+                                View History
+                            </Button>
+                        </div>
                     </div>
-                </div>
-            </Card>
+                </Card>
+            </div>
         </motion.div>
     );
-
     const renderTest = () => (
         <div className="w-full h-screen overflow-hidden">
             {/* Mobile/Tablet View - Fixed Height Layout */}

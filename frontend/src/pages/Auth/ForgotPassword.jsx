@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Mail, ArrowLeft, Eye, EyeOff, Bot, Shield, RefreshCw } from 'lucide-react';
+import { Mail, ArrowLeft, Eye, EyeOff, Shield, RefreshCw } from 'lucide-react';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
+import { useNavigate, Link } from 'react-router-dom';
 
-const ForgotPassword = ({ onNavigate }) => {
+const ForgotPassword = () => {
   const [email, setEmail] = useState('');
-  // OTP state as array for split input (6 digits for password reset)
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [resetToken, setResetToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -16,11 +16,9 @@ const ForgotPassword = ({ onNavigate }) => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [step, setStep] = useState(1); // 1: Email, 2: OTP, 3: New Password
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  // Refs for OTP inputs
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null), useRef(null), useRef(null)];
-
-  // Timer logic for OTP step
   const [timer, setTimer] = useState(0);
 
   useEffect(() => {
@@ -54,15 +52,11 @@ const ForgotPassword = ({ onNavigate }) => {
     }
   };
 
-  // Handle OTP Input Changes
   const handleOtpChange = (index, value) => {
     if (value && !/^\d$/.test(value)) return;
-
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-
-    // Auto-focus next input
     if (value && index < 5) {
       inputRefs[index + 1].current?.focus();
     }
@@ -72,7 +66,6 @@ const ForgotPassword = ({ onNavigate }) => {
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
       inputRefs[index - 1].current?.focus();
     }
-    // Handle paste
     if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       navigator.clipboard.readText().then((text) => {
@@ -82,7 +75,6 @@ const ForgotPassword = ({ onNavigate }) => {
           if (i < 6) newOtp[i] = digit;
         });
         setOtp(newOtp);
-        // Focus last filled input
         const lastIndex = Math.min(digits.length, 5);
         inputRefs[lastIndex].current?.focus();
       });
@@ -114,7 +106,6 @@ const ForgotPassword = ({ onNavigate }) => {
       setStep(3);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Invalid OTP');
-      // Clear OTP on error
       setOtp(['', '', '', '', '', '']);
       inputRefs[0].current?.focus();
     } finally {
@@ -134,7 +125,7 @@ const ForgotPassword = ({ onNavigate }) => {
         newPassword,
       });
       toast.success(res.data.message);
-      onNavigate('login');
+      navigate('/login');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to reset password');
     } finally {
@@ -143,56 +134,78 @@ const ForgotPassword = ({ onNavigate }) => {
   };
 
   return (
-    <div className="w-full max-w-[380px] sm:max-w-[420px] mx-auto px-3 sm:px-0">
+    <div className="min-h-screen bg-[rgb(var(--bg-body))] relative flex items-center justify-center p-4 overflow-hidden">
+      {/* Background Orbs */}
+      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-[rgb(var(--accent))]/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-purple-500/15 rounded-full blur-[150px] pointer-events-none hidden md:block" />
+
+      <Link to="/" className="absolute top-6 left-6 md:top-10 md:left-10 text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--accent))] flex items-center gap-2 transition-colors z-20 font-medium">
+        <ArrowLeft className="w-5 h-5" />
+        Back to Home
+      </Link>
+
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-[rgb(var(--bg-elevated))] shadow-lg rounded-xl p-5 sm:p-6 border border-[rgb(var(--border))]"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md bg-[rgb(var(--bg-card))]/80 backdrop-blur-xl border border-[rgb(var(--border-subtle))] rounded-3xl p-8 sm:p-10 shadow-2xl relative z-10"
       >
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-[rgb(var(--accent))]/10 mb-4 shadow-inner border border-[rgb(var(--accent))]/20">
+            {step === 1 && <Mail className="w-8 h-8 text-[rgb(var(--accent))]" />}
+            {step === 2 && <Shield className="w-8 h-8 text-[rgb(var(--accent))]" />}
+            {step === 3 && <RefreshCw className="w-8 h-8 text-[rgb(var(--accent))]" />}
+          </div>
+          <h2 className="text-3xl font-extrabold text-[rgb(var(--text-primary))] mb-2">
+            {step === 1 && 'Reset Password'}
+            {step === 2 && 'Verify OTP'}
+            {step === 3 && 'New Password'}
+          </h2>
+          <p className="text-[rgb(var(--text-secondary))]">
+            {step === 1 && 'Enter your email to receive a reset code'}
+            {step === 2 && `We sent a 6-digit code to ${email}`}
+            {step === 3 && 'Create a strong new password'}
+          </p>
+        </div>
 
         {step === 1 && (
-          <form onSubmit={handleSendOTP} className="space-y-3.5 sm:space-y-4">
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-4 h-4" />
+          <form onSubmit={handleSendOTP} className="space-y-5">
+            <div className="relative group">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-5 h-5 group-focus-within:text-[rgb(var(--accent))] transition-colors" />
               <input
                 type="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg-body-alt))] py-2.5 pl-9 pr-4 text-sm text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
+                className="w-full pl-12 pr-4 py-3.5 bg-[rgb(var(--bg-elevated))]/50 border border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]/50 focus:border-[rgb(var(--accent))] transition-all shadow-sm"
                 required
               />
             </div>
             <motion.button
               type="submit"
               disabled={loading}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              className="w-full py-2.5 rounded-lg text-sm transition font-bold tracking-wide shadow-lg bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white disabled:opacity-60"
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              className={`w-full py-3.5 rounded-xl transition-all font-bold tracking-wide shadow-lg text-base flex justify-center items-center ${loading
+                ? 'bg-[rgb(var(--text-muted))]/50 text-[rgb(var(--text-secondary))] cursor-not-allowed'
+                : 'bg-gradient-to-r from-[rgb(var(--accent))] to-purple-500 hover:shadow-[0_0_20px_rgba(var(--accent),0.4)] text-white'
+                }`}
             >
-              {loading ? 'Sending OTP...' : 'Send OTP'}
+              {loading ? (
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : 'Send Reset Code'}
             </motion.button>
-            <p className="text-center text-xs text-[rgb(var(--text-secondary))]">
+            <p className="text-center text-sm text-[rgb(var(--text-secondary))] mt-4">
               Remember your password?{' '}
-              <button
-                type="button"
-                onClick={() => onNavigate('login')}
-                className="text-[rgb(var(--accent))] hover:text-[rgb(var(--accent-hover))] font-semibold transition-colors"
-              >
+              <Link to="/login" className="text-[rgb(var(--accent))] hover:text-[rgb(var(--accent-hover))] font-bold transition-colors">
                 Login here
-              </button>
+              </Link>
             </p>
           </form>
         )}
 
         {step === 2 && (
-          <form onSubmit={handleVerifyOTP} className="space-y-3.5 sm:space-y-4">
-
-            <div className="text-center mb-4">
-              <h3 className="text-base font-semibold text-[rgb(var(--text-primary))]">Enter Verification Code</h3>
-              <p className="text-xs text-[rgb(var(--text-muted))] mt-1">We sent a 6-digit code to {email}</p>
-            </div>
-
+          <form onSubmit={handleVerifyOTP} className="space-y-6">
             {/* Split OTP Inputs */}
             <div className="flex justify-center gap-2 sm:gap-3">
               {otp.map((digit, index) => (
@@ -206,7 +219,7 @@ const ForgotPassword = ({ onNavigate }) => {
                   onChange={(e) => handleOtpChange(index, e.target.value)}
                   onKeyDown={(e) => handleOtpKeyDown(index, e)}
                   onPaste={handlePaste}
-                  className="w-10 h-10 sm:w-12 sm:h-12 text-center text-lg sm:text-lg font-bold bg-[rgb(var(--bg-body-alt))] border-2 border-[rgb(var(--border))] rounded-lg text-[rgb(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition"
+                  className="w-12 h-14 text-center text-xl font-bold bg-[rgb(var(--bg-elevated))]/50 border-2 border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]/50 focus:border-[rgb(var(--accent))] transition-all shadow-sm"
                   disabled={loading}
                 />
               ))}
@@ -215,22 +228,27 @@ const ForgotPassword = ({ onNavigate }) => {
             {/* Timer */}
             <div className="text-center">
               {timer > 0 ? (
-                <p className="text-xs text-[rgb(var(--text-muted))]">
+                <p className="text-sm text-[rgb(var(--text-muted))]">
                   Code expires in <span className="font-semibold text-[rgb(var(--accent))]">{formatTime(timer)}</span>
                 </p>
               ) : (
-                <p className="text-xs text-red-500 font-semibold">⚠️ Code expired</p>
+                <p className="text-sm text-red-500 font-semibold">⚠️ Code expired</p>
               )}
             </div>
 
             <motion.button
               type="submit"
               disabled={loading || otp.join('').length !== 6}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              className={`w-full py-2.5 rounded-lg text-sm transition font-bold tracking-wide shadow-lg text-white disabled:opacity-60 ${loading || otp.join('').length !== 6 ? 'bg-[rgb(var(--text-muted))]/50 cursor-not-allowed' : 'bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))]'}`}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              className={`w-full py-3.5 rounded-xl transition-all font-bold tracking-wide shadow-lg text-base flex justify-center items-center ${loading || otp.join('').length !== 6
+                ? 'bg-[rgb(var(--text-muted))]/30 text-[rgb(var(--text-secondary))] cursor-not-allowed'
+                : 'bg-gradient-to-r from-[rgb(var(--accent))] to-purple-500 hover:shadow-[0_0_20px_rgba(var(--accent),0.4)] text-white'
+                }`}
             >
-              {loading ? 'Verifying...' : 'Verify OTP'}
+              {loading ? (
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : 'Verify Code'}
             </motion.button>
             <button
               type="button"
@@ -238,64 +256,69 @@ const ForgotPassword = ({ onNavigate }) => {
                 setStep(1);
                 setOtp(['', '', '', '', '', '']);
               }}
-              className="flex items-center justify-center gap-1 text-xs text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] transition-colors w-full"
+              className="flex items-center justify-center gap-1 text-sm text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] transition-colors w-full mt-4 font-medium"
             >
-              <ArrowLeft className="w-3 h-3" /> Back to Email
+              <ArrowLeft className="w-4 h-4" /> Back to Email
             </button>
           </form>
         )}
 
         {step === 3 && (
-          <form onSubmit={handleResetPassword} className="space-y-3.5 sm:space-y-4">
-            <div className="relative">
+          <form onSubmit={handleResetPassword} className="space-y-5">
+            <div className="relative group">
               <input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="New Password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg-body-alt))] py-2.5 px-4 pr-10 text-sm text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
+                className="w-full pl-4 pr-12 py-3.5 bg-[rgb(var(--bg-elevated))]/50 border border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]/50 focus:border-[rgb(var(--accent))] transition-all shadow-sm"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))]"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] transition-colors"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-            <div className="relative">
+            <div className="relative group">
               <input
                 type={showConfirm ? 'text' : 'password'}
                 placeholder="Confirm Password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg-body-alt))] py-2.5 px-4 pr-10 text-sm text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
+                className="w-full pl-4 pr-12 py-3.5 bg-[rgb(var(--bg-elevated))]/50 border border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]/50 focus:border-[rgb(var(--accent))] transition-all shadow-sm"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowConfirm((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))]"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] transition-colors"
               >
-                {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
             <motion.button
               type="submit"
               disabled={loading}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              className="w-full py-2.5 rounded-lg text-sm transition font-bold tracking-wide shadow-lg bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white disabled:opacity-60"
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              className={`w-full py-3.5 rounded-xl transition-all font-bold tracking-wide shadow-lg text-base flex justify-center items-center ${loading
+                ? 'bg-[rgb(var(--text-muted))]/50 text-[rgb(var(--text-secondary))] cursor-not-allowed'
+                : 'bg-gradient-to-r from-[rgb(var(--accent))] to-purple-500 hover:shadow-[0_0_20px_rgba(var(--accent),0.4)] text-white'
+                }`}
             >
-              {loading ? 'Resetting...' : 'Reset Password'}
+              {loading ? (
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : 'Reset Password'}
             </motion.button>
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="flex items-center justify-center gap-1 text-xs text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] transition-colors w-full"
+              className="flex items-center justify-center gap-1 text-sm text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] transition-colors w-full mt-4 font-medium"
             >
-              <ArrowLeft className="w-3 h-3" /> Back to OTP
+              <ArrowLeft className="w-4 h-4" /> Back to OTP
             </button>
           </form>
         )}

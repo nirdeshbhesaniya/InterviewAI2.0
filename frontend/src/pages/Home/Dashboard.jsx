@@ -207,202 +207,195 @@ export const Dashboard = () => {
   const branchCards = cards.filter(card => !selectedBranch || (card.branch || 'computer') === selectedBranch);
 
   return (
-    <div className="min-h-screen bg-[rgb(var(--bg-body))]">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
-        {/* Enhanced Header */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex flex-col space-y-4 xl:space-y-0 xl:flex-row xl:items-center xl:justify-between xl:gap-6">
-            {/* Title Section */}
-            <div className="space-y-2">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 flex-wrap">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[rgb(var(--accent))] rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
-                    <Bot className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
-                  </div>
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[rgb(var(--text-primary))] leading-tight flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span>{selectedBranch ? BRANCHES.find(b => b.id === selectedBranch)?.name : ''}</span>
-                    <span className="text-[rgb(var(--accent))]">Interview AI</span>
-                    <button
-                      onClick={() => setShowBranchModal(true)}
-                      className="ml-1 text-xs sm:text-sm px-2.5 py-1.5 bg-[rgb(var(--bg-card))]/80 hover:bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))] rounded-lg text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] hover:border-[rgb(var(--accent))]/30 transition-all flex items-center gap-1.5 shadow-sm"
-                    >
-                      <Filter className="w-3.5 h-3.5" /> Change Branch
-                    </button>
-                  </h1>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 mt-1 sm:mt-0">
-                  <Badge className="bg-green-500/10 hover:bg-green-500/20 text-green-500 border-green-500/20 text-xs sm:text-sm py-1">
-                    {branchCards.length} Sessions
-                  </Badge>
-                  <Badge className="bg-[rgb(var(--accent))]/10 hover:bg-[rgb(var(--accent))]/20 text-[rgb(var(--accent))] border-[rgb(var(--accent))]/20 text-xs sm:text-sm py-1 sm:hidden">
-                    {branchCards.reduce((acc, card) => acc + (card.qna?.length || 0), 0)} Q&A
-                  </Badge>
-                </div>
+    <div className="min-h-screen bg-[rgb(var(--bg-body))] pb-12">
+      {/* 1. Hero / Welcome Section */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[rgb(var(--bg-card))] to-[rgb(var(--bg-body))] border-b border-[rgb(var(--border-subtle))] py-10 sm:py-16">
+        {/* Background Decorative Elements */}
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-[rgb(var(--accent))]/5 blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-72 h-72 rounded-full bg-purple-500/5 blur-3xl"></div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="space-y-3 z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] text-xs font-medium text-[rgb(var(--text-secondary))] mb-2">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                System Online
               </div>
-              <p className="text-[rgb(var(--text-secondary))] text-sm sm:text-base">
-                Manage your AI-powered interview preparation sessions
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[rgb(var(--text-primary))] flex flex-wrap items-center gap-3">
+                Welcome back{user?.name ? `, ${user.name.split(' ')[0]}` : ''}!
+                <span className="text-3xl sm:text-4xl inline-block hover:animate-bounce cursor-default">👋</span>
+              </h1>
+              <p className="text-[rgb(var(--text-secondary))] text-base sm:text-lg max-w-2xl leading-relaxed">
+                Ready to ace your next interview? Manage your <span className="font-semibold text-[rgb(var(--text-primary))]">{selectedBranch ? BRANCHES.find(b => b.id === selectedBranch)?.name : 'AI'}</span> preparation sessions below and track your progress.
               </p>
             </div>
-
-            {/* Controls Section - Improved Mobile Layout */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto">
-              {/* Search Bar - Full width on mobile */}
-              <div className="relative flex-1 xl:min-w-[300px] xl:max-w-[400px]">
-                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-[rgb(var(--accent))]/15 flex items-center justify-center">
-                  <Search className="w-3.5 h-3.5 text-[rgb(var(--accent))]" />
-                </div>
-                <Input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search sessions..."
-                  className="pl-12 pr-4 py-2.5 w-full rounded-xl border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-card))]/50 backdrop-blur-sm focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-all text-sm sm:text-base text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))]"
-                />
-              </div>
-
-              {/* Action Controls - Better mobile layout */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between sm:justify-end gap-2 sm:flex-wrap">
-                {/* View Mode Toggle - Hidden on small screens */}
-                <div className="hidden sm:flex rounded-lg bg-[rgb(var(--bg-card))] p-1 shadow-sm border border-[rgb(var(--border-subtle))]">
-                  <button
-                    onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded-md transition-all ${viewMode === 'grid'
-                      ? 'bg-[rgb(var(--accent))] text-white shadow-sm'
-                      : 'text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-secondary))]'
-                      }`}
-                  >
-                    <Grid className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setViewMode('list')}
-                    className={`p-2 rounded-md transition-all ${viewMode === 'list'
-                      ? 'bg-[rgb(var(--accent))] text-white shadow-sm'
-                      : 'text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-secondary))]'
-                      }`}
-                  >
-                    <List className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Mobile: Two-row layout for buttons */}
-                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:flex-wrap sm:justify-end">
-                  {/* First row on mobile */}
-                  <div className="flex gap-2">
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => navigate('/mcq-test')}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-3 py-2.5 sm:px-4 sm:py-2.5 rounded-xl shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transition-all duration-200"
-                    >
-                      <Bot className="w-4 h-4" />
-                      <span className="text-sm sm:text-base font-medium">MCQ Test</span>
-                    </motion.button>
-
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => navigate('/resources')}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-3 py-2.5 sm:px-4 sm:py-2.5 rounded-xl shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-500/40 transition-all duration-200"
-                    >
-                      <Library className="w-4 h-4" />
-                      <span className="text-sm sm:text-base font-medium">Resources</span>
-                    </motion.button>
-                  </div>
-
-                  {/* Second row on mobile */}
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setModalOpen(true)}
-                    className="flex items-center justify-center gap-2 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white px-3 py-2.5 sm:px-4 sm:py-2.5 rounded-xl shadow-lg shadow-[rgb(var(--accent))]/30 hover:shadow-xl hover:shadow-[rgb(var(--accent))]/40 transition-all duration-200"
-                  >
-                    <PlusCircle className="w-4 h-4" />
-                    <span className="text-sm sm:text-base font-medium">New Session</span>
-                  </motion.button>
-                </div>
-              </div>
+            
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto z-10">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setShowBranchModal(true)}
+                className="flex-1 md:flex-none px-4 py-3 bg-[rgb(var(--bg-elevated))]/80 backdrop-blur-sm border border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] hover:border-[rgb(var(--accent))]/50 transition-all flex items-center justify-center gap-2 shadow-sm font-medium"
+              >
+                <Filter className="w-4 h-4 text-[rgb(var(--accent))]" /> 
+                <span className="hidden sm:inline">Change</span> Branch
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setModalOpen(true)}
+                className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white px-5 py-3 rounded-xl shadow-[0_0_20px_rgba(var(--accent),0.2)] hover:shadow-[0_0_30px_rgba(var(--accent),0.4)] transition-all font-medium"
+              >
+                <PlusCircle className="w-5 h-5" />
+                New Session
+              </motion.button>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Enhanced Stats Cards - Better Mobile Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-6">
-            {[
-              {
-                icon: BookOpen,
-                label: 'Total Sessions',
-                value: branchCards.length,
-                color: 'from-blue-500 to-cyan-500',
-                shortLabel: 'Sessions'
-              },
-              {
-                icon: Target,
-                label: 'Questions',
-                value: branchCards.reduce((acc, card) => acc + (card.qna?.length || 0), 0),
-                color: 'from-green-500 to-emerald-500',
-                shortLabel: 'Questions'
-              },
-              {
-                icon: TrendingUp,
-                label: 'This Week',
-                value: branchCards.filter(card => {
-                  const cardDate = new Date(card.createdAt);
-                  const weekAgo = new Date();
-                  weekAgo.setDate(weekAgo.getDate() - 7);
-                  return cardDate >= weekAgo;
-                }).length,
-                color: 'from-purple-500 to-pink-500',
-                shortLabel: 'Weekly'
-              },
-              {
-                icon: Clock,
-                label: 'Total Prep Time',
-                value: (() => {
-                  const totalQuestions = branchCards.reduce((acc, card) => acc + (card.qna?.length || 0), 0);
-                  // Estimate: 5 mins per question
-                  const totalMinutes = totalQuestions * 5;
-
-                  if (totalMinutes < 60) return `${totalMinutes}m`;
-                  return `${(totalMinutes / 60).toFixed(1)}h`;
-                })(),
-                color: 'from-orange-500 to-red-500',
-                shortLabel: 'Total Time'
-              }
-            ].map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-                className="bg-[rgb(var(--bg-card))]/80 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-[rgb(var(--border-subtle))] shadow-sm hover:shadow-lg hover:shadow-[rgb(var(--accent))]/10 transition-all"
-              >
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className={`w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r ${stat.color} rounded-lg flex items-center justify-center shadow-md flex-shrink-0`}>
-                    <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs sm:text-sm text-[rgb(var(--text-muted))] truncate">
-                      <span className="sm:hidden">{stat.shortLabel}</span>
-                      <span className="hidden sm:inline">{stat.label}</span>
-                    </p>
-                    <p className="text-lg sm:text-xl font-bold text-[rgb(var(--text-primary))]">{stat.value}</p>
-                  </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        
+        {/* 2. Stats Section with Glassmorphism */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            {
+              icon: BookOpen,
+              label: 'Total Sessions',
+              value: branchCards.length,
+              color: 'text-blue-500',
+              bgLight: 'bg-blue-500/10'
+            },
+            {
+              icon: Target,
+              label: 'Questions',
+              value: branchCards.reduce((acc, card) => acc + (card.qna?.length || 0), 0),
+              color: 'text-green-500',
+              bgLight: 'bg-green-500/10'
+            },
+            {
+              icon: TrendingUp,
+              label: 'This Week',
+              value: branchCards.filter(card => {
+                const cardDate = new Date(card.createdAt);
+                const weekAgo = new Date();
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                return cardDate >= weekAgo;
+              }).length,
+              color: 'text-purple-500',
+              bgLight: 'bg-purple-500/10'
+            },
+            {
+              icon: Clock,
+              label: 'Prep Time',
+              value: (() => {
+                const totalQuestions = branchCards.reduce((acc, card) => acc + (card.qna?.length || 0), 0);
+                const totalMinutes = totalQuestions * 5;
+                if (totalMinutes < 60) return `${totalMinutes}m`;
+                return `${(totalMinutes / 60).toFixed(1)}h`;
+              })(),
+              color: 'text-orange-500',
+              bgLight: 'bg-orange-500/10'
+            }
+          ].map((stat, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+              className="bg-[rgb(var(--bg-card))]/60 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-[rgb(var(--border-subtle))] shadow-sm hover:shadow-md transition-all group"
+            >
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center ${stat.bgLight} group-hover:scale-110 transition-transform duration-300`}>
+                  <stat.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${stat.color}`} />
                 </div>
-              </motion.div>
-            ))}
+                <div>
+                  <p className="text-xs sm:text-sm text-[rgb(var(--text-muted))] font-medium mb-1">
+                    {stat.label}
+                  </p>
+                  <p className="text-xl sm:text-2xl font-bold text-[rgb(var(--text-primary))]">
+                    {stat.value}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* 3. Sticky Toolbar Section */}
+        <div className="sticky top-0 z-20 bg-[rgb(var(--bg-body))]/80 backdrop-blur-xl py-4 border-b border-[rgb(var(--border-subtle))] flex flex-col sm:flex-row gap-4 justify-between items-center -mx-4 px-4 sm:mx-0 sm:px-0 sm:rounded-b-none">
+          <div className="relative w-full sm:max-w-md group">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-[rgb(var(--text-muted))] group-focus-within:text-[rgb(var(--accent))] transition-colors" />
+            </div>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search sessions, tags, or branches..."
+              className="block w-full pl-10 pr-3 py-2.5 border border-[rgb(var(--border-subtle))] rounded-xl bg-[rgb(var(--bg-card))]/50 text-[rgb(var(--text-primary))] placeholder-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]/50 focus:border-[rgb(var(--accent))] transition-all sm:text-sm"
+            />
+          </div>
+          
+          <div className="flex items-center justify-between w-full sm:w-auto gap-3">
+            <div className="flex items-center gap-2">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/mcq-test')}
+                className="flex items-center justify-center gap-2 bg-[rgb(var(--bg-card))] hover:bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))] px-3 py-2.5 rounded-xl transition-all duration-200 shadow-sm"
+                title="MCQ Test"
+              >
+                <Bot className="w-4 h-4 text-purple-500" />
+                <span className="text-sm font-medium hidden md:inline">MCQ Test</span>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/resources')}
+                className="flex items-center justify-center gap-2 bg-[rgb(var(--bg-card))] hover:bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))] px-3 py-2.5 rounded-xl transition-all duration-200 shadow-sm"
+                title="Resources"
+              >
+                <Library className="w-4 h-4 text-green-500" />
+                <span className="text-sm font-medium hidden md:inline">Resources</span>
+              </motion.button>
+            </div>
+
+            <div className="flex rounded-lg bg-[rgb(var(--bg-card))] p-1 border border-[rgb(var(--border-subtle))]">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-1.5 sm:p-2 rounded-md transition-all ${viewMode === 'grid'
+                  ? 'bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-primary))] shadow-sm border border-[rgb(var(--border-subtle))]'
+                  : 'text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-secondary))]'
+                  }`}
+              >
+                <Grid className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-1.5 sm:p-2 rounded-md transition-all ${viewMode === 'list'
+                  ? 'bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-primary))] shadow-sm border border-[rgb(var(--border-subtle))]'
+                  : 'text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-secondary))]'
+                  }`}
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Content Section - Enhanced Loading */}
+        {/* 4. Content Section */}
         {loading ? (
-          <div className="min-h-[50vh] sm:min-h-[60vh] flex items-center justify-center px-4">
-            <Loader size="xl" text="Setting up your smart dashboard..." />
+          <div className="min-h-[40vh] flex flex-col items-center justify-center space-y-4">
+            <Loader size="xl" />
+            <p className="text-[rgb(var(--text-muted))] animate-pulse">Loading your dashboard...</p>
           </div>
         ) : filteredCards.length === 0 ? (
           <EmptyState
             title={searchTerm ? 'No matching sessions found' : 'No interview sessions yet'}
             description={searchTerm 
-              ? 'Try adjusting your search terms or create a new session' 
-              : 'Start your interview preparation journey by creating your first session'}
+              ? 'Try adjusting your search terms or clearing the filters.' 
+              : 'Your journey starts here. Create your first AI interview session.'}
             icon={Bot}
             isSearch={!!searchTerm}
             actionButton={
@@ -411,407 +404,290 @@ export const Dashboard = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setModalOpen(true)}
-                  className="flex items-center gap-2 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-xl shadow-lg shadow-[rgb(var(--accent))]/30 hover:shadow-xl hover:shadow-[rgb(var(--accent))]/40 transition-all duration-200 text-sm sm:text-base"
+                  className="flex items-center gap-2 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white px-6 py-3 rounded-xl shadow-[0_0_20px_rgba(var(--accent),0.3)] transition-all font-medium mt-4"
                 >
-                  <PlusCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Create Your First Session
+                  <PlusCircle className="w-5 h-5" />
+                  Create First Session
                 </motion.button>
               )
             }
           />
         ) : (
-          <>
-            {/* Grid View - Enhanced Mobile Responsive */}
+          <div className="space-y-6">
             {viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                 {currentCards.map((card, index) => {
-                  const gradient = gradients[index % gradients.length];
-                  // Check if user can delete: creator, admin, or owner
                   const showDelete = card.creatorEmail === userEmail || userRole === 'admin' || userRole === 'owner';
+                  const isReady = card.qna && card.qna.length > 0;
 
                   return (
                     <motion.div
                       key={card.sessionId}
-                      className={`group relative h-full flex flex-col bg-gradient-to-br ${gradient} rounded-2xl p-4 sm:p-6 shadow-md hover:shadow-xl hover:shadow-[rgb(var(--accent))]/20 border border-[rgb(var(--border-subtle))] backdrop-blur-sm transition-all duration-300 cursor-pointer overflow-hidden`}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
-                      whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                      whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                      className="group flex flex-col bg-[rgb(var(--bg-card))] rounded-2xl border border-[rgb(var(--border-subtle))] shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-hidden cursor-pointer relative"
                       onClick={() => {
                         if (card.status === 'pending' || card.status === 'rejected') return;
-                        if (!card.qna || card.qna.length === 0) {
-                          // Option to trigger initialize here too?
-                          // Let's rely on the button for clarity
-                          return;
-                        }
-                        navigate(`/interview-prep/${card.sessionId}`);
+                        if (isReady) navigate(`/interview-prep/${card.sessionId}`);
                       }}
                     >
-                      {/* Background Pattern */}
-                      <div className="absolute inset-0 opacity-10">
-                        <div className="absolute top-0 right-0 w-20 h-20 bg-white rounded-full transform translate-x-6 -translate-y-6"></div>
-                        <div className="absolute bottom-0 left-0 w-16 h-16 bg-white rounded-full transform -translate-x-4 translate-y-4"></div>
-                      </div>
-
-                      {/* Header - Mobile Optimized */}
-                      <div className="relative z-10 flex justify-between items-start mb-3 sm:mb-4">
-                        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[rgb(var(--bg-card))]/90 backdrop-blur-sm text-[rgb(var(--text-primary))] font-bold rounded-xl flex items-center justify-center shadow-sm border border-[rgb(var(--border-subtle))] text-sm sm:text-base flex-shrink-0">
+                      {/* Top Color Accent Line */}
+                      <div className="h-1 w-full bg-gradient-to-r from-[rgb(var(--accent))] to-purple-500 opacity-70 group-hover:opacity-100 transition-opacity"></div>
+                      
+                      <div className="p-5 flex-1 flex flex-col">
+                        <div className="flex justify-between items-start mb-4 gap-2">
+                          <div className="w-12 h-12 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] rounded-xl flex items-center justify-center font-bold text-[rgb(var(--text-primary))] shadow-sm shrink-0">
                             {card.initials || "??"}
                           </div>
-                          <div className="text-xs sm:text-sm text-[rgb(var(--text-muted))] min-w-0">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              <span className="truncate">{new Date(card.updatedAt).toLocaleDateString('en-GB')}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        {showDelete && (
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteClick(card.sessionId);
-                            }}
-                            title={card.creatorEmail === userEmail ? "Delete your session" : "Delete session (Admin)"}
-                            className="p-1.5 sm:p-2 bg-[rgb(var(--bg-card))] rounded-lg shadow-sm border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))] hover:text-red-500 hover:border-red-500 transition-all"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                          </motion.button>
-                        )}
-                      </div>
-
-
-
-                      {/* Content - Mobile Optimized Typography */}
-                      <div className="relative z-10 flex flex-1 flex-col">
-                        <h3 className="text-base sm:text-lg font-bold text-[rgb(var(--text-primary))] mb-2 line-clamp-2 leading-tight">
-                          {card.title || "Untitled Session"}
-                        </h3>
-                        <p className="text-xs sm:text-sm text-[rgb(var(--text-secondary))] mb-3 sm:mb-4 line-clamp-3 leading-relaxed">
-                          {card.desc || "No description provided."}
-                        </p>
-
-                        {/* Tags */}
-                        <div className="flex flex-wrap gap-1.5 mb-4">
-                          {(card.tag || '')
-                            .split(',')
-                            .filter(tag => tag.trim())
-                            .slice(0, 3)
-                            .map((tag, i) => (
-                              <Badge
-                                key={i}
-                                className={`${badgeColors[i % badgeColors.length]} text-xs px-2 py-1 rounded-md border`}
-                              >
-                                {tag.trim()}
-                              </Badge>
-                            ))}
-                          {(card.tag || '').split(',').filter(tag => tag.trim()).length > 3 && (
-                            <Badge className="bg-[rgb(var(--bg-card))]/90 text-[rgb(var(--text-secondary))] border-[rgb(var(--border-subtle))] text-xs px-2 py-1 rounded-md border">
-                              +{(card.tag || '').split(',').filter(tag => tag.trim()).length - 3}
-                            </Badge>
+                          
+                          {showDelete && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClick(card.sessionId);
+                              }}
+                              className="p-2 text-[rgb(var(--text-muted))] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                              title="Delete Session"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           )}
                         </div>
 
-                        {/* Status Actions (Moved to Bottom) */}
-                        <div className="flex items-center gap-2 mb-3">
-                          {card.status === 'pending' ? (
-                            <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30 w-full justify-center py-1">Pending Approval</Badge>
-                          ) : card.status === 'rejected' ? (
-                            <Badge className="bg-red-500/20 text-red-500 border-red-500/30 w-full justify-center py-1">Rejected</Badge>
-                          ) : ((!card.qna || card.qna.length === 0) && (card.creatorEmail === userEmail || userRole === 'admin' || userRole === 'owner')) ? (
-                            <motion.button
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={(e) => handleInitialize(e, card.sessionId)}
-                              className="w-full py-1.5 bg-green-500 text-white rounded-lg shadow-sm hover:bg-green-600 transition-all text-xs font-bold animate-pulse flex items-center justify-center gap-2"
-                            >
-                              Create Now <div className="w-2 h-2 rounded-full bg-white animate-ping" />
-                            </motion.button>
-                          ) : (!card.qna || card.qna.length === 0) ? (
-                            <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 w-full justify-center py-1">Initializing...</Badge>
-                          ) : null}
+                        <h3 className="text-lg font-bold text-[rgb(var(--text-primary))] mb-2 line-clamp-2 leading-tight">
+                          {card.title || "Untitled Session"}
+                        </h3>
+                        
+                        <p className="text-sm text-[rgb(var(--text-secondary))] mb-4 line-clamp-2 flex-1">
+                          {card.desc || "No description provided."}
+                        </p>
+
+                        <div className="flex flex-wrap gap-1.5 mb-5">
+                          {(card.tag || '').split(',').filter(t => t.trim()).slice(0, 3).map((tag, i) => (
+                            <span key={i} className="px-2 py-1 text-xs font-medium bg-[rgb(var(--bg-body))] border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-secondary))] rounded-md">
+                              {tag.trim()}
+                            </span>
+                          ))}
+                          {(card.tag || '').split(',').filter(t => t.trim()).length > 3 && (
+                            <span className="px-2 py-1 text-xs font-medium bg-[rgb(var(--bg-body))] border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-muted))] rounded-md">
+                              +{(card.tag || '').split(',').filter(t => t.trim()).length - 3}
+                            </span>
+                          )}
                         </div>
 
-                        {/* Footer Stats */}
-                        <div className="mt-auto flex flex-col gap-2 text-xs text-[rgb(var(--text-secondary))] sm:flex-row sm:items-center sm:justify-between">
-                          <div
-                            onClick={(e) => handleCreatorClick(e, card)}
-                            className="min-w-0 flex items-center gap-2 hover:text-[rgb(var(--accent))] cursor-pointer transition-colors group"
-                          >
-                            {card.creatorDetails?.photo ? (
-                              <img
-                                src={card.creatorDetails.photo}
-                                alt={card.creatorDetails.fullName}
-                                className="w-5 h-5 rounded-full object-cover border-2 border-[rgb(var(--border-subtle))] group-hover:border-[rgb(var(--accent))] transition-colors"
-                              />
-                            ) : (
-                              <div className="w-5 h-5 rounded-full bg-[rgb(var(--accent))]/20 flex items-center justify-center">
-                                <Users className="w-3 h-3" />
+                        {/* Status/Action Area */}
+                        <div className="mt-auto">
+                          {card.status === 'pending' ? (
+                            <div className="w-full py-2 text-center rounded-lg bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 border border-yellow-500/20 text-sm font-medium">Pending Approval</div>
+                          ) : card.status === 'rejected' ? (
+                            <div className="w-full py-2 text-center rounded-lg bg-red-500/10 text-red-600 dark:text-red-500 border border-red-500/20 text-sm font-medium">Rejected</div>
+                          ) : (!isReady && showDelete) ? (
+                            <button
+                              onClick={(e) => handleInitialize(e, card.sessionId)}
+                              className="w-full py-2.5 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg shadow-sm transition-all text-sm font-bold flex items-center justify-center gap-2 group/btn"
+                            >
+                              Generate Content 
+                              <Bot className="w-4 h-4 group-hover/btn:animate-bounce" />
+                            </button>
+                          ) : (!isReady) ? (
+                            <div className="w-full py-2 text-center rounded-lg bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-muted))] border border-[rgb(var(--border-subtle))] text-sm font-medium flex items-center justify-center gap-2">
+                              <Loader size="sm" /> Initializing...
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between text-xs text-[rgb(var(--text-muted))] pt-3 border-t border-[rgb(var(--border-subtle))]">
+                              <div 
+                                onClick={(e) => handleCreatorClick(e, card)}
+                                className="flex items-center gap-1.5 hover:text-[rgb(var(--accent))] transition-colors"
+                              >
+                                {card.creatorDetails?.photo ? (
+                                  <img src={card.creatorDetails.photo} alt="Creator" className="w-5 h-5 rounded-full object-cover border border-[rgb(var(--border-subtle))]" />
+                                ) : (
+                                  <div className="w-5 h-5 rounded-full bg-[rgb(var(--bg-elevated))] flex items-center justify-center border border-[rgb(var(--border-subtle))]">
+                                    <Users className="w-3 h-3" />
+                                  </div>
+                                )}
+                                <span className="truncate max-w-[80px]">{card.creatorDetails?.fullName?.split(' ')[0] || 'Unknown'}</span>
                               </div>
-                            )}
-                            <span className="truncate max-w-full">{card.creatorDetails?.fullName || 'Unknown'}</span>
-                          </div>
-                          <div className="flex items-center gap-1 whitespace-nowrap">
-                            <BookOpen className="w-3 h-3" />
-                            <span>{card.qna?.length || 0} Q&A</span>
-                          </div>
+                              
+                              <div className="flex items-center gap-3">
+                                <span className="flex items-center gap-1"><BookOpen className="w-3 h-3" /> {card.qna?.length || 0}</span>
+                                <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(card.updatedAt).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}</span>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
-
-                      {/* Hover Effect */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-[rgb(var(--accent))]/10 to-[rgb(var(--accent))]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
                     </motion.div>
                   );
                 })}
               </div>
             ) : (
-              /* List View - Mobile Enhanced */
-              <div className="space-y-3 sm:space-y-4">
+              <div className="flex flex-col gap-4">
                 {currentCards.map((card, index) => {
-                  // Check if user can delete: creator, admin, or owner
                   const showDelete = card.creatorEmail === userEmail || userRole === 'admin' || userRole === 'owner';
+                  const isReady = card.qna && card.qna.length > 0;
 
                   return (
                     <motion.div
                       key={card.sessionId}
-                      className="group bg-[rgb(var(--bg-card))]/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-md hover:shadow-lg hover:shadow-[rgb(var(--accent))]/10 border border-[rgb(var(--border-subtle))] transition-all duration-300 cursor-pointer"
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      transition={{ duration: 0.2, delay: index * 0.05 }}
                       onClick={() => {
                         if (card.status === 'pending' || card.status === 'rejected') return;
-                        if (!card.qna || card.qna.length === 0) return;
-                        navigate(`/interview-prep/${card.sessionId}`);
+                        if (isReady) navigate(`/interview-prep/${card.sessionId}`);
                       }}
+                      className="flex flex-col sm:flex-row bg-[rgb(var(--bg-card))] rounded-xl border border-[rgb(var(--border-subtle))] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer items-start sm:items-center gap-4 group relative overflow-hidden"
                     >
-                      <div className="flex items-start sm:items-center justify-between">
-                        <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[rgb(var(--accent))] text-white font-bold rounded-xl flex items-center justify-center shadow-md shadow-[rgb(var(--accent))]/30 flex-shrink-0 text-sm sm:text-base">
-                            {card.initials || "??"}
-                          </div>
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[rgb(var(--accent))] to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      
+                      <div className="w-12 h-12 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] rounded-xl flex items-center justify-center font-bold text-[rgb(var(--text-primary))] shadow-sm shrink-0 ml-1">
+                        {card.initials || "??"}
+                      </div>
 
-                          <div className="flex-1 min-w-0">
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-1 sm:mb-1">
-                              <h3 className="text-base sm:text-lg font-semibold text-[rgb(var(--text-primary))] truncate">
-                                {card.title || "Untitled Session"}
-                              </h3>
-                              <div className="flex flex-wrap gap-1">
-                                {(card.tag || '')
-                                  .split(',')
-                                  .filter(tag => tag.trim())
-                                  .slice(0, 2)
-                                  .map((tag, i) => (
-                                    <Badge
-                                      key={i}
-                                      className={`${badgeColors[i % badgeColors.length]} text-xs px-2 py-0.5 rounded border`}
-                                    >
-                                      {tag.trim()}
-                                    </Badge>
-                                  ))}
-                              </div>
-                            </div>
-                            <p className="text-xs sm:text-sm text-[rgb(var(--text-secondary))] line-clamp-2 mb-2 sm:mb-2">
-                              {card.desc || "No description provided."}
-                            </p>
-                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-[rgb(var(--text-muted))]">
-                              <span
-                                onClick={(e) => handleCreatorClick(e, card)}
-                                className="flex items-center gap-1.5 hover:text-[rgb(var(--accent))] cursor-pointer transition-colors group/creator"
-                              >
-                                {card.creatorDetails?.photo ? (
-                                  <img
-                                    src={card.creatorDetails.photo}
-                                    alt={card.creatorDetails.fullName}
-                                    className="w-4 h-4 rounded-full object-cover border border-[rgb(var(--border-subtle))] group-hover/creator:border-[rgb(var(--accent))] transition-colors"
-                                  />
-                                ) : (
-                                  <Users className="w-3 h-3" />
-                                )}
-                                <span className="hidden sm:inline">{card.creatorDetails?.fullName || 'Unknown'}</span>
-                                <span className="sm:hidden">{(card.creatorDetails?.fullName || 'Unknown').split(' ')[0]}</span>
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <BookOpen className="w-3 h-3" />
-                                {card.qna?.length || 0} Q&A
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                <span className="hidden sm:inline">{new Date(card.updatedAt).toLocaleDateString('en-GB')}</span>
-                                <span className="sm:hidden">{new Date(card.updatedAt).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })}</span>
-                              </span>
-                            </div>
-                          </div>
+                      <div className="flex-1 min-w-0 flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-bold text-[rgb(var(--text-primary))] truncate">
+                            {card.title || "Untitled Session"}
+                          </h3>
+                          {card.status === 'pending' && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-500/10 text-yellow-600 border border-yellow-500/20 uppercase tracking-wider">Pending</span>}
                         </div>
-
-                        <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4 flex-shrink-0">
-                          {/* Status Badges List View */}
-                          {card.status === 'pending' ? (
-                            <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">Pending</Badge>
-                          ) : card.status === 'rejected' ? (
-                            <Badge className="bg-red-500/20 text-red-500 border-red-500/30">Rejected</Badge>
-                          ) : ((!card.qna || card.qna.length === 0) && (card.creatorEmail === userEmail || userRole === 'admin' || userRole === 'owner')) ? (
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              onClick={(e) => handleInitialize(e, card.sessionId)}
-                              className="px-3 py-1.5 bg-green-500 text-white rounded-lg shadow-sm hover:bg-green-600 transition-all text-xs font-bold"
-                            >
-                              Create Now
-                            </motion.button>
-                          ) : (!card.qna || card.qna.length === 0) ? (
-                            <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">Initializing...</Badge>
-                          ) : (
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/interview-prep/${card.sessionId}`);
-                              }}
-                              className="p-1.5 sm:p-2 text-[rgb(var(--text-primary))] hover:text-[rgb(var(--accent))] hover:bg-[rgb(var(--accent))]/10 rounded-lg transition-all"
-                            >
-                              <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            </motion.button>
-                          )}
-
-                          {showDelete && (
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteClick(card.sessionId);
-                              }}
-                              title={card.creatorEmail === userEmail ? "Delete your session" : "Delete session (Admin)"}
-                              className="p-1.5 sm:p-2 text-[rgb(var(--text-primary))] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            </motion.button>
-                          )}
+                        <p className="text-sm text-[rgb(var(--text-secondary))] truncate">
+                          {card.desc || "No description provided."}
+                        </p>
+                        <div className="flex items-center gap-4 mt-1 text-xs text-[rgb(var(--text-muted))]">
+                          <span className="flex items-center gap-1"><BookOpen className="w-3.5 h-3.5" /> {card.qna?.length || 0} Q&A</span>
+                          <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {new Date(card.updatedAt).toLocaleDateString()}</span>
                         </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-[rgb(var(--border-subtle))] sm:border-t-0">
+                        {(!isReady && showDelete && card.status !== 'pending' && card.status !== 'rejected') ? (
+                          <button
+                            onClick={(e) => handleInitialize(e, card.sessionId)}
+                            className="flex-1 sm:flex-none px-4 py-2 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg text-sm font-medium transition-colors"
+                          >
+                            Generate Content
+                          </button>
+                        ) : (isReady) && (
+                          <button
+                            className="hidden sm:flex p-2 text-[rgb(var(--text-muted))] group-hover:text-[rgb(var(--accent))] group-hover:bg-[rgb(var(--bg-elevated))] rounded-lg transition-colors"
+                          >
+                            <Eye className="w-5 h-5" />
+                          </button>
+                        )}
+                        
+                        {showDelete && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteClick(card.sessionId);
+                            }}
+                            className="p-2 text-[rgb(var(--text-muted))] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                            title="Delete Session"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
                       </div>
                     </motion.div>
                   );
                 })}
               </div>
             )}
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
-          </>
-        )
-        }
+            
+            <div className="mt-8 flex justify-center">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          </div>
+        )}
+      </div>
 
-        {/* Modals */}
-        {
-          modalOpen && (
-            <CreateCardModal
-              onClose={() => setModalOpen(false)}
-              onCreated={handleCreated}
-              defaultBranch={selectedBranch || 'computer'}
-            />
-          )
-        }
+      {/* Modals */}
+      {modalOpen && (
+        <CreateCardModal
+          onClose={() => setModalOpen(false)}
+          onCreated={handleCreated}
+          defaultBranch={selectedBranch || 'computer'}
+        />
+      )}
 
-        {
-          creatorModalOpen && (
-            <CreatorInfoModal
-              isOpen={creatorModalOpen}
-              onClose={() => setCreatorModalOpen(false)}
-              creator={selectedCreator}
-            />
-          )
-        }
+      {creatorModalOpen && (
+        <CreatorInfoModal
+          isOpen={creatorModalOpen}
+          onClose={() => setCreatorModalOpen(false)}
+          creator={selectedCreator}
+        />
+      )}
 
-        {/* Enhanced Delete Confirmation Modal */}
-        <AnimatePresence>
-          {confirmModal && (
+      {/* Confirmation Modal */}
+      <AnimatePresence>
+        {confirmModal && (
+          <motion.div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
             <motion.div
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              className="bg-[rgb(var(--bg-card))] rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-[rgb(var(--border-subtle))]"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", duration: 0.4 }}
             >
-              <motion.div
-                className="bg-[rgb(var(--bg-card))] rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-[rgb(var(--border-subtle))]"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
-                    <Trash2 className="w-6 h-6 text-red-500" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-bold text-[rgb(var(--text-primary))]">Delete Session</h2>
-                    <p className="text-sm text-[rgb(var(--text-muted))]">This action cannot be undone</p>
-                  </div>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center shrink-0">
+                  <Trash2 className="w-6 h-6 text-red-500" />
                 </div>
-
-                <p className="text-[rgb(var(--text-secondary))] mb-6 leading-relaxed">
-                  Are you sure you want to delete this interview session? All questions, answers, and progress will be permanently removed.
-                </p>
-
-                <div className="flex gap-3">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setConfirmModal(false)}
-                    className="flex-1 px-4 py-2.5 text-[rgb(var(--text-secondary))] bg-[rgb(var(--bg-body))] hover:bg-[rgb(var(--bg-body-alt))] rounded-xl transition-colors font-medium border border-[rgb(var(--border-subtle))]"
-                  >
-                    Cancel
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={confirmDelete}
-                    className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors font-medium shadow-lg"
-                  >
-                    Delete
-                  </motion.button>
+                <div>
+                  <h2 className="text-xl font-bold text-[rgb(var(--text-primary))]">Delete Session</h2>
+                  <p className="text-sm text-[rgb(var(--text-muted))]">This action cannot be undone</p>
                 </div>
-              </motion.div>
+              </div>
+              <p className="text-[rgb(var(--text-secondary))] mb-8 leading-relaxed">
+                Are you sure you want to delete this interview session? All questions, answers, and progress will be permanently removed.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmModal(false)}
+                  className="flex-1 px-4 py-2.5 text-[rgb(var(--text-secondary))] bg-[rgb(var(--bg-elevated))] hover:bg-[rgb(var(--bg-body))] rounded-xl transition-colors font-medium border border-[rgb(var(--border-subtle))]"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors font-medium shadow-md shadow-red-600/20"
+                >
+                  Delete
+                </button>
+              </div>
             </motion.div>
-          )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-          {/* Branch Selection Modal */}
-          {showBranchModal && (
-            <BranchModal
-              isOpen={showBranchModal}
-              onClose={() => setShowBranchModal(false)}
-              currentBranch={selectedBranch}
-              onSelectBranch={(branchId) => {
-                setSelectedBranch(branchId);
-                localStorage.setItem('dashboard_branch', branchId);
-                setShowBranchModal(false);
-              }}
-            />
-          )}
-        </AnimatePresence>
-
-        {/* Mobile Floating Action Button */}
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setModalOpen(true)}
-          className="fixed bottom-6 right-6 sm:hidden bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white p-4 rounded-full shadow-lg shadow-[rgb(var(--accent))]/30 hover:shadow-xl hover:shadow-[rgb(var(--accent))]/40 transition-all duration-200 z-40"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.5 }}
-        >
-          <PlusCircle className="w-6 h-6" />
-        </motion.button>
-      </div >
-    </div >
+      {/* Branch Modal */}
+      {showBranchModal && (
+        <BranchModal
+          isOpen={showBranchModal}
+          onClose={() => setShowBranchModal(false)}
+          currentBranch={selectedBranch}
+          onSelectBranch={(branchId) => {
+            setSelectedBranch(branchId);
+            localStorage.setItem('dashboard_branch', branchId);
+            setShowBranchModal(false);
+          }}
+        />
+      )}
+    </div>
   );
 };
 
 export default Dashboard;
-

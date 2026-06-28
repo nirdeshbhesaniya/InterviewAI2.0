@@ -972,10 +972,18 @@ router.delete('/test/:testId', async (req, res) => {
         }
 
         // Find and delete the test, ensuring user can only delete their own tests
-        const deletedTest = await MCQTest.findOneAndDelete({
+        let deletedTest = await MCQTest.findOneAndDelete({
             _id: testId,
             userEmail // Ensure user can only delete their own tests
         });
+
+        // If not found in MCQTest, try PracticeTestResult
+        if (!deletedTest) {
+            deletedTest = await PracticeTestResult.findOneAndDelete({
+                _id: testId,
+                userEmail
+            });
+        }
 
         if (!deletedTest) {
             return res.status(404).json({

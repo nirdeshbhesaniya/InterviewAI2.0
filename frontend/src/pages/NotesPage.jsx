@@ -19,6 +19,7 @@ import {
     User,
     Tag,
     Edit2,
+    Loader2,
     ChevronUp,
     ChevronDown
 } from 'lucide-react';
@@ -362,39 +363,36 @@ const NotesPage = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-[rgb(var(--bg-body))] pb-6">
-            {/* Header */}
-            <div className="bg-[rgb(var(--bg-card))] border-b border-[rgb(var(--border-subtle))] sticky top-0 z-40 shadow-md">
-                <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="min-h-screen bg-[rgb(var(--bg-body))] relative overflow-hidden flex flex-col">
+            {/* Background Decorative Glow */}
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[rgb(var(--accent))]/10 rounded-full blur-[120px] -z-10 pointer-events-none translate-x-1/3 -translate-y-1/3"></div>
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[100px] -z-10 pointer-events-none -translate-x-1/3 translate-y-1/3"></div>
+
+            {/* 1. Immersive Hero Banner & Header */}
+            <div className="bg-[rgb(var(--bg-card))]/80 backdrop-blur-xl border-b border-[rgb(var(--border-subtle))] sticky top-0 z-40 shadow-sm">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
                         <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-2xl sm:text-3xl font-extrabold text-[rgb(var(--text-primary))]">
-                                    Shared Notes
-                                </h1>
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-gradient-to-br from-[rgb(var(--accent))] to-purple-600 rounded-xl shadow-[0_0_15px_rgba(var(--accent),0.3)]">
+                                    <FileText className="h-6 w-6 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[rgb(var(--text-primary))] to-[rgb(var(--accent))]">
+                                        Community Notes
+                                    </h1>
+                                    <p className="text-[rgb(var(--text-secondary))] mt-1 text-sm sm:text-base font-medium">
+                                        Discover and share high-quality study materials
+                                    </p>
+                                </div>
                                 <button
                                     onClick={() => setHeaderExpanded(!headerExpanded)}
-                                    className="p-2 hover:bg-[rgb(var(--bg-body-alt))] rounded-lg transition-all duration-200 group"
-                                    aria-label="Toggle header"
+                                    className="ml-auto md:hidden p-2 bg-[rgb(var(--bg-elevated))] hover:bg-[rgb(var(--bg-body-alt))] rounded-xl transition-all border border-[rgb(var(--border-subtle))]"
+                                    aria-label="Toggle filters"
                                 >
-                                    {headerExpanded ? (
-                                        <ChevronUp className="w-5 h-5 text-[rgb(var(--text-secondary))] group-hover:text-[rgb(var(--accent))] transition-colors" />
-                                    ) : (
-                                        <ChevronDown className="w-5 h-5 text-[rgb(var(--text-secondary))] group-hover:text-[rgb(var(--accent))] transition-colors" />
-                                    )}
+                                    {headerExpanded ? <ChevronUp className="w-5 h-5 text-[rgb(var(--text-primary))]" /> : <ChevronDown className="w-5 h-5 text-[rgb(var(--text-primary))]" />}
                                 </button>
                             </div>
-                            {headerExpanded && (
-                                <motion.p
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="text-sm sm:text-base text-[rgb(var(--text-secondary))] mt-1"
-                                >
-                                    Share and discover study materials from the community
-                                </motion.p>
-                            )}
                         </div>
 
                         <button
@@ -405,221 +403,218 @@ const NotesPage = () => {
                                 });
                                 setShowAddModal(true);
                             }}
-                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-[rgb(var(--accent))]/30 hover:scale-105 transition-all duration-200"
+                            className="hidden md:flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[rgb(var(--accent))] to-purple-600 hover:from-[rgb(var(--accent-hover))] hover:to-purple-500 text-white rounded-xl font-bold shadow-[0_0_20px_rgba(var(--accent),0.3)] hover:shadow-[0_0_30px_rgba(var(--accent),0.5)] transition-all hover:-translate-y-0.5 group"
                         >
-                            <Plus size={20} />
-                            <span>Add Note</span>
+                            <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
+                            <span>Share Note</span>
                         </button>
                     </div>
 
-                    {/* Search and Filters */}
+                    {/* 2. Sleek Search & Filtering Engine */}
                     <AnimatePresence>
                         {headerExpanded && (
                             <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
+                                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                                animate={{ opacity: 1, height: 'auto', marginTop: 24 }}
+                                exit={{ opacity: 0, height: 0, marginTop: 0 }}
                                 transition={{ duration: 0.3 }}
+                                className="overflow-hidden"
                             >
-                                <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
-                                    <div className="flex-1 relative">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))]" size={20} />
+                                <div className="flex flex-col lg:flex-row gap-4">
+                                    {/* Search Bar */}
+                                    <div className="flex-1 relative group">
+                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                            <Search className="h-5 w-5 text-[rgb(var(--text-muted))] group-focus-within:text-[rgb(var(--accent))] transition-colors" />
+                                        </div>
                                         <input
                                             type="text"
-                                            placeholder="Search notes..."
+                                            placeholder="Search by title, tags, or description..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                                            className="w-full pl-10 pr-4 py-2 sm:py-2.5 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent text-sm sm:text-base"
+                                            className="w-full pl-11 pr-4 py-3.5 bg-[rgb(var(--bg-elevated))]/60 border border-[rgb(var(--border-subtle))] rounded-2xl text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))]/50 focus:border-[rgb(var(--accent))] outline-none transition-all shadow-inner"
                                         />
+                                        <button
+                                            onClick={handleSearch}
+                                            className="absolute inset-y-2 right-2 px-4 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white font-semibold rounded-xl transition-colors shadow-md"
+                                        >
+                                            Search
+                                        </button>
                                     </div>
 
-                                    <button
-                                        onClick={handleSearch}
-                                        className="w-full sm:w-auto px-6 py-2 sm:py-2.5 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-[rgb(var(--accent))]/30 transition-all text-sm sm:text-base"
-                                    >
-                                        Search
-                                    </button>
-                                </div>
-
-                                {/* Filter Tabs */}
-                                <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between">
-                                    <div className="flex flex-wrap gap-2">
-                                        {filterButtons.map(({ id, label, icon: Icon }) => (
-                                            <button
-                                                key={id}
-                                                onClick={() => setFilter(id)}
-                                                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition-all text-xs sm:text-sm ${filter === id
-                                                    ? 'bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white shadow-md shadow-[rgb(var(--accent))]/30'
-                                                    : 'bg-[rgb(var(--bg-card))] text-[rgb(var(--text-secondary))] border border-[rgb(var(--border-subtle))] hover:bg-[rgb(var(--bg-body-alt))] hover:text-[rgb(var(--text-primary))]'
-                                                    }`}
+                                    {/* Filter Controls */}
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        <div className="flex p-1.5 bg-[rgb(var(--bg-elevated))]/60 border border-[rgb(var(--border-subtle))] rounded-2xl shadow-inner">
+                                            {filterButtons.map(({ id, label, icon: Icon }) => (
+                                                <button
+                                                    key={id}
+                                                    onClick={() => setFilter(id)}
+                                                    className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all flex-1 sm:flex-none ${filter === id
+                                                        ? 'bg-[rgb(var(--accent))] text-white shadow-md shadow-[rgb(var(--accent))]/30'
+                                                        : 'text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-card))]'
+                                                        }`}
+                                                >
+                                                    <Icon size={16} />
+                                                    <span className="hidden sm:inline">{label}</span>
+                                                    <span className="sm:hidden">{label.split(' ')[0]}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                        
+                                        <div className="relative flex-1 sm:flex-none sm:min-w-[180px]">
+                                            <select
+                                                value={currentBranch}
+                                                onChange={(e) => setCurrentBranch(e.target.value)}
+                                                className="w-full pl-4 pr-10 py-3.5 bg-[rgb(var(--bg-elevated))]/60 border border-[rgb(var(--border-subtle))] rounded-2xl text-[rgb(var(--text-primary))] font-semibold focus:ring-2 focus:ring-[rgb(var(--accent))]/50 outline-none appearance-none cursor-pointer shadow-inner hover:border-[rgb(var(--accent))]/50 transition-colors"
                                             >
-                                                <Icon size={16} className="sm:w-[18px] sm:h-[18px]" />
-                                                <span>{label}</span>
-                                            </button>
-                                        ))}
+                                                {BRANCHES.map(branch => (
+                                                    <option key={branch.id} value={branch.id}>{branch.name}</option>
+                                                ))}
+                                            </select>
+                                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[rgb(var(--text-muted))] pointer-events-none" />
+                                        </div>
                                     </div>
-                                    
-                                    <select
-                                        value={currentBranch}
-                                        onChange={(e) => setCurrentBranch(e.target.value)}
-                                        className="px-3 sm:px-4 py-1.5 sm:py-2 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-card))] text-[rgb(var(--text-primary))] text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent outline-none cursor-pointer w-full sm:w-auto"
-                                    >
-                                        {BRANCHES.map(branch => (
-                                            <option key={branch.id} value={branch.id}>{branch.name}</option>
-                                        ))}
-                                    </select>
                                 </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
+
+                    {/* Mobile Add Button */}
+                    <button
+                        onClick={() => {
+                            setEditingNote(null);
+                            setFormData({ type: 'pdf', title: '', description: '', link: '', tags: '', branch: currentBranch });
+                            setShowAddModal(true);
+                        }}
+                        className="md:hidden mt-4 w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-[rgb(var(--accent))] to-purple-600 text-white rounded-xl font-bold shadow-[0_0_20px_rgba(var(--accent),0.3)] transition-all"
+                    >
+                        <Plus size={20} />
+                        <span>Share Note</span>
+                    </button>
                 </div>
             </div>
 
-            {/* Notes Grid */}
-            <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8">
+            {/* 3. Notes Grid */}
+            <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
                 {loading ? (
                     <div className="flex justify-center items-center py-20">
-                        <Loader size="xl" text="Loading Notes..." />
+                        <Loader size="lg" text="Loading Knowledge Base..." />
                     </div>
                 ) : notes.length === 0 ? (
                     <EmptyState
-                        title={searchQuery ? 'No notes found for your search' : 'No notes found'}
+                        title={searchQuery ? 'No notes found' : 'Knowledge base is empty'}
                         description={filter === 'my-notes'
-                            ? 'You haven\'t added any notes yet. Click "Add Note" to get started!'
-                            : 'Be the first to share a note with the community!'}
+                            ? "You haven't added any notes yet. Click \"Share Note\" to contribute!"
+                            : 'Be the first to share a note with the community for this branch!'}
                         icon={FileText}
                         isSearch={!!searchQuery}
                     />
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                             <AnimatePresence>
                                 {notes.map((note) => (
                                     <motion.div
                                         key={note._id}
-                                        id={note._id} // ID for scrolling
-                                        initial={{ opacity: 0, y: 20 }}
+                                        id={note._id}
+                                        initial={{ opacity: 0, y: 30 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -20 }}
-                                        className={`bg-[rgb(var(--bg-card))] rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border ${highlightId === note._id ? 'border-[rgb(var(--accent))] ring-2 ring-[rgb(var(--accent))] shadow-[0_0_20px_rgba(var(--accent),0.3)] transform scale-[1.02]' : 'border-[rgb(var(--border-subtle))] hover:shadow-[rgb(var(--accent))]/10'}`}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        className={`bg-[rgb(var(--bg-card))]/60 backdrop-blur-md rounded-3xl border ${highlightId === note._id ? 'border-[rgb(var(--accent))] ring-2 ring-[rgb(var(--accent))] shadow-[0_0_30px_rgba(var(--accent),0.4)] transform scale-[1.02]' : 'border-[rgb(var(--border-subtle))]'} shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden flex flex-col group hover:-translate-y-1 hover:border-[rgb(var(--accent))]/40`}
                                     >
-                                        {/* Card Header */}
-                                        <div className={`p-3 sm:p-4 ${note.type === 'pdf'
-                                            ? 'bg-gradient-to-r from-[rgb(var(--accent))] to-[#22D3EE]'
-                                            : 'bg-gradient-to-r from-[#F97316] to-[#FB7185]'
-                                            }`}>
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex items-center gap-2 text-white">
-                                                    {note.type === 'pdf' ? (
-                                                        <FileText size={20} className="sm:w-6 sm:h-6" />
-                                                    ) : (
-                                                        <Youtube size={20} className="sm:w-6 sm:h-6" />
-                                                    )}
-                                                    <span className="font-bold text-xs sm:text-sm uppercase tracking-wide">
-                                                        {note.type}
-                                                    </span>
-                                                    {note.status === 'pending' && (
-                                                        <span className="ml-2 px-2 py-0.5 bg-yellow-400 text-yellow-900 text-[10px] uppercase font-bold rounded-full shadow-sm">
-                                                            Pending
-                                                        </span>
-                                                    )}
+                                        {/* Card Header (Subtle Gradient Line) */}
+                                        <div className={`h-1.5 w-full ${note.type === 'pdf' ? 'bg-gradient-to-r from-blue-500 to-cyan-400' : 'bg-gradient-to-r from-red-500 to-orange-400'}`}></div>
+                                        
+                                        <div className="p-5 sm:p-6 flex-1 flex flex-col">
+                                            {/* Top Meta */}
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border ${note.type === 'pdf' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
+                                                    {note.type === 'pdf' ? <FileText size={14} /> : <Youtube size={14} />}
+                                                    {note.type}
                                                 </div>
 
-                                                {(note.userId === user.email || user.role === 'admin' || user.role === 'owner') && (
-                                                    <div className="flex items-center gap-1">
-                                                        <button
-                                                            onClick={() => handleEditNote(note)}
-                                                            className="p-1.5 sm:p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
-                                                        >
-                                                            <Edit2 size={16} className="sm:w-[18px] sm:h-[18px]" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteNote(note._id)}
-                                                            className="p-1.5 sm:p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
-                                                        >
-                                                            <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
-                                                        </button>
-                                                    </div>
+                                                <div className="flex items-center gap-2">
+                                                    {note.status === 'pending' && (
+                                                        <span className="px-2.5 py-1 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-[10px] uppercase font-bold rounded-lg">
+                                                            Pending Review
+                                                        </span>
+                                                    )}
+                                                    {(note.userId === user.email || user.role === 'admin' || user.role === 'owner') && (
+                                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button onClick={() => handleEditNote(note)} className="p-1.5 text-[rgb(var(--text-muted))] hover:text-blue-500 hover:bg-blue-500/10 rounded-md transition-colors" title="Edit">
+                                                                <Edit2 size={16} />
+                                                            </button>
+                                                            <button onClick={() => handleDeleteNote(note._id)} className="p-1.5 text-[rgb(var(--text-muted))] hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors" title="Delete">
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Title & Description */}
+                                            <div className="flex-1">
+                                                <h3 className="text-xl font-bold text-[rgb(var(--text-primary))] group-hover:text-[rgb(var(--accent))] transition-colors mb-2 line-clamp-2 leading-snug">
+                                                    {note.title}
+                                                </h3>
+                                                {note.description && (
+                                                    <p className="text-[rgb(var(--text-secondary))] text-sm mb-4 line-clamp-3 leading-relaxed">
+                                                        {note.description}
+                                                    </p>
                                                 )}
                                             </div>
-                                        </div>
-
-                                        {/* Card Body */}
-                                        <div className="p-4 sm:p-5">
-                                            <h3 className="text-lg sm:text-xl font-bold text-[rgb(var(--text-primary))] mb-2 line-clamp-2">
-                                                {note.title}
-                                            </h3>
-
-                                            {note.description && (
-                                                <p className="text-[rgb(var(--text-secondary))] text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-3">
-                                                    {note.description}
-                                                </p>
-                                            )}
 
                                             {/* Tags */}
                                             {note.tags && note.tags.length > 0 && (
-                                                <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+                                                <div className="flex flex-wrap gap-2 mb-4">
                                                     {note.tags.map((tag, index) => (
-                                                        <span
-                                                            key={index}
-                                                            className="px-2 py-0.5 sm:py-1 bg-[rgb(var(--accent))]/20 text-[rgb(var(--accent))] text-xs rounded-full font-semibold"
-                                                        >
+                                                        <span key={index} className="px-2.5 py-1 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-secondary))] text-xs rounded-md font-medium">
                                                             #{tag}
                                                         </span>
                                                     ))}
                                                 </div>
                                             )}
 
-                                            {/* Meta Info */}
-                                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-[rgb(var(--text-muted))] mb-3 sm:mb-4">
-                                                <div className="flex items-center gap-1">
-                                                    <User size={12} className="sm:w-[14px] sm:h-[14px]" />
-                                                    <span className="truncate max-w-[120px] sm:max-w-none">{note.userName}</span>
-                                                </div>
-                                                <div className="flex items-center gap-1">
-                                                    <Calendar size={12} className="sm:w-[14px] sm:h-[14px]" />
-                                                    <span>{moment(note.createdAt).fromNow()}</span>
-                                                </div>
-                                            </div>
+                                            <div className="h-px w-full bg-[rgb(var(--border-subtle))] mb-4"></div>
 
-                                            {/* Actions */}
-                                            <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-[rgb(var(--border-subtle))]">
-                                                <div className="flex items-center gap-3 sm:gap-4">
-                                                    <button
-                                                        onClick={() => handleLikeNote(note._id)}
-                                                        className={`flex items-center gap-1 transition-colors ${isLikedByUser(note)
-                                                            ? 'text-pink-500'
-                                                            : 'text-[rgb(var(--text-muted))] hover:text-pink-500'
-                                                            }`}
-                                                    >
-                                                        <Heart
-                                                            size={16}
-                                                            className="sm:w-[18px] sm:h-[18px]"
-                                                            fill={isLikedByUser(note) ? 'currentColor' : 'none'}
-                                                        />
-                                                        <span className="text-xs sm:text-sm font-semibold">
-                                                            {note.likes.length}
-                                                        </span>
-                                                    </button>
-
-                                                    <div className="flex items-center gap-1 text-[rgb(var(--text-muted))]">
-                                                        <Eye size={16} className="sm:w-[18px] sm:h-[18px]" />
-                                                        <span className="text-xs sm:text-sm font-semibold">{note.views}</span>
+                                            {/* Bottom Meta & Actions */}
+                                            <div className="flex flex-col gap-4">
+                                                <div className="flex items-center justify-between text-xs text-[rgb(var(--text-muted))] font-medium">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[rgb(var(--accent))] to-purple-500 flex items-center justify-center text-white font-bold text-[10px]">
+                                                            {note.userName.charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <span className="truncate max-w-[100px]">{note.userName}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Calendar size={14} />
+                                                        <span>{moment(note.createdAt).fromNow()}</span>
                                                     </div>
                                                 </div>
 
-                                                <button
-                                                    onClick={() => openLink(note.link, note._id)}
-                                                    className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg font-semibold hover:shadow-md hover:shadow-[rgb(var(--accent))]/30 transition-all text-xs sm:text-sm"
-                                                >
-                                                    <span>Open</span>
-                                                    <ExternalLink size={14} className="sm:w-4 sm:h-4" />
-                                                </button>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-4">
+                                                        <button
+                                                            onClick={() => handleLikeNote(note._id)}
+                                                            className={`flex items-center gap-1.5 transition-colors font-semibold text-sm ${isLikedByUser(note) ? 'text-pink-500 hover:text-pink-600' : 'text-[rgb(var(--text-secondary))] hover:text-pink-500'}`}
+                                                        >
+                                                            <Heart size={18} fill={isLikedByUser(note) ? 'currentColor' : 'none'} className={isLikedByUser(note) ? 'animate-pulse' : ''} />
+                                                            <span>{note.likes.length}</span>
+                                                        </button>
+                                                        <div className="flex items-center gap-1.5 text-[rgb(var(--text-secondary))] font-semibold text-sm">
+                                                            <Eye size={18} />
+                                                            <span>{note.views}</span>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => openLink(note.link, note._id)}
+                                                        className="flex items-center gap-2 px-4 py-2 bg-[rgb(var(--bg-elevated))] hover:bg-[rgb(var(--accent))] text-[rgb(var(--text-primary))] hover:text-white border border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))] rounded-xl font-semibold transition-all text-sm group/btn shadow-sm"
+                                                    >
+                                                        <span>Open</span>
+                                                        <ExternalLink size={16} className="group-hover/btn:-mt-1 group-hover/btn:translate-x-0.5 transition-transform" />
+                                                    </button>
+                                                </div>
                                             </div>
-
-
-
                                         </div>
                                     </motion.div>
                                 ))}
@@ -627,8 +622,8 @@ const NotesPage = () => {
                         </div>
 
                         {/* Pagination */}
-                        {!loading && notes.length > 0 && (
-                            <div className="mt-8 pb-4">
+                        {!loading && notes.length > 0 && totalPages > 1 && (
+                            <div className="mt-12 pb-6 flex justify-center">
                                 <Pagination
                                     currentPage={currentPage}
                                     totalPages={totalPages}
@@ -640,173 +635,179 @@ const NotesPage = () => {
                 )}
             </div>
 
-            {/* Add Note Modal */}
+            {/* 4. Modernized Modal Form */}
             <AnimatePresence>
                 {showAddModal && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4"
-                        onClick={() => setShowAddModal(false)}
-                    >
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        {/* Overlay */}
                         <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-[rgb(var(--bg-card))] rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[rgb(var(--border))]"
-                            onClick={(e) => e.stopPropagation()}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                            onClick={() => setShowAddModal(false)}
+                        ></motion.div>
+
+                        {/* Modal Content */}
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="bg-[rgb(var(--bg-card))]/95 backdrop-blur-xl rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[rgb(var(--border-subtle))] relative z-10 custom-scrollbar"
                         >
-                            {/* Modal Header */}
-                            <div className="sticky top-0 bg-[rgb(var(--accent))] p-4 sm:p-6 flex items-center justify-between">
-                                <h2 className="text-xl sm:text-2xl font-extrabold text-white">{editingNote ? 'Edit Note' : 'Add New Note'}</h2>
+                            <div className="sticky top-0 bg-[rgb(var(--bg-card))]/90 backdrop-blur-md p-6 border-b border-[rgb(var(--border-subtle))] flex items-center justify-between z-20">
+                                <h2 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[rgb(var(--text-primary))] to-[rgb(var(--accent))]">
+                                    {editingNote ? 'Edit Knowledge Base Note' : 'Contribute to Knowledge Base'}
+                                </h2>
                                 <button
                                     onClick={() => setShowAddModal(false)}
-                                    className="p-1.5 sm:p-2 hover:bg-white/20 rounded-lg transition-colors"
+                                    className="p-2 bg-[rgb(var(--bg-elevated))] hover:bg-red-500/10 text-[rgb(var(--text-secondary))] hover:text-red-500 rounded-xl transition-colors border border-[rgb(var(--border-subtle))]"
                                 >
-                                    <X size={20} className="sm:w-6 sm:h-6 text-white" />
+                                    <X size={20} />
                                 </button>
                             </div>
 
-                            {/* Modal Body */}
-                            <form onSubmit={editingNote ? handleUpdateNote : handleAddNote} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-                                {/* Type Selection */}
+                            <form onSubmit={editingNote ? handleUpdateNote : handleAddNote} className="p-6 space-y-6">
+                                {/* Type Selection (Cards) */}
                                 <div>
-                                    <label className="block text-sm font-bold text-[rgb(var(--text-primary))] mb-2">
-                                        Note Type *
+                                    <label className="block text-sm font-bold text-[rgb(var(--text-secondary))] mb-3 uppercase tracking-wider">
+                                        Resource Type *
                                     </label>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <button
                                             type="button"
                                             onClick={() => setFormData({ ...formData, type: 'pdf' })}
-                                            className={`flex items-center justify-center gap-2 p-3 sm:p-4 rounded-lg border-2 transition-all ${formData.type === 'pdf'
-                                                ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/20 text-[rgb(var(--accent))]'
-                                                : 'border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--border))] bg-[rgb(var(--bg-body))] text-[rgb(var(--text-secondary))]'
+                                            className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left ${formData.type === 'pdf'
+                                                ? 'border-blue-500 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
+                                                : 'border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-elevated))]/50 hover:border-blue-500/50'
                                                 }`}
                                         >
-                                            <FileText size={20} className="sm:w-6 sm:h-6" />
-                                            <span className="font-bold text-sm sm:text-base">PDF (Google Drive)</span>
+                                            <div className={`p-3 rounded-xl ${formData.type === 'pdf' ? 'bg-blue-500 text-white' : 'bg-[rgb(var(--bg-card))] text-blue-500 shadow-sm'}`}>
+                                                <FileText size={24} />
+                                            </div>
+                                            <div>
+                                                <h4 className={`font-bold ${formData.type === 'pdf' ? 'text-blue-500' : 'text-[rgb(var(--text-primary))]'}`}>PDF Document</h4>
+                                                <p className="text-xs text-[rgb(var(--text-muted))] mt-1">Google Drive link</p>
+                                            </div>
                                         </button>
 
                                         <button
                                             type="button"
                                             onClick={() => setFormData({ ...formData, type: 'youtube' })}
-                                            className={`flex items-center justify-center gap-2 p-3 sm:p-4 rounded-lg border-2 transition-all ${formData.type === 'youtube'
-                                                ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/20 text-[rgb(var(--accent))]'
-                                                : 'border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--border))] bg-[rgb(var(--bg-body))] text-[rgb(var(--text-secondary))]'
+                                            className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left ${formData.type === 'youtube'
+                                                ? 'border-red-500 bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.2)]'
+                                                : 'border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-elevated))]/50 hover:border-red-500/50'
                                                 }`}
                                         >
-                                            <Youtube size={20} className="sm:w-6 sm:h-6" />
-                                            <span className="font-bold text-sm sm:text-base">YouTube Video</span>
+                                            <div className={`p-3 rounded-xl ${formData.type === 'youtube' ? 'bg-red-500 text-white' : 'bg-[rgb(var(--bg-card))] text-red-500 shadow-sm'}`}>
+                                                <Youtube size={24} />
+                                            </div>
+                                            <div>
+                                                <h4 className={`font-bold ${formData.type === 'youtube' ? 'text-red-500' : 'text-[rgb(var(--text-primary))]'}`}>YouTube Video</h4>
+                                                <p className="text-xs text-[rgb(var(--text-muted))] mt-1">Video tutorial link</p>
+                                            </div>
                                         </button>
                                     </div>
                                 </div>
 
-                                {/* Branch Selection */}
-                                <div>
-                                    <label className="block text-sm font-bold text-[rgb(var(--text-primary))] mb-2">
-                                        Branch *
-                                    </label>
-                                    <select
-                                        value={formData.branch}
-                                        onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
-                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent text-sm sm:text-base outline-none cursor-pointer"
-                                    >
-                                        {BRANCHES.map(branch => (
-                                            <option key={branch.id} value={branch.id}>{branch.name}</option>
-                                        ))}
-                                    </select>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-bold text-[rgb(var(--text-secondary))] uppercase tracking-wider">Branch *</label>
+                                        <div className="relative">
+                                            <select
+                                                value={formData.branch}
+                                                onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                                                className="w-full px-4 py-3.5 bg-[rgb(var(--bg-elevated))]/60 border border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] font-medium focus:ring-2 focus:ring-[rgb(var(--accent))]/50 outline-none appearance-none cursor-pointer"
+                                            >
+                                                {BRANCHES.map(branch => (
+                                                    <option key={branch.id} value={branch.id}>{branch.name}</option>
+                                                ))}
+                                            </select>
+                                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[rgb(var(--text-muted))] pointer-events-none" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-bold text-[rgb(var(--text-secondary))] uppercase tracking-wider">Tags</label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                                <Tag className="h-5 w-5 text-[rgb(var(--text-muted))]" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={formData.tags}
+                                                onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                                                placeholder="react, tutorial, pdf"
+                                                className="w-full pl-11 pr-4 py-3.5 bg-[rgb(var(--bg-elevated))]/60 border border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))]/50 outline-none transition-all"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
 
-                                {/* Title */}
-                                <div>
-                                    <label className="block text-sm font-bold text-[rgb(var(--text-primary))] mb-2">
-                                        Title *
-                                    </label>
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-bold text-[rgb(var(--text-secondary))] uppercase tracking-wider">Title *</label>
                                     <input
                                         type="text"
                                         required
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        placeholder="Enter a descriptive title"
-                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent text-sm sm:text-base"
+                                        placeholder="Enter a descriptive title for this resource"
+                                        className="w-full px-4 py-3.5 bg-[rgb(var(--bg-elevated))]/60 border border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))]/50 outline-none transition-all font-semibold"
                                     />
                                 </div>
 
-                                {/* Link */}
-                                <div>
-                                    <label className="block text-sm font-bold text-[rgb(var(--text-primary))] mb-2">
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-bold text-[rgb(var(--text-secondary))] uppercase tracking-wider">
                                         {formData.type === 'pdf' ? 'Google Drive Link *' : 'YouTube Link *'}
                                     </label>
-                                    <input
-                                        type="url"
-                                        required
-                                        value={formData.link}
-                                        onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                                        placeholder={
-                                            formData.type === 'pdf'
-                                                ? 'https://drive.google.com/...'
-                                                : 'https://www.youtube.com/watch?v=...'
-                                        }
-                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent text-sm sm:text-base"
-                                    />
-                                    <p className="mt-1 text-xs text-[rgb(var(--text-muted))]">
-                                        {formData.type === 'pdf'
-                                            ? 'Make sure the Google Drive file is set to "Anyone with the link can view"'
-                                            : 'Paste the full YouTube video URL'}
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                            <ExternalLink className="h-5 w-5 text-[rgb(var(--text-muted))]" />
+                                        </div>
+                                        <input
+                                            type="url"
+                                            required
+                                            value={formData.link}
+                                            onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                                            placeholder={formData.type === 'pdf' ? 'https://drive.google.com/...' : 'https://www.youtube.com/watch?v=...'}
+                                            className="w-full pl-11 pr-4 py-3.5 bg-[rgb(var(--bg-elevated))]/60 border border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))]/50 outline-none transition-all"
+                                        />
+                                    </div>
+                                    <p className="text-xs text-[rgb(var(--text-muted))] mt-1.5 flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
+                                        {formData.type === 'pdf' ? 'Ensure PDF link access is set to "Anyone with the link can view".' : 'Paste the full YouTube video URL.'}
                                     </p>
                                 </div>
 
-                                {/* Description */}
-                                <div>
-                                    <label className="block text-sm font-bold text-[rgb(var(--text-primary))] mb-2">
-                                        Description (Optional)
-                                    </label>
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-bold text-[rgb(var(--text-secondary))] uppercase tracking-wider">Description (Optional)</label>
                                     <textarea
                                         rows={4}
                                         value={formData.description}
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        placeholder="Add a brief description of the content..."
-                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent resize-none text-sm sm:text-base"
+                                        placeholder="Add a brief summary of what this resource covers..."
+                                        className="w-full px-4 py-3.5 bg-[rgb(var(--bg-elevated))]/60 border border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))]/50 outline-none transition-all resize-none custom-scrollbar"
                                     />
                                 </div>
 
-                                {/* Tags */}
-                                <div>
-                                    <label className="block text-sm font-bold text-[rgb(var(--text-primary))] mb-2">
-                                        Tags (Optional)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.tags}
-                                        onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                                        placeholder="javascript, react, tutorial (comma-separated)"
-                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent text-sm sm:text-base"
-                                    />
-                                    <p className="mt-1 text-xs text-[rgb(var(--text-muted))]">
-                                        Separate multiple tags with commas
-                                    </p>
-                                </div>
-
-                                {/* Submit Button */}
-                                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
+                                <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-[rgb(var(--border-subtle))]">
                                     <button
                                         type="button"
                                         onClick={() => setShowAddModal(false)}
-                                        className="w-full sm:flex-1 px-4 sm:px-6 py-2.5 sm:py-3 border border-[rgb(var(--border))] rounded-lg text-[rgb(var(--text-secondary))] bg-[rgb(var(--bg-body))] hover:bg-[rgb(var(--bg-body-alt))] font-semibold transition-colors text-sm sm:text-base"
+                                        className="w-full sm:w-1/3 px-6 py-3.5 bg-[rgb(var(--bg-elevated))] hover:bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-primary))] border border-[rgb(var(--border-subtle))] rounded-xl font-bold transition-colors"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
-                                        className="w-full sm:flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-[rgb(var(--accent))]/30 transition-all text-sm sm:text-base"
+                                        className="w-full sm:w-2/3 px-6 py-3.5 bg-gradient-to-r from-[rgb(var(--accent))] to-purple-600 hover:from-[rgb(var(--accent-hover))] hover:to-purple-500 text-white rounded-xl font-bold shadow-[0_0_15px_rgba(var(--accent),0.3)] hover:shadow-[0_0_25px_rgba(var(--accent),0.5)] transition-all flex justify-center items-center gap-2"
                                     >
-                                        {editingNote ? 'Update Note' : 'Add Note'}
+                                        {editingNote ? <Edit2 size={18} /> : <Plus size={18} />}
+                                        {editingNote ? 'Update Note' : 'Publish Note'}
                                     </button>
                                 </div>
                             </form>
                         </motion.div>
-                    </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
 
@@ -820,7 +821,7 @@ const NotesPage = () => {
                 type="note"
                 onView={(item) => openLink(item.link, item._id)}
             />
-        </div >
+        </div>
     );
 };
 

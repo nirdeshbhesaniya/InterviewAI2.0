@@ -373,41 +373,63 @@ const ResourcesPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[rgb(var(--bg-body))] py-8 px-4">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-6 sm:mb-8"
-                >
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+        <div className="min-h-screen bg-[rgb(var(--bg-body))] relative overflow-hidden flex flex-col pb-12">
+            {/* Background Decorative Glow */}
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[rgb(var(--accent))]/10 rounded-full blur-[120px] -z-10 pointer-events-none translate-x-1/3 -translate-y-1/3"></div>
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[100px] -z-10 pointer-events-none -translate-x-1/3 translate-y-1/3"></div>
+
+            {/* 1. Immersive Hero Section & Header */}
+            <div className="bg-[rgb(var(--bg-card))]/80 backdrop-blur-xl border-b border-[rgb(var(--border-subtle))] sticky top-0 z-40 shadow-sm">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
                         <div className="flex-1">
-                            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[rgb(var(--text-primary))] mb-1 sm:mb-2">
-                                📚 Academic Resources
-                            </h1>
-                            <p className="text-sm sm:text-base text-[rgb(var(--text-secondary))]">
-                                Access study materials, notes, and resources for all engineering branches
-                            </p>
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-gradient-to-br from-[rgb(var(--accent))] to-emerald-600 rounded-xl shadow-[0_0_15px_rgba(var(--accent),0.3)]">
+                                    <BookOpen className="h-6 w-6 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[rgb(var(--text-primary))] to-[rgb(var(--accent))]">
+                                        Academic Resources
+                                    </h1>
+                                    <p className="text-[rgb(var(--text-secondary))] mt-1 text-sm sm:text-base font-medium">
+                                        Access and share study materials across engineering branches
+                                    </p>
+                                </div>
+                            </div>
                         </div>
+
                         <Button
                             onClick={() => setShowUploadModal(true)}
-                            className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white w-full sm:w-auto flex-shrink-0"
+                            className="hidden md:flex items-center gap-2 px-6 py-6 bg-gradient-to-r from-[rgb(var(--accent))] to-emerald-600 hover:from-[rgb(var(--accent-hover))] hover:to-emerald-500 text-white rounded-xl font-bold shadow-[0_0_20px_rgba(var(--accent),0.3)] hover:shadow-[0_0_30px_rgba(var(--accent),0.5)] transition-all hover:-translate-y-0.5 group border-0"
                         >
-                            <Upload className="w-4 h-4 mr-2" />
-                            <span className="hidden sm:inline">Upload Resource</span>
-                            <span className="sm:hidden">Upload</span>
+                            <Upload size={20} className="group-hover:-translate-y-1 transition-transform duration-300" />
+                            <span className="text-base">Upload Resource</span>
                         </Button>
                     </div>
-                </motion.div>
 
-                {/* Branch Selection */}
+                    {/* Mobile Add Button */}
+                    <Button
+                        onClick={() => setShowUploadModal(true)}
+                        className="md:hidden mt-4 w-full flex items-center justify-center gap-2 px-6 py-6 bg-gradient-to-r from-[rgb(var(--accent))] to-emerald-600 text-white rounded-xl font-bold shadow-[0_0_20px_rgba(var(--accent),0.3)] transition-all border-0"
+                    >
+                        <Upload size={20} />
+                        <span className="text-base">Upload Resource</span>
+                    </Button>
+                </div>
+            </div>
+
+            <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                
+                {/* 2. Sleek Branch Selection */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-6 sm:mb-8"
+                    className="mb-8"
                 >
-                    <h2 className="text-lg sm:text-xl font-semibold text-[rgb(var(--text-primary))] mb-3 sm:mb-4">Select Branch</h2>
+                    <h2 className="text-xl font-bold text-[rgb(var(--text-primary))] mb-4 flex items-center gap-2">
+                        <BranchIcon className="w-5 h-5 text-[rgb(var(--accent))]" />
+                        Select Branch
+                    </h2>
 
                     {/* Mobile Dropdown */}
                     <div className="block sm:hidden">
@@ -415,7 +437,7 @@ const ResourcesPage = () => {
                             <select
                                 value={selectedBranch}
                                 onChange={(e) => handleBranchChange(e.target.value)}
-                                className="w-full px-4 py-3 bg-[rgb(var(--bg-card))] border-2 border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-[rgb(var(--accent))] appearance-none"
+                                className="w-full pl-4 pr-10 py-3.5 bg-[rgb(var(--bg-elevated))]/80 backdrop-blur-md border border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] font-semibold focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]/50 appearance-none shadow-inner"
                             >
                                 {BRANCHES.map((branch) => (
                                     <option key={branch.id} value={branch.id}>
@@ -423,30 +445,8 @@ const ResourcesPage = () => {
                                     </option>
                                 ))}
                             </select>
-                            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[rgb(var(--text-muted))] pointer-events-none" />
+                            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[rgb(var(--text-muted))] pointer-events-none" />
                         </div>
-                        {/* Selected branch info card on mobile */}
-                        {currentBranch && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="mt-3 p-3 rounded-xl border-2 border-[rgb(var(--accent))] bg-gradient-to-br from-[rgb(var(--accent))]/10 to-[rgb(var(--accent))]/5"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className={`p-2 rounded-lg bg-gradient-to-br ${currentBranch.color}`}>
-                                        <BranchIcon className="w-5 h-5 text-white" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="font-semibold text-[rgb(var(--text-primary))] text-sm">
-                                            {currentBranch.name}
-                                        </h3>
-                                        <p className="text-xs text-[rgb(var(--text-muted))] line-clamp-1">
-                                            {currentBranch.description}
-                                        </p>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
                     </div>
 
                     {/* Desktop Grid */}
@@ -457,23 +457,26 @@ const ResourcesPage = () => {
                             return (
                                 <motion.button
                                     key={branch.id}
-                                    whileHover={{ scale: 1.02 }}
+                                    whileHover={{ y: -2 }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() => handleBranchChange(branch.id)}
-                                    className={`p-4 rounded-xl border-2 transition-all duration-300 text-left ${isSelected
-                                        ? 'border-[rgb(var(--accent))] bg-gradient-to-br from-[rgb(var(--accent))]/10 to-[rgb(var(--accent))]/5 shadow-lg'
-                                        : 'border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-card))] hover:border-[rgb(var(--accent))]/50'
+                                    className={`p-4 rounded-2xl border transition-all duration-300 text-left relative overflow-hidden group ${isSelected
+                                        ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10 shadow-[0_0_20px_rgba(var(--accent),0.15)]'
+                                        : 'border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-card))]/60 backdrop-blur-sm hover:border-[rgb(var(--accent))]/50 hover:bg-[rgb(var(--bg-card))]'
                                         }`}
                                 >
-                                    <div className="flex items-start gap-3">
-                                        <div className={`p-2 rounded-lg bg-gradient-to-br ${branch.color}`}>
-                                            <Icon className="w-5 h-5 text-white" />
+                                    {isSelected && (
+                                        <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--accent))]/5 to-transparent pointer-events-none"></div>
+                                    )}
+                                    <div className="flex items-start gap-3 relative z-10">
+                                        <div className={`p-2.5 rounded-xl bg-gradient-to-br shadow-sm ${isSelected ? branch.color : 'from-[rgb(var(--bg-elevated))] to-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] group-hover:' + branch.color}`}>
+                                            <Icon className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-[rgb(var(--text-secondary))] group-hover:text-white transition-colors'}`} />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-[rgb(var(--text-primary))] text-sm mb-1 line-clamp-2">
+                                            <h3 className={`font-bold text-sm mb-1 line-clamp-2 transition-colors ${isSelected ? 'text-[rgb(var(--accent))]' : 'text-[rgb(var(--text-primary))]'}`}>
                                                 {branch.name}
                                             </h3>
-                                            <p className="text-xs text-[rgb(var(--text-muted))] line-clamp-2">
+                                            <p className="text-xs text-[rgb(var(--text-muted))] line-clamp-2 font-medium">
                                                 {branch.description}
                                             </p>
                                         </div>
@@ -484,242 +487,259 @@ const ResourcesPage = () => {
                     </div>
                 </motion.div>
 
-                {/* Search and Filters */}
-                <Card className="p-4 md:p-6 mb-6 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]">
-                    <div className="flex flex-col md:flex-row gap-4">
-                        {/* Search */}
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[rgb(var(--text-muted))]" />
-                            <input
-                                type="text"
-                                placeholder="Search resources, subjects, topics..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 bg-[rgb(var(--bg-body))] border border-[rgb(var(--border-subtle))] rounded-lg text-[rgb(var(--text-primary))] placeholder-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]"
-                            />
+                {/* 3. Advanced Search & Filter Engine */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="p-1.5 bg-[rgb(var(--bg-card))]/60 backdrop-blur-md border border-[rgb(var(--border-subtle))] rounded-2xl mb-8 flex flex-col md:flex-row gap-2 shadow-lg"
+                >
+                    {/* Search */}
+                    <div className="flex-1 relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <Search className="h-5 w-5 text-[rgb(var(--text-muted))] group-focus-within:text-[rgb(var(--accent))] transition-colors" />
                         </div>
-
-                        {/* Type Filter */}
-                        <select
-                            value={filterType}
-                            onChange={(e) => setFilterType(e.target.value)}
-                            className="px-4 py-3 bg-[rgb(var(--bg-body))] border border-[rgb(var(--border-subtle))] rounded-lg text-[rgb(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]]"
-                        >
-                            <option value="all">All Types</option>
-                            <option value="pdf">PDF</option>
-                            <option value="video">Video</option>
-                            <option value="link">Links</option>
-                        </select>
-
-                        {/* Semester Filter */}
-                        <select
-                            value={filterSemester}
-                            onChange={(e) => setFilterSemester(e.target.value)}
-                            className="px-4 py-3 bg-[rgb(var(--bg-body))] border border-[rgb(var(--border-subtle))] rounded-lg text-[rgb(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]]"
-                        >
-                            <option value="all">All Semesters</option>
-                            <option value="Semester 1">Semester 1</option>
-                            <option value="Semester 2">Semester 2</option>
-                            <option value="Semester 3">Semester 3</option>
-                            <option value="Semester 4">Semester 4</option>
-                            <option value="Semester 5">Semester 5</option>
-                            <option value="Semester 6">Semester 6</option>
-                            <option value="Semester 7">Semester 7</option>
-                            <option value="Semester 8">Semester 8</option>
-                        </select>
+                        <input
+                            type="text"
+                            placeholder="Search resources, subjects, topics..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-11 pr-4 py-3.5 bg-transparent text-[rgb(var(--text-primary))] placeholder-[rgb(var(--text-muted))] focus:outline-none font-medium"
+                        />
                     </div>
-                </Card>
+                    
+                    <div className="hidden md:block w-px bg-[rgb(var(--border-subtle))] my-2"></div>
 
-                {/* Current Branch Info */}
-                <Card className="p-4 sm:p-6 mb-4 sm:mb-6 bg-gradient-to-br from-[rgb(var(--bg-card))] to-[rgb(var(--bg-card))] border border-[rgb(var(--border-subtle))]" ref={materialsRef}>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="flex items-center gap-3 sm:gap-4 flex-1">
-                            <div className={`p-3 sm:p-4 rounded-xl bg-gradient-to-br ${currentBranch?.color}`}>
-                                <BranchIcon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[rgb(var(--text-primary))] mb-1">
-                                    {currentBranch?.name}
-                                </h2>
-                                <p className="text-sm sm:text-base text-[rgb(var(--text-secondary))] line-clamp-2">
-                                    {currentBranch?.description}
-                                </p>
-                                <div className="flex items-center gap-2 sm:gap-4 mt-2">
-                                    <span className="text-xs sm:text-sm text-[rgb(var(--text-muted))]">
-                                        📄 {resources.length} Resources Available
-                                    </span>
-                                </div>
-                            </div>
+                    {/* Filters Container */}
+                    <div className="flex flex-col sm:flex-row gap-2 md:min-w-[400px]">
+                        <div className="relative flex-1">
+                            <select
+                                value={filterType}
+                                onChange={(e) => setFilterType(e.target.value)}
+                                className="w-full px-4 py-3.5 bg-[rgb(var(--bg-elevated))]/50 md:bg-transparent rounded-xl md:rounded-none text-[rgb(var(--text-primary))] focus:outline-none font-medium appearance-none cursor-pointer hover:bg-[rgb(var(--bg-elevated))] transition-colors"
+                            >
+                                <option value="all">All Types</option>
+                                <option value="pdf">PDF</option>
+                                <option value="video">Video</option>
+                                <option value="link">Links</option>
+                            </select>
+                            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-muted))] pointer-events-none" />
                         </div>
-                        <Button
-                            onClick={() => setShowUploadModal(true)}
-                            className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white shrink-0"
-                        >
-                            <Upload className="w-4 h-4 mr-2" />
-                            Upload Resource
-                        </Button>
-                    </div>
-                </Card>
+                        
+                        <div className="hidden sm:block w-px bg-[rgb(var(--border-subtle))] my-2"></div>
 
-                {/* Resources List */}
+                        <div className="relative flex-1">
+                            <select
+                                value={filterSemester}
+                                onChange={(e) => setFilterSemester(e.target.value)}
+                                className="w-full px-4 py-3.5 bg-[rgb(var(--bg-elevated))]/50 md:bg-transparent rounded-xl md:rounded-none text-[rgb(var(--text-primary))] focus:outline-none font-medium appearance-none cursor-pointer hover:bg-[rgb(var(--bg-elevated))] transition-colors"
+                            >
+                                <option value="all">All Semesters</option>
+                                <option value="Semester 1">Semester 1</option>
+                                <option value="Semester 2">Semester 2</option>
+                                <option value="Semester 3">Semester 3</option>
+                                <option value="Semester 4">Semester 4</option>
+                                <option value="Semester 5">Semester 5</option>
+                                <option value="Semester 6">Semester 6</option>
+                                <option value="Semester 7">Semester 7</option>
+                                <option value="Semester 8">Semester 8</option>
+                            </select>
+                            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-muted))] pointer-events-none" />
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* 4. Current Branch Info summary */}
+                <div className="flex items-center justify-between mb-6 px-2" ref={materialsRef}>
+                    <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg bg-gradient-to-br ${currentBranch?.color}`}>
+                            <BranchIcon className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-[rgb(var(--text-primary))]">
+                                {currentBranch?.name} Resources
+                            </h2>
+                            <p className="text-sm text-[rgb(var(--text-muted))] font-medium">
+                                Showing {resources.length} items
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 5. Resources Grid */}
                 {loading ? (
                     <div className="flex justify-center items-center py-20">
                         <Loader size="lg" text="Loading resources..." />
                     </div>
                 ) : (
                     <>
-                        <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {resources.length === 0 ? (
-                                <EmptyState
-                                    title="No Resources Found"
-                                    description={searchQuery
-                                        ? 'Try adjusting your search or filters'
-                                        : 'Resources for this branch are being uploaded. Check back soon!'}
-                                    icon={Folder}
-                                    isSearch={!!searchQuery}
-                                    actionButton={
-                                        <Button
-                                            onClick={() => setShowUploadModal(true)}
-                                            className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white"
-                                        >
-                                            <Upload className="w-4 h-4 mr-2" />
-                                            Be the First to Upload
-                                        </Button>
-                                    }
-                                />
+                                <div className="col-span-full">
+                                    <EmptyState
+                                        title="No Resources Found"
+                                        description={searchQuery
+                                            ? 'Try adjusting your search or filters'
+                                            : 'Resources for this branch are being uploaded. Check back soon!'}
+                                        icon={Folder}
+                                        isSearch={!!searchQuery}
+                                        actionButton={
+                                            <Button
+                                                onClick={() => setShowUploadModal(true)}
+                                                className="bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white border-0"
+                                            >
+                                                <Upload className="w-4 h-4 mr-2" />
+                                                Be the First to Upload
+                                            </Button>
+                                        }
+                                    />
+                                </div>
                             ) : (
-                                resources.map((resource) => {
-                                    const TypeIcon = getTypeIcon(resource.type);
-                                    const isOwner = user?.userId === resource.uploadedBy?._id || user?.userId === resource.uploadedBy;
+                                <AnimatePresence>
+                                    {resources.map((resource) => {
+                                        const TypeIcon = getTypeIcon(resource.type);
+                                        const isOwner = user?.userId === resource.uploadedBy?._id || user?.userId === resource.uploadedBy;
+                                        
+                                        // Determine gradient based on resource type
+                                        let gradientColors = 'from-gray-500 to-gray-400';
+                                        let iconColor = 'text-gray-500';
+                                        let badgeColors = 'bg-gray-500/10 text-gray-500 border-gray-500/20';
+                                        
+                                        if (resource.type === 'pdf') {
+                                            gradientColors = 'from-blue-500 to-cyan-400';
+                                            iconColor = 'text-blue-500';
+                                            badgeColors = 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+                                        } else if (resource.type === 'video') {
+                                            gradientColors = 'from-red-500 to-orange-400';
+                                            iconColor = 'text-red-500';
+                                            badgeColors = 'bg-red-500/10 text-red-500 border-red-500/20';
+                                        } else if (resource.type === 'link') {
+                                            gradientColors = 'from-emerald-500 to-green-400';
+                                            iconColor = 'text-emerald-500';
+                                            badgeColors = 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
+                                        }
 
-                                    return (
-                                        <motion.div
-                                            key={resource._id}
-                                            id={resource._id} // ID for scroll target
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                        >
-                                            <Card className={`p-4 md:p-6 bg-[rgb(var(--bg-card))] border transition-all duration-300 ${highlightId === resource._id ? 'border-[rgb(var(--accent))] ring-2 ring-[rgb(var(--accent))] shadow-[0_0_20px_rgba(var(--accent),0.3)] transform scale-[1.02]' : 'border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--accent))]'}`}>
-                                                <div className="flex flex-col gap-4">
-                                                    {/* Header with Icon and Title */}
-                                                    <div className="flex items-start gap-3">
-                                                        <div className="flex-shrink-0">
-                                                            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[rgb(var(--accent))]/20 to-[rgb(var(--accent))]/10 flex items-center justify-center">
-                                                                <TypeIcon className="w-6 h-6 text-[rgb(var(--accent))]" />
-                                                            </div>
+                                        return (
+                                            <motion.div
+                                                key={resource._id}
+                                                id={resource._id}
+                                                initial={{ opacity: 0, y: 30 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.95 }}
+                                                className={`bg-[rgb(var(--bg-card))]/60 backdrop-blur-md rounded-3xl border ${highlightId === resource._id ? 'border-[rgb(var(--accent))] ring-2 ring-[rgb(var(--accent))] shadow-[0_0_30px_rgba(var(--accent),0.4)] transform scale-[1.02]' : 'border-[rgb(var(--border-subtle))]'} shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden flex flex-col group hover:-translate-y-1 hover:border-[rgb(var(--accent))]/40`}
+                                            >
+                                                {/* Subtle Header Line */}
+                                                <div className={`h-1.5 w-full bg-gradient-to-r ${gradientColors}`}></div>
+                                                
+                                                <div className="p-6 flex-1 flex flex-col">
+                                                    {/* Top Meta */}
+                                                    <div className="flex items-start justify-between mb-4">
+                                                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border ${badgeColors}`}>
+                                                            <TypeIcon size={14} />
+                                                            {resource.type}
                                                         </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <h3 className="text-base sm:text-lg font-semibold text-[rgb(var(--text-primary))] mb-1 flex items-center gap-2 flex-wrap">
-                                                                {resource.title}
-                                                                {resource.status === 'pending' && (
-                                                                    <span className="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-[10px] uppercase font-bold rounded-full border border-yellow-200 dark:border-yellow-700 whitespace-nowrap">
-                                                                        Pending
-                                                                    </span>
-                                                                )}
-                                                            </h3>
-                                                            {resource.description && (
-                                                                <p className="text-xs sm:text-sm text-[rgb(var(--text-muted))] mb-2 line-clamp-2">
-                                                                    {resource.description}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
 
-                                                    {/* Content - Metadata */}
-                                                    <div className="space-y-2">
-                                                        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-[rgb(var(--text-secondary))]">
-                                                            <span className="flex items-center gap-1">
-                                                                <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                                <span className="truncate">{resource.subject}</span>
-                                                            </span>
-                                                            <span className="flex items-center gap-1">
-                                                                <Folder className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                                <span className="truncate">
-                                                                    {Array.isArray(resource.semester) ? resource.semester.join(', ') : resource.semester}
+                                                        <div className="flex items-center gap-2">
+                                                            {resource.status === 'pending' && (
+                                                                <span className="px-2.5 py-1 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-[10px] uppercase font-bold rounded-lg">
+                                                                    Pending
                                                                 </span>
-                                                            </span>
-                                                            <span className="flex items-center gap-1">
-                                                                <User className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                                <span className="truncate">{resource.uploadedByName || resource.uploadedBy?.name || 'Anonymous'}</span>
-                                                            </span>
-                                                            <span className="flex items-center gap-1">
-                                                                <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                                {new Date(resource.createdAt).toLocaleDateString()}
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-[rgb(var(--text-muted))]">
-                                                            <span className="flex items-center gap-1">
-                                                                <Download className="w-3 h-3" />
-                                                                {resource.downloads} downloads
-                                                            </span>
-                                                            <span>•</span>
-                                                            <span className="flex items-center gap-1">
-                                                                <Eye className="w-3 h-3" />
-                                                                {resource.views} views
-                                                            </span>
-                                                            {resource.tags && resource.tags.length > 0 && (
-                                                                <>
-                                                                    <span>•</span>
-                                                                    <div className="flex gap-1 flex-wrap">
-                                                                        {resource.tags.slice(0, 3).map((tag, idx) => (
-                                                                            <span
-                                                                                key={idx}
-                                                                                className="px-2 py-0.5 bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] rounded text-xs font-medium"
-                                                                            >
-                                                                                {tag}
-                                                                            </span>
-                                                                        ))}
-                                                                    </div>
-                                                                </>
+                                                            )}
+                                                            {(isOwner || user.role === 'admin' || user.role === 'owner') && (
+                                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <button onClick={() => handleEdit(resource)} className="p-1.5 text-[rgb(var(--text-muted))] hover:text-amber-500 hover:bg-amber-500/10 rounded-md transition-colors" title="Edit">
+                                                                        <Edit size={16} />
+                                                                    </button>
+                                                                    <button onClick={() => handleDelete(resource._id)} className="p-1.5 text-[rgb(var(--text-muted))] hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors" title="Delete">
+                                                                        <Trash2 size={16} />
+                                                                    </button>
+                                                                </div>
                                                             )}
                                                         </div>
                                                     </div>
 
-                                                    {/* Actions */}
-                                                    <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-[rgb(var(--border-subtle))] sm:border-0 sm:pt-0">
-                                                        <Button
-                                                            onClick={() => handleView(resource)}
-                                                            className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white flex-1 justify-center"
-                                                        >
-                                                            <ExternalLink className="w-4 h-4 mr-2" />
-                                                            <span>View</span>
-                                                        </Button>
-                                                        <Button
-                                                            onClick={() => handleDownload(resource)}
-                                                            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white flex-1 justify-center"
-                                                        >
-                                                            <Download className="w-4 h-4 mr-2" />
-                                                            <span className="hidden sm:inline">Download</span>
-                                                            <span className="sm:hidden">Get</span>
-                                                        </Button>
-                                                        {(isOwner || user.role === 'admin' || user.role === 'owner') && (
-                                                            <>
-                                                                <Button
-                                                                    onClick={() => handleDelete(resource._id)}
-                                                                    className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white flex-1 sm:flex-none justify-center px-3"
-                                                                >
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                    <span className="sr-only sm:not-sr-only sm:ml-2">Delete</span>
-                                                                </Button>
-                                                                <Button
-                                                                    onClick={() => handleEdit(resource)}
-                                                                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white flex-1 sm:flex-none justify-center px-3"
-                                                                >
-                                                                    <Edit className="w-4 h-4" />
-                                                                    <span className="sr-only sm:not-sr-only sm:ml-2">Edit</span>
-                                                                </Button>
-                                                            </>
+                                                    {/* Title & Description */}
+                                                    <div className="flex-1 mb-4">
+                                                        <h3 className="text-xl font-bold text-[rgb(var(--text-primary))] group-hover:text-[rgb(var(--accent))] transition-colors mb-2 line-clamp-2 leading-snug">
+                                                            {resource.title}
+                                                        </h3>
+                                                        {resource.description && (
+                                                            <p className="text-[rgb(var(--text-secondary))] text-sm line-clamp-2 leading-relaxed">
+                                                                {resource.description}
+                                                            </p>
                                                         )}
                                                     </div>
+
+                                                    {/* Context Pills */}
+                                                    <div className="flex flex-wrap gap-2 mb-5">
+                                                        <span className="px-2.5 py-1 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-secondary))] text-xs rounded-md font-medium flex items-center gap-1.5">
+                                                            <BookOpen size={12} className={iconColor} />
+                                                            <span className="truncate max-w-[120px]">{resource.subject}</span>
+                                                        </span>
+                                                        <span className="px-2.5 py-1 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-secondary))] text-xs rounded-md font-medium flex items-center gap-1.5">
+                                                            <Folder size={12} className={iconColor} />
+                                                            {Array.isArray(resource.semester) ? resource.semester[0] : resource.semester}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="h-px w-full bg-[rgb(var(--border-subtle))] mb-4"></div>
+
+                                                    {/* Bottom Meta & Actions */}
+                                                    <div className="flex flex-col gap-4">
+                                                        <div className="flex items-center justify-between text-xs text-[rgb(var(--text-muted))] font-medium">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[rgb(var(--accent))] to-purple-500 flex items-center justify-center text-white font-bold text-[10px]">
+                                                                    {(resource.uploadedByName || resource.uploadedBy?.name || 'A')[0].toUpperCase()}
+                                                                </div>
+                                                                <span className="truncate max-w-[100px]">{resource.uploadedByName || resource.uploadedBy?.name || 'Anonymous'}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Clock size={14} />
+                                                                <span>{new Date(resource.createdAt).toLocaleDateString()}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex items-center justify-between mt-1">
+                                                            <div className="flex items-center gap-3 text-[rgb(var(--text-secondary))] font-medium text-xs">
+                                                                <div className="flex items-center gap-1" title="Downloads">
+                                                                    <Download size={14} className={iconColor} />
+                                                                    <span>{resource.downloads}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-1" title="Views">
+                                                                    <Eye size={14} className={iconColor} />
+                                                                    <span>{resource.views}</span>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div className="flex items-center gap-2">
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="icon"
+                                                                    onClick={() => handleDownload(resource)}
+                                                                    className="h-9 w-9 rounded-xl border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-elevated))] text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--accent))] hover:text-white hover:border-[rgb(var(--accent))] transition-all"
+                                                                    title="Download"
+                                                                >
+                                                                    <Download size={16} />
+                                                                </Button>
+                                                                <Button
+                                                                    onClick={() => handleView(resource)}
+                                                                    className="h-9 px-4 rounded-xl bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--accent))] hover:text-white hover:border-[rgb(var(--accent))] transition-all text-sm font-semibold group/btn"
+                                                                >
+                                                                    <span>View</span>
+                                                                    <ExternalLink size={14} className="ml-1.5 group-hover/btn:-mt-1 group-hover/btn:translate-x-0.5 transition-transform" />
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </Card>
-                                        </motion.div>
-                                    );
-                                })
+                                            </motion.div>
+                                        );
+                                    })}
+                                </AnimatePresence>
                             )}
                         </div>
                         {totalPages > 1 && (
-                            <div className="mt-8 flex justify-center">
+                            <div className="mt-12 flex justify-center">
                                 <Pagination
                                     currentPage={currentPage}
                                     totalPages={totalPages}

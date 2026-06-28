@@ -126,10 +126,12 @@ const RoadmapsPage = () => {
   }, [searchTerm, branchRoadmaps, activeCategory]);
 
   return (
-    <div className="min-h-screen bg-[rgb(var(--bg-body))] relative">
-      <BackgroundBlobs />
+    <div className="min-h-screen bg-[rgb(var(--bg-body))] relative overflow-hidden flex flex-col pb-12">
+      {/* Background Decorative Glow */}
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[rgb(var(--accent))]/10 rounded-full blur-[120px] -z-10 pointer-events-none translate-x-1/3 -translate-y-1/3"></div>
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] -z-10 pointer-events-none -translate-x-1/3 translate-y-1/3"></div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
 
         {/* ─── HERO SECTION ─── */}
         <motion.div
@@ -161,7 +163,7 @@ const RoadmapsPage = () => {
           <div className="flex justify-center mb-6">
               <button
                   onClick={() => setShowBranchModal(true)}
-                  className="px-4 py-1.5 rounded-full text-sm font-medium border border-[rgb(var(--border))] text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--accent))] hover:border-[rgb(var(--accent))] transition-colors"
+                  className="px-5 py-2 rounded-xl text-sm font-bold bg-[rgb(var(--bg-elevated))]/40 border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-secondary))] hover:text-white hover:bg-[rgb(var(--accent))] hover:border-[rgb(var(--accent))] transition-all backdrop-blur-sm"
               >
                   Change Branch
               </button>
@@ -170,20 +172,20 @@ const RoadmapsPage = () => {
           <p className="text-lg text-[rgb(var(--text-secondary))] max-w-2xl mx-auto leading-relaxed mb-8">
             Choose your dream tech career and follow a step-by-step roadmap from{' '}
             <span className="text-[rgb(var(--accent))] font-semibold">beginner</span> to{' '}
-            <span className="text-green-400 font-semibold">industry-ready professional</span>.
+            <span className="text-emerald-400 font-semibold">industry-ready professional</span>.
           </p>
 
           {/* Stats row */}
           <div className="flex flex-wrap items-center justify-center gap-4 mb-10">
             <StatCard icon={Map} value={totalCareerPaths} label="Career Paths" gradient="from-blue-500 to-cyan-500" />
             <StatCard icon={Zap} value={`${totalSkillTopics}+`} label="Skill Topics" gradient="from-purple-500 to-violet-500" />
-            <StatCard icon={Bot} value="AI" label="Mentor Guidance" gradient="from-green-500 to-emerald-500" />
+            <StatCard icon={Bot} value="AI" label="Mentor Guidance" gradient="from-emerald-500 to-green-500" />
             <StatCard icon={TrendingUp} value="XP" label="Gamified Progress" gradient="from-orange-500 to-red-500" />
           </div>
 
           {/* Search */}
-          <div className="relative max-w-xl mx-auto">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+          <div className="relative max-w-2xl mx-auto">
+            <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
               <Search className="w-5 h-5 text-[rgb(var(--text-muted))]" />
             </div>
             <input
@@ -191,12 +193,12 @@ const RoadmapsPage = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search careers, skills, technologies..."
-              className="w-full pl-12 pr-6 py-4 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))]/90 backdrop-blur-sm text-[rgb(var(--text-primary))] placeholder-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent transition-all text-base shadow-xl"
+              className="w-full pl-14 pr-12 py-4 rounded-full border border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-elevated))]/60 backdrop-blur-md text-[rgb(var(--text-primary))] placeholder-[rgb(var(--text-muted))] focus:outline-none focus:border-[rgb(var(--accent))] transition-all text-base shadow-lg shadow-black/5"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute inset-y-0 right-4 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors text-sm"
+                className="absolute inset-y-0 right-5 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] transition-colors text-sm"
               >
                 ✕
               </button>
@@ -211,7 +213,7 @@ const RoadmapsPage = () => {
           transition={{ delay: 0.3 }}
           className="mb-8"
         >
-          <div className="flex items-center justify-between gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
               <FilterBar 
                 activeCategory={activeCategory} 
@@ -221,11 +223,11 @@ const RoadmapsPage = () => {
             </div>
             <motion.button
               onClick={() => navigate('/roadmaps/compare')}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-[rgb(var(--accent))]/10 border border-[rgb(var(--accent))]/30 text-[rgb(var(--accent))] text-sm font-semibold hover:bg-[rgb(var(--accent))]/20 flex-shrink-0 transition-all"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[rgb(var(--bg-elevated))]/40 border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))] text-sm font-bold hover:bg-[rgb(var(--accent))] hover:text-white hover:border-[rgb(var(--accent))] flex-shrink-0 transition-all backdrop-blur-sm group"
             >
-              <GitCompare className="w-4 h-4" />
+              <GitCompare className="w-4 h-4 text-[rgb(var(--accent))] group-hover:text-white transition-colors" />
               Compare Careers
             </motion.button>
           </div>
@@ -238,14 +240,14 @@ const RoadmapsPage = () => {
           transition={{ delay: 0.4 }}
           className="flex items-center justify-between mb-6"
         >
-          <p className="text-sm text-[rgb(var(--text-muted))]">
+          <p className="text-sm font-medium text-[rgb(var(--text-muted))]">
             <span className="font-bold text-[rgb(var(--text-primary))]">{filteredRoadmaps.length}</span> career paths found
           </p>
           <button
             onClick={() => navigate('/roadmaps/compare')}
-            className="sm:hidden flex items-center gap-1.5 text-sm text-[rgb(var(--accent))] font-semibold"
+            className="sm:hidden flex items-center gap-1.5 text-sm text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-elevated))] px-3 py-1.5 rounded-lg border border-[rgb(var(--border-subtle))] font-semibold"
           >
-            <GitCompare className="w-4 h-4" />
+            <GitCompare className="w-4 h-4 text-[rgb(var(--accent))]" />
             Compare
           </button>
         </motion.div>
@@ -258,16 +260,16 @@ const RoadmapsPage = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-col items-center justify-center py-24 text-center"
+              className="flex flex-col items-center justify-center py-24 text-center bg-[rgb(var(--bg-card))]/40 backdrop-blur-sm rounded-3xl border border-[rgb(var(--border-subtle))]"
             >
-              <div className="w-20 h-20 rounded-2xl bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] flex items-center justify-center mb-4">
+              <div className="w-20 h-20 rounded-2xl bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] flex items-center justify-center mb-6 shadow-sm">
                 <Search className="w-8 h-8 text-[rgb(var(--text-muted))]" />
               </div>
               <h3 className="text-xl font-bold text-[rgb(var(--text-primary))] mb-2">No careers found</h3>
-              <p className="text-[rgb(var(--text-muted))]">Try a different search term or category</p>
+              <p className="text-[rgb(var(--text-secondary))] mb-6 max-w-md mx-auto">We couldn't find any career paths matching your search. Try a different term or category.</p>
               <button
                 onClick={() => { setSearchTerm(''); setActiveCategory('all'); }}
-                className="mt-4 text-[rgb(var(--accent))] font-semibold hover:underline"
+                className="px-6 py-2.5 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] font-bold hover:bg-[rgb(var(--accent))] hover:text-white hover:border-[rgb(var(--accent))] transition-all"
               >
                 Clear filters
               </button>
@@ -275,7 +277,7 @@ const RoadmapsPage = () => {
           ) : (
             <motion.div
               key="grid"
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
             >
               {filteredRoadmaps.map((roadmap, index) => (
                 <CareerCard
@@ -295,24 +297,24 @@ const RoadmapsPage = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
-          className="mt-20 rounded-3xl bg-gradient-to-br from-indigo-500/20 via-purple-500/10 to-cyan-500/10 border border-indigo-500/20 p-8 text-center relative overflow-hidden"
+          className="mt-20 rounded-3xl bg-[rgb(var(--bg-card))]/60 backdrop-blur-xl border border-indigo-500/20 p-8 text-center relative overflow-hidden shadow-2xl"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-cyan-500/5" />
-          <div className="relative">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mx-auto mb-4 shadow-xl shadow-indigo-500/30">
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/5 to-cyan-500/10 pointer-events-none" />
+          <div className="relative z-10">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mx-auto mb-5 shadow-[0_0_20px_rgba(99,102,241,0.4)]">
               <Bot className="w-8 h-8 text-white" />
             </div>
             <h2 className="text-2xl font-black text-[rgb(var(--text-primary))] mb-3">
               Not sure which path to choose?
             </h2>
-            <p className="text-[rgb(var(--text-secondary))] mb-6 max-w-lg mx-auto">
+            <p className="text-[rgb(var(--text-secondary))] mb-8 max-w-lg mx-auto font-medium">
               Use the Career Comparison tool to compare salaries, demand, difficulty, and required skills side by side.
             </p>
             <motion.button
               onClick={() => navigate('/roadmaps/compare')}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-bold rounded-2xl shadow-xl shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all"
             >
               <GitCompare className="w-5 h-5" />
               Compare Careers Now

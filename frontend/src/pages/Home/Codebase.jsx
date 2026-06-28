@@ -1,7 +1,7 @@
 // src/pages/CodeExecution.jsx
 import React, { useState, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Code, Terminal, Copy, Download, RotateCcw, Settings, ChevronDown } from 'lucide-react';
 import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import { ButtonLoader } from '../../components/ui/Loader.jsx';
@@ -307,363 +307,254 @@ const CodeExecution = () => {
             initial="hidden"
             animate="visible"
             variants={containerVariants}
-            className="min-h-screen bg-[rgb(var(--bg-body))] p-3 sm:p-6"
+            className="min-h-screen bg-[rgb(var(--bg-body))] relative overflow-hidden flex flex-col"
         >
-            <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-                {/* Enhanced Header */}
+            {/* Immersive Background Glow */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[rgb(var(--accent))]/10 rounded-full blur-[100px] -z-10 pointer-events-none translate-x-1/3 -translate-y-1/3"></div>
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[100px] -z-10 pointer-events-none -translate-x-1/3 translate-y-1/3"></div>
+            
+            <div className="flex-1 w-full max-w-[1920px] mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
+                
+                {/* 1. Immersive Header & Toolbar */}
                 <motion.div
                     variants={itemVariants}
-                    className="flex flex-col gap-4 bg-[rgb(var(--bg-card))] backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-lg border border-[rgb(var(--border-subtle))]"
+                    className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-[rgb(var(--bg-card))]/80 backdrop-blur-2xl p-5 sm:p-6 rounded-3xl shadow-xl border border-[rgb(var(--border-subtle))] relative z-10"
                 >
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] rounded-xl shadow-lg shadow-[rgb(var(--accent))]/30">
-                                <Code className="h-6 w-6 text-white" />
-                            </div>
-                            <div>
-                                <h1 className="text-2xl sm:text-3xl font-bold text-[rgb(var(--text-primary))]">
-                                    Code Execution Platform
-                                </h1>
-                                <p className="text-sm text-[rgb(var(--text-muted))] mt-1">
-                                    Write, test, and execute code in multiple languages
-                                </p>
-                            </div>
+                    <div className="flex items-center gap-5">
+                        <div className="p-3.5 bg-gradient-to-br from-[rgb(var(--accent))] to-purple-600 rounded-2xl shadow-[0_0_20px_rgba(var(--accent),0.4)]">
+                            <Code className="h-7 w-7 text-white" />
                         </div>
+                        <div>
+                            <h1 className="text-2xl sm:text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[rgb(var(--text-primary))] to-[rgb(var(--accent))]">
+                                Code Workspace
+                            </h1>
+                            <p className="text-[rgb(var(--text-secondary))] font-medium mt-1 text-sm sm:text-base">
+                                Build, test, and execute in multiple languages
+                            </p>
+                        </div>
+                    </div>
 
+                    <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
                         {/* Language Selector */}
-                        <div className="relative w-full sm:w-auto">
-                            <div className="flex items-center gap-2 w-full sm:w-auto">
-                                <Terminal className="h-4 w-4 text-[rgb(var(--text-muted))] flex-shrink-0" />
-                                <div className="relative flex-1 sm:flex-none">
-                                    {/* Custom styled select with icon */}
-                                    <div className="relative">
-                                        <div className="flex items-center gap-2 w-full sm:w-auto p-3 pr-10 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 text-white border border-gray-700 hover:border-primary hover:shadow-lg shadow-[rgb(var(--accent))]/30 transition-all duration-200 font-medium min-w-[180px] shadow-md">
-                                            {LanguageIcons[selectedLanguage.icon] && React.createElement(LanguageIcons[selectedLanguage.icon])}
-                                            <span className="flex-1">{selectedLanguage.name}</span>
-                                        </div>
-                                        <select
-                                            className="absolute inset-0 w-full opacity-0 cursor-pointer bg-[rgb(var(--bg-card))] text-[rgb(var(--text-primary))]"
-                                            style={{
-                                                colorScheme: theme === 'vs-dark' || theme === 'hc-black' ? 'dark' : 'light'
-                                            }}
-                                            value={language}
-                                            onChange={(e) => handleLanguageChange(Number(e.target.value))}
-                                        >
-                                            {LANGUAGES.map((lang) => (
-                                                <option key={lang.id} value={lang.id}>
-                                                    {lang.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-primary pointer-events-none" />
-                                    </div>
-                                </div>
+                        <div className="relative group">
+                            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[rgb(var(--bg-elevated))]/60 border border-[rgb(var(--border-subtle))] group-hover:border-[rgb(var(--accent))]/50 group-hover:shadow-[0_0_15px_rgba(var(--accent),0.1)] transition-all cursor-pointer min-w-[200px]">
+                                <Terminal className="h-5 w-5 text-[rgb(var(--text-muted))]" />
+                                {LanguageIcons[selectedLanguage.icon] && React.createElement(LanguageIcons[selectedLanguage.icon])}
+                                <span className="flex-1 font-semibold text-[rgb(var(--text-primary))]">{selectedLanguage.name}</span>
+                                <ChevronDown className="h-4 w-4 text-[rgb(var(--text-muted))] group-hover:text-[rgb(var(--accent))] transition-colors" />
                             </div>
+                            <select
+                                className="absolute inset-0 w-full opacity-0 cursor-pointer"
+                                value={language}
+                                onChange={(e) => handleLanguageChange(Number(e.target.value))}
+                            >
+                                {LANGUAGES.map((lang) => (
+                                    <option key={lang.id} value={lang.id}>{lang.name}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Action Toolbar */}
+                        <div className="flex items-center gap-2 bg-[rgb(var(--bg-elevated))]/40 p-1.5 rounded-2xl border border-[rgb(var(--border-subtle))]">
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={runCode}
+                                disabled={loading}
+                                className="flex items-center gap-2 bg-gradient-to-r from-[rgb(var(--accent))] to-purple-600 hover:from-[rgb(var(--accent-hover))] hover:to-purple-500 text-white px-5 py-2.5 rounded-xl shadow-[0_0_20px_rgba(var(--accent),0.3)] hover:shadow-[0_0_30px_rgba(var(--accent),0.5)] transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
+                            >
+                                {loading ? (
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                ) : (
+                                    <>
+                                        <Play className="h-5 w-5 fill-white group-hover:scale-110 transition-transform" />
+                                        <span>Run</span>
+                                    </>
+                                )}
+                            </motion.button>
+                            
+                            <div className="w-px h-8 bg-[rgb(var(--border-subtle))] mx-1 hidden sm:block"></div>
+
+                            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => copyToClipboard(code)} className="p-3 rounded-xl text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-card))] transition-all tooltip-trigger" title="Copy Code">
+                                <Copy className="h-5 w-5" />
+                            </motion.button>
+                            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={downloadCode} className="p-3 rounded-xl text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-card))] transition-all tooltip-trigger" title="Download Code">
+                                <Download className="h-5 w-5" />
+                            </motion.button>
+                            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={resetCode} className="p-3 rounded-xl text-[rgb(var(--text-secondary))] hover:text-red-500 hover:bg-red-500/10 transition-all tooltip-trigger" title="Reset to Default">
+                                <RotateCcw className="h-5 w-5" />
+                            </motion.button>
+                            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setShowSettings(!showSettings)} className={`p-3 rounded-xl transition-all ${showSettings ? 'bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))]' : 'text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-card))]'}`} title="Settings">
+                                <Settings className="h-5 w-5" />
+                            </motion.button>
                         </div>
                     </div>
+                </motion.div>
 
-                    {/* Action Buttons */}
-                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[rgb(var(--border-subtle))]">
-                        <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={runCode}
-                            disabled={loading}
-                            className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 disabled:from-gray-400 disabled:to-gray-500 text-white px-4 py-2.5 rounded-lg shadow-md transition-all duration-200 font-medium disabled:cursor-not-allowed"
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                    <span className="hidden sm:inline">Running...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Play className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Execute</span>
-                                </>
-                            )}
-                        </motion.button>
-
-                        <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => copyToClipboard(code)}
-                            className="flex items-center gap-2 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2.5 rounded-lg shadow-md transition-all duration-200 font-medium"
-                        >
-                            <Copy className="h-4 w-4" />
-                            <span className="hidden sm:inline">Copy</span>
-                        </motion.button>
-
-                        <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={downloadCode}
-                            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2.5 rounded-lg shadow-md transition-all duration-200 font-medium"
-                        >
-                            <Download className="h-4 w-4" />
-                            <span className="hidden sm:inline">Download</span>
-                        </motion.button>
-
-                        <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={resetCode}
-                            className="flex items-center gap-2 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] hover:shadow-lg shadow-[rgb(var(--accent))]/30 text-white px-4 py-2.5 rounded-lg shadow-md transition-all duration-200 font-medium"
-                        >
-                            <RotateCcw className="h-4 w-4" />
-                            <span className="hidden sm:inline">Reset</span>
-                        </motion.button>
-
-                        <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => setShowSettings(!showSettings)}
-                            className="flex items-center gap-2 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] hover:shadow-lg shadow-[rgb(var(--accent))]/30 text-white px-4 py-2.5 rounded-lg shadow-md transition-all duration-200 font-medium"
-                        >
-                            <Settings className="h-4 w-4" />
-                            <span className="hidden sm:inline">Settings</span>
-                        </motion.button>
-                    </div>
-
-                    {/* Settings Panel */}
+                {/* Settings Panel Expansion */}
+                <AnimatePresence>
                     {showSettings && (
                         <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="bg-[rgb(var(--bg-body))] rounded-xl p-4 border border-[rgb(var(--border-subtle))]"
+                            initial={{ opacity: 0, height: 0, marginTop: -20 }}
+                            animate={{ opacity: 1, height: 'auto', marginTop: 0 }}
+                            exit={{ opacity: 0, height: 0, marginTop: -20 }}
+                            className="bg-[rgb(var(--bg-card))]/90 backdrop-blur-md rounded-2xl p-5 border border-[rgb(var(--border-subtle))] shadow-lg relative z-0"
                         >
-                            <h3 className="font-semibold text-[rgb(var(--text-primary))] mb-3">Editor Settings</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-[rgb(var(--text-secondary))] mb-2">
-                                        Theme
-                                    </label>
-                                    <select
-                                        value={theme}
-                                        onChange={(e) => handleThemeChange(e.target.value)}
-                                        className="w-full p-2 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-card))] text-[rgb(var(--text-primary))]"
-                                    >
-                                        <option value="vs-dark">Dark Theme</option>
-                                        <option value="light">Light Theme</option>
-                                        <option value="hc-black">High Contrast</option>
-                                    </select>
-                                    <p className="text-xs text-[rgb(var(--text-muted))] mt-1">Auto-syncs with system theme</p>
+                            <h3 className="font-bold text-[rgb(var(--text-primary))] mb-4 flex items-center gap-2"><Settings className="w-4 h-4"/> Editor Preferences</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-[rgb(var(--text-secondary))]">Editor Theme</label>
+                                    <div className="relative">
+                                        <select value={theme} onChange={(e) => handleThemeChange(e.target.value)} className="w-full p-3 rounded-xl bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] outline-none appearance-none cursor-pointer shadow-inner">
+                                            <option value="vs-dark">Dark Theme (VS Code)</option>
+                                            <option value="light">Light Theme</option>
+                                            <option value="hc-black">High Contrast</option>
+                                        </select>
+                                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-muted))] pointer-events-none"/>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-[rgb(var(--text-secondary))] mb-2">
-                                        Font Size
-                                    </label>
-                                    <select
-                                        value={fontSize}
-                                        onChange={(e) => setFontSize(Number(e.target.value))}
-                                        className="w-full p-2 border border-[rgb(var(--border-subtle))] rounded-lg bg-[rgb(var(--bg-card))] text-[rgb(var(--text-primary))]"
-                                    >
-                                        <option value={12}>12px</option>
-                                        <option value={14}>14px</option>
-                                        <option value={16}>16px</option>
-                                        <option value={18}>18px</option>
-                                        <option value={20}>20px</option>
-                                    </select>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-[rgb(var(--text-secondary))]">Font Size</label>
+                                    <div className="relative">
+                                        <select value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} className="w-full p-3 rounded-xl bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-primary))] focus:ring-2 focus:ring-[rgb(var(--accent))] outline-none appearance-none cursor-pointer shadow-inner">
+                                            {[12,14,16,18,20,22,24].map(size => (
+                                                <option key={size} value={size}>{size}px</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-muted))] pointer-events-none"/>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
                     )}
-                </motion.div>
+                </AnimatePresence>
 
-                {/* Main Content Grid */}
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
-                    {/* Code Editor */}
+                {/* 2. Main Workspace Split View */}
+                <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[600px]">
+                    {/* Editor Section */}
                     <motion.div
                         variants={itemVariants}
-                        className="xl:col-span-2 bg-[rgb(var(--bg-card))] backdrop-blur-sm rounded-2xl shadow-lg border border-[rgb(var(--border-subtle))] overflow-hidden"
+                        className="lg:col-span-8 flex flex-col bg-[rgb(var(--bg-card))]/60 backdrop-blur-md rounded-3xl border border-[rgb(var(--border-subtle))] shadow-xl overflow-hidden relative"
                     >
-                        <div className="p-3 sm:p-4 border-b border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-body))]">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="flex gap-2">
-                                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                                    </div>
-                                    <span className="text-sm text-[rgb(var(--text-secondary))] ml-2">
-                                         {selectedLanguage?.name} Editor
-                                    </span>
+                        {/* Editor Header */}
+                        <div className="flex items-center justify-between px-5 py-3 bg-[rgb(var(--bg-elevated))]/80 border-b border-[rgb(var(--border-subtle))] backdrop-blur-sm">
+                            <div className="flex items-center gap-3">
+                                <div className="flex gap-1.5">
+                                    <div className="w-3 h-3 bg-red-500 rounded-full shadow-sm"></div>
+                                    <div className="w-3 h-3 bg-yellow-500 rounded-full shadow-sm"></div>
+                                    <div className="w-3 h-3 bg-green-500 rounded-full shadow-sm"></div>
                                 </div>
-                                <div className="flex items-center gap-1 text-xs text-[rgb(var(--text-muted))]">
-                                    <span className="hidden sm:inline">Lines: {code.split('\n').length}</span>
-                                    <span className="sm:hidden">{code.split('\n').length}L</span>
-                                </div>
+                                <span className="text-sm font-bold text-[rgb(var(--text-secondary))] ml-2 tracking-wide">
+                                    main.{selectedLanguage?.name === 'Python' ? 'py' : selectedLanguage?.name === 'JavaScript' ? 'js' : selectedLanguage?.name === 'Java' ? 'java' : selectedLanguage?.name === 'C' ? 'c' : selectedLanguage?.name === 'C++' ? 'cpp' : 'kt'}
+                                </span>
+                            </div>
+                            <div className="text-xs font-mono text-[rgb(var(--text-muted))] bg-[rgb(var(--bg-body))] px-2.5 py-1 rounded-md border border-[rgb(var(--border-subtle))]">
+                                {code.split('\n').length} Lines
                             </div>
                         </div>
-                        <div className="h-[300px] sm:h-[400px] lg:h-[500px]">
+                        
+                        {/* Editor Container */}
+                        <div className="flex-1 w-full relative">
+                            <div className="absolute inset-0 top-0 h-px bg-gradient-to-r from-transparent via-[rgb(var(--accent))]/30 to-transparent"></div>
                             <Editor
                                 height="100%"
-                                language={selectedLanguage?.name === 'C++' ? 'cpp' : selectedLanguage?.name.toLowerCase()}
-                                value={code}
+                                language={selectedLanguage.name.toLowerCase() === 'c++' ? 'cpp' : selectedLanguage.name.toLowerCase()}
                                 theme={theme}
+                                value={code}
                                 onChange={(value) => setCode(value || '')}
                                 options={{
+                                    minimap: { enabled: false },
                                     fontSize: fontSize,
-                                    minimap: { enabled: window.innerWidth > 768 },
-                                    scrollBeyondLastLine: false,
                                     wordWrap: 'on',
-                                    lineNumbers: 'on',
-                                    folding: true,
-                                    bracketPairColorization: { enabled: true },
-                                    automaticLayout: true,
-                                    tabSize: 2,
-                                    insertSpaces: true,
-                                    renderWhitespace: 'selection',
-                                    contextmenu: true,
-                                    selectOnLineNumbers: true,
-                                    roundedSelection: false,
-                                    readOnly: false,
-                                    cursorStyle: 'line',
-                                    mouseWheelZoom: true,
+                                    scrollBeyondLastLine: false,
                                     smoothScrolling: true,
+                                    cursorBlinking: 'smooth',
+                                    cursorSmoothCaretAnimation: 'on',
+                                    formatOnPaste: true,
+                                    fontFamily: "'Fira Code', 'JetBrains Mono', 'Menlo', 'Monaco', 'Courier New', monospace",
+                                    fontLigatures: true,
+                                    padding: { top: 16, bottom: 16 },
+                                    lineNumbersMinChars: 3,
                                 }}
                                 loading={
-                                    <div className="flex items-center justify-center h-full">
-                                        <div className="flex items-center gap-2 text-gray-500">
-                                            <Loader2 className="h-5 w-5 animate-spin" />
-                                            <span>Loading editor...</span>
-                                        </div>
+                                    <div className="flex flex-col items-center justify-center h-full text-[rgb(var(--accent))] space-y-4">
+                                        <Loader2 className="w-10 h-10 animate-spin" />
+                                        <span className="font-semibold tracking-widest uppercase text-sm">Initializing Editor...</span>
                                     </div>
                                 }
                             />
                         </div>
                     </motion.div>
 
-                    {/* Input & Controls Panel */}
-                    <motion.div variants={itemVariants} className="space-y-4 sm:space-y-6">
-                        {/* Input Section */}
-                        <div className="bg-[rgb(var(--bg-card))] backdrop-blur-sm rounded-2xl shadow-lg border border-[rgb(var(--border-subtle))] p-4 sm:p-6">
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="p-2 bg-secondary/20 rounded-lg">
-                                    <Terminal className="h-4 w-4 text-secondary" />
-                                </div>
-                                <h2 className="font-semibold text-lg text-[rgb(var(--text-primary))]">Input</h2>
+                    {/* I/O Section */}
+                    <motion.div
+                        variants={itemVariants}
+                        className="lg:col-span-4 flex flex-col gap-6"
+                    >
+                        {/* Standard Input Panel */}
+                        <div className="flex-1 flex flex-col bg-[rgb(var(--bg-card))]/60 backdrop-blur-md rounded-3xl border border-[rgb(var(--border-subtle))] shadow-xl overflow-hidden min-h-[250px]">
+                            <div className="flex items-center gap-2 px-5 py-3.5 bg-[rgb(var(--bg-elevated))]/80 border-b border-[rgb(var(--border-subtle))]">
+                                <Terminal className="w-4 h-4 text-[rgb(var(--text-secondary))]" />
+                                <h3 className="font-bold text-[rgb(var(--text-primary))] text-sm tracking-wide">Input (stdin)</h3>
                             </div>
                             <textarea
-                                className="w-full p-3 border border-[rgb(var(--border-subtle))] rounded-xl bg-[rgb(var(--bg-body))] text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 resize-none"
-                                placeholder="Enter input data here..."
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
-                                rows={4}
+                                placeholder="Enter any standard input required by your program here..."
+                                className="flex-1 w-full p-5 bg-transparent text-[rgb(var(--text-primary))] font-mono text-sm resize-none focus:outline-none focus:ring-inset focus:ring-2 focus:ring-[rgb(var(--accent))]/30 custom-scrollbar placeholder:text-[rgb(var(--text-muted))]/50"
+                                spellCheck="false"
                             />
-                            <p className="text-xs text-[rgb(var(--text-muted))] mt-2">
-                                Provide input data that your program will read from stdin
-                            </p>
                         </div>
 
-                        {/* Quick Actions */}
-                        <div className="bg-[rgb(var(--bg-card))] backdrop-blur-sm rounded-2xl shadow-lg border border-[rgb(var(--border-subtle))] p-4 sm:p-6">
-                            <h2 className="font-semibold text-lg text-[rgb(var(--text-primary))] mb-4">Quick Actions</h2>
-                            <div className="grid grid-cols-2 gap-2">
-                                <motion.button
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={() => copyToClipboard(output)}
-                                    disabled={!output}
-                                    className="flex items-center justify-center gap-2 bg-[rgb(var(--bg-body))] hover:bg-[rgb(var(--bg-card))] text-[rgb(var(--text-primary))] px-3 py-2 rounded-lg transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm border border-[rgb(var(--border-subtle))]"
-                                >
-                                    <Copy className="h-3 w-3" />
-                                    Copy Output
-                                </motion.button>
-                                <motion.button
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={() => setInput('')}
-                                    className="flex items-center justify-center gap-2 bg-[rgb(var(--bg-body))] hover:bg-[rgb(var(--bg-card))] text-[rgb(var(--text-primary))] px-3 py-2 rounded-lg transition-all duration-200 font-medium text-sm border border-[rgb(var(--border-subtle))]"
-                                >
-                                    <RotateCcw className="h-3 w-3" />
-                                    Clear Input
-                                </motion.button>
+                        {/* Output Panel */}
+                        <div className="flex-1 flex flex-col bg-[rgb(var(--bg-card))]/60 backdrop-blur-md rounded-3xl border border-[rgb(var(--border-subtle))] shadow-xl overflow-hidden min-h-[300px]">
+                            <div className="flex justify-between items-center px-5 py-3.5 bg-[rgb(var(--bg-elevated))]/80 border-b border-[rgb(var(--border-subtle))]">
+                                <div className="flex items-center gap-2">
+                                    <Terminal className="w-4 h-4 text-[rgb(var(--text-secondary))]" />
+                                    <h3 className="font-bold text-[rgb(var(--text-primary))] text-sm tracking-wide">Execution Output</h3>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="relative flex h-2.5 w-2.5">
+                                        {loading ? (
+                                            <>
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-500"></span>
+                                            </>
+                                        ) : output ? (
+                                            <>
+                                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                                            </>
+                                        ) : (
+                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[rgb(var(--text-muted))]"></span>
+                                        )}
+                                    </span>
+                                    <span className="text-xs font-semibold text-[rgb(var(--text-muted))] uppercase">
+                                        {loading ? 'Running...' : output ? 'Finished' : 'Ready'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="flex-1 relative bg-[#0d1117] group">
+                                <textarea
+                                    value={output}
+                                    readOnly
+                                    placeholder="Run your code to see the output here..."
+                                    className={`w-full h-full p-5 bg-transparent font-mono text-sm resize-none focus:outline-none custom-scrollbar-dark ${
+                                        output.includes('❌') ? 'text-red-400' : 'text-[#e6edf3]'
+                                    }`}
+                                />
+                                {output && (
+                                    <button 
+                                        onClick={() => copyToClipboard(output)} 
+                                        className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm"
+                                        title="Copy Output"
+                                    >
+                                        <Copy className="w-4 h-4" />
+                                    </button>
+                                )}
                             </div>
                         </div>
-
-                        {/* Execute Button - Mobile Optimized */}
-                        <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={runCode}
-                            disabled={loading}
-                            className="w-full bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] hover:shadow-lg shadow-[rgb(var(--accent))]/30 disabled:from-gray-400 disabled:to-gray-500 text-white px-6 py-4 rounded-xl shadow-lg transition-all duration-200 font-semibold flex items-center justify-center gap-2 disabled:cursor-not-allowed"
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="h-5 w-5 animate-spin" />
-                                    <span>Executing Code...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Play className="h-5 w-5" />
-                                    <span>Execute Code</span>
-                                </>
-                            )}
-                        </motion.button>
                     </motion.div>
                 </div>
-
-                {/* Enhanced Output Section */}
-                <motion.div
-                    variants={itemVariants}
-                    className="bg-[rgb(var(--bg-card))] backdrop-blur-sm rounded-2xl shadow-lg border border-[rgb(var(--border-subtle))] overflow-hidden"
-                >
-                    <div className="p-4 sm:p-6 border-b border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-body))]">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <div className="p-2 bg-green-500/20 rounded-lg">
-                                    <Terminal className="h-5 w-5 text-green-400" />
-                                </div>
-                                <div>
-                                    <h2 className="font-semibold text-lg text-[rgb(var(--text-primary))]">Console Output</h2>
-                                    <p className="text-xs text-[rgb(var(--text-muted))]">Program execution results</p>
-                                </div>
-                            </div>
-                            {output && (
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={() => copyToClipboard(output)}
-                                    className="flex items-center gap-1 bg-[rgb(var(--bg-body))] hover:bg-[rgb(var(--bg-card))] text-[rgb(var(--text-primary))] px-3 py-1.5 rounded-lg transition-all duration-200 text-sm border border-[rgb(var(--border-subtle))]"
-                                >
-                                    <Copy className="h-3 w-3" />
-                                    <span className="hidden sm:inline">Copy</span>
-                                </motion.button>
-                            )}
-                        </div>
-                    </div>
-                    <div className="p-4 sm:p-6">
-                        <div className="bg-gray-900 rounded-xl p-4 min-h-[120px] max-h-[300px] overflow-auto border border-[rgb(var(--border-subtle))]">
-                            <pre className="whitespace-pre-wrap text-sm font-mono leading-relaxed">
-                                {output ? (
-                                    <span className={
-                                        output.startsWith('❌')
-                                            ? 'text-red-400'
-                                            : output.startsWith('✅')
-                                                ? 'text-green-400'
-                                                : 'text-gray-100'
-                                    }>
-                                        {output}
-                                    </span>
-                                ) : (
-                                    <span className="text-[rgb(var(--text-muted))] italic flex items-center gap-2">
-                                        <Terminal className="h-4 w-4" />
-                                        Output will appear here after code execution...
-                                    </span>
-                                )}
-                            </pre>
-                        </div>
-                        {output && (
-                            <div className="mt-3 flex items-center justify-between text-xs text-[rgb(var(--text-muted))]">
-                                <span>Execution completed</span>
-                                <span>{new Date().toLocaleTimeString()}</span>
-                            </div>
-                        )}
-                    </div>
-                </motion.div>
             </div>
         </motion.div>
     );

@@ -1,14 +1,14 @@
 import React, { useState, useContext } from 'react';
-import { Eye, EyeOff, Mail, User, Upload, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, User, Upload, Lock, ArrowLeft } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { UserContext } from '../../context/UserContext.jsx';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import VerifyOTP from './VerifyOTP.jsx';
 
-const SignUp = ({ onSwitch }) => {
+const SignUp = () => {
   const { setUser } = useContext(UserContext);
   const navigate = useNavigate();
 
@@ -155,7 +155,7 @@ const SignUp = ({ onSwitch }) => {
   const handleVerified = () => {
     toast.success('🎉 Account created successfully! Please login.');
     setTimeout(() => {
-      onSwitch(); // Switch to login page
+      navigate('/login'); // Switch to login page
     }, 1500);
   };
 
@@ -175,172 +175,210 @@ const SignUp = ({ onSwitch }) => {
   }
 
   return (
-    <div className="w-full">
-      <h2 className="text-xl sm:text-2xl font-bold text-center text-[rgb(var(--accent))] mb-1">Create an Account ✨</h2>
-      <p className="text-xs sm:text-sm text-[rgb(var(--text-muted))] text-center mb-4 sm:mb-6">Join us by filling the details below</p>
+    <div className="min-h-screen bg-[rgb(var(--bg-body))] relative flex items-center justify-center p-4 overflow-hidden py-12">
+      {/* Background Orbs */}
+      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-[rgb(var(--accent))]/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-purple-500/15 rounded-full blur-[150px] pointer-events-none hidden md:block" />
 
-      {/* Profile Upload */}
-      <div className="flex justify-center mb-4 sm:mb-6">
-        <label className="relative cursor-pointer group">
-          {photoPreview ? (
-            <img
-              src={photoPreview}
-              alt="Profile"
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-[rgb(var(--accent))] shadow-md"
-            />
-          ) : (
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[rgb(var(--accent))]/10 flex items-center justify-center border-2 border-[rgb(var(--accent))]/50">
-              <Upload className="text-[rgb(var(--accent))] w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handlePhotoChange}
-          />
-        </label>
-      </div>
+      <Link to="/" className="absolute top-6 left-6 md:top-10 md:left-10 text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--accent))] flex items-center gap-2 transition-colors z-20 font-medium">
+        <ArrowLeft className="w-5 h-5" />
+        Back to Home
+      </Link>
 
-      <form className="space-y-3 sm:space-y-4" onSubmit={handleSubmit}>
-        {/* Full Name */}
-        <div className="relative">
-          <User className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-4 h-4 sm:w-5 sm:h-5" />
-          <input
-            type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder="Full Name"
-            required
-            className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-2 text-sm sm:text-base bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
-          />
-        </div>
-
-        {/* Username */}
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] text-sm sm:text-base font-semibold select-none">@</span>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-            placeholder="username (e.g. john_doe)"
-            required
-            minLength={3}
-            maxLength={20}
-            className="w-full pl-8 sm:pl-9 pr-3 sm:pr-4 py-2.5 sm:py-2 text-sm sm:text-base bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
-          />
-        </div>
-
-        {/* Email */}
-        <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-4 h-4 sm:w-5 sm:h-5" />
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email Address"
-            required
-            className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-2 text-sm sm:text-base bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
-          />
-        </div>
-
-        {/* Password */}
-        <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-4 h-4 sm:w-5 sm:h-5" />
-          <input
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Min 8 chars, uppercase, number, symbol"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
-            maxLength={128}
-            className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2.5 sm:py-2 text-sm sm:text-base bg-[rgb(var(--bg-body-alt))] border border-[rgb(var(--border))] rounded-md text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))] focus:border-transparent"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] p-1"
-          >
-            {showPassword ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
-          </button>
-        </div>
-
-        {/* Password strength meter */}
-        {password.length > 0 && (
-          <div className="space-y-1 px-0.5">
-            {/* Bar */}
-            <div className="flex gap-1">
-              {[1,2,3,4,5].map(i => (
-                <div
-                  key={i}
-                  className="h-1 flex-1 rounded-full transition-all duration-300"
-                  style={{ backgroundColor: i <= passedChecks ? strengthColor : 'rgb(var(--border))' }}
-                />
-              ))}
-            </div>
-            {/* Label */}
-            <p className="text-xs font-medium" style={{ color: strengthColor }}>
-              {strengthLabel}
-            </p>
-            {/* Checklist */}
-            <ul className="space-y-0.5">
-              {pwdChecks.map((c, i) => (
-                <li key={i} className="flex items-center gap-1.5 text-xs"
-                  style={{ color: c.test(password) ? '#22c55e' : 'rgb(var(--text-muted))' }}>
-                  <span>{c.test(password) ? '✓' : '○'}</span>
-                  {c.label}
-                </li>
-              ))}
-            </ul>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-lg bg-[rgb(var(--bg-card))]/80 backdrop-blur-xl border border-[rgb(var(--border-subtle))] rounded-3xl p-8 sm:p-10 shadow-2xl relative z-10 my-auto"
+      >
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-[rgb(var(--accent))]/10 mb-4 shadow-inner border border-[rgb(var(--accent))]/20">
+            <User className="w-8 h-8 text-[rgb(var(--accent))]" />
           </div>
-        )}
+          <h2 className="text-3xl font-extrabold text-[rgb(var(--text-primary))] mb-2">Create an Account</h2>
+          <p className="text-[rgb(var(--text-secondary))]">Join us and start your journey today</p>
+        </div>
 
-        {/* Terms and Conditions Checkbox */}
-        <div className="flex items-start gap-2 pt-1 pb-1">
-          <input
-            type="checkbox"
-            id="terms"
-            checked={agreeToTerms}
-            onChange={(e) => setAgreeToTerms(e.target.checked)}
-            className="mt-0.5 w-4 h-4 rounded border-[rgb(var(--border))] text-[rgb(var(--accent))] focus:ring-[rgb(var(--accent))] bg-[rgb(var(--bg-body-alt))]"
-          />
-          <label htmlFor="terms" className="text-xs sm:text-sm text-[rgb(var(--text-secondary))] leading-tight">
-            I agree to the{' '}
-            <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-[rgb(var(--accent))] hover:underline">
-              Terms and Conditions
-            </a>{' '}
-            and{' '}
-            <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-[rgb(var(--accent))] hover:underline">
-              Privacy Policy
-            </a>
+        {/* Profile Upload */}
+        <div className="flex justify-center mb-8">
+          <label className="relative cursor-pointer group">
+            {photoPreview ? (
+              <img
+                src={photoPreview}
+                alt="Profile"
+                className="w-24 h-24 rounded-full object-cover border-4 border-[rgb(var(--bg-card))] shadow-[0_0_15px_rgba(var(--accent),0.3)] transition-transform group-hover:scale-105"
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-[rgb(var(--bg-elevated))]/80 flex flex-col items-center justify-center border-2 border-dashed border-[rgb(var(--border-subtle))] group-hover:border-[rgb(var(--accent))] group-hover:bg-[rgb(var(--accent))]/5 transition-all">
+                <Upload className="text-[rgb(var(--text-muted))] group-hover:text-[rgb(var(--accent))] w-6 h-6 mb-1 transition-colors" />
+                <span className="text-[10px] text-[rgb(var(--text-muted))] group-hover:text-[rgb(var(--accent))] transition-colors font-medium">Upload</span>
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handlePhotoChange}
+            />
+            {photoPreview && (
+              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Upload className="text-white w-6 h-6" />
+              </div>
+            )}
           </label>
         </div>
 
-        {/* Submit */}
-        <motion.button
-          type="submit"
-          whileTap={{ scale: 0.97 }}
-          disabled={loading || !agreeToTerms}
-          className={`w-full py-2.5 sm:py-2 rounded-md transition font-semibold tracking-wide shadow-md text-sm sm:text-base ${loading || !agreeToTerms
-            ? 'bg-[rgb(var(--text-muted))]/50 text-[rgb(var(--text-secondary))] cursor-not-allowed'
-            : 'bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] hover:shadow-lg text-white'
-            }`}
-        >
-          {loading ? 'Signing Up...' : 'SIGN UP'}
-        </motion.button>
-      </form>
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          {/* Full Name */}
+          <div className="relative group">
+            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-5 h-5 group-focus-within:text-[rgb(var(--accent))] transition-colors" />
+            <input
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Full Name"
+              required
+              className="w-full pl-12 pr-4 py-3.5 bg-[rgb(var(--bg-elevated))]/50 border border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]/50 focus:border-[rgb(var(--accent))] transition-all shadow-sm"
+            />
+          </div>
 
-      {/* Switch to login */}
-      <p className="text-xs sm:text-sm text-center mt-4 sm:mt-5 text-[rgb(var(--text-secondary))]">
-        Already have an account?{' '}
-        <button
-          onClick={onSwitch}
-          className="text-[rgb(var(--accent))] hover:text-[rgb(var(--accent-hover))] font-medium transition-colors"
-        >
-          Login
-        </button>
-      </p>
+          {/* Username & Email Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {/* Username */}
+            <div className="relative group">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-5 h-5 group-focus-within:text-[rgb(var(--accent))] transition-colors flex items-center justify-center font-bold text-lg pointer-events-none">@</span>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                placeholder="username"
+                required
+                minLength={3}
+                maxLength={20}
+                className="w-full pl-12 pr-4 py-3.5 bg-[rgb(var(--bg-elevated))]/50 border border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]/50 focus:border-[rgb(var(--accent))] transition-all shadow-sm"
+              />
+            </div>
+
+            {/* Email */}
+            <div className="relative group">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-5 h-5 group-focus-within:text-[rgb(var(--accent))] transition-colors" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email Address"
+                required
+                className="w-full pl-12 pr-4 py-3.5 bg-[rgb(var(--bg-elevated))]/50 border border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]/50 focus:border-[rgb(var(--accent))] transition-all shadow-sm"
+              />
+            </div>
+          </div>
+
+          {/* Password */}
+          <div className="relative group">
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] w-5 h-5 group-focus-within:text-[rgb(var(--accent))] transition-colors" />
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Min 8 chars, uppercase, number, symbol"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={8}
+              maxLength={128}
+              className="w-full pl-12 pr-12 py-3.5 bg-[rgb(var(--bg-elevated))]/50 border border-[rgb(var(--border-subtle))] rounded-xl text-[rgb(var(--text-primary))] placeholder:text-[rgb(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]/50 focus:border-[rgb(var(--accent))] transition-all shadow-sm"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] transition-colors"
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+          </div>
+
+          {/* Password strength meter */}
+          {password.length > 0 && (
+            <div className="space-y-2 p-3 bg-[rgb(var(--bg-body-alt))]/50 rounded-lg border border-[rgb(var(--border-subtle))]">
+              {/* Bar */}
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div
+                    key={i}
+                    className="h-1.5 flex-1 rounded-full transition-all duration-300"
+                    style={{ backgroundColor: i <= passedChecks ? strengthColor : 'rgba(128,128,128,0.2)' }}
+                  />
+                ))}
+              </div>
+              {/* Label */}
+              <p className="text-xs font-semibold" style={{ color: strengthColor }}>
+                {strengthLabel} Password
+              </p>
+              {/* Checklist */}
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1 mt-2">
+                {pwdChecks.map((c, i) => (
+                  <li
+                    key={i}
+                    className="flex items-center gap-2 text-[11px] sm:text-xs"
+                    style={{ color: c.test(password) ? '#22c55e' : 'rgb(var(--text-muted))' }}
+                  >
+                    <div className={`w-3 h-3 rounded-full flex items-center justify-center ${c.test(password) ? 'bg-green-500/20' : 'bg-[rgb(var(--text-muted))]/10'}`}>
+                       {c.test(password) && <span className="text-green-500 text-[8px]">✓</span>}
+                    </div>
+                    {c.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Terms and Conditions Checkbox */}
+          <div className="flex items-start gap-3 py-2">
+            <input
+              type="checkbox"
+              id="terms"
+              checked={agreeToTerms}
+              onChange={(e) => setAgreeToTerms(e.target.checked)}
+              className="mt-1 w-4 h-4 rounded border-[rgb(var(--border))] text-[rgb(var(--accent))] focus:ring-[rgb(var(--accent))] bg-[rgb(var(--bg-body-alt))] cursor-pointer"
+            />
+            <label htmlFor="terms" className="text-sm text-[rgb(var(--text-secondary))] leading-relaxed cursor-pointer select-none">
+              I agree to the{' '}
+              <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-[rgb(var(--accent))] hover:underline font-medium">
+                Terms and Conditions
+              </a>{' '}
+              and{' '}
+              <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-[rgb(var(--accent))] hover:underline font-medium">
+                Privacy Policy
+              </a>
+            </label>
+          </div>
+
+          {/* Submit */}
+          <motion.button
+            type="submit"
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            disabled={loading || !agreeToTerms}
+            className={`w-full py-3.5 rounded-xl transition-all font-bold tracking-wide shadow-lg text-base flex justify-center items-center ${loading || !agreeToTerms
+              ? 'bg-[rgb(var(--text-muted))]/30 text-[rgb(var(--text-secondary))] cursor-not-allowed'
+              : 'bg-gradient-to-r from-[rgb(var(--accent))] to-purple-500 hover:shadow-[0_0_20px_rgba(var(--accent),0.4)] text-white'
+              }`}
+          >
+            {loading ? (
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : 'Create Account'}
+          </motion.button>
+        </form>
+
+        {/* Switch to login */}
+        <p className="text-sm text-center mt-8 text-[rgb(var(--text-secondary))]">
+          Already have an account?{' '}
+          <Link
+            to="/login"
+            className="text-[rgb(var(--accent))] hover:text-[rgb(var(--accent-hover))] font-bold transition-colors"
+          >
+            Sign in instead
+          </Link>
+        </p>
+      </motion.div>
     </div>
   );
 };
