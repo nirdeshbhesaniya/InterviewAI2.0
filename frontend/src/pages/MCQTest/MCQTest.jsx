@@ -11,11 +11,12 @@ import axiosInstance from '../../utils/axiosInstance';
 import toast from 'react-hot-toast';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
-import { Clock, CheckCircle, XCircle, Award, Mail, Brain, Timer, BookOpen, Settings, ChevronLeft, ChevronRight, ChevronDown, Code, Copy, History, AlertTriangle } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, Award, Mail, Brain, Timer, BookOpen, Settings, ChevronLeft, ChevronRight, ChevronDown, Code, Copy, History, AlertTriangle, Lock } from 'lucide-react';
 import { ButtonLoader } from '../../components/ui/Loader';
 
 import BranchModal from '../../components/BranchModal';
 import { BRANCHES } from '../../utils/constants';
+import DSATestPage from './DSATestPage';
 
 const getLanguageFromTopic = (topic) => {
     if (!topic) return 'javascript';
@@ -88,7 +89,7 @@ const MCQTest = () => {
     
     // Branch Selection State
     const [selectedBranch, setSelectedBranch] = useState(
-        localStorage.getItem('dashboard_branch') || 'Computer Engineering (includes IT)'
+        localStorage.getItem('dashboard_branch') || 'Computer Engineering'
     );
     const [showBranchModal, setShowBranchModal] = useState(!localStorage.getItem('dashboard_branch'));
 
@@ -105,7 +106,8 @@ const MCQTest = () => {
         topic: '',
         experience: 'beginner',
         specialization: '',
-        numberOfQuestions: 30
+        numberOfQuestions: 30,
+        securityEnabled: true
     });
     const [questions, setQuestions] = useState([]);
     const [questionsWithAnswers, setQuestionsWithAnswers] = useState([]); // Store questions with correct answers for evaluation
@@ -114,7 +116,18 @@ const MCQTest = () => {
     const [markedForReview, setMarkedForReview] = useState({});
     const [visitedQuestions, setVisitedQuestions] = useState({});
     const [currentQuestion, setCurrentQuestion] = useState(0);
-    const [timeLeft, setTimeLeft] = useState(1800); // Default 30 minutes
+    const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
+    const [moduleTimes, setModuleTimes] = useState({});
+    const timeLeft = moduleTimes[currentModuleIndex] || 0;
+    const setTimeLeft = useCallback((val) => {
+        setModuleTimes(prev => ({
+            ...prev,
+            [currentModuleIndex]: typeof val === 'function' ? val(prev[currentModuleIndex] || 0) : val
+        }));
+    }, [currentModuleIndex]);
+    const [moduleTimeSpent, setModuleTimeSpent] = useState({});
+    const [dsaQuestions, setDsaQuestions] = useState([]);
+    const [rawTestData, setRawTestData] = useState(null);
 
     const getSpecializationSuggestions = (branchId) => {
         switch (branchId) {
@@ -213,7 +226,7 @@ const MCQTest = () => {
                         setQuestionsWithAnswers(response.data.questionsWithAnswers || response.data.data.questionsWithAnswers);
                     }
                     setCurrentStep('test');
-                    setTimeLeft(numQuestions * 120);
+                    setModuleTimes({ 0: numQuestions * 120 });
                     setTestStartTime(new Date());
                     setHasAttempted(true);
                     toast.success(`Test started! You have ${Math.ceil(numQuestions * 2)} minutes to complete.`);
@@ -271,6 +284,9 @@ const MCQTest = () => {
             markedForReview,
             visitedQuestions,
             currentQuestion,
+            currentModuleIndex,
+            moduleTimes,
+            moduleTimeSpent,
             timeLeft,
             testStartTime: testStartTime?.toISOString(),
             formData,
@@ -278,7 +294,7 @@ const MCQTest = () => {
             lastUpdated: new Date().toISOString()
         };
         localStorage.setItem(key, JSON.stringify(stateToSave));
-    }, [getPersistenceKey, currentStep, questions, questionsWithAnswers, answers, tempAnswer, markedForReview, visitedQuestions, currentQuestion, timeLeft, testStartTime, formData, attemptId]);
+    }, [getPersistenceKey, currentStep, questions, questionsWithAnswers, answers, tempAnswer, markedForReview, visitedQuestions, currentQuestion, currentModuleIndex, moduleTimes, moduleTimeSpent, timeLeft, testStartTime, formData, attemptId]);
 
     const clearProgress = useCallback(() => {
         const key = getPersistenceKey();
@@ -329,7 +345,27 @@ const MCQTest = () => {
                             setMarkedForReview(parsed.markedForReview || {});
                             setVisitedQuestions(parsed.visitedQuestions || {});
                             setCurrentQuestion(parsed.currentQuestion || 0);
-                            setTimeLeft(remaining);
+                            
+                            // Restore modular state
+                            setCurrentModuleIndex(parsed.currentModuleIndex || 0);
+                            if (parsed.moduleTimes && Object.keys(parsed.moduleTimes).length > 0) {
+                                // Apply elapsed time proportionally or just subtract from the current module
+                                const currentModule = parsed.currentModuleIndex || 0;
+                                const savedModuleTimes = { ...parsed.moduleTimes };
+                                
+                                if (startTime) {
+                                    const elapsed = Math.floor((now - startTime) / 1000);
+                                    // A simple approach: subtract elapsed from total allowed seconds, and sync `timeLeft`
+                                    // But it's better to just trust the stored timer or update it if time elapsed.
+                                    // We will just restore it as is and let `timeLeft` logic handle overall time if needed.
+                                    savedModuleTimes[currentModule] = remaining; // override active module with elapsed diff
+                                }
+                                setModuleTimes(savedModuleTimes);
+                            } else {
+                                setTimeLeft(remaining);
+                            }
+                            setModuleTimeSpent(parsed.moduleTimeSpent || {});
+                            
                             setTestStartTime(startTime);
                             setFormData(parsed.formData);
                             setAttemptId(parsed.attemptId);
@@ -377,6 +413,19 @@ const MCQTest = () => {
                         }));
 
                         setQuestions(transformedQuestions);
+                        setDsaQuestions(data.dsaQuestions || []);
+                        setRawTestData(data);
+
+                        // Initialize module times
+                        const initialTimes = {};
+                        (data.modules || []).forEach((m, idx) => {
+                            initialTimes[idx] = (m.timeLimit || 30) * 60;
+                        });
+                        if ((data.modules || []).length === 0) {
+                            initialTimes[0] = (data.timeLimit || 30) * 60;
+                        }
+                        setModuleTimes(initialTimes);
+
                         setFormData(prev => ({
                             ...prev,
                             topic: data.topic,
@@ -387,7 +436,10 @@ const MCQTest = () => {
                             maxAttempts: data.maxAttempts || 1,
                             isTimeRestricted: data.isTimeRestricted || false,
                             startTime: data.startTime || null,
-                            endTime: data.endTime || null
+                            endTime: data.endTime || null,
+                            moduleType: data.moduleType || 'mcq',
+                            securityEnabled: data.securityEnabled ?? false,
+                            modules: data.modules || []
                         }));
                         setHasAttempted(true);
                         setCurrentStep('guidelines');
@@ -509,7 +561,37 @@ const MCQTest = () => {
             setLoading(false);
             isSubmitting.current = false; // Release the lock
         }
-    }, [answers, testStartTime, formData, timeLeft, user, questionsWithAnswers, fullscreenWarnings, tabSwitchWarnings, setCurrentStep, setResults, setTestEndTime, setIsFullscreen, setLoading]);
+    }, [answers, testStartTime, formData, timeLeft, user, questionsWithAnswers, fullscreenWarnings, tabSwitchWarnings, setCurrentStep, setResults, setTestEndTime, setIsFullscreen, setLoading, moduleTimeSpent, getPersistenceKey]);
+
+    const handleModuleSubmit = useCallback(() => {
+        const currentModule = formData.modules?.[currentModuleIndex];
+        const manualTimeLimit = currentModule?.timeLimit || formData.timeLimit;
+        const totalAllowedSeconds = (manualTimeLimit || (questions.length * 2)) * 60;
+        const actualTimeSpent = totalAllowedSeconds - timeLeft;
+
+        setModuleTimeSpent(prev => ({
+            ...prev,
+            [currentModuleIndex]: actualTimeSpent
+        }));
+
+        if (formData.modules && currentModuleIndex < formData.modules.length - 1) {
+            const nextModuleIndex = currentModuleIndex + 1;
+            setCurrentModuleIndex(nextModuleIndex);
+            
+            const nextModuleQuestions = questions
+                .map((q, i) => ({...q, globalIndex: i}))
+                .filter(q => (q.moduleIndex || 0) === nextModuleIndex);
+                
+            if (nextModuleQuestions.length > 0) {
+                setCurrentQuestion(nextModuleQuestions[0].globalIndex);
+            }
+            
+            toast.success(`Moving to ${formData.modules[nextModuleIndex].title}...`, { duration: 3000 });
+            setShowSubmitConfirmation(false);
+        } else {
+            handleSubmitTest();
+        }
+    }, [formData, currentModuleIndex, questions, timeLeft, handleSubmitTest]);
 
     // Enhanced components for markdown rendering with better code support
     // Memoize ReactMarkdown components to prevent unnecessary re-renders on option selection
@@ -668,35 +750,35 @@ const MCQTest = () => {
         );
     }, []);
 
-    // Timer effect - Uses absolute time for strict enforcement and resilience
+    // Timer effect - ticks down the active module's remaining time directly
     useEffect(() => {
-        if (currentStep === 'test' && testStartTime && !loading) {
+        if (currentStep === 'test' && !loading) {
             const timer = setInterval(() => {
-                const now = new Date();
-                const questionsCount = questions.length;
-                const manualTimeLimit = formData.timeLimit;
-                // Use manual limit or default 2 mins per question
-                const totalAllowedSeconds = (manualTimeLimit || (questionsCount * 2)) * 60;
-                
-                const elapsed = Math.floor((now - testStartTime) / 1000);
-                const remaining = Math.max(0, totalAllowedSeconds - elapsed);
-                
-                setTimeLeft(remaining);
-                
-                if (remaining <= 0) {
-                    clearInterval(timer);
-                    console.log('⏰ Timer reached zero, auto-submitting test...');
-                    handleSubmitTest();
-                }
+                setModuleTimes(prev => {
+                    const currentRemaining = prev[currentModuleIndex];
+                    if (currentRemaining === undefined) return prev;
+                    if (currentRemaining <= 0) {
+                        clearInterval(timer);
+                        console.log('⏰ Timer reached zero, auto-submitting module...');
+                        handleModuleSubmit();
+                        return prev;
+                    }
+                    return {
+                        ...prev,
+                        [currentModuleIndex]: currentRemaining - 1
+                    };
+                });
             }, 1000);
             return () => clearInterval(timer);
         }
-    }, [currentStep, testStartTime, questions.length, formData.timeLimit, handleSubmitTest]);
+    }, [currentStep, currentModuleIndex, handleModuleSubmit, loading]);
 
     // Fullscreen management and hide header/footer when test starts
     useEffect(() => {
         // Update test mode context to hide header/footer
         setIsTestActive(currentStep === 'test');
+
+        if (formData.securityEnabled === false) return;
 
         // Listen for fullscreen changes and prevent manual exit
         const handleFullscreenChange = () => {
@@ -733,9 +815,8 @@ const MCQTest = () => {
         return () => {
             document.removeEventListener('fullscreenchange', handleFullscreenChange);
             // Restore header/footer when leaving test
-            setIsTestActive(false);
         };
-    }, [currentStep, setIsTestActive, isFullscreen, tabSwitchWarnings, notificationWarnings, handleSubmitTest]);
+    }, [currentStep, setIsTestActive, isFullscreen, tabSwitchWarnings, notificationWarnings, handleSubmitTest, formData.securityEnabled]);
 
     // Track visited questions and load saved/temp answer when changing questions
     useEffect(() => {
@@ -765,7 +846,7 @@ const MCQTest = () => {
 
     // Strict exam mode: Disable right-click and keyboard shortcuts
     useEffect(() => {
-        if (currentStep !== 'test') return;
+        if (currentStep !== 'test' || formData.securityEnabled === false) return;
 
         // Prevent right-click context menu
         const preventContextMenu = (e) => {
@@ -778,27 +859,52 @@ const MCQTest = () => {
             // Block Windows/Meta key (prevents Start menu and Windows shortcuts)
             if (e.key === 'Meta' || e.key === 'OS') {
                 e.preventDefault();
-                toast.error('Windows key is disabled during the test!', { duration: 2000 });
+                toast.error('Windows/Command key is disabled during the test!', { duration: 2000 });
                 return;
             }
 
-            // Block Ctrl, Cmd, Alt combinations (except allowed ones)
-            if (e.ctrlKey || e.metaKey || e.altKey) {
-                // Allow Ctrl+C and Ctrl+V for copying code/text
-                if (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'v' || e.key === 'V')) {
+            // Block Alt+Tab and other Alt combos (best effort, browser captures most)
+            if (e.altKey && (e.key === 'Tab' || e.key === 'F4')) {
+                e.preventDefault();
+                return;
+            }
+
+            // Block common shortcuts like copy, paste, inspect, print
+            if ((e.ctrlKey || e.metaKey) && 
+                ['c', 'v', 'x', 'p', 's', 'i', 'u'].includes(e.key.toLowerCase())) {
+                
+                // Allow Ctrl+C/V only if explicitly needed, otherwise block
+                if (e.key.toLowerCase() === 'c' || e.key.toLowerCase() === 'v') {
                     return; // Allow copy/paste
                 }
                 e.preventDefault();
                 toast.error('Keyboard shortcuts are disabled during the test!', { duration: 2000 });
             }
 
-            // Allow F11 and Escape for fullscreen control
-            // Removed restriction to allow users to toggle fullscreen manually
-
             // Prevent F12 (Developer tools)
             if (e.key === 'F12') {
                 e.preventDefault();
                 toast.error('Developer tools are disabled during the test!', { duration: 2000 });
+            }
+
+            // Prevent F11 browser toggle and trigger HTML5 fullscreen instead
+            if (e.key === 'F11') {
+                e.preventDefault();
+                try {
+                    const docElm = document.documentElement;
+                    if (docElm.requestFullscreen) {
+                        docElm.requestFullscreen();
+                    } else if (docElm.webkitRequestFullscreen) {
+                        docElm.webkitRequestFullscreen();
+                    } else if (docElm.mozRequestFullScreen) {
+                        docElm.mozRequestFullScreen();
+                    } else if (docElm.msRequestFullscreen) {
+                        docElm.msRequestFullscreen();
+                    }
+                    toast.success('Fullscreen mode activated', { duration: 2000 });
+                } catch (err) {
+                    console.error('Fullscreen request failed:', err);
+                }
             }
         };
 
@@ -809,17 +915,17 @@ const MCQTest = () => {
             window.removeEventListener('contextmenu', preventContextMenu);
             window.removeEventListener('keydown', preventKeyboardShortcuts);
         };
-    }, [currentStep]);
+    }, [currentStep, formData.securityEnabled]);
 
     // Detect tab switching and show warning
     useEffect(() => {
-        if (currentStep !== 'test') return;
+        if (currentStep !== 'test' || formData.securityEnabled === false) return;
 
         const handleVisibilityChange = () => {
             if (document.hidden) {
                 setTabSwitchWarnings(prev => {
                     const newCount = prev + 1;
-                    const totalWarnings = newCount + fullscreenWarnings;
+                    const totalWarnings = newCount + fullscreenWarnings + notificationWarnings;
 
                     toast.error(`⚠️ Tab switch detected! This may invalidate your test. (Warning ${totalWarnings}/3)`, {
                         duration: 5000,
@@ -872,53 +978,40 @@ const MCQTest = () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('blur', handleBlur);
         };
-    }, [currentStep, fullscreenWarnings, tabSwitchWarnings, notificationWarnings, handleSubmitTest]);
+    }, [currentStep, fullscreenWarnings, tabSwitchWarnings, notificationWarnings, handleSubmitTest, formData.securityEnabled]);
 
     // Block external notifications during test
     useEffect(() => {
-        if (currentStep !== 'test') return;
+        if (currentStep !== 'test' || formData.securityEnabled === false) return;
 
-        // Detect notification events and count as warnings
         const handleNotificationShow = () => {
             setNotificationWarnings(prev => {
                 const newCount = prev + 1;
                 const totalWarnings = newCount + fullscreenWarnings + tabSwitchWarnings;
 
-                toast.error(`📵 External notification detected! Close messaging apps! (Warning ${totalWarnings}/3)`, {
+                toast.error(`📵 External notification detected! (Warning ${totalWarnings}/3)`, {
                     duration: 4000,
                     icon: '⚠️',
                 });
 
-                // Auto-submit if 3 warnings reached
                 if (totalWarnings >= 3) {
-                    toast.error('🚨 Test auto-submitted due to 3 security violations!', {
-                        duration: 6000,
-                    });
-                    setTimeout(() => {
-                        handleSubmitTest();
-                    }, 1000);
+                    toast.error('🚨 Test auto-submitted!', { duration: 6000 });
+                    setTimeout(handleSubmitTest, 1000);
                 }
 
                 return newCount;
             });
         };
 
-        // Monitor for notification permission changes and visibility changes that might indicate notifications
         const checkNotifications = () => {
             if ('Notification' in window && Notification.permission === 'granted') {
-                // Show periodic reminder to close notification apps
                 const reminderInterval = setInterval(() => {
                     if (currentStep === 'test') {
-                        toast('📵 Reminder: Close all messaging apps (WhatsApp, Telegram, etc.)', {
-                            duration: 3000,
-                            icon: '⚠️'
-                        });
+                        toast('📵 Reminder: Close all messaging apps', { duration: 3000, icon: '⚠️' });
                     }
-                }, 300000); // Remind every 5 minutes
+                }, 300000);
 
-                // Listen for focus changes that might indicate notification interaction
                 const handleFocusLoss = (e) => {
-                    // If focus is lost and document becomes hidden, it might be due to notification
                     if (document.hidden && e.target !== window) {
                         handleNotificationShow();
                     }
@@ -935,7 +1028,7 @@ const MCQTest = () => {
 
         const cleanup = checkNotifications();
         return cleanup;
-    }, [currentStep, fullscreenWarnings, tabSwitchWarnings, handleSubmitTest]);
+    }, [currentStep, fullscreenWarnings, tabSwitchWarnings, handleSubmitTest, formData.securityEnabled]);
 
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
@@ -1004,7 +1097,7 @@ const MCQTest = () => {
                     setQuestionsWithAnswers(response.data.questionsWithAnswers || response.data.data.questionsWithAnswers);
                 }
                 setCurrentStep('test');
-                setTimeLeft(formData.numberOfQuestions * 120); // Reset timer based on questions
+                setModuleTimes({ 0: formData.numberOfQuestions * 120 });
                 setTestStartTime(new Date()); // Set test start time
                 setHasAttempted(true);
                 toast.success(`Test started! You have ${Math.ceil(formData.numberOfQuestions * 2)} minutes to complete.`);
@@ -1045,6 +1138,46 @@ const MCQTest = () => {
         setTempAnswer(selectedOption);
     };
 
+    // Helper: get global question indices belonging to a given module
+    // Handles two cases:
+    //   1. Questions have explicit moduleIndex set (admin tagged them per module)
+    //   2. Older tests where all questions default to moduleIndex:0 — split evenly by module question count
+    const getModuleIndices = (moduleIdx) => {
+        const mcqModules = (formData.modules || []).filter(m => m.moduleType !== 'dsa');
+        const totalMcqModules = mcqModules.length;
+
+        if (totalMcqModules <= 1) {
+            // Single module or no modules — all questions belong to module 0
+            return questions.map((_, i) => i);
+        }
+
+        // Check if questions have been explicitly tagged with moduleIndex
+        const hasExplicitTagging = questions.some(q => (q.moduleIndex || 0) !== 0);
+
+        if (hasExplicitTagging) {
+            // Use explicit moduleIndex
+            return questions
+                .map((q, i) => ({ ...q, globalIndex: i }))
+                .filter(q => (q.moduleIndex || 0) === moduleIdx)
+                .map(q => q.globalIndex);
+        } else {
+            // Fallback: divide questions evenly across MCQ modules
+            // Build per-module question counts based on module order index
+            const total = questions.length;
+            const baseCount = Math.floor(total / totalMcqModules);
+            const remainder = total % totalMcqModules;
+
+            // Compute start/end for the requested moduleIdx
+            let start = 0;
+            for (let i = 0; i < moduleIdx; i++) {
+                start += baseCount + (i < remainder ? 1 : 0);
+            }
+            const count = baseCount + (moduleIdx < remainder ? 1 : 0);
+            return Array.from({ length: count }, (_, k) => start + k);
+        }
+    };
+
+
     const handleMarkForReview = () => {
         setMarkedForReview(prev => ({
             ...prev,
@@ -1076,9 +1209,13 @@ const MCQTest = () => {
             toast('No answer selected', { duration: 1500 });
         }
 
-        // Move to next question if not the last one
-        if (currentQuestion < questions.length - 1) {
-            setCurrentQuestion(prev => prev + 1);
+        const activeModIndices = getModuleIndices(currentModuleIndex);
+
+        const localIdx = activeModIndices.indexOf(currentQuestion);
+        if (localIdx !== -1 && localIdx < activeModIndices.length - 1) {
+            setCurrentQuestion(activeModIndices[localIdx + 1]);
+        } else if (localIdx === activeModIndices.length - 1) {
+            setShowSubmitConfirmation(true);
         }
     };
 
@@ -1096,9 +1233,13 @@ const MCQTest = () => {
             [currentQuestion]: true
         }));
         toast('Saved and marked for review', { duration: 1500 });
-        // Move to next question if not the last one
-        if (currentQuestion < questions.length - 1) {
-            setCurrentQuestion(prev => prev + 1);
+        const activeModIndices = getModuleIndices(currentModuleIndex);
+
+        const localIdx = activeModIndices.indexOf(currentQuestion);
+        if (localIdx !== -1 && localIdx < activeModIndices.length - 1) {
+            setCurrentQuestion(activeModIndices[localIdx + 1]);
+        } else if (localIdx === activeModIndices.length - 1) {
+            setShowSubmitConfirmation(true);
         }
     };
 
@@ -1114,6 +1255,16 @@ const MCQTest = () => {
     const renderConfirmationDialog = () => {
         if (!showSubmitConfirmation) return null;
 
+        const currentModule = formData.modules?.[currentModuleIndex];
+        const isLastModule = !formData.modules || currentModuleIndex === formData.modules.length - 1;
+        const submitText = isLastModule ? 'Submit Test?' : 'Submit Module?';
+        const submitDesc = isLastModule ? 'Are you sure you want to submit your test?' : `Are you sure you want to submit module ${currentModule?.title || ''}?`;
+        
+        const currentModuleIndices = getModuleIndices(currentModuleIndex);
+
+        const answeredInModule = currentModuleIndices.filter(i => answers[i] !== undefined).length;
+        const totalInModule = currentModuleIndices.length;
+
         console.log('🎨 [DEBUG] Rendering confirmation dialog');
 
         return (
@@ -1128,17 +1279,17 @@ const MCQTest = () => {
                             <AlertTriangle className="w-6 h-6 text-[rgb(var(--accent))]" />
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-xl font-bold text-[rgb(var(--text-primary))] mb-2">Submit Test?</h3>
+                            <h3 className="text-xl font-bold text-[rgb(var(--text-primary))] mb-2">{submitText}</h3>
                             <div className="text-[rgb(var(--text-muted))] text-sm space-y-2">
-                                <p>Are you sure you want to submit your test?</p>
+                                <p>{submitDesc}</p>
                                 <div className="bg-[rgb(var(--bg-body-alt))] rounded-lg p-3 border border-[rgb(var(--border-subtle))] mt-3">
                                     <div className="flex items-center justify-between text-sm mb-2">
                                         <span className="text-[rgb(var(--text-muted))]">Answered:</span>
-                                        <span className="text-[rgb(var(--text-primary))] font-semibold">{Object.keys(answers).length} / {questions.length}</span>
+                                        <span className="text-[rgb(var(--text-primary))] font-semibold">{answeredInModule} / {totalInModule}</span>
                                     </div>
                                     <div className="flex items-center justify-between text-sm mb-2">
                                         <span className="text-[rgb(var(--text-muted))]">Unanswered:</span>
-                                        <span className="text-yellow-400 font-semibold">{questions.length - Object.keys(answers).length}</span>
+                                        <span className="text-yellow-400 font-semibold">{totalInModule - answeredInModule}</span>
                                     </div>
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-[rgb(var(--text-muted))]">Time Remaining:</span>
@@ -1178,7 +1329,7 @@ const MCQTest = () => {
                             onClick={() => {
                                 console.log('🔵 [DEBUG] Submit Test button clicked in dialog');
                                 if (!loading && !isSubmitting.current) {
-                                    handleSubmitTest();
+                                    handleModuleSubmit();
                                 }
                             }}
                             className="flex-1 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1192,7 +1343,7 @@ const MCQTest = () => {
                             ) : (
                                 <>
                                     <CheckCircle className="w-4 h-4 mr-2" />
-                                    Submit Test
+                                    {submitText}
                                 </>
                             )}
                         </Button>
@@ -1393,7 +1544,96 @@ const MCQTest = () => {
             </div>
         </motion.div>
     );
-    const renderTest = () => (
+    const renderModuleTabs = () => {
+        if (!formData.modules || formData.modules.length === 0) return null;
+        return (
+            <div className="bg-[rgb(var(--bg-card))] border-b border-[rgb(var(--border-subtle))] px-8 py-2.5 flex items-center gap-2 overflow-x-auto custom-scrollbar shrink-0 shadow-sm">
+                <span className="text-xs font-bold text-[rgb(var(--text-muted))] uppercase tracking-wider mr-2 shrink-0">Test Modules:</span>
+                <div className="flex items-center gap-2">
+                    {formData.modules.map((mod, idx) => {
+                        const isActive = idx === currentModuleIndex;
+                        const remTime = moduleTimes[idx] || 0;
+                        const isLocked = idx > currentModuleIndex;
+                        const isCompleted = idx < currentModuleIndex;
+                        
+                        return (
+                            <button
+                                key={idx}
+                                disabled={!isActive} // Enforce sequential unlocking
+                                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold border transition-all shrink-0
+                                    ${isActive
+                                        ? 'bg-[rgb(var(--accent))]/10 border-[rgb(var(--accent))] text-[rgb(var(--accent))] shadow-sm font-extrabold active:scale-95'
+                                        : isLocked
+                                            ? 'bg-gray-100/50 border-gray-200 text-gray-400 cursor-not-allowed opacity-60'
+                                            : 'bg-green-100/50 border-green-200 text-green-700 cursor-not-allowed opacity-80'
+                                    }`}
+                            >
+                                <span>{mod.title}</span>
+                                {isCompleted ? (
+                                    <CheckCircle className="w-3.5 h-3.5" />
+                                ) : isLocked ? (
+                                    <Lock className="w-3.5 h-3.5" />
+                                ) : (
+                                    <span className="font-mono opacity-85">({formatTime(remTime)})</span>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+    const renderTest = () => {
+        const currentModule = formData.modules?.[currentModuleIndex] || { title: formData.topic || 'Test' };
+
+        if (currentModule && currentModule.moduleType === 'dsa') {
+            const isLastModule = currentModuleIndex === (formData.modules?.length || 1) - 1;
+            return (
+                <div className="w-full h-screen flex flex-col overflow-hidden bg-[rgb(var(--bg-body))]">
+                    {/* Top Navigation Bar */}
+                    <div className="bg-[rgb(var(--accent))] text-white px-8 py-3 flex items-center justify-between shadow-lg shrink-0">
+                        <div className="flex items-center gap-4">
+                            <h1 className="text-xl font-bold tracking-wide">{formData.topic.toUpperCase()}</h1>
+                            {/* Security Warnings Badge */}
+                            {(fullscreenWarnings > 0 || tabSwitchWarnings > 0 || notificationWarnings > 0) && (
+                                <div className="flex items-center gap-2 px-3 py-1 bg-red-500/90 rounded-full text-xs font-semibold animate-pulse">
+                                    <span>⚠️</span>
+                                    <span>{fullscreenWarnings + tabSwitchWarnings + notificationWarnings} Security Warnings</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="text-right text-sm">
+                            <div>Username : <span className="font-semibold">{user?.email?.split('@')[0] || 'Guest'}</span></div>
+                            <div>Subject : <span className="font-semibold">{formData.topic}</span></div>
+                        </div>
+                    </div>
+
+                    {/* Shared Module Navigation Sub-Header */}
+                    {renderModuleTabs()}
+
+                    {/* DSA Test Page Content */}
+                    <div className="flex-1 overflow-hidden">
+                        <DSATestPage
+                            testId={testId}
+                            attemptId={attemptId}
+                            onComplete={handleModuleSubmit}
+                            timeLeft={timeLeft}
+                            setTimeLeft={setTimeLeft}
+                            isEmbedded={true}
+                            testData={rawTestData}
+                            isLastModule={isLastModule}
+                        />
+                    </div>
+                </div>
+            );
+        }
+
+        const currentModuleIndices = getModuleIndices(currentModuleIndex);
+        
+        const localQuestionIndex = currentModuleIndices.indexOf(currentQuestion) !== -1 ? currentModuleIndices.indexOf(currentQuestion) : 0;
+        
+        return (
         <div className="w-full h-screen overflow-hidden">
             {/* Mobile/Tablet View - Fixed Height Layout */}
             <div className="lg:hidden h-screen flex flex-col overflow-hidden">
@@ -1408,7 +1648,7 @@ const MCQTest = () => {
                                 </span>
                             </div>
                             <div className="text-sm text-[rgb(var(--text-muted))]">
-                                Question {currentQuestion + 1} of {questions.length}
+                                {currentModule.title} - Question {localQuestionIndex + 1} of {currentModuleIndices.length}
                             </div>
                         </div>
                         {/* Security Warnings Indicator */}
@@ -1420,6 +1660,9 @@ const MCQTest = () => {
                         )}
                     </div>
                 </Card>
+
+                {/* Mobile Module Navigation Tabs */}
+                {renderModuleTabs()}
 
                 {/* Scrollable Content Area */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar px-4">
@@ -1437,7 +1680,7 @@ const MCQTest = () => {
                                         <div className="flex-1">
                                             <div className="flex flex-wrap items-center gap-2 mb-4">
                                                 <span className="px-2 sm:px-3 py-1 bg-[rgb(var(--accent))] text-white rounded-full text-xs sm:text-sm font-medium shadow-md whitespace-nowrap">
-                                                    Q {currentQuestion + 1}/{questions.length}
+                                                    Q {localQuestionIndex + 1}/{currentModuleIndices.length}
                                                 </span>
                                                 <div className="flex items-center gap-1 text-xs sm:text-sm text-[rgb(var(--text-muted))]">
                                                     <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -1481,12 +1724,12 @@ const MCQTest = () => {
                                         <div className="w-full sm:w-auto">
                                             <div className="flex items-center justify-between text-xs text-[rgb(var(--text-muted))] mb-2">
                                                 <span>Progress</span>
-                                                <span>{Math.round(((currentQuestion + 1) / questions.length) * 100)}%</span>
+                                                <span>{Math.round(((localQuestionIndex + 1) / currentModuleIndices.length) * 100)}%</span>
                                             </div>
                                             <div className="w-full sm:w-32 bg-[rgb(var(--bg-body))] rounded-full h-2 border border-[rgb(var(--border-subtle))]">
                                                 <div
                                                     className="bg-[rgb(var(--accent))] h-2 rounded-full transition-all duration-500 ease-out"
-                                                    style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
+                                                    style={{ width: `${((localQuestionIndex + 1) / currentModuleIndices.length) * 100}%` }}
                                                 />
                                             </div>
                                         </div>
@@ -1552,11 +1795,11 @@ const MCQTest = () => {
 
                                 {/* Question Grid */}
                                 <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 mb-5">
-                                    {questions.map((_, index) => {
-                                        const isAnswered = answers[index] !== undefined;
-                                        const isCurrent = index === currentQuestion;
-                                        const isMarked = markedForReview[index];
-                                        const isVisited = visitedQuestions[index];
+                                    {currentModuleIndices.map((globalIndex, localIdx) => {
+                                        const isAnswered = answers[globalIndex] !== undefined;
+                                        const isCurrent = globalIndex === currentQuestion;
+                                        const isMarked = markedForReview[globalIndex];
+                                        const isVisited = visitedQuestions[globalIndex];
 
                                         let bgColor = 'bg-gray-500'; // Not Visited
                                         if (isCurrent) {
@@ -1573,11 +1816,11 @@ const MCQTest = () => {
 
                                         return (
                                             <button
-                                                key={index}
-                                                onClick={() => setCurrentQuestion(index)}
+                                                key={globalIndex}
+                                                onClick={() => setCurrentQuestion(globalIndex)}
                                                 className={`${bgColor} text-white font-bold rounded h-10 sm:h-11 flex items-center justify-center text-sm sm:text-base transition-all active:scale-95 shadow`}
                                             >
-                                                {index + 1}
+                                                {localIdx + 1}
                                             </button>
                                         );
                                     })}
@@ -1587,31 +1830,31 @@ const MCQTest = () => {
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="flex items-center gap-2">
                                         <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-500 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
-                                            {questions.filter((_, i) => !visitedQuestions[i]).length}
+                                            {currentModuleIndices.filter(i => !visitedQuestions[i]).length}
                                         </div>
                                         <span className="text-xs sm:text-sm text-[rgb(var(--text-secondary))]">Not Visited</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
-                                            {Object.keys(visitedQuestions).length - Object.keys(answers).length}
+                                            {currentModuleIndices.filter(i => visitedQuestions[i] && answers[i] === undefined).length}
                                         </div>
                                         <span className="text-xs sm:text-sm text-[rgb(var(--text-secondary))]">Not Answered</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
-                                            {Object.keys(answers).filter(k => !markedForReview[k]).length}
+                                            {currentModuleIndices.filter(i => answers[i] !== undefined && !markedForReview[i]).length}
                                         </div>
                                         <span className="text-xs sm:text-sm text-[rgb(var(--text-secondary))]">Answered</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
-                                            {Object.keys(markedForReview).filter(k => markedForReview[k] && answers[k] === undefined).length}
+                                            {currentModuleIndices.filter(i => markedForReview[i] && answers[i] === undefined).length}
                                         </div>
                                         <span className="text-xs sm:text-sm text-[rgb(var(--text-secondary))]">Marked for Review</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-r from-green-600 to-purple-600 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
-                                            {Object.keys(answers).filter(k => markedForReview[k]).length}
+                                            {currentModuleIndices.filter(i => answers[i] !== undefined && markedForReview[i]).length}
                                         </div>
                                         <span className="text-xs sm:text-sm text-[rgb(var(--text-secondary))]">Answered & Marked</span>
                                     </div>
@@ -1656,9 +1899,9 @@ const MCQTest = () => {
                         <div className="flex items-center justify-between gap-3 px-4 py-3">
                             {/* Prev Button */}
                             <button
-                                onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
-                                disabled={currentQuestion === 0}
-                                className={`flex-1 flex items-center justify-center gap-2 rounded-2xl py-2.5 font-semibold text-sm transition-all ${currentQuestion === 0
+                                onClick={() => setCurrentQuestion(currentModuleIndices[localQuestionIndex - 1])}
+                                disabled={localQuestionIndex === 0}
+                                className={`flex-1 flex items-center justify-center gap-2 rounded-2xl py-2.5 font-semibold text-sm transition-all ${localQuestionIndex === 0
                                     ? 'bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-muted))] opacity-50 cursor-not-allowed'
                                     : 'bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-secondary))] active:scale-95'
                                     }`}
@@ -1674,7 +1917,7 @@ const MCQTest = () => {
                             </div>
 
                             {/* Next/Submit Button */}
-                            {currentQuestion === questions.length - 1 ? (
+                            {localQuestionIndex === currentModuleIndices.length - 1 ? (
                                 <button
                                     onClick={confirmSubmit}
                                     disabled={loading}
@@ -1687,15 +1930,15 @@ const MCQTest = () => {
                                         </>
                                     ) : (
                                         <>
-                                            Submit
+                                            {currentModuleIndex < (formData.modules?.length || 1) - 1 ? 'Submit Module' : 'Submit Test'}
                                             <CheckCircle className="w-4 h-4" />
                                         </>
                                     )}
                                 </button>
                             ) : (
                                 <button
-                                    onClick={() => setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1))}
-                                    disabled={currentQuestion === questions.length - 1}
+                                    onClick={() => setCurrentQuestion(currentModuleIndices[localQuestionIndex + 1])}
+                                    disabled={localQuestionIndex === currentModuleIndices.length - 1}
                                     className="flex-1 flex items-center justify-center gap-2 rounded-2xl py-2.5 font-semibold text-sm text-white transition-all active:scale-95 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] disabled:opacity-50"
                                 >
                                     Next
@@ -1708,9 +1951,9 @@ const MCQTest = () => {
             </div>
 
             {/* Desktop View - Professional Layout */}
-            <div className="hidden lg:block h-screen overflow-hidden bg-[rgb(var(--bg-body))]">
+            <div className="hidden lg:flex lg:flex-col h-screen overflow-hidden bg-[rgb(var(--bg-body))]">
                 {/* Top Navigation Bar */}
-                <div className="bg-[rgb(var(--accent))] text-white px-8 py-3 flex items-center justify-between shadow-lg">
+                <div className="bg-[rgb(var(--accent))] text-white px-8 py-3 flex items-center justify-between shadow-lg shrink-0">
                     <div className="flex items-center gap-4">
                         <h1 className="text-xl font-bold tracking-wide">{formData.topic.toUpperCase()}</h1>
                         {/* Security Warnings Badge */}
@@ -1727,8 +1970,11 @@ const MCQTest = () => {
                     </div>
                 </div>
 
+                {/* Shared Module Navigation Sub-Header */}
+                {renderModuleTabs()}
+
                 {/* Main Content Area */}
-                <div className="grid grid-cols-[1fr_380px] h-[calc(100vh-140px)]">
+                <div className="grid grid-cols-[1fr_380px] flex-1 overflow-hidden">
                     {/* Left Side - Question and Options */}
                     <div className="bg-bg-elevated overflow-y-auto custom-scrollbar">
                         <div className="p-6">
@@ -1811,30 +2057,30 @@ const MCQTest = () => {
                     </div>
 
                     {/* Right Side - Timer, Navigator, and Legend */}
-                    <div className="bg-[rgb(var(--bg-card))] border-l-2 border-[rgb(var(--border-subtle))] overflow-y-auto custom-scrollbar">
-                        <div className="p-5">
+                    <div className="bg-[rgb(var(--bg-card))] border-l-2 border-[rgb(var(--border-subtle))] flex flex-col h-full overflow-hidden">
+                        <div className="p-4 flex flex-col h-full min-h-0">
                             {/* Timer Card */}
-                            <div className="bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] rounded p-4 mb-5 text-center shadow-sm">
-                                <div className="text-xs text-[rgb(var(--text-secondary))] mb-2 font-medium">Remaining Time:</div>
-                                <div className={`text-3xl font-bold font-mono tracking-wider ${timeLeft < 300 ? 'text-red-400' : 'text-[rgb(var(--text-primary))]'
+                            <div className="bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border-subtle))] rounded p-3 mb-3 text-center shadow-sm shrink-0">
+                                <div className="text-xs text-[rgb(var(--text-secondary))] mb-1.5 font-medium">Remaining Time:</div>
+                                <div className={`text-2xl font-bold font-mono tracking-wider ${timeLeft < 300 ? 'text-red-400' : 'text-[rgb(var(--text-primary))]'
                                     }`}>
                                     {Math.floor(timeLeft / 3600).toString().padStart(2, '0')} : {Math.floor((timeLeft % 3600) / 60).toString().padStart(2, '0')} : {(timeLeft % 60).toString().padStart(2, '0')}
                                 </div>
                             </div>
 
                             {/* Quiz Title */}
-                            <div className="text-center mb-5">
-                                <h2 className="text-lg font-bold text-[rgb(var(--text-primary))]">{formData.topic.toUpperCase()}</h2>
+                            <div className="text-center mb-3 shrink-0">
+                                <h2 className="text-base font-bold text-[rgb(var(--text-primary))]">{formData.topic.toUpperCase()}</h2>
                             </div>
 
                             {/* Question Navigator */}
-                            <div className="mb-5">
+                            <div className="flex-1 overflow-y-auto custom-scrollbar mb-3 pr-1 min-h-0">
                                 <div className="grid grid-cols-5 gap-2">
-                                    {questions.map((_, index) => {
-                                        const isAnswered = answers[index] !== undefined;
-                                        const isCurrent = index === currentQuestion;
-                                        const isMarked = markedForReview[index];
-                                        const isVisited = visitedQuestions[index];
+                                    {currentModuleIndices.map((globalIndex, localIdx) => {
+                                        const isAnswered = answers[globalIndex] !== undefined;
+                                        const isCurrent = globalIndex === currentQuestion;
+                                        const isMarked = markedForReview[globalIndex];
+                                        const isVisited = visitedQuestions[globalIndex];
 
                                         let bgColor = 'bg-gray-500'; // Not Visited
                                         if (isCurrent) {
@@ -1851,48 +2097,48 @@ const MCQTest = () => {
 
                                         return (
                                             <button
-                                                key={index}
-                                                onClick={() => setCurrentQuestion(index)}
-                                                className={`${bgColor} text-white font-bold rounded h-11 flex items-center justify-center text-base transition-all hover:opacity-90 shadow`}
+                                                key={globalIndex}
+                                                onClick={() => setCurrentQuestion(globalIndex)}
+                                                className={`${bgColor} text-white font-bold rounded h-10 flex items-center justify-center text-sm transition-all hover:opacity-90 shadow`}
                                             >
-                                                {index + 1}
+                                                {localIdx + 1}
                                             </button>
                                         );
                                     })}
                                 </div>
                             </div>
 
-                            {/* Legend */}
-                            <div className="space-y-2.5">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-9 h-9 rounded-full bg-gray-500 text-white flex items-center justify-center font-bold text-xs shadow">
-                                        {questions.filter((_, i) => !visitedQuestions[i]).length}
+                            {/* Legend - Compact Grid */}
+                            <div className="grid grid-cols-2 gap-x-3 gap-y-2 border-t border-[rgb(var(--border-subtle))] pt-3 shrink-0 bg-[rgb(var(--bg-card))]">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 rounded-full bg-gray-500 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
+                                        {currentModuleIndices.filter(i => !visitedQuestions[i]).length}
                                     </div>
-                                    <span className="text-sm text-[rgb(var(--text-secondary))]">Not Visited</span>
+                                    <span className="text-xs text-[rgb(var(--text-secondary))] truncate">Not Visited</span>
                                 </div>
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-9 h-9 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-xs shadow">
-                                        {Object.keys(visitedQuestions).length - Object.keys(answers).length}
+                                <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
+                                        {currentModuleIndices.filter(i => visitedQuestions[i] && answers[i] === undefined).length}
                                     </div>
-                                    <span className="text-sm text-[rgb(var(--text-secondary))]">Not Answered</span>
+                                    <span className="text-xs text-[rgb(var(--text-secondary))] truncate">Not Answered</span>
                                 </div>
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-9 h-9 rounded-full bg-green-600 text-white flex items-center justify-center font-bold text-xs shadow">
-                                        {Object.keys(answers).filter(k => !markedForReview[k]).length}
+                                <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 rounded-full bg-green-600 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
+                                        {currentModuleIndices.filter(i => answers[i] !== undefined && !markedForReview[i]).length}
                                     </div>
-                                    <span className="text-sm text-[rgb(var(--text-secondary))]">Answered</span>
+                                    <span className="text-xs text-[rgb(var(--text-secondary))] truncate">Answered</span>
                                 </div>
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-9 h-9 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs shadow">
-                                        {Object.keys(markedForReview).filter(k => markedForReview[k] && answers[k] === undefined).length}
+                                <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
+                                        {currentModuleIndices.filter(i => markedForReview[i] && answers[i] === undefined).length}
                                     </div>
-                                    <span className="text-sm text-[rgb(var(--text-secondary))]">Marked for Review</span>
+                                    <span className="text-xs text-[rgb(var(--text-secondary))] truncate">Marked for Review</span>
                                 </div>
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-9 h-9 rounded-full bg-gradient-to-r from-green-600 to-purple-600 text-white flex items-center justify-center font-bold text-xs shadow">
-                                        {Object.keys(answers).filter(k => markedForReview[k]).length}
+                                <div className="flex items-center gap-2 col-span-2">
+                                    <div className="w-7 h-7 rounded-full bg-gradient-to-r from-green-600 to-purple-600 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">
+                                        {currentModuleIndices.filter(i => answers[i] !== undefined && markedForReview[i]).length}
                                     </div>
-                                    <span className="text-sm text-[rgb(var(--text-secondary))]">Answered & Marked for Review</span>
+                                    <span className="text-xs text-[rgb(var(--text-secondary))]">Answered & Marked</span>
                                 </div>
                             </div>
                         </div>
@@ -1900,19 +2146,19 @@ const MCQTest = () => {
                 </div>
 
                 {/* Bottom Navigation Bar */}
-                <div className="h-[60px] bg-[rgb(var(--bg-card))] border-t-2 border-[rgb(var(--border-subtle))] px-8 flex items-center justify-between shadow-lg">
+                <div className="h-[60px] flex-shrink-0 bg-[rgb(var(--bg-card))] border-t-2 border-[rgb(var(--border-subtle))] px-8 flex items-center justify-between shadow-lg">
                     <div className="flex items-center gap-3">
                         <Button
-                            onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
-                            disabled={currentQuestion === 0}
+                            onClick={() => setCurrentQuestion(currentModuleIndices[localQuestionIndex - 1])}
+                            disabled={localQuestionIndex === 0}
                             className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-5 py-2.5 rounded font-medium flex items-center gap-2 shadow transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <ChevronLeft className="w-4 h-4" />
                             &lt;&lt; BACK
                         </Button>
                         <Button
-                            onClick={() => setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1))}
-                            disabled={currentQuestion === questions.length - 1}
+                            onClick={() => setCurrentQuestion(currentModuleIndices[localQuestionIndex + 1])}
+                            disabled={localQuestionIndex === currentModuleIndices.length - 1}
                             className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-5 py-2.5 rounded font-medium flex items-center gap-2 shadow transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             NEXT &gt;&gt;
@@ -1969,13 +2215,14 @@ const MCQTest = () => {
                                 Submitting
                             </>
                         ) : (
-                            'SUBMIT'
+                            currentModuleIndex < (formData.modules?.length || 1) - 1 ? 'SUBMIT MODULE' : 'SUBMIT TEST'
                         )}
                     </Button>
                 </div>
             </div>
         </div>
     );
+};
 
     const renderPracticeResults = () => {
         if (!results) return null;
@@ -2077,6 +2324,44 @@ const MCQTest = () => {
                         ))}
                     </div>
 
+                    {results.dsaResults && results.dsaResults.length > 0 && (
+                        <div className="space-y-6 mt-8 pt-8 border-t border-[rgb(var(--border))]">
+                            <h3 className="text-xl font-bold text-[rgb(var(--text-primary))]">DSA Coding Results</h3>
+                            {results.dsaResults.map((dsa, index) => (
+                                <div key={index} className="bg-[rgb(var(--bg-card))] p-6 rounded-xl border border-[rgb(var(--border-subtle))]">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <h4 className="font-medium text-[rgb(var(--text-primary))]">Coding Problem {index + 1}</h4>
+                                        <span className={`px-2 py-1 text-xs font-bold rounded-full ${
+                                            dsa.status === 'evaluated' ? 'bg-green-500/10 text-green-500' :
+                                            dsa.status === 'public_passed' ? 'bg-yellow-500/10 text-yellow-500' :
+                                            'bg-red-500/10 text-red-500'
+                                        }`}>
+                                            {dsa.status.replace('_', ' ').toUpperCase()}
+                                        </span>
+                                    </div>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                                        <div className="bg-[rgb(var(--bg-elevated))] p-3 rounded-lg border border-[rgb(var(--border-subtle))] text-center">
+                                            <div className="text-xs text-[rgb(var(--text-muted))] mb-1">Score</div>
+                                            <div className="text-lg font-bold text-[rgb(var(--text-primary))]">{dsa.score}</div>
+                                        </div>
+                                        <div className="bg-[rgb(var(--bg-elevated))] p-3 rounded-lg border border-[rgb(var(--border-subtle))] text-center">
+                                            <div className="text-xs text-[rgb(var(--text-muted))] mb-1">Language</div>
+                                            <div className="text-lg font-bold text-[rgb(var(--text-primary))] capitalize">{dsa.language}</div>
+                                        </div>
+                                        <div className="bg-[rgb(var(--bg-elevated))] p-3 rounded-lg border border-[rgb(var(--border-subtle))] text-center">
+                                            <div className="text-xs text-[rgb(var(--text-muted))] mb-1">Public Cases</div>
+                                            <div className="text-lg font-bold text-[rgb(var(--text-primary))]">{dsa.publicTestsPassed}/{dsa.publicTestsTotal}</div>
+                                        </div>
+                                        <div className="bg-[rgb(var(--bg-elevated))] p-3 rounded-lg border border-[rgb(var(--border-subtle))] text-center">
+                                            <div className="text-xs text-[rgb(var(--text-muted))] mb-1">Hidden Cases</div>
+                                            <div className="text-lg font-bold text-[rgb(var(--text-primary))]">{dsa.hiddenTestsPassed}/{dsa.hiddenTestsTotal}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
                     <div className="flex justify-center mt-8 gap-4">
                         <Button
                             onClick={() => {
@@ -2087,7 +2372,7 @@ const MCQTest = () => {
                                 setAnswers({});
                                 navigate('/mcq-test/practice');
                             }}
-                            className="px-8 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white"
+                            className="px-8 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white font-semibold"
                         >
                             Back to Dashboard
                         </Button>
@@ -2596,6 +2881,9 @@ const MCQTest = () => {
 
         // Calculate time left - cap it if test is time restricted
         let calculatedTimeLeft = formData.timeLimit ? formData.timeLimit * 60 : formData.numberOfQuestions * 120;
+        if (formData.modules && formData.modules.length > 0) {
+            calculatedTimeLeft = (formData.modules[0].timeLimit || 30) * 60;
+        }
         
         if (formData.isTimeRestricted && formData.endTime) {
             const now = new Date();
@@ -2752,3 +3040,5 @@ const MCQTest = () => {
 };
 
 export default MCQTest;
+
+

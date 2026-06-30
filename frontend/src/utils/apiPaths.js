@@ -35,6 +35,7 @@ export const API = {
     GET: `${API_BASE_URL}/profile`,
     UPDATE: `${API_BASE_URL}/profile/update`,
     UPLOAD_PHOTO: `${API_BASE_URL}/profile/upload-photo`,
+    UPLOAD_RESUME: `${API_BASE_URL}/profile/upload-resume`,
     CHANGE_PASSWORD: `${API_BASE_URL}/profile/change-password`,
     DELETE_ACCOUNT: `${API_BASE_URL}/profile/delete-account`,
     GET_PREFERENCES: `${API_BASE_URL}/profile/preferences`,
@@ -83,7 +84,9 @@ export const API = {
     DELETE_TEST: (testId) => `${API_BASE_URL}/mcq/test/${testId}`,
     PRACTICE_LIST: `${API_BASE_URL}/mcq/practice-tests`,
     PRACTICE_DETAILS: (id) => `${API_BASE_URL}/mcq/practice-tests/${id}`,
-    START_PRACTICE_TEST: (id) => `${API_BASE_URL}/mcq/practice-tests/${id}/start`
+    START_PRACTICE_TEST: (id) => `${API_BASE_URL}/mcq/practice-tests/${id}/start`,
+    RUN_CODE: (testId) => `${API_BASE_URL}/mcq/practice-tests/${testId}/run-code`,
+    SUBMIT_CODE: (testId) => `${API_BASE_URL}/mcq/practice-tests/${testId}/submit-code`
   },
   ADMIN: {
     GET_USERS: `${API_BASE_URL}/admin/users`,
@@ -113,7 +116,8 @@ export const API = {
     PATCH_FEATURE_LOCK: (key) => `${API_BASE_URL}/ai/features/${key}`,
     GET_USER_ACTIVITY: (userId) => `${API_BASE_URL}/admin/users/${userId}/activity`,
     DELETE_USER: (userId) => `${API_BASE_URL}/admin/users/${userId}`,
-    DELETE_ALL_BANNED_USERS: `${API_BASE_URL}/admin/users/banned/all`
+    DELETE_ALL_BANNED_USERS: `${API_BASE_URL}/admin/users/banned/all`,
+    BULK_UPLOAD_PRACTICE: `${API_BASE_URL}/admin/practice-tests/bulk-upload`
   },
   NOTIFICATIONS: {
     GET_ALL: (userId) => `${API_BASE_URL}/notifications/${userId}`,

@@ -19,6 +19,7 @@ import TermsAndConditions from './pages/Legal/TermsAndConditions';
 import MCQTest from './pages/MCQTest/MCQTest';
 import TestHistoryPage from './pages/MCQTest/TestHistoryPage';
 import PracticeTestsPage from './pages/MCQTest/PracticeTestsPage';
+import DSATestPage from './pages/MCQTest/DSATestPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPageNew from './pages/SettingsPageNew';
 import NotificationPage from './pages/InterviewPrep/NotificationPage';
@@ -132,6 +133,18 @@ const App = () => {
                         <FeatureLockGuard featureKey="practice_tests" title="Practice Test" description="This practice test is currently locked.">
                           <DesktopOnlyGuard featureName="Practice Test">
                             <MCQTest />
+                          </DesktopOnlyGuard>
+                        </FeatureLockGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/mcq-test/practice/:testId/dsa"
+                    element={
+                      <ProtectedRoute>
+                        <FeatureLockGuard featureKey="practice_tests" title="DSA Practice Test" description="This practice test is currently locked.">
+                          <DesktopOnlyGuard featureName="DSA Practice Test">
+                            <DSATestPage />
                           </DesktopOnlyGuard>
                         </FeatureLockGuard>
                       </ProtectedRoute>

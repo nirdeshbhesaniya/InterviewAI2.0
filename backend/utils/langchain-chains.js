@@ -144,7 +144,7 @@ async function createMCQChain() {
         ];
         return areas.sort(() => Math.random() - 0.5).slice(0, 4).join(', ');
       },
-      branch: (input) => input.branch || 'Computer Engineering (includes IT)'
+      branch: (input) => input.branch || 'Computer Engineering'
     },
     mcqPrompt,
     mcqModel, // Use optimized MCQ model

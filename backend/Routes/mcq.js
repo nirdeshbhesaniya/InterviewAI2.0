@@ -254,7 +254,7 @@ async function evaluateAnswers(questions, userAnswers, userInfo, timeSpent = 0) 
         });
     });
 
-    const score = Math.round((correctCount / totalQuestions) * 100);
+    const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 100;
     const grade = getGrade(score);
 
     // Generate AI feedback
@@ -396,7 +396,7 @@ async function sendResultsEmail(userInfo, results, topic) {
 // Generate MCQ test with OPTIMIZED batch processing and caching
 router.post('/generate', checkFeatureEnabled('ai_mcq_generation'), async (req, res) => {
     try {
-        const { topic, difficulty = 'medium', numberOfQuestions = 30, userEmail, branch = 'Computer Engineering (includes IT)' } = req.body;
+        const { topic, difficulty = 'medium', numberOfQuestions = 30, userEmail, branch = 'Computer Engineering' } = req.body;
 
         if (!topic) {
             return res.status(400).json({
@@ -561,6 +561,41 @@ router.post('/submit', async (req, res) => {
         // Evaluate answers
         const results = await evaluateAnswers(questionsWithAnswers, answers, userInfo, timeSpent);
 
+        // Aggregate MCQ + DSA scores if this is a Practice Test with a DSA module
+        if (practiceTestId) {
+            console.log(`Aggregating scores for Practice Test: ${practiceTestId}`);
+            const practiceTest = await PracticeTest.findById(practiceTestId);
+            if (practiceTest) {
+                // Each MCQ question is worth 1 point
+                let totalEarned = results.correctAnswers || 0;
+                let totalMax = (practiceTest.questions || []).length;
+
+                // Add DSA scores if DSA questions are present
+                if (practiceTest.dsaQuestions && practiceTest.dsaQuestions.length > 0) {
+                    const dsaMax = practiceTest.dsaQuestions.reduce((sum, dq) => sum + (dq.maxScore || 100), 0);
+                    totalMax += dsaMax;
+
+                    let dsaEarned = 0;
+                    if (req.body.attemptId) {
+                        const attemptDoc = await PracticeTestResult.findById(req.body.attemptId);
+                        if (attemptDoc && attemptDoc.dsaResults) {
+                            const dsaScores = {};
+                            attemptDoc.dsaResults.forEach(r => {
+                                const qIdStr = r.questionId.toString();
+                                dsaScores[qIdStr] = Math.max(dsaScores[qIdStr] || 0, r.score || 0);
+                            });
+                            dsaEarned = Object.values(dsaScores).reduce((sum, s) => sum + s, 0);
+                        }
+                    }
+                    totalEarned += dsaEarned;
+                }
+
+                // Recalculate percentage score
+                results.score = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : 100;
+                console.log(`Aggregated Practice Test Score: ${totalEarned}/${totalMax} (${results.score}%)`);
+            }
+        }
+
         // Determine test status based on security warnings and time
         let testStatus = 'completed';
         const totalWarnings = (securityWarnings.fullscreenExits || 0) + (securityWarnings.tabSwitches || 0);
@@ -625,19 +660,19 @@ router.post('/submit', async (req, res) => {
         }
 
         // Only save to DB and send email if saveHistory is true or if it's a practice test
+        let testDocument = null;
         if (saveHistory || practiceTestId) {
             // Save test results to database
             try {
-                let mcqTest;
                 const isPractice = !!practiceTestId;
                 const ResultModel = isPractice ? PracticeTestResult : MCQTest;
                 
                 if (req.body.attemptId) {
-                    mcqTest = await ResultModel.findById(req.body.attemptId);
+                    testDocument = await ResultModel.findById(req.body.attemptId);
                 }
 
-                if (!mcqTest) {
-                    mcqTest = new ResultModel({
+                if (!testDocument) {
+                    testDocument = new ResultModel({
                         userId: userId,
                         userEmail: userInfo.email,
                         topic: isPractice ? undefined : topic,
@@ -663,16 +698,16 @@ router.post('/submit', async (req, res) => {
                         completedAt: new Date()
                     });
                 } else {
-                    mcqTest.correctAnswers = results.correctAnswers;
-                    mcqTest.score = results.score;
-                    mcqTest.timeSpent = timeSpent || 0; // Fix: Use timeSpent from req.body
-                    mcqTest.userAnswers = answers;
-                    mcqTest.testStatus = testStatus;
-                    mcqTest.completedAt = new Date();
+                    testDocument.correctAnswers = results.correctAnswers;
+                    testDocument.score = results.score;
+                    testDocument.timeSpent = timeSpent || 0; // Fix: Use timeSpent from req.body
+                    testDocument.userAnswers = answers;
+                    testDocument.testStatus = testStatus;
+                    testDocument.completedAt = new Date();
                 }
 
-                await mcqTest.save();
-                console.log(`Test results saved to ${isPractice ? 'PracticeTestResult' : 'MCQTest'}: ${mcqTest._id}`);
+                await testDocument.save();
+                console.log(`Test results saved to ${isPractice ? 'PracticeTestResult' : 'MCQTest'}: ${testDocument._id}`);
 
                 if (isPractice) {
                     const PracticeTest = require('../models/PracticeTest');
@@ -706,7 +741,8 @@ router.post('/submit', async (req, res) => {
                     grade: results.grade,
                     aiFeedback: results.aiFeedback,
                     timeSpent: results.timeSpent,
-                    detailedResults: results.detailedResults // Send detailed results for immediate display in practice mode
+                    detailedResults: results.detailedResults, // Send detailed results for immediate display in practice mode
+                    dsaResults: testDocument ? testDocument.dsaResults : undefined // Forward dsaResults to the frontend
                 },
                 message: saveHistory ? 'Test submitted successfully! Results have been sent to your email.' : 'Practice test completed!'
             }
@@ -783,7 +819,6 @@ router.get('/history', async (req, res) => {
                 query.$or = [
                     { branch: 'computer' }, 
                     { branch: 'Computer Engineering' },
-                    { branch: 'Computer Engineering (includes IT)' }, 
                     { branch: { $exists: false } }, 
                     { branch: null },
                     { branch: '' }
@@ -795,7 +830,7 @@ router.get('/history', async (req, res) => {
 
         // Fetch from both models for user history
         const aiTests = await MCQTest.find(query).sort({ createdAt: -1 }).lean();
-        const practiceTests = await PracticeTestResult.find({ userEmail }).populate('practiceTestId').sort({ createdAt: -1 }).lean();
+        const practiceTests = await PracticeTestResult.find({ userEmail, testStatus: { $ne: 'in-progress' } }).populate('practiceTestId').sort({ createdAt: -1 }).lean();
 
         let filteredPracticeTests = practiceTests;
         if (branch) {
@@ -803,7 +838,7 @@ router.get('/history', async (req, res) => {
                 if (!t.practiceTestId) return false;
                 const tBranch = t.practiceTestId.branch;
                 if (branch === 'computer') {
-                    return !tBranch || tBranch === 'computer' || tBranch === 'Computer Engineering' || tBranch === 'Computer Engineering (includes IT)' || tBranch === '';
+                    return !tBranch || tBranch === 'computer' || tBranch === 'Computer Engineering' || tBranch === '';
                 }
                 return tBranch === branch;
             });
@@ -1053,7 +1088,10 @@ router.get('/practice-tests', checkFeatureEnabled('practice_tests'), async (req,
                     isTimeRestricted: 1,
                     startTime: 1,
                     endTime: 1,
-                    questionCount: { $size: "$questions" }
+                    moduleType: 1,
+                    modules: 1,
+                    questionCount: { $size: { $ifNull: ["$questions", []] } },
+                    dsaQuestionCount: { $size: { $ifNull: ["$dsaQuestions", []] } }
                 }
             }
         ]);
@@ -1074,7 +1112,7 @@ router.get('/practice-tests', checkFeatureEnabled('practice_tests'), async (req,
     }
 });
 
-// GET specific Practice Test
+// GET specific Practice Test — includes DSA questions (stripped of hidden test cases)
 router.get('/practice-tests/:id', checkFeatureEnabled('practice_tests'), async (req, res) => {
     try {
         const { id } = req.params;
@@ -1086,33 +1124,40 @@ router.get('/practice-tests/:id', checkFeatureEnabled('practice_tests'), async (
             return res.status(404).json({ success: false, message: 'Test not found' });
         }
 
-        // Attempts count (Hits) is now handled in the /start route to be more accurate
-
-        // Transform for frontend (hide correct answers and explanations initially? 
-        // Existing MCQTest expects questions. For practice, we might want to prevent cheating by stripping answers,
-        // BUT the user wants "auto evaluate". The existing frontend likely needs `correctAnswer` to grade locally or sends answers back.
-        // The existing `generate` endpoint REMOVES correct answers (line 456).
-        // Checks line 456: `const questionsForTest = finalQuestions.map(({ correctAnswer, explanation, ...question }) => question);`
-        // So I should do the same.
-
-        const questionsForTest = test.questions.map(q => ({
+        // Strip MCQ correct answers and explanations
+        const questionsForTest = (test.questions || []).map(q => ({
             id: q._id,
             question: q.question,
             options: q.options,
-            codeSnippet: q.codeSnippet // Include codeSnippet
-            // Omit correctAnswer and explanation
+            codeSnippet: q.codeSnippet,
+            moduleIndex: q.moduleIndex
         }));
 
-        // Find user's past attempts for this specific practice test if userEmail is provided
+        // Strip DSA hidden test cases — only expose public test cases to users
+        const dsaQuestionsForTest = (test.dsaQuestions || []).map(dq => ({
+            id: dq._id,
+            title: dq.title,
+            description: dq.description,
+            constraints: dq.constraints,
+            difficulty: dq.difficulty,
+            allowedLanguages: dq.allowedLanguages,
+            maxScore: dq.maxScore,
+            timeLimit: dq.timeLimit,
+            memoryLimit: dq.memoryLimit,
+            starterCode: dq.starterCode,
+            publicTestCases: dq.publicTestCases, // User can see these
+            hiddenTestCaseCount: dq.hiddenTestCases ? dq.hiddenTestCases.length : 0, // Only the count
+            moduleIndex: dq.moduleIndex
+        }));
+
+        // Find user's past attempts
         const userEmail = req.headers['user-email'] || req.query.email;
         let userAttempts = 0;
         if (userEmail) {
-            const MCQTest = require('../models/MCQTest');
-            // Use practiceTestId for accurate tracking
-            userAttempts = await MCQTest.countDocuments({ userEmail, practiceTestId: test._id });
+            const PracticeTestResult = require('../models/PracticeTestResult');
+            userAttempts = await PracticeTestResult.countDocuments({ userEmail, practiceTestId: test._id });
         }
 
-        // Return detailed object similar to `generate` response style
         res.json({
             success: true,
             data: {
@@ -1121,17 +1166,21 @@ router.get('/practice-tests/:id', checkFeatureEnabled('practice_tests'), async (
                 description: test.description,
                 topic: test.topic,
                 difficulty: test.difficulty,
-                questions: questionsForTest, // Stripped for UI
-                totalQuestions: test.questions.length,
-                timeLimit: test.timeLimit || 30, // From schema
-                maxAttempts: test.maxAttempts || 1, // From schema
-                guidelines: test.guidelines || '', // From schema
+                moduleType: test.moduleType || 'mcq',
+                modules: test.modules || [],
+                questions: questionsForTest,
+                dsaQuestions: dsaQuestionsForTest,
+                totalQuestions: (test.questions || []).length,
+                totalDsaQuestions: (test.dsaQuestions || []).length,
+                timeLimit: test.timeLimit || 30,
+                maxAttempts: test.maxAttempts || 1,
+                guidelines: test.guidelines || '',
                 isTimeRestricted: test.isTimeRestricted || false,
                 startTime: test.startTime || null,
                 endTime: test.endTime || null,
                 userAttempts: userAttempts,
                 submissions: test.submissions || 0,
-                cached: true // Treat as cached/static
+                cached: true
             }
         });
 
@@ -1223,6 +1272,200 @@ router.post('/practice-tests/:id/start', async (req, res) => {
     } catch (err) {
         console.error('Error starting practice test:', err);
         res.status(500).json({ success: false, message: 'Failed to start practice test' });
+    }
+});
+
+// Helper: Merges user solution code with driver code wrapper
+function mergeUserCodeAndDriverCode(code, language, dsaQuestion) {
+    if (!dsaQuestion.driverCode) return code;
+
+    let driver = '';
+    if (typeof dsaQuestion.driverCode.get === 'function') {
+        driver = dsaQuestion.driverCode.get(language);
+    } else {
+        driver = dsaQuestion.driverCode[language];
+    }
+
+    if (!driver || !driver.trim()) return code;
+
+    const placeholders = ['// {{USER_CODE}}', '/* {{USER_CODE}} */', '# {{USER_CODE}}', '//Solution', '#Solution'];
+    for (const ph of placeholders) {
+        if (driver.includes(ph)) {
+            return driver.replace(ph, code);
+        }
+    }
+
+    // Default fallback: Append driver code to user code
+    return code + '\n\n' + driver;
+}
+
+// ─── DSA Code Execution Endpoints ───
+
+// POST run-code: Run user code against PUBLIC test cases only
+router.post('/practice-tests/:id/run-code', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { questionId, language, code } = req.body;
+
+        if (!questionId || !language || !code) {
+            return res.status(400).json({ success: false, message: 'questionId, language, and code are required' });
+        }
+
+        const PracticeTest = require('../models/PracticeTest');
+        const { runPublicTests } = require('../services/dsaRunner');
+
+        const test = await PracticeTest.findById(id);
+        if (!test) {
+            return res.status(404).json({ success: false, message: 'Test not found' });
+        }
+
+        const dsaQuestion = test.dsaQuestions.id(questionId);
+        if (!dsaQuestion) {
+            return res.status(404).json({ success: false, message: 'DSA question not found' });
+        }
+
+        // Validate language is allowed
+        if (!dsaQuestion.allowedLanguages.includes(language)) {
+            return res.status(400).json({ success: false, message: `Language '${language}' is not allowed for this question` });
+        }
+
+        // Merge user code with driver code if defined
+        const mergedCode = mergeUserCodeAndDriverCode(code, language, dsaQuestion);
+
+        // Run against public test cases
+        const result = await runPublicTests(
+            mergedCode, language,
+            dsaQuestion.publicTestCases,
+            dsaQuestion.timeLimit || 2,
+            dsaQuestion.memoryLimit || 256
+        );
+
+        res.json({
+            success: true,
+            data: result
+        });
+
+    } catch (err) {
+        console.error('Error running code:', err);
+        res.status(500).json({ success: false, message: 'Failed to run code' });
+    }
+});
+
+// POST submit-code: Run against public first, then hidden test cases for scoring
+router.post('/practice-tests/:id/submit-code', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { questionId, language, code, attemptId } = req.body;
+
+        if (!questionId || !language || !code || !attemptId) {
+            return res.status(400).json({ success: false, message: 'questionId, language, code, and attemptId are required' });
+        }
+
+        const PracticeTest = require('../models/PracticeTest');
+        const PracticeTestResult = require('../models/PracticeTestResult');
+        const { runPublicTests, runHiddenTests } = require('../services/dsaRunner');
+
+        const test = await PracticeTest.findById(id);
+        if (!test) {
+            return res.status(404).json({ success: false, message: 'Test not found' });
+        }
+
+        const dsaQuestion = test.dsaQuestions.id(questionId);
+        if (!dsaQuestion) {
+            return res.status(404).json({ success: false, message: 'DSA question not found' });
+        }
+
+        // Validate language
+        if (!dsaQuestion.allowedLanguages.includes(language)) {
+            return res.status(400).json({ success: false, message: `Language '${language}' is not allowed for this question` });
+        }
+
+        // Merge user code with driver code if defined
+        const mergedCode = mergeUserCodeAndDriverCode(code, language, dsaQuestion);
+
+        // Step 1: Run public test cases first
+        const publicResult = await runPublicTests(
+            mergedCode, language,
+            dsaQuestion.publicTestCases,
+            dsaQuestion.timeLimit || 2,
+            dsaQuestion.memoryLimit || 256
+        );
+
+        if (!publicResult.allPassed) {
+            // Public tests failed — don't run hidden tests
+            // Save partial result
+            await PracticeTestResult.findByIdAndUpdate(attemptId, {
+                $push: {
+                    dsaResults: {
+                        questionId: dsaQuestion._id,
+                        language,
+                        code, // Save original code
+                        publicTestsPassed: publicResult.totalPassed,
+                        publicTestsTotal: publicResult.totalTests,
+                        hiddenTestsPassed: 0,
+                        hiddenTestsTotal: dsaQuestion.hiddenTestCases.length,
+                        score: 0,
+                        status: 'failed'
+                    }
+                }
+            });
+
+            return res.json({
+                success: true,
+                data: {
+                    publicResults: publicResult.results,
+                    publicAllPassed: false,
+                    hiddenPassed: 0,
+                    hiddenTotal: dsaQuestion.hiddenTestCases.length,
+                    score: 0,
+                    message: 'Public test cases failed. Fix your code and try again.'
+                }
+            });
+        }
+
+        // Step 2: All public tests passed — run hidden tests
+        const hiddenResult = await runHiddenTests(
+            mergedCode, language,
+            dsaQuestion.hiddenTestCases,
+            dsaQuestion.maxScore || 100,
+            dsaQuestion.timeLimit || 2,
+            dsaQuestion.memoryLimit || 256
+        );
+
+        // Save result to attempt
+        const status = hiddenResult.hiddenPassed === hiddenResult.hiddenTotal ? 'evaluated' : 'public_passed';
+        await PracticeTestResult.findByIdAndUpdate(attemptId, {
+            $push: {
+                dsaResults: {
+                    questionId: dsaQuestion._id,
+                    language,
+                    code,
+                    publicTestsPassed: publicResult.totalPassed,
+                    publicTestsTotal: publicResult.totalTests,
+                    hiddenTestsPassed: hiddenResult.hiddenPassed,
+                    hiddenTestsTotal: hiddenResult.hiddenTotal,
+                    score: hiddenResult.score,
+                    status
+                }
+            }
+        });
+
+        res.json({
+            success: true,
+            data: {
+                publicResults: publicResult.results,
+                publicAllPassed: true,
+                hiddenPassed: hiddenResult.hiddenPassed,
+                hiddenTotal: hiddenResult.hiddenTotal,
+                score: hiddenResult.score,
+                maxScore: dsaQuestion.maxScore || 100,
+                message: `${hiddenResult.hiddenPassed}/${hiddenResult.hiddenTotal} hidden test cases passed. Score: ${hiddenResult.score}/${dsaQuestion.maxScore || 100}`
+            }
+        });
+
+    } catch (err) {
+        console.error('Error submitting code:', err);
+        res.status(500).json({ success: false, message: 'Failed to submit code' });
     }
 });
 

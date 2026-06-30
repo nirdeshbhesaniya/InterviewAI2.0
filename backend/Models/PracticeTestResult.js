@@ -1,5 +1,38 @@
 const mongoose = require('mongoose');
 
+// ─── DSA Result per question ───
+const dsaResultSchema = new mongoose.Schema({
+    questionId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true
+    },
+    language: { type: String, default: 'python' },
+    code: { type: String, default: '' },
+    publicTestsPassed: { type: Number, default: 0 },
+    publicTestsTotal: { type: Number, default: 0 },
+    hiddenTestsPassed: { type: Number, default: 0 },
+    hiddenTestsTotal: { type: Number, default: 0 },
+    score: { type: Number, default: 0 },
+    executionTime: { type: Number, default: 0 },  // ms
+    status: {
+        type: String,
+        enum: ['pending', 'public_passed', 'evaluated', 'failed'],
+        default: 'pending'
+    }
+}, { _id: true });
+
+// ─── Per-module result ───
+const moduleResultSchema = new mongoose.Schema({
+    moduleIndex: { type: Number, default: 0 },
+    moduleType: {
+        type: String,
+        enum: ['mcq', 'dsa'],
+        default: 'mcq'
+    },
+    score: { type: Number, default: 0 },
+    timeSpent: { type: Number, default: 0 }  // seconds
+}, { _id: false });
+
 const practiceTestResultSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -42,6 +75,19 @@ const practiceTestResultSchema = new mongoose.Schema({
         of: Number,
         default: {}
     },
+
+    // ─── DSA Results ───
+    dsaResults: {
+        type: [dsaResultSchema],
+        default: []
+    },
+
+    // ─── Per-Module Results ───
+    moduleResults: {
+        type: [moduleResultSchema],
+        default: []
+    },
+
     securityWarnings: {
         fullscreenExits: {
             type: Number,

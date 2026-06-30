@@ -18,7 +18,7 @@ const MCQTestSchema = new mongoose.Schema({
     },
     branch: {
         type: String,
-        default: 'Computer Engineering (includes IT)'
+        default: 'Computer Engineering'
     },
     practiceTestId: {
         type: mongoose.Schema.Types.ObjectId,

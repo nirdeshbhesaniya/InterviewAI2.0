@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FileQuestion, Clock, ArrowRight, BookOpen, ChevronLeft, ChevronRight, Calendar, AlertCircle, BarChart2, Filter } from 'lucide-react';
+import { FileQuestion, Clock, ArrowRight, BookOpen, ChevronLeft, ChevronRight, Calendar, AlertCircle, BarChart2, Filter, Code, Layers } from 'lucide-react';
 import axios from '../../utils/axiosInstance';
 import { API } from '../../utils/apiPaths';
 import { Button } from '../../components/ui/button';
@@ -63,8 +63,15 @@ const PracticeTestsPage = () => {
         fetchTests();
     }, [currentPage, selectedBranch]); // Re-fetch when page or branch changes
 
-    const handleStartTest = (testId) => {
-        navigate(`/mcq-test/practice/${testId}`);
+    const handleStartTest = (test) => {
+        if (test.moduleType === 'dsa') {
+            navigate(`/mcq-test/practice/${test._id}/dsa`);
+        } else if (test.moduleType === 'mixed') {
+            // Mixed starts with MCQ, then transitions to DSA
+            navigate(`/mcq-test/practice/${test._id}`);
+        } else {
+            navigate(`/mcq-test/practice/${test._id}`);
+        }
     };
 
     const handlePageChange = (newPage) => {
@@ -162,8 +169,19 @@ const PracticeTestsPage = () => {
                             >
                                 <div className="p-6 sm:p-8 flex-1 flex flex-col">
                                     <div className="flex justify-between items-start mb-6 gap-3">
-                                        <div className="px-3 py-1.5 bg-[rgb(var(--bg-elevated))] rounded-lg text-xs font-bold text-[rgb(var(--accent))] uppercase tracking-widest border border-[rgb(var(--border-subtle))]">
-                                            {test.topic}
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <div className="px-3 py-1.5 bg-[rgb(var(--bg-elevated))] rounded-lg text-xs font-bold text-[rgb(var(--accent))] uppercase tracking-widest border border-[rgb(var(--border-subtle))]">
+                                                {test.topic}
+                                            </div>
+                                            {/* Module Type Badge */}
+                                            <div className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider flex items-center gap-1
+                                                ${test.moduleType === 'dsa' ? 'bg-cyan-500/10 text-cyan-500 border border-cyan-500/20' :
+                                                    test.moduleType === 'mixed' ? 'bg-violet-500/10 text-violet-500 border border-violet-500/20' :
+                                                        'bg-blue-500/10 text-blue-500 border border-blue-500/20'}`}>
+                                                {test.moduleType === 'dsa' ? <><Code className="w-3 h-3" /> DSA</> :
+                                                    test.moduleType === 'mixed' ? <><Layers className="w-3 h-3" /> Mixed</> :
+                                                        <><BookOpen className="w-3 h-3" /> MCQ</>}
+                                            </div>
                                         </div>
                                         <span className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider 
                                         ${test.difficulty === 'easy' ? 'bg-green-500/10 text-green-500 border border-green-500/20' :
@@ -187,14 +205,24 @@ const PracticeTestsPage = () => {
                                             <span className="text-xs text-[rgb(var(--text-muted))] uppercase font-semibold">Questions</span>
                                             <div className="flex items-center gap-1.5 text-[rgb(var(--text-primary))] font-medium">
                                                 <BookOpen className="w-4 h-4 text-[rgb(var(--accent))]" />
-                                                {test.questionCount || 0}
+                                                {test.moduleType === 'mixed' ? (
+                                                    <span>{test.questionCount || 0} MCQ + {test.dsaQuestionCount || 0} DSA</span>
+                                                ) : test.moduleType === 'dsa' ? (
+                                                    <span>{test.dsaQuestionCount || 0} Problems</span>
+                                                ) : (
+                                                    <span>{test.questionCount || 0}</span>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="flex flex-col gap-1">
                                             <span className="text-xs text-[rgb(var(--text-muted))] uppercase font-semibold">Duration</span>
                                             <div className="flex items-center gap-1.5 text-[rgb(var(--text-primary))] font-medium">
                                                 <Clock className="w-4 h-4 text-purple-500" />
-                                                {test.timeLimit || 30} mins
+                                                {test.modules && test.modules.length > 0 ? (
+                                                    <span>{test.modules.reduce((sum, m) => sum + (m.timeLimit || 0), 0)} mins</span>
+                                                ) : (
+                                                    <span>{test.timeLimit || 30} mins</span>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -249,7 +277,7 @@ const PracticeTestsPage = () => {
 
                                             return (
                                                 <Button
-                                                    onClick={() => handleStartTest(test._id)}
+                                                    onClick={() => handleStartTest(test)}
                                                     disabled={status !== 'available'}
                                                     className={`w-full py-6 rounded-xl font-bold transition-all text-base ${status === 'available'
                                                         ? 'bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white shadow-[0_0_15px_rgba(var(--accent),0.3)] hover:shadow-[0_0_25px_rgba(var(--accent),0.5)] transform hover:-translate-y-0.5'

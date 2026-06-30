@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Plus, Trash2, Clock, FileQuestion, ChevronDown, CheckCircle, PenSquare, RotateCcw, X, Mail, Users, Calendar, BarChart2, MoreVertical, Eye, EyeOff, TrendingUp, Award, Activity } from 'lucide-react';
+import { Search, Plus, Trash2, Clock, FileQuestion, ChevronDown, CheckCircle, PenSquare, RotateCcw, X, Mail, Users, Calendar, BarChart2, MoreVertical, Eye, EyeOff, TrendingUp, Award, Activity, Code, Layers, BookOpen } from 'lucide-react';
 import { AILoaderIcon as Loader2 } from '@/components/ui/Loader';;
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -277,7 +277,7 @@ const PracticeTestsManagement = () => {
                             >
                                 <div className="flex justify-between items-start gap-4 mb-6">
                                     <div className="space-y-2 flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1.5">
+                                        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                                             <span className={`text-[10px] uppercase font-black tracking-widest px-2.5 py-1 rounded-lg ${
                                                 test.isPublished ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'
                                             }`}>
@@ -286,8 +286,14 @@ const PracticeTestsManagement = () => {
                                             <span className="text-[10px] uppercase font-black tracking-widest px-2.5 py-1 rounded-lg bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-muted))]">
                                                 {test.topic}
                                             </span>
-                                            <span className="text-[10px] uppercase font-black tracking-widest px-2.5 py-1 rounded-lg bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] border border-[rgb(var(--accent))]/20">
-                                                {test.branch || 'computer'}
+                                            {/* Module Type Badge */}
+                                            <span className={`text-[10px] uppercase font-black tracking-widest px-2.5 py-1 rounded-lg flex items-center gap-1
+                                                ${test.moduleType === 'dsa' ? 'bg-cyan-500/10 text-cyan-600' :
+                                                    test.moduleType === 'mixed' ? 'bg-violet-500/10 text-violet-600' :
+                                                        'bg-blue-500/10 text-blue-600'}`}>
+                                                {test.moduleType === 'dsa' ? <><Code className="w-3 h-3" /> DSA</> :
+                                                    test.moduleType === 'mixed' ? <><Layers className="w-3 h-3" /> Mixed</> :
+                                                        <><BookOpen className="w-3 h-3" /> MCQ</>}
                                             </span>
                                         </div>
                                         <h3 className="text-xl font-bold text-[rgb(var(--text-primary))] truncate group-hover:text-[rgb(var(--accent))] transition-colors leading-tight">
@@ -310,7 +316,13 @@ const PracticeTestsManagement = () => {
 
                                 <div className="grid grid-cols-4 gap-3 mb-6 p-4 bg-[rgb(var(--bg-body-alt))]/50 rounded-[1.25rem] border border-[rgb(var(--border-subtle))]">
                                     <div className="text-center border-r border-[rgb(var(--border))] pr-1">
-                                        <div className="text-sm font-black text-[rgb(var(--text-primary))]">{test.questionCount || 0}</div>
+                                        <div className="text-sm font-black text-[rgb(var(--text-primary))]">
+                                            {test.moduleType === 'mixed'
+                                                ? `${test.questionCount || 0}+${test.dsaQuestionCount || 0}`
+                                                : test.moduleType === 'dsa'
+                                                    ? test.dsaQuestionCount || 0
+                                                    : test.questionCount || 0}
+                                        </div>
                                         <div className="text-[10px] text-[rgb(var(--text-muted))] font-bold uppercase tracking-tighter">Quest</div>
                                     </div>
                                     <div className="text-center border-r border-[rgb(var(--border))] pr-1">

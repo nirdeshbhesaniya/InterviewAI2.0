@@ -128,6 +128,9 @@ const ProfilePage = () => {
     const [isEditingRecruiter, setIsEditingRecruiter] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showPasswordForm, setShowPasswordForm] = useState(false);
+    const [showResumeModal, setShowResumeModal] = useState(false);
+    const [pdfBlobUrl, setPdfBlobUrl] = useState(null);
+    const [pdfLoading, setPdfLoading] = useState(false);
 
     const passwordSectionRef = useRef(null);
     const hydratedUserKeyRef = useRef('');
@@ -223,6 +226,37 @@ const ProfilePage = () => {
     const [careerModalSection, setCareerModalSection] = useState('');
     const [careerModalIndex, setCareerModalIndex] = useState(-1);
     const [careerModalData, setCareerModalData] = useState({});
+
+    // Fetch PDF as blob to bypass iframe X-Frame-Options and force native rendering
+    useEffect(() => {
+        let objectUrl = null;
+        if (showResumeModal && careerProfile?.recruiterProfile?.resume?.fileUrl) {
+            const fileUrl = careerProfile.recruiterProfile.resume.fileUrl;
+            const fileName = careerProfile.recruiterProfile.resume.fileName || '';
+            
+            if (fileName.toLowerCase().endsWith('.pdf') || fileUrl.toLowerCase().endsWith('.pdf')) {
+                setPdfLoading(true);
+                fetch(fileUrl)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        // Create a new blob with explicitly application/pdf type
+                        const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+                        objectUrl = URL.createObjectURL(pdfBlob);
+                        setPdfBlobUrl(objectUrl);
+                        setPdfLoading(false);
+                    })
+                    .catch(err => {
+                        console.error("Error fetching PDF blob:", err);
+                        setPdfLoading(false);
+                    });
+            }
+        }
+        return () => {
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+            }
+        };
+    }, [showResumeModal, careerProfile?.recruiterProfile?.resume?.fileUrl]);
 
     // Password form data
     const [passwordData, setPasswordData] = useState({
@@ -499,18 +533,79 @@ const ProfilePage = () => {
         toast.success('Generated bullet-style highlights');
     };
 
-    const handleResumeSelect = (event) => {
+    const handleResumeSelect = async (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
-        setRecruiterProfile((prev) => ({
-            ...prev,
-            resume: {
-                ...prev.resume,
-                fileName: file.name
-            }
-        }));
-        toast.success('Resume selected. Save profile to keep this info.');
+        // Check file type
+        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        if (!allowedTypes.includes(file.type)) {
+            toast.error('Only PDF and Word documents are supported');
+            return;
+        }
+
+        // 10MB limit
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error('File size should not exceed 10MB');
+            return;
+        }
+
+        const toastId = toast.loading('Uploading resume...');
+        
+        try {
+            // Read file as Base64 Data URL
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            
+            reader.onload = async () => {
+                const base64File = reader.result;
+                
+                try {
+                    const response = await axiosInstance.post(API.PROFILE.UPLOAD_RESUME, {
+                        email: user.email,
+                        resumeBase64: base64File,
+                        fileName: file.name
+                    });
+
+                    if (response.data.success) {
+                        const { fileUrl, fileName, user: updatedUser } = response.data.data;
+                        
+                        setRecruiterProfile((prev) => ({
+                            ...prev,
+                            resume: {
+                                ...prev.resume,
+                                fileName,
+                                fileUrl
+                            }
+                        }));
+                        
+                        if (updatedUser) {
+                            setUser(updatedUser);
+                            localStorage.setItem('user', JSON.stringify(updatedUser));
+                        }
+
+                        toast.success('Resume uploaded successfully', { id: toastId });
+                    } else {
+                        toast.error(response.data.message || 'Failed to upload resume', { id: toastId });
+                    }
+                } catch (error) {
+                    console.error('Resume upload error:', error);
+                    toast.error(error.response?.data?.message || 'An error occurred while uploading resume', { id: toastId });
+                } finally {
+                    event.target.value = '';
+                }
+            };
+            
+            reader.onerror = () => {
+                toast.error('Failed to read file', { id: toastId });
+                event.target.value = '';
+            };
+
+        } catch (error) {
+            console.error('Resume upload preparation error:', error);
+            toast.error('An error occurred preparing the upload', { id: toastId });
+            event.target.value = '';
+        }
     };
 
     const recruiterSections = [
@@ -1459,14 +1554,21 @@ const ProfilePage = () => {
                                     </div>
 
                                     {recruiterProfile.resume?.fileName && (
-                                        <div id="recruiter-resume-view" className="rounded-[24px] border border-[rgb(var(--border-subtle))] bg-gradient-to-r from-[rgb(var(--bg-card))] to-[rgb(var(--bg-body-alt))] p-6 flex items-center justify-between shadow-sm">
-                                            <div className="flex items-center gap-5">
-                                                <div className="p-3.5 bg-[rgb(var(--warning))]/10 rounded-2xl text-[rgb(var(--warning))] shadow-inner"><FileText className="w-6 h-6" /></div>
-                                                <div>
+                                        <div id="recruiter-resume-view" className="rounded-[24px] border border-[rgb(var(--border-subtle))] bg-gradient-to-r from-[rgb(var(--bg-card))] to-[rgb(var(--bg-body-alt))] p-6 flex items-center justify-between shadow-sm overflow-hidden">
+                                            <div className="flex items-center gap-5 min-w-0">
+                                                <div className="p-3.5 bg-[rgb(var(--warning))]/10 rounded-2xl text-[rgb(var(--warning))] shadow-inner shrink-0"><FileText className="w-6 h-6" /></div>
+                                                <div className="min-w-0">
                                                     <h4 className="text-base font-bold text-[rgb(var(--text-primary))]">Uploaded Resume</h4>
-                                                    <p className="text-sm font-medium text-[rgb(var(--text-secondary))] mt-1">{recruiterProfile.resume.fileName}</p>
+                                                    <p className="text-sm font-medium text-[rgb(var(--text-secondary))] mt-1 truncate">{recruiterProfile.resume.fileName}</p>
                                                 </div>
                                             </div>
+                                            <button 
+                                                onClick={() => setShowResumeModal(true)}
+                                                className="ml-4 shrink-0 px-4 py-2 bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))] hover:bg-[rgb(var(--accent))]/20 rounded-xl font-medium text-sm transition-colors flex items-center gap-2"
+                                            >
+                                                <Eye className="w-4 h-4" />
+                                                <span className="hidden sm:inline">View</span>
+                                            </button>
                                         </div>
                                     )}
 
@@ -2217,7 +2319,7 @@ const ProfilePage = () => {
                         <nav className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                             <button
                                 onClick={() => setActiveTab('profile')}
-                                className={`flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium transition-all whitespace-nowrap ${activeTab === 'profile'
+                                className={`flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium transition-all whitespace-nowrap shrink-0 ${activeTab === 'profile'
                                     ? 'bg-[rgb(var(--accent))]/15 text-[rgb(var(--accent))] ring-1 ring-[rgb(var(--accent))]/30'
                                     : 'text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-body-alt))] hover:text-[rgb(var(--accent))]'
                                     }`}
@@ -2227,7 +2329,7 @@ const ProfilePage = () => {
                             </button>
                             <button
                                 onClick={() => setActiveTab('preferences')}
-                                className={`flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium transition-all whitespace-nowrap ${activeTab === 'preferences'
+                                className={`flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium transition-all whitespace-nowrap shrink-0 ${activeTab === 'preferences'
                                     ? 'bg-[rgb(var(--accent))]/15 text-[rgb(var(--accent))] ring-1 ring-[rgb(var(--accent))]/30'
                                     : 'text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-body-alt))] hover:text-[rgb(var(--accent))]'
                                     }`}
@@ -2237,7 +2339,7 @@ const ProfilePage = () => {
                             </button>
                             <button
                                 onClick={() => setActiveTab('security')}
-                                className={`flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium transition-all whitespace-nowrap ${activeTab === 'security'
+                                className={`flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium transition-all whitespace-nowrap shrink-0 ${activeTab === 'security'
                                     ? 'bg-[rgb(var(--accent))]/15 text-[rgb(var(--accent))] ring-1 ring-[rgb(var(--accent))]/30'
                                     : 'text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-body-alt))] hover:text-[rgb(var(--accent))]'
                                     }`}
@@ -2247,7 +2349,7 @@ const ProfilePage = () => {
                             </button>
                             <button
                                 onClick={() => setActiveTab('uploads')}
-                                className={`flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium transition-all whitespace-nowrap ${activeTab === 'uploads'
+                                className={`flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium transition-all whitespace-nowrap shrink-0 ${activeTab === 'uploads'
                                     ? 'bg-[rgb(var(--accent))]/15 text-[rgb(var(--accent))] ring-1 ring-[rgb(var(--accent))]/30'
                                     : 'text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--bg-body-alt))] hover:text-[rgb(var(--accent))]'
                                     }`}
@@ -2627,6 +2729,89 @@ const ProfilePage = () => {
                                         >
                                             {loading ? 'Saving...' : 'Save details'}
                                         </Button>
+                                    </div>
+                                </motion.div>
+                            </motion.div>
+                        )}
+
+                        {showResumeModal && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-6"
+                                onClick={() => setShowResumeModal(false)}
+                            >
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    className="w-full max-w-4xl max-h-[90vh] bg-[rgb(var(--bg-card))] rounded-3xl shadow-2xl border border-[rgb(var(--border-subtle))] relative flex flex-col overflow-hidden"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <div className="flex items-center justify-between p-4 sm:p-6 border-b border-[rgb(var(--border-subtle))] bg-[rgb(var(--bg-elevated))]">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-[rgb(var(--warning))]/10 rounded-xl text-[rgb(var(--warning))]">
+                                                <FileText className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-[rgb(var(--text-primary))] line-clamp-1">{recruiterProfile.resume?.fileName || 'Resume'}</h3>
+                                                <p className="text-xs text-[rgb(var(--text-muted))]">Document Preview</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            {recruiterProfile.resume?.fileUrl && (
+                                                <a 
+                                                    href={recruiterProfile.resume.fileUrl} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="p-2 rounded-xl bg-[rgb(var(--bg-body-alt))] hover:bg-[rgb(var(--accent))]/10 hover:text-[rgb(var(--accent))] transition-colors text-[rgb(var(--text-secondary))]"
+                                                    title="Open in new tab"
+                                                >
+                                                    <Globe className="w-5 h-5" />
+                                                </a>
+                                            )}
+                                            <button 
+                                                onClick={() => setShowResumeModal(false)} 
+                                                className="p-2 rounded-xl bg-[rgb(var(--bg-body-alt))] hover:bg-red-500/10 hover:text-red-500 transition-colors text-[rgb(var(--text-secondary))]"
+                                            >
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex-1 overflow-hidden bg-gray-100 dark:bg-zinc-900 flex items-center justify-center p-2 sm:p-4 relative">
+                                        {recruiterProfile.resume?.fileUrl ? (
+                                            recruiterProfile.resume.fileName?.toLowerCase().endsWith('.pdf') || recruiterProfile.resume.fileUrl?.toLowerCase().endsWith('.pdf') ? (
+                                                <>
+                                                    {pdfLoading && (
+                                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 dark:bg-zinc-900 z-10">
+                                                            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[rgb(var(--accent))] border-t-transparent mb-4" />
+                                                            <p className="text-[rgb(var(--text-secondary))] font-medium">Loading document viewer...</p>
+                                                        </div>
+                                                    )}
+                                                    <iframe 
+                                                        src={pdfBlobUrl || recruiterProfile.resume.fileUrl} 
+                                                        className="w-full h-full min-h-[50vh] sm:min-h-[60vh] rounded-xl border-none shadow-inner bg-white"
+                                                        title="Resume Preview"
+                                                    />
+                                                </>
+                                            ) : (
+                                                <iframe 
+                                                    src={`https://docs.google.com/gview?url=${encodeURIComponent(recruiterProfile.resume.fileUrl)}&embedded=true`}
+                                                    className="w-full h-full min-h-[50vh] sm:min-h-[60vh] rounded-xl border-none shadow-inner bg-white"
+                                                    title="Resume Preview"
+                                                />
+                                            )
+                                        ) : (
+                                            <div className="text-center py-12 px-4">
+                                                <FileText className="w-16 h-16 text-[rgb(var(--text-muted))] mx-auto mb-4 opacity-50" />
+                                                <h3 className="text-lg font-medium text-[rgb(var(--text-primary))] mb-2">No File URL Available</h3>
+                                                <p className="text-sm text-[rgb(var(--text-secondary))] max-w-md mx-auto">
+                                                    This resume file ({recruiterProfile.resume?.fileName}) is recorded in your profile, but the actual file source could not be loaded. Please re-upload your resume.
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 </motion.div>
                             </motion.div>

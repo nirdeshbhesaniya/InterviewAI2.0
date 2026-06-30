@@ -5,7 +5,7 @@ import {
 export const BRANCHES = [
     {
         id: 'computer',
-        name: 'Computer Engineering (includes IT)',
+        name: 'Computer Engineering',
         icon: Cpu,
         color: 'from-blue-500 to-cyan-500',
         description: 'Software, Web Dev, AI/ML, and System Design'

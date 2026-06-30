@@ -341,22 +341,22 @@ const Header = ({ onLoginClick }) => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-3 w-[90vw] max-w-[320px] bg-[rgb(var(--bg-elevated))] rounded-2xl shadow-xl z-[100] border border-[rgb(var(--border))] overflow-hidden"
+                      className="fixed left-4 right-4 top-[72px] w-auto sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-3 sm:w-80 bg-[rgb(var(--bg-elevated))] rounded-2xl shadow-xl z-[100] border border-[rgb(var(--border))] overflow-hidden"
                     >
                       {/* Profile Header */}
-                      <div className="bg-gradient-to-r from-[rgb(var(--accent))] to-[rgb(var(--accent-hover))] px-6 py-4">
+                      <div className="bg-gradient-to-r from-[rgb(var(--accent))] to-[rgb(var(--accent-hover))] px-5 py-4 sm:px-6">
                         <div className="flex items-center gap-4">
-                          <div className="relative">
+                          <div className="relative shrink-0">
                             <img
                               src={user.photo || '/default-avatar.jpg'}
-                              className="w-16 h-16 rounded-full border-3 border-white object-cover shadow-lg"
+                              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-[3px] border-white object-cover shadow-lg"
                               alt="Profile"
                             />
                             <button
                               onClick={handleProfileClick}
-                              className="absolute -bottom-1 -right-1 w-6 h-6 bg-[rgb(var(--bg-card))] rounded-full shadow-md flex items-center justify-center hover:bg-[rgb(var(--bg-card-alt))] transition-colors border border-[rgb(var(--border))]"
+                              className="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full  shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors border-2 border-white group"
                             >
-                              <Camera className="w-3 h-3 text-[rgb(var(--text-secondary))]" />
+                              <Camera className="w-3.5 h-3.5 text-[rgb(var(--accent))] group-hover:scale-110 transition-transform" />
                             </button>
                           </div>
                           <div className="flex-1 min-w-0">
@@ -440,7 +440,7 @@ const Header = ({ onLoginClick }) => {
 
                         <motion.button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-6 py-3 bg-[rgb(var(--bg-elevated))] hover:bg-red-50 transition-colors group"
+                          className="w-full flex items-center gap-3 px-6 py-3 bg-[rgb(var(--bg-elevated))] hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors group"
                           whileHover={{ x: 4 }}
                         >
                           <LogOut className="w-5 h-5 text-red-500 group-hover:text-red-600" />

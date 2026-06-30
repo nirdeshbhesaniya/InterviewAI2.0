@@ -11,7 +11,9 @@ const Feedback = require('../models/FeedbackModel');
 const MockInterview = require('../models/MockInterview');
 const bcrypt = require('bcryptjs');
 const upload = require('../middlewares/upload');
+const uploadDocument = require('../middlewares/uploadDocument');
 const { uploadToCloudinary } = require('../utils/cloudinary');
+const { uploadToAppwrite } = require('../utils/appwrite');
 // ... (lines 8-109 unchanged)
 
 
@@ -411,6 +413,75 @@ router.post('/upload-photo', upload.single('photo'), async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to upload profile photo'
+        });
+    }
+});
+
+// Upload resume document
+router.post('/upload-resume', authenticateUser, async (req, res) => {
+    try {
+        const { email, resumeBase64, fileName } = req.body;
+        
+        // Use authenticated user directly
+        const userEmail = email || req.user.email;
+
+        const user = await User.findOne({ email: userEmail });
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        if (!resumeBase64) {
+            return res.status(400).json({
+                success: false,
+                message: 'No resume file provided'
+            });
+        }
+
+        const fileExt = (fileName || '').split('.').pop().toLowerCase() || 'pdf';
+
+        // Extract base64 content
+        const base64Data = resumeBase64.split(',')[1] || resumeBase64;
+        const buffer = Buffer.from(base64Data, 'base64');
+
+        // Upload to Appwrite
+        const result = await uploadToAppwrite(buffer, fileName || `resume.${fileExt}`);
+
+        // Initialize careerProfile if it doesn't exist
+        const careerProfile = user.careerProfile || {};
+        const recruiterProfile = careerProfile.recruiterProfile || {};
+        
+        // Update user's resume URL
+        const updatedUser = await User.findByIdAndUpdate(
+            user._id,
+            {
+                $set: {
+                    'careerProfile.recruiterProfile.resume.fileUrl': result.secure_url,
+                    'careerProfile.recruiterProfile.resume.fileName': fileName || 'resume.pdf',
+                    'careerProfile.recruiterProfile.resume.uploadedAt': new Date(),
+                    updatedAt: new Date()
+                }
+            },
+            { new: true }
+        ).select('-password -resetPasswordToken -resetPasswordExpires -otp -otpExpires');
+
+        res.json({
+            success: true,
+            message: 'Resume uploaded successfully',
+            data: {
+                fileUrl: result.secure_url,
+                fileName: fileName || 'resume.pdf',
+                user: updatedUser
+            }
+        });
+    } catch (error) {
+        console.error('Error uploading resume:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to upload resume'
         });
     }
 });

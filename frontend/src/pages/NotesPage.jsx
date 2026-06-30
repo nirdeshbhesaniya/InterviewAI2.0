@@ -443,18 +443,18 @@ const NotesPage = () => {
                                     </div>
 
                                     {/* Filter Controls */}
-                                    <div className="flex flex-col sm:flex-row gap-3">
-                                        <div className="flex p-1.5 bg-[rgb(var(--bg-elevated))]/60 border border-[rgb(var(--border-subtle))] rounded-2xl shadow-inner">
+                                    <div className="flex flex-col sm:flex-row gap-3 overflow-hidden">
+                                        <div className="flex p-1.5 bg-[rgb(var(--bg-elevated))]/60 border border-[rgb(var(--border-subtle))] rounded-2xl shadow-inner overflow-x-auto scrollbar-hide">
                                             {filterButtons.map(({ id, label, icon: Icon }) => (
                                                 <button
                                                     key={id}
                                                     onClick={() => setFilter(id)}
-                                                    className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all flex-1 sm:flex-none ${filter === id
+                                                    className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all whitespace-nowrap shrink-0 flex-1 sm:flex-none ${filter === id
                                                         ? 'bg-[rgb(var(--accent))] text-white shadow-md shadow-[rgb(var(--accent))]/30'
                                                         : 'text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-card))]'
                                                         }`}
                                                 >
-                                                    <Icon size={16} />
+                                                    <Icon size={16} className="shrink-0" />
                                                     <span className="hidden sm:inline">{label}</span>
                                                     <span className="sm:hidden">{label.split(' ')[0]}</span>
                                                 </button>

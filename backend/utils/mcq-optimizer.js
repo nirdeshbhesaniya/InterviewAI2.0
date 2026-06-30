@@ -9,7 +9,7 @@ const { createMCQChain } = require('./langchain-chains');
  * @param {Function} progressCallback - Optional callback for progress updates
  * @returns {Promise<Array>} Array of generated questions
  */
-async function generateMCQBatch(topic, difficulty = 'medium', totalQuestions = 30, progressCallback = null, branch = 'Computer Engineering (includes IT)') {
+async function generateMCQBatch(topic, difficulty = 'medium', totalQuestions = 30, progressCallback = null, branch = 'Computer Engineering') {
     const BATCH_SIZE = 10; // Generate 10 questions per batch
     const numBatches = Math.ceil(totalQuestions / BATCH_SIZE);
 
@@ -79,7 +79,7 @@ async function generateMCQBatch(topic, difficulty = 'medium', totalQuestions = 3
 /**
  * Generate a single batch of questions
  */
-async function generateSingleBatch(topic, difficulty, numberOfQuestions, batchNum, totalBatches, progressCallback, branch = 'Computer Engineering (includes IT)') {
+async function generateSingleBatch(topic, difficulty, numberOfQuestions, batchNum, totalBatches, progressCallback, branch = 'Computer Engineering') {
     try {
         console.log(`📦 Batch ${batchNum}/${totalBatches}: Generating ${numberOfQuestions} questions...`);
 

@@ -638,7 +638,11 @@ router.get('/practice-tests', async (req, res) => {
                     isTimeRestricted: 1,
                     startTime: 1,
                     endTime: 1,
-                    questionCount: { $size: "$questions" }
+                    moduleType: 1,
+                    modules: 1,
+                    securityEnabled: 1,
+                    questionCount: { $size: { $ifNull: ["$questions", []] } },
+                    dsaQuestionCount: { $size: { $ifNull: ["$dsaQuestions", []] } }
                 }
             }
         ]);
@@ -658,19 +662,33 @@ router.get('/practice-tests', async (req, res) => {
     }
 });
 
-// CREATE Practice Test (Admin)
+// CREATE Practice Test (Admin) — supports MCQ, DSA, and Mixed module types
 router.post('/practice-tests', async (req, res) => {
     try {
-        const { title, description, topic, difficulty, questions, isPublished, maxAttempts, timeLimit, guidelines, isTimeRestricted, startTime, endTime, passingScore } = req.body;
+        const {
+            title, description, topic, difficulty, questions,
+            isPublished, maxAttempts, timeLimit, guidelines,
+            isTimeRestricted, startTime, endTime, passingScore,
+            moduleType, modules, dsaQuestions, branch, securityEnabled
+        } = req.body;
         const PracticeTest = require('../models/PracticeTest');
         const hasScheduleWindow = isTimeRestricted || !!startTime || !!endTime;
 
-        const newTest = new PracticeTest({
+        const testData = {
             title,
             description,
             topic,
+            branch: branch || 'computer',
             difficulty,
-            questions, // Array of { question, options, correctAnswer, explanation }
+            moduleType: moduleType || 'mcq',
+            modules: modules || [],
+            questions: questions || [],
+            dsaQuestions: (dsaQuestions || []).map(dq => {
+                if (Array.isArray(dq.constraints)) {
+                    dq.constraints = dq.constraints.join('\n');
+                }
+                return dq;
+            }),
             createdBy: req.user._id,
             isPublished: isPublished !== undefined ? isPublished : true,
             maxAttempts: maxAttempts !== undefined ? maxAttempts : 1,
@@ -678,10 +696,24 @@ router.post('/practice-tests', async (req, res) => {
             guidelines: guidelines || '',
             passingScore: passingScore !== undefined ? passingScore : 40,
             isTimeRestricted: hasScheduleWindow,
+            securityEnabled: securityEnabled !== undefined ? securityEnabled : false,
             startTime: startTime || null,
             endTime: endTime || null
-        });
+        };
 
+        // Auto-generate modules if not provided for dsa/mixed types
+        if ((testData.moduleType === 'dsa' || testData.moduleType === 'mixed') && testData.modules.length === 0) {
+            const autoModules = [];
+            if (testData.moduleType === 'mixed' && testData.questions.length > 0) {
+                autoModules.push({ moduleType: 'mcq', title: 'MCQ Module', timeLimit: testData.timeLimit, order: 0, passingScore: testData.passingScore });
+            }
+            if (testData.dsaQuestions.length > 0) {
+                autoModules.push({ moduleType: 'dsa', title: 'DSA Coding Module', timeLimit: 45, order: autoModules.length, passingScore: testData.passingScore });
+            }
+            testData.modules = autoModules;
+        }
+
+        const newTest = new PracticeTest(testData);
         await newTest.save();
         res.status(201).json({ message: 'Practice test created successfully', test: newTest });
     } catch (err) {
@@ -690,7 +722,7 @@ router.post('/practice-tests', async (req, res) => {
     }
 });
 
-// UPDATE Practice Test (Admin)
+// UPDATE Practice Test (Admin) — supports MCQ, DSA, and Mixed module types
 router.put('/practice-tests/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -701,7 +733,22 @@ router.put('/practice-tests/:id', async (req, res) => {
             updates.isTimeRestricted = Boolean(updates.isTimeRestricted || updates.startTime || updates.endTime);
         }
 
-        const test = await PracticeTest.findByIdAndUpdate(id, updates, { new: true });
+        // Ensure moduleType-related fields are included
+        if (updates.moduleType) {
+            if (!updates.modules) updates.modules = [];
+            if (!updates.dsaQuestions) updates.dsaQuestions = [];
+        }
+
+        if (updates.dsaQuestions && Array.isArray(updates.dsaQuestions)) {
+            updates.dsaQuestions = updates.dsaQuestions.map(dq => {
+                if (Array.isArray(dq.constraints)) {
+                    dq.constraints = dq.constraints.join('\n');
+                }
+                return dq;
+            });
+        }
+
+        const test = await PracticeTest.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
 
         if (!test) {
             return res.status(404).json({ message: 'Practice test not found' });
@@ -915,6 +962,82 @@ router.post('/practice-tests/:id/reset-attempts', async (req, res) => {
     } catch (err) {
         console.error('Error resetting practice test attempts:', err);
         res.status(500).json({ message: 'Failed to reset attempts' });
+    }
+});
+
+// BULK UPLOAD Practice Test Questions (Admin) — supports MCQ and DSA formats
+router.post('/practice-tests/bulk-upload', async (req, res) => {
+    try {
+        const { testId, mcqQuestions, dsaQuestions } = req.body;
+        const PracticeTest = require('../models/PracticeTest');
+
+        if (!testId) {
+            return res.status(400).json({ message: 'testId is required' });
+        }
+
+        const test = await PracticeTest.findById(testId);
+        if (!test) {
+            return res.status(404).json({ message: 'Practice test not found' });
+        }
+
+        let mcqAdded = 0;
+        let dsaAdded = 0;
+
+        // Bulk add MCQ questions
+        if (mcqQuestions && Array.isArray(mcqQuestions) && mcqQuestions.length > 0) {
+            for (const q of mcqQuestions) {
+                if (q.question && q.options && q.options.length === 4 && q.correctAnswer !== undefined) {
+                    test.questions.push({
+                        question: q.question,
+                        options: q.options,
+                        correctAnswer: q.correctAnswer,
+                        explanation: q.explanation || '',
+                        codeSnippet: q.codeSnippet || ''
+                    });
+                    mcqAdded++;
+                }
+            }
+        }
+
+        // Bulk add DSA questions
+        if (dsaQuestions && Array.isArray(dsaQuestions) && dsaQuestions.length > 0) {
+            for (const dq of dsaQuestions) {
+                if (dq.title && dq.description && dq.publicTestCases && dq.publicTestCases.length >= 2 && dq.hiddenTestCases && dq.hiddenTestCases.length >= 1) {
+                    test.dsaQuestions.push({
+                        title: dq.title,
+                        description: dq.description,
+                        constraints: dq.constraints || '',
+                        difficulty: dq.difficulty || 'medium',
+                        allowedLanguages: dq.allowedLanguages || ['cpp', 'java', 'python', 'javascript'],
+                        maxScore: dq.maxScore || 100,
+                        timeLimit: dq.timeLimit || 2,
+                        memoryLimit: dq.memoryLimit || 256,
+                        starterCode: dq.starterCode || {},
+                        publicTestCases: dq.publicTestCases,
+                        hiddenTestCases: dq.hiddenTestCases,
+                        moduleIndex: dq.moduleIndex || 0
+                    });
+                    dsaAdded++;
+                }
+            }
+
+            // Auto-update moduleType if DSA questions were added to an MCQ-only test
+            if (test.moduleType === 'mcq' && dsaAdded > 0) {
+                test.moduleType = test.questions.length > 0 ? 'mixed' : 'dsa';
+            }
+        }
+
+        await test.save();
+
+        res.json({
+            success: true,
+            message: `Bulk upload complete: ${mcqAdded} MCQ question(s) and ${dsaAdded} DSA question(s) added.`,
+            mcqAdded,
+            dsaAdded
+        });
+    } catch (err) {
+        console.error('Error in bulk upload:', err);
+        res.status(500).json({ message: 'Bulk upload failed', error: err.message });
     }
 });
 
