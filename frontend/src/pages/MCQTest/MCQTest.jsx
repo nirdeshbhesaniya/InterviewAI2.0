@@ -309,88 +309,24 @@ const MCQTest = () => {
         }
     }, [saveProgress, currentStep, answers, tempAnswer, currentQuestion, timeLeft, markedForReview]);
 
-    // --- Unified Initialization & Resilience Logic ---
+    // --- Unified Initialization & Resilience Logic ---    
     useEffect(() => {
         if (!user?.email) return;
 
         const initializeTest = async () => {
             const key = getPersistenceKey();
             const saved = key ? localStorage.getItem(key) : null;
+            let parsed = null;
 
-            // 1. Priority: Try to resume existing session
             if (saved) {
                 try {
-                    const parsed = JSON.parse(saved);
-                    if (parsed.questions && parsed.questions.length > 0) {
-                        const lastUpdated = new Date(parsed.lastUpdated);
-                        const now = new Date();
-                        const hoursSinceUpdate = (now - lastUpdated) / (1000 * 60 * 60);
-
-                        if (hoursSinceUpdate < 4) {
-                            const startTime = parsed.testStartTime ? new Date(parsed.testStartTime) : null;
-                            const questionsCount = parsed.questions.length;
-                            const manualTimeLimit = parsed.formData.timeLimit;
-                            const totalAllowedSeconds = (manualTimeLimit || (questionsCount * 2)) * 60;
-                            
-                            let remaining = parsed.timeLeft;
-                            if (startTime) {
-                                const elapsed = Math.floor((now - startTime) / 1000);
-                                remaining = Math.max(0, totalAllowedSeconds - elapsed);
-                            }
-
-                            setQuestions(parsed.questions);
-                            setQuestionsWithAnswers(parsed.questionsWithAnswers || []);
-                            setAnswers(parsed.answers || {});
-                            setTempAnswer(parsed.tempAnswer);
-                            setMarkedForReview(parsed.markedForReview || {});
-                            setVisitedQuestions(parsed.visitedQuestions || {});
-                            setCurrentQuestion(parsed.currentQuestion || 0);
-                            
-                            // Restore modular state
-                            setCurrentModuleIndex(parsed.currentModuleIndex || 0);
-                            if (parsed.moduleTimes && Object.keys(parsed.moduleTimes).length > 0) {
-                                // Apply elapsed time proportionally or just subtract from the current module
-                                const currentModule = parsed.currentModuleIndex || 0;
-                                const savedModuleTimes = { ...parsed.moduleTimes };
-                                
-                                if (startTime) {
-                                    const elapsed = Math.floor((now - startTime) / 1000);
-                                    // A simple approach: subtract elapsed from total allowed seconds, and sync `timeLeft`
-                                    // But it's better to just trust the stored timer or update it if time elapsed.
-                                    // We will just restore it as is and let `timeLeft` logic handle overall time if needed.
-                                    savedModuleTimes[currentModule] = remaining; // override active module with elapsed diff
-                                }
-                                setModuleTimes(savedModuleTimes);
-                            } else {
-                                setTimeLeft(remaining);
-                            }
-                            setModuleTimeSpent(parsed.moduleTimeSpent || {});
-                            
-                            setTestStartTime(startTime);
-                            setFormData(parsed.formData);
-                            setAttemptId(parsed.attemptId);
-                            setHasAttempted(true);
-                            setCurrentStep('test');
-
-                            if (remaining === 0) {
-                                toast.error('Your test session has timed out.');
-                                // The timer useEffect will trigger handleSubmitTest on next tick
-                            } else {
-                                toast.success('Resuming your active session...', {
-                                    icon: '🔄',
-                                    duration: 3000
-                                });
-                            }
-                            return; // Stop here, session resumed successfully
-                        }
-                    }
+                    parsed = JSON.parse(saved);
                 } catch (e) {
                     console.error('Failed to parse saved progress:', e);
                     localStorage.removeItem(key);
                 }
             }
 
-            // 2. If no resume, handle practice test loading
             if (testId) {
                 setLoading(true);
                 try {
@@ -401,7 +337,7 @@ const MCQTest = () => {
 
                     if (data) {
                         // Check attempts only if we're starting fresh
-                        if (data.maxAttempts && data.userAttempts >= data.maxAttempts) {
+                        if (!parsed && data.maxAttempts && data.userAttempts >= data.maxAttempts) {
                             toast.error(`Attempt limit reached (${data.maxAttempts}). Please contact support if you believe this is an error.`);
                             navigate('/mcq-test/practice');
                             return;
@@ -416,18 +352,8 @@ const MCQTest = () => {
                         setDsaQuestions(data.dsaQuestions || []);
                         setRawTestData(data);
 
-                        // Initialize module times
-                        const initialTimes = {};
-                        (data.modules || []).forEach((m, idx) => {
-                            initialTimes[idx] = (m.timeLimit || 30) * 60;
-                        });
-                        if ((data.modules || []).length === 0) {
-                            initialTimes[0] = (data.timeLimit || 30) * 60;
-                        }
-                        setModuleTimes(initialTimes);
-
-                        setFormData(prev => ({
-                            ...prev,
+                        // Set Fresh FormData
+                        setFormData({
                             topic: data.topic,
                             numberOfQuestions: data.questions.length,
                             title: data.title,
@@ -440,7 +366,78 @@ const MCQTest = () => {
                             moduleType: data.moduleType || 'mcq',
                             securityEnabled: data.securityEnabled ?? false,
                             modules: data.modules || []
-                        }));
+                        });
+
+                        // Base Initialization
+                        const initialTimes = {};
+                        (data.modules || []).forEach((m, idx) => {
+                            initialTimes[idx] = (m.timeLimit || 30) * 60;
+                        });
+                        if ((data.modules || []).length === 0) {
+                            initialTimes[0] = (data.timeLimit || 30) * 60;
+                        }
+                        
+                        // Overlay progress if valid
+                        if (parsed && parsed.questions && parsed.questions.length > 0) {
+                            const lastUpdated = new Date(parsed.lastUpdated);
+                            const now = new Date();
+                            const hoursSinceUpdate = (now - lastUpdated) / (1000 * 60 * 60);
+
+                            if (hoursSinceUpdate < 4) {
+                                const startTime = parsed.testStartTime ? new Date(parsed.testStartTime) : null;
+                                const questionsCount = transformedQuestions.length;
+                                const manualTimeLimit = data.timeLimit;
+                                const totalAllowedSeconds = (manualTimeLimit || (questionsCount * 2)) * 60;
+                                
+                                let remaining = parsed.timeLeft;
+                                if (startTime) {
+                                    const elapsed = Math.floor((now - startTime) / 1000);
+                                    remaining = Math.max(0, totalAllowedSeconds - elapsed);
+                                }
+
+                                setQuestionsWithAnswers(parsed.questionsWithAnswers || []);
+                                setAnswers(parsed.answers || {});
+                                setTempAnswer(parsed.tempAnswer);
+                                setMarkedForReview(parsed.markedForReview || {});
+                                setVisitedQuestions(parsed.visitedQuestions || {});
+                                setCurrentQuestion(parsed.currentQuestion || 0);
+                                
+                                // Restore modular state carefully
+                                setCurrentModuleIndex(parsed.currentModuleIndex || 0);
+                                if (parsed.moduleTimes && Object.keys(parsed.moduleTimes).length > 0) {
+                                    const currentModule = parsed.currentModuleIndex || 0;
+                                    const savedModuleTimes = { ...initialTimes, ...parsed.moduleTimes };
+                                    
+                                    if (startTime) {
+                                        savedModuleTimes[currentModule] = remaining; // override active module with elapsed diff
+                                    }
+                                    setModuleTimes(savedModuleTimes);
+                                } else {
+                                    setTimeLeft(remaining);
+                                    setModuleTimes(initialTimes);
+                                }
+                                setModuleTimeSpent(parsed.moduleTimeSpent || {});
+                                
+                                setTestStartTime(startTime);
+                                setAttemptId(parsed.attemptId);
+                                setHasAttempted(true);
+                                setCurrentStep('test');
+
+                                if (remaining <= 0) {
+                                    toast.error('Your test session has timed out.');
+                                } else {
+                                    toast.success('Resuming your active session...', {
+                                        icon: '🔄',
+                                        duration: 3000
+                                    });
+                                }
+                                setLoading(false);
+                                return;
+                            }
+                        }
+
+                        // Fresh start initialization if no resume or expired
+                        setModuleTimes(initialTimes);
                         setHasAttempted(true);
                         setCurrentStep('guidelines');
                     }
@@ -452,8 +449,34 @@ const MCQTest = () => {
                     setLoading(false);
                 }
             } else {
-                // If AI test (no testId), ensure we are on setup
-                setCurrentStep('setup');
+                // AI Generated Test Resume Logic
+                if (parsed && parsed.questions && parsed.questions.length > 0) {
+                    const lastUpdated = new Date(parsed.lastUpdated);
+                    const now = new Date();
+                    const hoursSinceUpdate = (now - lastUpdated) / (1000 * 60 * 60);
+
+                    if (hoursSinceUpdate < 4) {
+                        setQuestions(parsed.questions);
+                        setQuestionsWithAnswers(parsed.questionsWithAnswers || []);
+                        setAnswers(parsed.answers || {});
+                        setTempAnswer(parsed.tempAnswer);
+                        setMarkedForReview(parsed.markedForReview || {});
+                        setVisitedQuestions(parsed.visitedQuestions || {});
+                        setCurrentQuestion(parsed.currentQuestion || 0);
+                        setTimeLeft(parsed.timeLeft);
+                        setCurrentModuleIndex(parsed.currentModuleIndex || 0);
+                        setModuleTimes(parsed.moduleTimes || {});
+                        setModuleTimeSpent(parsed.moduleTimeSpent || {});
+                        setTestStartTime(parsed.testStartTime ? new Date(parsed.testStartTime) : null);
+                        setFormData(parsed.formData);
+                        setAttemptId(parsed.attemptId);
+                        setHasAttempted(true);
+                        setCurrentStep('test');
+                    }
+                } else {
+                    // If AI test (no testId), ensure we are on setup
+                    setCurrentStep('setup');
+                }
             }
         };
 
@@ -527,6 +550,12 @@ const MCQTest = () => {
             if (response.data.success) {
                 // Clear saved progress on successful submission
                 clearProgress();
+
+                // Exit fullscreen when test completes
+                if (document.fullscreenElement && document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                }
+                setIsFullscreen(false);
                 
                 // Close the confirmation dialog on success
                 setShowSubmitConfirmation(false);
@@ -773,12 +802,15 @@ const MCQTest = () => {
         }
     }, [currentStep, currentModuleIndex, handleModuleSubmit, loading]);
 
-    // Fullscreen management and hide header/footer when test starts
+    // Update test mode context to hide header/footer
     useEffect(() => {
-        // Update test mode context to hide header/footer
         setIsTestActive(currentStep === 'test');
+        return () => setIsTestActive(false);
+    }, [currentStep, setIsTestActive]);
 
-        if (formData.securityEnabled === false) return;
+    // Fullscreen management for secure tests
+    useEffect(() => {
+        if (formData.securityEnabled === false || currentStep !== 'test') return;
 
         // Listen for fullscreen changes and prevent manual exit
         const handleFullscreenChange = () => {
@@ -786,7 +818,7 @@ const MCQTest = () => {
             setIsFullscreen(isCurrentlyFullscreen);
 
             // If user manually exits fullscreen during test, show warning
-            if (currentStep === 'test' && !isCurrentlyFullscreen && isFullscreen) {
+            if (!isCurrentlyFullscreen && isFullscreen) {
                 setFullscreenWarnings(prev => {
                     const newCount = prev + 1;
                     const totalWarnings = newCount + tabSwitchWarnings + notificationWarnings;
@@ -814,9 +846,8 @@ const MCQTest = () => {
         document.addEventListener('fullscreenchange', handleFullscreenChange);
         return () => {
             document.removeEventListener('fullscreenchange', handleFullscreenChange);
-            // Restore header/footer when leaving test
         };
-    }, [currentStep, setIsTestActive, isFullscreen, tabSwitchWarnings, notificationWarnings, handleSubmitTest, formData.securityEnabled]);
+    }, [currentStep, isFullscreen, tabSwitchWarnings, notificationWarnings, handleSubmitTest, formData.securityEnabled]);
 
     // Track visited questions and load saved/temp answer when changing questions
     useEffect(() => {
@@ -1052,19 +1083,28 @@ const MCQTest = () => {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    // Enter fullscreen - must be called from user gesture
+    // Enter fullscreen - must be called from a user gesture (equivalent to pressing F11)
     const enterFullscreen = async () => {
         try {
-            if (document.documentElement.requestFullscreen) {
+            if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
                 await document.documentElement.requestFullscreen();
                 setIsFullscreen(true);
-                toast.success('Fullscreen mode activated', { duration: 2000 });
             }
         } catch (err) {
             console.log('Fullscreen request failed:', err);
-            // Fallback: just hide header/footer without browser fullscreen
-            // Using toast instead of toast.info as info variant is not available
-            toast('Press F11 for fullscreen mode', { duration: 3000 });
+        }
+    };
+
+    // Exit fullscreen safely (equivalent to pressing Escape / F11 to toggle off)
+    const exitFullscreen = async () => {
+        try {
+            if (document.fullscreenElement && document.exitFullscreen) {
+                await document.exitFullscreen();
+            }
+        } catch (err) {
+            console.log('Fullscreen exit failed:', err);
+        } finally {
+            setIsFullscreen(false);
         }
     };
 
@@ -2380,7 +2420,8 @@ const MCQTest = () => {
 
                     <div className="flex justify-center mt-8 gap-4">
                         <Button
-                            onClick={() => {
+                            onClick={async () => {
+                                await exitFullscreen();
                                 setResults(null);
                                 setCurrentStep('setup');
                                 setVisitedQuestions({});
@@ -2540,7 +2581,8 @@ const MCQTest = () => {
                     {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                         <Button
-                            onClick={() => {
+                            onClick={async () => {
+                                await exitFullscreen();
                                 setCurrentStep('setup');
                                 setQuestions([]);
                                 setAnswers({});
@@ -2558,7 +2600,7 @@ const MCQTest = () => {
                             🔄 Take Another Test
                         </Button>
                         <Button
-                            onClick={() => window.location.href = '/dashboard'}
+                            onClick={async () => { await exitFullscreen(); window.location.href = '/dashboard'; }}
                             className="bg-[rgb(var(--accent))] hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium shadow-lg transition-all"
                         >
                             🏠 Back to Dashboard
@@ -2916,6 +2958,9 @@ const MCQTest = () => {
         setTimeLeft(calculatedTimeLeft);
         setTestStartTime(new Date());
         toast.success(`Practice Test: ${formData.title} started!`);
+
+        // Enter fullscreen automatically when test begins
+        await enterFullscreen();
     };
 
     const renderGuidelines = () => {
