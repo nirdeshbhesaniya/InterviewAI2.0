@@ -886,26 +886,6 @@ const MCQTest = () => {
                 e.preventDefault();
                 toast.error('Developer tools are disabled during the test!', { duration: 2000 });
             }
-
-            // Prevent F11 browser toggle and trigger HTML5 fullscreen instead
-            if (e.key === 'F11') {
-                e.preventDefault();
-                try {
-                    const docElm = document.documentElement;
-                    if (docElm.requestFullscreen) {
-                        docElm.requestFullscreen();
-                    } else if (docElm.webkitRequestFullscreen) {
-                        docElm.webkitRequestFullscreen();
-                    } else if (docElm.mozRequestFullScreen) {
-                        docElm.mozRequestFullScreen();
-                    } else if (docElm.msRequestFullscreen) {
-                        docElm.msRequestFullscreen();
-                    }
-                    toast.success('Fullscreen mode activated', { duration: 2000 });
-                } catch (err) {
-                    console.error('Fullscreen request failed:', err);
-                }
-            }
         };
 
         window.addEventListener('contextmenu', preventContextMenu);
@@ -916,6 +896,42 @@ const MCQTest = () => {
             window.removeEventListener('keydown', preventKeyboardShortcuts);
         };
     }, [currentStep, formData.securityEnabled]);
+
+    // F11 Key Handler for Fullscreen Mode (works for both AI MCQ and Practice tests, security enabled or disabled)
+    useEffect(() => {
+        if (currentStep !== 'test') return;
+
+        const handleF11Key = (e) => {
+            if (e.key === 'F11') {
+                e.preventDefault();
+                try {
+                    const docElm = document.documentElement;
+                    if (document.fullscreenElement) {
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen();
+                        }
+                        toast.success('Exited fullscreen mode', { duration: 2000 });
+                    } else {
+                        if (docElm.requestFullscreen) {
+                            docElm.requestFullscreen();
+                        } else if (docElm.webkitRequestFullscreen) {
+                            docElm.webkitRequestFullscreen();
+                        } else if (docElm.mozRequestFullScreen) {
+                            docElm.mozRequestFullScreen();
+                        } else if (docElm.msRequestFullscreen) {
+                            docElm.msRequestFullscreen();
+                        }
+                        toast.success('Fullscreen mode activated', { duration: 2000 });
+                    }
+                } catch (err) {
+                    console.error('Fullscreen toggle failed:', err);
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleF11Key);
+        return () => window.removeEventListener('keydown', handleF11Key);
+    }, [currentStep]);
 
     // Detect tab switching and show warning
     useEffect(() => {

@@ -237,7 +237,18 @@ const DSATestPage = ({
         const handleKeyDown = (e) => {
             if (e.key === 'F11') {
                 e.preventDefault();
-                enterFullscreen();
+                try {
+                    if (document.fullscreenElement) {
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen();
+                        }
+                        toast.success('Exited fullscreen mode', { duration: 2000 });
+                    } else {
+                        enterFullscreen();
+                    }
+                } catch (err) {
+                    console.error('Fullscreen toggle failed:', err);
+                }
             }
         };
         window.addEventListener('keydown', handleKeyDown);
