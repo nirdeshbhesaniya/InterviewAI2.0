@@ -449,6 +449,7 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
                     branch: testToEdit.branch || 'computer',
                     difficulty: testToEdit.difficulty || 'medium',
                     maxAttempts: testToEdit.maxAttempts || 1,
+                    timeLimit: testToEdit.timeLimit || 30,
                     passingScore: testToEdit.passingScore || 40,
                     guidelines: testToEdit.guidelines || '',
                     isTimeRestricted: testToEdit.isTimeRestricted || false,

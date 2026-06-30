@@ -700,12 +700,12 @@ router.post('/practice-tests', async (req, res) => {
             difficulty,
             moduleType: moduleType || 'mcq',
             modules: modules || [],
-            questions: questions || [],
+            questions: (questions || []).map(q => ({ ...q, moduleIndex: typeof q.moduleIndex === 'number' ? q.moduleIndex : 0 })),
             dsaQuestions: (dsaQuestions || []).map(dq => {
                 if (Array.isArray(dq.constraints)) {
                     dq.constraints = dq.constraints.join('\n');
                 }
-                return dq;
+                return { ...dq, moduleIndex: typeof dq.moduleIndex === 'number' ? dq.moduleIndex : 0 };
             }),
             createdBy: req.user._id,
             isPublished: isPublished !== undefined ? isPublished : true,
@@ -719,16 +719,25 @@ router.post('/practice-tests', async (req, res) => {
             endTime: endTime || null
         };
 
-        // Auto-generate modules if not provided for dsa/mixed types
-        if ((testData.moduleType === 'dsa' || testData.moduleType === 'mixed') && testData.modules.length === 0) {
-            const autoModules = [];
-            if (testData.moduleType === 'mixed' && testData.questions.length > 0) {
-                autoModules.push({ moduleType: 'mcq', title: 'MCQ Module', timeLimit: testData.timeLimit, order: 0, passingScore: testData.passingScore });
+        // Compute timeLimit from modules sum if modules are present
+        if (testData.modules.length > 0) {
+            testData.timeLimit = testData.modules.reduce((sum, m) => sum + (m.timeLimit || 0), 0);
+        }
+
+        // Auto-generate modules if not provided (ensure every test always has at least one module)
+        if (testData.modules.length === 0) {
+            if (testData.moduleType === 'mcq') {
+                testData.modules = [{ moduleType: 'mcq', title: 'Module 1', timeLimit: testData.timeLimit || 30, order: 0, passingScore: testData.passingScore || 40 }];
+            } else if (testData.moduleType === 'dsa') {
+                testData.modules = [{ moduleType: 'dsa', title: 'DSA Coding Module', timeLimit: testData.timeLimit || 45, order: 0, passingScore: testData.passingScore || 40 }];
+            } else if (testData.moduleType === 'mixed') {
+                const autoModules = [];
+                if (testData.questions.length > 0) {
+                    autoModules.push({ moduleType: 'mcq', title: 'MCQ Module', timeLimit: Math.floor(testData.timeLimit / 2) || 30, order: 0, passingScore: testData.passingScore });
+                }
+                autoModules.push({ moduleType: 'dsa', title: 'DSA Coding Module', timeLimit: Math.ceil(testData.timeLimit / 2) || 45, order: autoModules.length, passingScore: testData.passingScore });
+                testData.modules = autoModules;
             }
-            if (testData.dsaQuestions.length > 0) {
-                autoModules.push({ moduleType: 'dsa', title: 'DSA Coding Module', timeLimit: 45, order: autoModules.length, passingScore: testData.passingScore });
-            }
-            testData.modules = autoModules;
         }
 
         const newTest = new PracticeTest(testData);
@@ -757,12 +766,28 @@ router.put('/practice-tests/:id', async (req, res) => {
             if (!updates.dsaQuestions) updates.dsaQuestions = [];
         }
 
+        // Ensure modules is always an array
+        if (!Array.isArray(updates.modules)) updates.modules = [];
+
+        // Compute timeLimit from modules if they are present; otherwise keep the sent value
+        if (updates.modules.length > 0) {
+            updates.timeLimit = updates.modules.reduce((sum, m) => sum + (m.timeLimit || 0), 0);
+        }
+
+        // Ensure all MCQ questions have a valid moduleIndex
+        if (Array.isArray(updates.questions)) {
+            updates.questions = updates.questions.map(q => ({
+                ...q,
+                moduleIndex: typeof q.moduleIndex === 'number' ? q.moduleIndex : 0
+            }));
+        }
+
         if (updates.dsaQuestions && Array.isArray(updates.dsaQuestions)) {
             updates.dsaQuestions = updates.dsaQuestions.map(dq => {
                 if (Array.isArray(dq.constraints)) {
                     dq.constraints = dq.constraints.join('\n');
                 }
-                return dq;
+                return { ...dq, moduleIndex: typeof dq.moduleIndex === 'number' ? dq.moduleIndex : 0 };
             });
         }
 
