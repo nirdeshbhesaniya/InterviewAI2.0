@@ -1085,6 +1085,7 @@ router.get('/practice-tests', checkFeatureEnabled('practice_tests'), async (req,
                     createdAt: 1,
                     maxAttempts: 1,
                     timeLimit: 1,
+                    passingScore: 1,
                     isTimeRestricted: 1,
                     startTime: 1,
                     endTime: 1,
@@ -1096,9 +1097,27 @@ router.get('/practice-tests', checkFeatureEnabled('practice_tests'), async (req,
             }
         ]);
 
+        const processedTests = tests.map(t => {
+            const moduleType = t.moduleType || 'mcq';
+            const modules = t.modules && t.modules.length > 0 ? t.modules : [
+                {
+                    moduleType: moduleType,
+                    title: moduleType === 'dsa' ? 'DSA Coding Module' : 'Module 1',
+                    timeLimit: t.timeLimit || 30,
+                    order: 0,
+                    passingScore: t.passingScore || 40
+                }
+            ];
+            return {
+                ...t,
+                moduleType,
+                modules
+            };
+        });
+
         res.json({
             success: true,
-            data: tests,
+            data: processedTests,
             pagination: {
                 currentPage: page,
                 totalPages,
@@ -1158,6 +1177,17 @@ router.get('/practice-tests/:id', checkFeatureEnabled('practice_tests'), async (
             userAttempts = await PracticeTestResult.countDocuments({ userEmail, practiceTestId: test._id });
         }
 
+        const testModuleType = test.moduleType || 'mcq';
+        const testModules = test.modules && test.modules.length > 0 ? test.modules : [
+            {
+                moduleType: testModuleType,
+                title: testModuleType === 'dsa' ? 'DSA Coding Module' : 'Module 1',
+                timeLimit: test.timeLimit || 30,
+                order: 0,
+                passingScore: test.passingScore || 40
+            }
+        ];
+
         res.json({
             success: true,
             data: {
@@ -1166,8 +1196,8 @@ router.get('/practice-tests/:id', checkFeatureEnabled('practice_tests'), async (
                 description: test.description,
                 topic: test.topic,
                 difficulty: test.difficulty,
-                moduleType: test.moduleType || 'mcq',
-                modules: test.modules || [],
+                moduleType: testModuleType,
+                modules: testModules,
                 questions: questionsForTest,
                 dsaQuestions: dsaQuestionsForTest,
                 totalQuestions: (test.questions || []).length,

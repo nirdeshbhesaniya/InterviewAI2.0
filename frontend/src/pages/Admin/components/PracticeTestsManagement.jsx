@@ -394,7 +394,10 @@ const PracticeTestsManagement = () => {
             {/* Test Creation/Edit Modal */}
             <PracticeTestModal 
                 isOpen={isTestModalOpen}
-                onClose={() => setIsTestModalOpen(false)}
+                onClose={() => {
+                    setIsTestModalOpen(false);
+                    setSelectedTest(null);
+                }}
                 onSave={handleSaveTest}
                 testToEdit={selectedTest}
             />

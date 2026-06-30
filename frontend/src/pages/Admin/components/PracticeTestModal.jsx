@@ -443,13 +443,23 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
                 const sanitizedQuestions = (testToEdit.questions || []).filter(q => q);
                 const loadedModules = sanitizeModulesForType(testToEdit.modules, testToEdit.moduleType || 'mcq');
                 setFormData({
-                    ...testToEdit,
-                    questions: sanitizedQuestions,
-                    dsaQuestions: testToEdit.dsaQuestions || [],
-                    modules: loadedModules,
-                    moduleType: testToEdit.moduleType || 'mcq',
+                    title: testToEdit.title || '',
+                    description: testToEdit.description || '',
+                    topic: testToEdit.topic || '',
+                    branch: testToEdit.branch || 'computer',
+                    difficulty: testToEdit.difficulty || 'medium',
+                    maxAttempts: testToEdit.maxAttempts || 1,
+                    passingScore: testToEdit.passingScore || 40,
+                    guidelines: testToEdit.guidelines || '',
+                    isTimeRestricted: testToEdit.isTimeRestricted || false,
+                    securityEnabled: testToEdit.securityEnabled || false,
                     startTime: toLocalDateTimeString(testToEdit.startTime),
-                    endTime: toLocalDateTimeString(testToEdit.endTime)
+                    endTime: toLocalDateTimeString(testToEdit.endTime),
+                    isPublished: testToEdit.isPublished !== undefined ? testToEdit.isPublished : true,
+                    moduleType: testToEdit.moduleType || 'mcq',
+                    modules: loadedModules,
+                    questions: sanitizedQuestions,
+                    dsaQuestions: testToEdit.dsaQuestions || []
                 });
             } else {
                 setFormData({
@@ -737,6 +747,12 @@ const PracticeTestModal = ({ isOpen, onClose, onSave, testToEdit }) => {
                                     <textarea name="description" value={formData.description} onChange={handleChange} rows={2}
                                         className="w-full px-4 py-2 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] outline-none text-[rgb(var(--text-primary))]"
                                         placeholder="Brief description..." />
+                                </div>
+                                <div className="md:col-span-2 space-y-2">
+                                    <label className="text-sm font-medium text-[rgb(var(--text-secondary))]">Guidelines / Instructions</label>
+                                    <textarea name="guidelines" value={formData.guidelines} onChange={handleChange} rows={3}
+                                        className="w-full px-4 py-2 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--accent))] outline-none text-[rgb(var(--text-primary))]"
+                                        placeholder="Instructions shown to students before starting the test..." />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-[rgb(var(--text-secondary))]">Difficulty</label>

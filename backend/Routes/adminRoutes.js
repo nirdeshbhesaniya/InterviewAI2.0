@@ -647,9 +647,27 @@ router.get('/practice-tests', async (req, res) => {
             }
         ]);
 
+        const processedTests = tests.map(t => {
+            const moduleType = t.moduleType || 'mcq';
+            const modules = t.modules && t.modules.length > 0 ? t.modules : [
+                {
+                    moduleType: moduleType,
+                    title: moduleType === 'dsa' ? 'DSA Coding Module' : 'Module 1',
+                    timeLimit: t.timeLimit || 30,
+                    order: 0,
+                    passingScore: t.passingScore || 40
+                }
+            ];
+            return {
+                ...t,
+                moduleType,
+                modules
+            };
+        });
+
         res.json({
             success: true,
-            data: tests,
+            data: processedTests,
             pagination: {
                 currentPage: page,
                 totalPages: Math.ceil(totalTests / limit),
@@ -870,7 +888,21 @@ router.get('/practice-tests/:id', async (req, res) => {
             return res.status(404).json({ message: 'Practice test not found' });
         }
 
-        res.json(test);
+        const testObj = test.toObject();
+        if (!testObj.moduleType) testObj.moduleType = 'mcq';
+        if (!testObj.modules || testObj.modules.length === 0) {
+            testObj.modules = [
+                {
+                    moduleType: testObj.moduleType,
+                    title: testObj.moduleType === 'dsa' ? 'DSA Coding Module' : 'Module 1',
+                    timeLimit: testObj.timeLimit || 30,
+                    order: 0,
+                    passingScore: testObj.passingScore || 40
+                }
+            ];
+        }
+
+        res.json(testObj);
     } catch (err) {
         console.error('Error fetching practice test details:', err);
         res.status(500).json({ message: 'Failed to fetch practice test details' });
