@@ -19,6 +19,8 @@ const allowedOrigins = [
   "http://localhost:5174",
   "http://localhost:3000",
   "https://www.interviewai.tech",
+  "https://interviewai.tech",
+  "https://api.interviewai.tech",
   process.env.FRONTEND_URL,
   "https://interviewai2-0.onrender.com"
 ].filter(Boolean).map(origin => origin.replace(/\/$/, "")); // Remove trailing slashes

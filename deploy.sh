@@ -132,6 +132,11 @@ if [ ! -f ".env" ]; then
     log_warning "No .env file found in ${BACKEND_DIR}! Make sure environment variables are set."
 fi
 
+# Ensure Linux case-sensitivity compatibility (models vs Models)
+if [ -d "${BACKEND_DIR}/Models" ] && [ ! -d "${BACKEND_DIR}/models" ]; then
+    ln -s "${BACKEND_DIR}/Models" "${BACKEND_DIR}/models" 2>/dev/null || true
+fi
+
 # Install dependencies with legacy peer deps to handle LangChain / OpenAI conflicts
 npm install --legacy-peer-deps --no-audit --no-fund
 
