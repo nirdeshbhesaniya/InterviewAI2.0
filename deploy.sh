@@ -76,6 +76,24 @@ if ! command -v pm2 &> /dev/null; then
     sudo npm install -g pm2
 fi
 
+# Check and ensure swap memory (essential for Vite build on 1GB EC2 instances like t2/t3.micro)
+SWAP_TOTAL=$(free -m 2>/dev/null | awk '/^Swap:/ {print $2}' || echo "0")
+if [ -z "$SWAP_TOTAL" ] || [ "$SWAP_TOTAL" -lt 1000 ]; then
+    log_warning "Low/No swap space detected (${SWAP_TOTAL}MB). Setting up 2GB swapfile..."
+    if command -v sudo &> /dev/null; then
+        if [ ! -f /swapfile ]; then
+            sudo fallocate -l 2G /swapfile 2>/dev/null || sudo dd if=/dev/zero of=/swapfile bs=1M count=2048 2>/dev/null
+            sudo chmod 600 /swapfile 2>/dev/null
+            sudo mkswap /swapfile 2>/dev/null
+        fi
+        sudo swapon /swapfile 2>/dev/null || true
+        if ! grep -q '/swapfile' /etc/fstab 2>/dev/null; then
+            echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab > /dev/null
+        fi
+        log_success "Activated 2GB swap space to prevent memory crashes during build."
+    fi
+fi
+
 log_success "Prerequisites checked (Node: $(node -v), NPM: $(npm -v), PM2: $(pm2 -v))"
 
 # ------------------------------------------------------------------------------
