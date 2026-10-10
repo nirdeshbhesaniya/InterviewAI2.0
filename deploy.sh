@@ -108,8 +108,8 @@ if [ ! -f ".env" ]; then
     log_warning "No .env file found in ${BACKEND_DIR}! Make sure environment variables are set."
 fi
 
-# Install dependencies (only production packages if preferred, or standard npm install)
-npm install --no-audit --no-fund
+# Install dependencies with legacy peer deps to handle LangChain / OpenAI conflicts
+npm install --legacy-peer-deps --no-audit --no-fund
 
 # Ensure logs directory exists
 mkdir -p "${BACKEND_DIR}/logs"
@@ -167,7 +167,7 @@ if [ ! -f ".env" ]; then
     log_warning "No .env file found in ${FRONTEND_DIR} (Vite may use defaults)."
 fi
 
-npm install --no-audit --no-fund
+npm install --legacy-peer-deps --no-audit --no-fund
 npm run build
 
 if [ ! -d "${FRONTEND_DIR}/dist" ]; then
