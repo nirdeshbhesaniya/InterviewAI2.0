@@ -161,13 +161,8 @@ fi
 # Check if PM2 ecosystem config exists in project root or backend
 if [ -f "${PROJECT_ROOT}/ecosystem.config.cjs" ] && [ "${PM2_APP_NAME}" = "interview-ai-backend" ]; then
     log_info "Using PM2 ecosystem config..."
-    if pm2 describe "${PM2_APP_NAME}" &> /dev/null; then
-        pm2 reload "${PROJECT_ROOT}/ecosystem.config.cjs" --update-env
-        log_success "Reloaded backend via PM2 (zero-downtime)"
-    else
-        pm2 start "${PROJECT_ROOT}/ecosystem.config.cjs"
-        log_success "Started backend via PM2"
-    fi
+    pm2 restart "${PROJECT_ROOT}/ecosystem.config.cjs" --update-env 2>/dev/null || pm2 start "${PROJECT_ROOT}/ecosystem.config.cjs"
+    log_success "Applied PM2 ecosystem config to backend"
 else
     if pm2 describe "${PM2_APP_NAME}" &> /dev/null; then
         pm2 restart "${PM2_APP_NAME}" --update-env
@@ -230,7 +225,8 @@ if command -v curl &> /dev/null; then
     if [ "$HTTP_CODE" = "200" ]; then
         log_success "Backend health check passed! (${HEALTH_CHECK_URL} returned 200 OK)"
     else
-        log_warning "Backend health check returned status code: ${HTTP_CODE}. Please check 'pm2 logs ${PM2_APP_NAME}'."
+        log_warning "Backend health check returned status code: ${HTTP_CODE}. Recent PM2 logs:"
+        pm2 logs "${PM2_APP_NAME}" --lines 15 --nostream 2>/dev/null || true
     fi
 else
     log_info "curl not installed; skipping automatic health endpoint check."
