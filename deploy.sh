@@ -168,7 +168,7 @@ if [ ! -f ".env" ]; then
 fi
 
 npm install --legacy-peer-deps --no-audit --no-fund
-npm run build
+NODE_OPTIONS="--max-old-space-size=2048" npm run build
 
 if [ ! -d "${FRONTEND_DIR}/dist" ]; then
     log_error "Frontend build failed: dist directory was not created!"
