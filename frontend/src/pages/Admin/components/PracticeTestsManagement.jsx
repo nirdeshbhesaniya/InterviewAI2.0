@@ -35,7 +35,7 @@ const PracticeTestsManagement = () => {
     // Modal States
     const [isTestModalOpen, setIsTestModalOpen] = useState(false);
     const [selectedTest, setSelectedTest] = useState(null);
-    
+
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
     const [resetTargetId, setResetTargetId] = useState(null);
@@ -56,7 +56,7 @@ const PracticeTestsManagement = () => {
                     search: searchQuery
                 }
             });
-            
+
             if (res.data.success) {
                 setPracticeTests(res.data.data);
                 setPagination({
@@ -177,7 +177,10 @@ const PracticeTestsManagement = () => {
         setIsAnalyticsModalOpen(true);
         setLoadingAnalytics(true);
         try {
-            const res = await axios.get(API.ADMIN.GET_PRACTICE_ATTEMPTS(test._id));
+            const res = await axios.get(API.ADMIN.GET_PRACTICE_ATTEMPTS(test._id), {
+                params: { _t: Date.now() },
+                headers: { 'Cache-Control': 'no-cache' }
+            });
             setAnalyticsData(res.data.data || []);
         } catch (err) {
             toast.error('Failed to load analytics');
@@ -206,11 +209,11 @@ const PracticeTestsManagement = () => {
                             className="h-12 pl-11 pr-4 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-2xl text-sm focus:ring-4 focus:ring-[rgb(var(--accent))]/10 focus:border-[rgb(var(--accent))] outline-none w-full lg:w-72 transition-all shadow-sm group-hover:border-[rgb(var(--accent))]/30"
                         />
                     </div>
-                    <Button 
-                        onClick={handleCreateTest} 
+                    <Button
+                        onClick={handleCreateTest}
                         className="h-12 px-5 sm:px-6 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white rounded-2xl shadow-xl shadow-[rgb(var(--accent))]/25 flex items-center justify-center gap-2 font-bold transition-all hover:scale-[1.02] active:scale-95 shrink-0"
                     >
-                        <Plus className="w-5 h-5 stroke-[2.5]" /> 
+                        <Plus className="w-5 h-5 stroke-[2.5]" />
                         <span className="hidden sm:inline">New Test</span>
                     </Button>
                 </div>
@@ -224,11 +227,11 @@ const PracticeTestsManagement = () => {
                     { label: 'Submissions', value: summaryStats.totalSubmissions, icon: CheckCircle, color: 'text-purple-500', bg: 'bg-purple-500/10' },
                     { label: 'Unique Users', value: summaryStats.activeUsers, icon: Users, color: 'text-orange-500', bg: 'bg-orange-500/10' }
                 ].map((stat, i) => (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        key={stat.label} 
+                        key={stat.label}
                         className="bg-[rgb(var(--bg-card))] p-6 rounded-3xl border border-[rgb(var(--border))] shadow-sm hover:shadow-md transition-all duration-300 group"
                     >
                         <div className="flex items-start justify-between mb-4">
@@ -278,9 +281,8 @@ const PracticeTestsManagement = () => {
                                 <div className="flex justify-between items-start gap-4 mb-6">
                                     <div className="space-y-2 flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                                            <span className={`text-[10px] uppercase font-black tracking-widest px-2.5 py-1 rounded-lg ${
-                                                test.isPublished ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'
-                                            }`}>
+                                            <span className={`text-[10px] uppercase font-black tracking-widest px-2.5 py-1 rounded-lg ${test.isPublished ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'
+                                                }`}>
                                                 {test.isPublished ? 'Live' : 'Draft'}
                                             </span>
                                             <span className="text-[10px] uppercase font-black tracking-widest px-2.5 py-1 rounded-lg bg-[rgb(var(--bg-body-alt))] text-[rgb(var(--text-muted))]">
@@ -304,7 +306,7 @@ const PracticeTestsManagement = () => {
                                         </p>
                                     </div>
                                     <div className="flex flex-col gap-2">
-                                        <button 
+                                        <button
                                             onClick={() => togglePublishStatus(test)}
                                             className={`p-3 rounded-2xl transition-all ${test.isPublished ? 'text-emerald-500 hover:bg-emerald-500/10' : 'text-amber-500 hover:bg-amber-500/10'} bg-[rgb(var(--bg-body-alt))]`}
                                             title={test.isPublished ? 'Unpublish' : 'Publish'}
@@ -341,17 +343,17 @@ const PracticeTestsManagement = () => {
 
                                 <div className="mt-auto flex items-center justify-between gap-4">
                                     <div className="flex items-center gap-2">
-                                        <Button 
-                                            variant="ghost" 
-                                            size="sm" 
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             onClick={() => viewAnalytics(test)}
                                             className="h-10 px-4 bg-purple-500/10 text-purple-600 hover:bg-purple-500/20 rounded-xl text-xs font-bold transition-all"
                                         >
                                             <BarChart2 className="w-4 h-4 mr-2" /> Analytics
                                         </Button>
-                                        <Button 
-                                            variant="ghost" 
-                                            size="sm" 
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             onClick={() => openResetModal(test._id)}
                                             className="h-10 px-4 bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 rounded-xl text-xs font-bold transition-all"
                                         >
@@ -360,13 +362,13 @@ const PracticeTestsManagement = () => {
                                     </div>
 
                                     <div className="flex items-center gap-1">
-                                        <button 
+                                        <button
                                             onClick={() => handleEditTest(test._id)}
                                             className="p-2.5 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--accent))] hover:bg-[rgb(var(--accent))]/10 rounded-xl transition-all"
                                         >
                                             <PenSquare className="w-5 h-5" />
                                         </button>
-                                        <button 
+                                        <button
                                             onClick={() => handleDeleteTest(test._id)}
                                             className="p-2.5 text-red-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
                                         >
@@ -383,7 +385,7 @@ const PracticeTestsManagement = () => {
             {/* Pagination */}
             {pagination.totalPages > 1 && (
                 <div className="flex justify-center pt-6">
-                    <Pagination 
+                    <Pagination
                         currentPage={pagination.currentPage}
                         totalPages={pagination.totalPages}
                         onPageChange={(p) => setPagination(prev => ({ ...prev, currentPage: p }))}
@@ -392,7 +394,7 @@ const PracticeTestsManagement = () => {
             )}
 
             {/* Test Creation/Edit Modal */}
-            <PracticeTestModal 
+            <PracticeTestModal
                 isOpen={isTestModalOpen}
                 onClose={() => {
                     setIsTestModalOpen(false);
@@ -407,51 +409,51 @@ const PracticeTestsManagement = () => {
                 <AnimatePresence>
                     {isResetModalOpen && (
                         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 onClick={() => setIsResetModalOpen(false)}
-                                className="absolute inset-0 bg-black/60 backdrop-blur-md" 
+                                className="absolute inset-0 bg-black/60 backdrop-blur-md"
                             />
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
                                 className="relative bg-[rgb(var(--bg-card))] rounded-3xl p-8 w-full max-w-md border border-[rgb(var(--border))] shadow-2xl"
                             >
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="bg-blue-500/10 p-3 rounded-2xl">
-                                    <RotateCcw className="w-6 h-6 text-blue-600" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold text-[rgb(var(--text-primary))]">Reset User Progress</h3>
-                                    <p className="text-xs text-[rgb(var(--text-secondary))]">Clear attempt history for a specific student</p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-[rgb(var(--text-muted))] uppercase px-1">User Email Address</label>
-                                    <div className="relative group">
-                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[rgb(var(--text-muted))] group-focus-within:text-blue-500 transition-colors" />
-                                        <input 
-                                            type="email" 
-                                            placeholder="student@example.com"
-                                            value={resetEmail}
-                                            onChange={(e) => setResetEmail(e.target.value)}
-                                            className="w-full h-12 pl-11 pr-4 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm"
-                                        />
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="bg-blue-500/10 p-3 rounded-2xl">
+                                        <RotateCcw className="w-6 h-6 text-blue-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-[rgb(var(--text-primary))]">Reset User Progress</h3>
+                                        <p className="text-xs text-[rgb(var(--text-secondary))]">Clear attempt history for a specific student</p>
                                     </div>
                                 </div>
-                                <div className="flex gap-3 pt-4">
-                                    <Button variant="ghost" onClick={() => setIsResetModalOpen(false)} className="flex-1 rounded-2xl h-12 font-bold hover:bg-red-500/5 hover:text-red-500 transition-all">Cancel</Button>
-                                    <Button onClick={handleResetAttempts} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl h-12 font-bold shadow-lg shadow-blue-600/20 transition-all active:scale-95">Confirm Reset</Button>
+
+                                <div className="space-y-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-[rgb(var(--text-muted))] uppercase px-1">User Email Address</label>
+                                        <div className="relative group">
+                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[rgb(var(--text-muted))] group-focus-within:text-blue-500 transition-colors" />
+                                            <input
+                                                type="email"
+                                                placeholder="student@example.com"
+                                                value={resetEmail}
+                                                onChange={(e) => setResetEmail(e.target.value)}
+                                                className="w-full h-12 pl-11 pr-4 bg-[rgb(var(--bg-elevated))] border border-[rgb(var(--border))] rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-3 pt-4">
+                                        <Button variant="ghost" onClick={() => setIsResetModalOpen(false)} className="flex-1 rounded-2xl h-12 font-bold hover:bg-red-500/5 hover:text-red-500 transition-all">Cancel</Button>
+                                        <Button onClick={handleResetAttempts} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl h-12 font-bold shadow-lg shadow-blue-600/20 transition-all active:scale-95">Confirm Reset</Button>
+                                    </div>
                                 </div>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
+                            </motion.div>
+                        </div>
+                    )}
                 </AnimatePresence>,
                 document.body
             )}
@@ -461,156 +463,155 @@ const PracticeTestsManagement = () => {
                 <AnimatePresence>
                     {isAnalyticsModalOpen && (
                         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 onClick={() => setIsAnalyticsModalOpen(false)}
-                                className="absolute inset-0 bg-black/60 backdrop-blur-md" 
+                                className="absolute inset-0 bg-black/60 backdrop-blur-md"
                             />
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0, scale: 0.95, y: 40 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95, y: 40 }}
                                 className="relative bg-[rgb(var(--bg-card))] rounded-[2rem] w-full max-w-5xl max-h-[85vh] border border-[rgb(var(--border))] shadow-2xl flex flex-col overflow-hidden"
                             >
-                            <div className="p-8 border-b border-[rgb(var(--border))] flex items-center justify-between bg-gradient-to-r from-purple-500/5 to-transparent">
-                                <div className="flex items-center gap-4">
-                                    <div className="bg-purple-500/10 p-3 rounded-2xl">
-                                        <Activity className="w-6 h-6 text-purple-600" />
+                                <div className="p-8 border-b border-[rgb(var(--border))] flex items-center justify-between bg-gradient-to-r from-purple-500/5 to-transparent">
+                                    <div className="flex items-center gap-4">
+                                        <div className="bg-purple-500/10 p-3 rounded-2xl">
+                                            <Activity className="w-6 h-6 text-purple-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-[rgb(var(--text-primary))]">{analyticsTest?.title}</h3>
+                                            <p className="text-xs text-[rgb(var(--text-secondary))] flex items-center gap-2">
+                                                <TrendingUp className="w-3 h-3" /> In-depth attempt analysis and student performance
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="text-xl font-bold text-[rgb(var(--text-primary))]">{analyticsTest?.title}</h3>
-                                        <p className="text-xs text-[rgb(var(--text-secondary))] flex items-center gap-2">
-                                            <TrendingUp className="w-3 h-3" /> In-depth attempt analysis and student performance
-                                        </p>
-                                    </div>
+                                    <button onClick={() => setIsAnalyticsModalOpen(false)} className="p-3 hover:bg-[rgb(var(--bg-elevated))] rounded-2xl transition-all">
+                                        <X className="w-5 h-5 text-[rgb(var(--text-muted))]" />
+                                    </button>
                                 </div>
-                                <button onClick={() => setIsAnalyticsModalOpen(false)} className="p-3 hover:bg-[rgb(var(--bg-elevated))] rounded-2xl transition-all">
-                                    <X className="w-5 h-5 text-[rgb(var(--text-muted))]" />
-                                </button>
-                            </div>
 
-                            <div className="flex-1 overflow-y-auto p-8">
-                                {loadingAnalytics ? (
-                                    <div className="flex flex-col items-center justify-center py-20 gap-3">
-                                        <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
-                                        <p className="text-sm text-[rgb(var(--text-secondary))]">Analyzing student data...</p>
-                                    </div>
-                                ) : analyticsData.length === 0 ? (
-                                    <div className="text-center py-20">
-                                        <div className="bg-[rgb(var(--bg-elevated))] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-[rgb(var(--border))]">
-                                            <Users className="w-8 h-8 text-[rgb(var(--text-muted))] opacity-30" />
+                                <div className="flex-1 overflow-y-auto p-8">
+                                    {loadingAnalytics ? (
+                                        <div className="flex flex-col items-center justify-center py-20 gap-3">
+                                            <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
+                                            <p className="text-sm text-[rgb(var(--text-secondary))]">Analyzing student data...</p>
                                         </div>
-                                        <h4 className="text-[rgb(var(--text-primary))] font-semibold">No data yet</h4>
-                                        <p className="text-sm text-[rgb(var(--text-secondary))]">Wait for students to participate in this exam.</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-8">
-                                        {/* Simple Analysis Header */}
-                                        {(() => {
-                                            const completedAttempts = analyticsData.filter(d => ['completed', 'auto-submitted', 'timeout'].includes(d.testStatus));
-                                            const totalCompleted = completedAttempts.length;
-                                            const avgScore = totalCompleted > 0 
-                                                ? Math.round(completedAttempts.reduce((acc, curr) => acc + (curr.score || 0), 0) / totalCompleted)
-                                                : 0;
-                                            const highestScore = analyticsData.length > 0 ? Math.max(...analyticsData.map(d => d.score || 0)) : 0;
-                                            const successRate = totalCompleted > 0 
-                                                ? Math.round((completedAttempts.filter(d => (d.score || 0) >= 40).length / totalCompleted) * 100)
-                                                : 0;
+                                    ) : analyticsData.length === 0 ? (
+                                        <div className="text-center py-20">
+                                            <div className="bg-[rgb(var(--bg-elevated))] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-[rgb(var(--border))]">
+                                                <Users className="w-8 h-8 text-[rgb(var(--text-muted))] opacity-30" />
+                                            </div>
+                                            <h4 className="text-[rgb(var(--text-primary))] font-semibold">No data yet</h4>
+                                            <p className="text-sm text-[rgb(var(--text-secondary))]">Wait for students to participate in this exam.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-8">
+                                            {/* Simple Analysis Header */}
+                                            {(() => {
+                                                const completedAttempts = analyticsData.filter(d => ['completed', 'auto-submitted', 'timeout'].includes(d.testStatus));
+                                                const totalCompleted = completedAttempts.length;
+                                                const passingScore = Number(analyticsTest?.passingScore) || 40;
+                                                const avgScore = totalCompleted > 0
+                                                    ? Math.round(completedAttempts.reduce((acc, curr) => acc + (curr.score || 0), 0) / totalCompleted)
+                                                    : 0;
+                                                const highestScore = analyticsData.length > 0 ? Math.max(...analyticsData.map(d => d.score || 0)) : 0;
+                                                const successRate = totalCompleted > 0
+                                                    ? Math.round((completedAttempts.filter(d => (d.score || 0) >= passingScore).length / totalCompleted) * 100)
+                                                    : 0;
 
-                                            return (
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                    <div className="bg-[rgb(var(--bg-elevated))] p-6 rounded-3xl border border-[rgb(var(--border))] shadow-sm group">
-                                                        <div className="text-[10px] font-black text-[rgb(var(--text-muted))] uppercase tracking-widest mb-3">Average Score</div>
-                                                        <div className="text-4xl font-black text-[rgb(var(--accent))] tracking-tighter">
-                                                            {avgScore}%
+                                                return (
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                        <div className="bg-[rgb(var(--bg-elevated))] p-6 rounded-3xl border border-[rgb(var(--border))] shadow-sm group">
+                                                            <div className="text-[10px] font-black text-[rgb(var(--text-muted))] uppercase tracking-widest mb-3">Average Score</div>
+                                                            <div className="text-4xl font-black text-[rgb(var(--accent))] tracking-tighter">
+                                                                {avgScore}%
+                                                            </div>
+                                                            <p className="text-[11px] text-[rgb(var(--text-secondary))] mt-2 font-medium opacity-70">Based on {totalCompleted} completed attempts</p>
                                                         </div>
-                                                        <p className="text-[11px] text-[rgb(var(--text-secondary))] mt-2 font-medium opacity-70">Based on {totalCompleted} completed attempts</p>
-                                                    </div>
-                                                    <div className="bg-[rgb(var(--bg-elevated))] p-6 rounded-3xl border border-[rgb(var(--border))] shadow-sm group">
-                                                        <div className="text-[10px] font-black text-[rgb(var(--text-muted))] uppercase tracking-widest mb-3">Highest Score</div>
-                                                        <div className="text-4xl font-black text-emerald-500 tracking-tighter">
-                                                            {highestScore}%
+                                                        <div className="bg-[rgb(var(--bg-elevated))] p-6 rounded-3xl border border-[rgb(var(--border))] shadow-sm group">
+                                                            <div className="text-[10px] font-black text-[rgb(var(--text-muted))] uppercase tracking-widest mb-3">Highest Score</div>
+                                                            <div className="text-4xl font-black text-emerald-500 tracking-tighter">
+                                                                {highestScore}%
+                                                            </div>
+                                                            <p className="text-[11px] text-[rgb(var(--text-secondary))] mt-2 font-medium opacity-70">Exceptional performance recorded</p>
                                                         </div>
-                                                        <p className="text-[11px] text-[rgb(var(--text-secondary))] mt-2 font-medium opacity-70">Exceptional performance recorded</p>
-                                                    </div>
-                                                    <div className="bg-[rgb(var(--bg-elevated))] p-6 rounded-3xl border border-[rgb(var(--border))] shadow-sm group">
-                                                        <div className="text-[10px] font-black text-[rgb(var(--text-muted))] uppercase tracking-widest mb-3">Success Rate</div>
-                                                        <div className="text-4xl font-black text-purple-500 tracking-tighter">
-                                                            {successRate}%
+                                                        <div className="bg-[rgb(var(--bg-elevated))] p-6 rounded-3xl border border-[rgb(var(--border))] shadow-sm group">
+                                                            <div className="text-[10px] font-black text-[rgb(var(--text-muted))] uppercase tracking-widest mb-3">Success Rate</div>
+                                                            <div className="text-4xl font-black text-purple-500 tracking-tighter">
+                                                                {successRate}%
+                                                            </div>
+                                                            <p className="text-[11px] text-[rgb(var(--text-secondary))] mt-2 font-medium opacity-70">Students scoring at least {passingScore}%</p>
                                                         </div>
-                                                        <p className="text-[11px] text-[rgb(var(--text-secondary))] mt-2 font-medium opacity-70">Students scoring above 40%</p>
                                                     </div>
-                                                </div>
-                                            );
-                                        })()}
+                                                );
+                                            })()}
 
-                                        <div className="overflow-hidden rounded-2xl border border-[rgb(var(--border))]">
-                                            <table className="w-full text-left">
-                                                <thead>
-                                                    <tr className="bg-[rgb(var(--bg-elevated))] text-[10px] uppercase font-bold tracking-widest text-[rgb(var(--text-muted))] border-b border-[rgb(var(--border))]">
-                                                        <th className="px-6 py-4">Student</th>
-                                                        <th className="px-6 py-4">Performance</th>
-                                                        <th className="px-6 py-4">Status</th>
-                                                        <th className="px-6 py-4">Time Engagement</th>
-                                                        <th className="px-6 py-4">Timestamp</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-[rgb(var(--border))]">
-                                                    {analyticsData.map((attempt) => (
-                                                        <tr key={attempt._id} className="hover:bg-[rgb(var(--bg-elevated))]/30 transition-colors">
-                                                            <td className="px-6 py-5">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="w-9 h-9 rounded-xl bg-[rgb(var(--accent))]/10 flex items-center justify-center text-[rgb(var(--accent))] font-bold text-xs border border-[rgb(var(--accent))]/20">
-                                                                        {attempt.userId?.fullName?.charAt(0) || attempt.userEmail?.charAt(0).toUpperCase() || '?'}
-                                                                    </div>
-                                                                    <div>
-                                                                        <div className="text-sm font-bold text-[rgb(var(--text-primary))]">{attempt.userId?.fullName || 'External User'}</div>
-                                                                        <div className="text-[10px] text-[rgb(var(--text-secondary))]">{attempt.userEmail}</div>
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-6 py-5">
-                                                                <div className="flex items-center gap-4">
-                                                                    <div className="flex-1 w-20 h-1.5 bg-[rgb(var(--border))] rounded-full overflow-hidden hidden sm:block">
-                                                                        <div className={`h-full rounded-full ${
-                                                                            attempt.score >= 70 ? 'bg-emerald-500' : attempt.score >= 40 ? 'bg-amber-500' : 'bg-red-500'
-                                                                        }`} style={{ width: `${attempt.score}%` }} />
-                                                                    </div>
-                                                                    <div className="text-sm font-black text-[rgb(var(--text-primary))]">{attempt.score}%</div>
-                                                                </div>
-                                                                <div className="text-[10px] text-[rgb(var(--text-secondary))] mt-0.5">{attempt.correctAnswers} / {attempt.totalQuestions} questions</div>
-                                                            </td>
-                                                            <td className="px-6 py-5">
-                                                                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${
-                                                                    attempt.testStatus === 'completed' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
-                                                                    attempt.testStatus === 'auto-submitted' ? 'bg-red-500/10 text-red-600 border-red-500/20' :
-                                                                    'bg-amber-500/10 text-amber-600 border-amber-500/20'
-                                                                }`}>
-                                                                    {attempt.testStatus?.toUpperCase()}
-                                                                </span>
-                                                            </td>
-                                                            <td className="px-6 py-5">
-                                                                <div className="flex items-center gap-1.5 text-xs text-[rgb(var(--text-primary))] font-medium">
-                                                                    <Clock className="w-3.5 h-3.5 text-[rgb(var(--text-muted))]" />
-                                                                    {Math.floor(attempt.timeSpent / 60)}m {attempt.timeSpent % 60}s
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-6 py-5 text-[10px] text-[rgb(var(--text-secondary))] whitespace-nowrap">
-                                                                {new Date(attempt.createdAt).toLocaleDateString()} at {new Date(attempt.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                            </td>
+                                            <div className="overflow-hidden rounded-2xl border border-[rgb(var(--border))]">
+                                                <table className="w-full text-left">
+                                                    <thead>
+                                                        <tr className="bg-[rgb(var(--bg-elevated))] text-[10px] uppercase font-bold tracking-widest text-[rgb(var(--text-muted))] border-b border-[rgb(var(--border))]">
+                                                            <th className="px-6 py-4">Student</th>
+                                                            <th className="px-6 py-4">Performance</th>
+                                                            <th className="px-6 py-4">Status</th>
+                                                            <th className="px-6 py-4">Time Engagement</th>
+                                                            <th className="px-6 py-4">Timestamp</th>
                                                         </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-[rgb(var(--border))]">
+                                                        {analyticsData.map((attempt) => (
+                                                            <tr key={attempt._id} className="hover:bg-[rgb(var(--bg-elevated))]/30 transition-colors">
+                                                                <td className="px-6 py-5">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="w-9 h-9 rounded-xl bg-[rgb(var(--accent))]/10 flex items-center justify-center text-[rgb(var(--accent))] font-bold text-xs border border-[rgb(var(--accent))]/20">
+                                                                            {attempt.userId?.fullName?.charAt(0) || attempt.userEmail?.charAt(0).toUpperCase() || '?'}
+                                                                        </div>
+                                                                        <div>
+                                                                            <div className="text-sm font-bold text-[rgb(var(--text-primary))]">{attempt.userId?.fullName || 'External User'}</div>
+                                                                            <div className="text-[10px] text-[rgb(var(--text-secondary))]">{attempt.userEmail}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-5">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <div className="flex-1 w-20 h-1.5 bg-[rgb(var(--border))] rounded-full overflow-hidden hidden sm:block">
+                                                                            <div className={`h-full rounded-full ${attempt.score >= 70 ? 'bg-emerald-500' : attempt.score >= 40 ? 'bg-amber-500' : 'bg-red-500'
+                                                                                }`} style={{ width: `${attempt.score}%` }} />
+                                                                        </div>
+                                                                        <div className="text-sm font-black text-[rgb(var(--text-primary))]">{attempt.score}%</div>
+                                                                    </div>
+                                                                    <div className="text-[10px] text-[rgb(var(--text-secondary))] mt-0.5">{attempt.correctAnswers} / {attempt.totalQuestions} questions</div>
+                                                                </td>
+                                                                <td className="px-6 py-5">
+                                                                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${attempt.testStatus === 'completed' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
+                                                                            attempt.testStatus === 'auto-submitted' ? 'bg-red-500/10 text-red-600 border-red-500/20' :
+                                                                                'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                                                                        }`}>
+                                                                        {attempt.testStatus?.toUpperCase()}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-6 py-5">
+                                                                    <div className="flex items-center gap-1.5 text-xs text-[rgb(var(--text-primary))] font-medium">
+                                                                        <Clock className="w-3.5 h-3.5 text-[rgb(var(--text-muted))]" />
+                                                                        {Math.floor(attempt.timeSpent / 60)}m {attempt.timeSpent % 60}s
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-5 text-[10px] text-[rgb(var(--text-secondary))] whitespace-nowrap">
+                                                                    {new Date(attempt.createdAt).toLocaleDateString()} at {new Date(attempt.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
+                                    )}
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
                 </AnimatePresence>,
                 document.body
             )}

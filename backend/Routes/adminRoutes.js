@@ -425,7 +425,7 @@ router.delete('/users/:userId', async (req, res) => {
         if (user._id.toString() === req.user._id.toString()) {
             return res.status(400).json({ message: 'Cannot delete yourself' });
         }
-        
+
         if (user.role === 'admin' || user.role === 'owner') {
             return res.status(403).json({ message: 'Cannot delete admin or owner accounts' });
         }
@@ -603,7 +603,7 @@ router.get('/practice-tests', async (req, res) => {
         const search = req.query.search || '';
 
         const PracticeTest = require('../models/PracticeTest');
-        
+
         let query = {};
         if (search) {
             query.$or = [
@@ -614,7 +614,7 @@ router.get('/practice-tests', async (req, res) => {
         }
 
         const totalTests = await PracticeTest.countDocuments(query);
-        
+
         // Use aggregation to get question count without fetching the whole array
         const tests = await PracticeTest.aggregate([
             { $match: query },
@@ -813,10 +813,10 @@ router.get('/practice-tests/analytics', async (req, res) => {
         const totalTests = await PracticeTest.countDocuments();
 
         const agg = await PracticeTestResult.aggregate([
-            { 
-                $match: { 
-                    practiceTestId: { $exists: true, $ne: null, $nin: ["", "null", "undefined"] } 
-                } 
+            {
+                $match: {
+                    practiceTestId: { $exists: true, $ne: null, $nin: ["", "null", "undefined"] }
+                }
             },
             {
                 // Ensure practiceTestId is treated as an ObjectId for consistent grouping
@@ -830,10 +830,10 @@ router.get('/practice-tests/analytics', async (req, res) => {
                     attempts: { $sum: 1 },
                     submissions: { $sum: { $cond: [{ $in: ['$testStatus', ['completed', 'auto-submitted']] }, 1, 0] } },
                     users: { $addToSet: '$userEmail' },
-                    avgScore: { 
+                    avgScore: {
                         $avg: {
                             $cond: [{ $in: ['$testStatus', ['completed', 'auto-submitted', 'timeout']] }, '$score', null]
-                        } 
+                        }
                     },
                     lastAttempt: { $max: '$createdAt' }
                 }
@@ -880,7 +880,7 @@ router.get('/practice-tests/analytics', async (req, res) => {
         // totalAttempts = Sum of all hits in PracticeTest model
         const allTests = await PracticeTest.find({}, 'attempts submissions');
         const totalAttempts = allTests.reduce((s, x) => s + (x.attempts || 0), 0);
-        
+
         // totalSubmissions = Sum of actual completed records in PracticeTestResult (legacy safe)
         const totalSubmissions = agg.reduce((s, x) => s + (x.submissions || 0), 0);
         const distinctUsers = await PracticeTestResult.distinct('userEmail', { practiceTestId: { $ne: null } });
@@ -957,7 +957,30 @@ router.delete('/practice-tests/:id', async (req, res) => {
 router.get('/practice-tests/:id/attempts', async (req, res) => {
     try {
         const { id } = req.params;
+        const PracticeTest = require('../models/PracticeTest');
         const PracticeTestResult = require('../models/PracticeTestResult');
+
+        const practiceTest = await PracticeTest.findById(id).select('timeLimit');
+        if (!practiceTest) {
+            return res.status(404).json({ message: 'Practice test not found' });
+        }
+
+        const allowedTimeMs = Math.max(Number(practiceTest.timeLimit) || 30, 1) * 60 * 1000;
+        const expiryTime = new Date(Date.now() - allowedTimeMs);
+        await PracticeTestResult.updateMany(
+            {
+                practiceTestId: id,
+                testStatus: 'in-progress',
+                createdAt: { $lte: expiryTime }
+            },
+            {
+                $set: {
+                    testStatus: 'timeout',
+                    completedAt: new Date(),
+                    timeSpent: Math.round(allowedTimeMs / 1000)
+                }
+            }
+        );
 
         const attempts = await PracticeTestResult.find({ practiceTestId: id })
             .populate('userId', 'fullName email')
@@ -1242,7 +1265,7 @@ router.get('/users/:userId/activity', async (req, res) => {
     try {
         const { userId } = req.params;
         const user = await User.findById(userId);
-        
+
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -1367,7 +1390,7 @@ router.get('/roadmaps/:roadmapId/analytics', async (req, res) => {
     try {
         const { roadmapId } = req.params;
         const RoadmapProgress = require('../models/RoadmapProgress');
-        
+
         const progresses = await RoadmapProgress.find({ roadmapId })
             .populate('userId', 'fullName email avatar')
             .sort({ lastUpdated: -1 });

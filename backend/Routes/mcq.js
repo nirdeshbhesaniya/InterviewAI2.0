@@ -16,6 +16,25 @@ const { logAIUsage } = require('../utils/aiLogger');
 const recentSubmissions = new Map();
 const SUBMISSION_COOLDOWN = 5000; // 5 seconds cooldown
 
+async function expireStalePracticeAttempts(practiceTestId, timeLimit, userEmail) {
+    const allowedTimeMs = Math.max(Number(timeLimit) || 30, 1) * 60 * 1000;
+    const query = {
+        practiceTestId,
+        testStatus: 'in-progress',
+        createdAt: { $lte: new Date(Date.now() - allowedTimeMs) }
+    };
+
+    if (userEmail) query.userEmail = userEmail;
+
+    await PracticeTestResult.updateMany(query, {
+        $set: {
+            testStatus: 'timeout',
+            completedAt: new Date(),
+            timeSpent: Math.round(allowedTimeMs / 1000)
+        }
+    });
+}
+
 // Generate MCQ questions using Gemini AI with uniqueness factors
 async function generateMCQQuestions(topic, difficulty = 'medium', numberOfQuestions = 30) {
     // Add randomization factors to ensure unique questions every time
@@ -599,7 +618,7 @@ router.post('/submit', async (req, res) => {
         // Determine test status based on security warnings and time
         let testStatus = 'completed';
         const totalWarnings = (securityWarnings.fullscreenExits || 0) + (securityWarnings.tabSwitches || 0);
-        
+
         // Calculate allowed time
         let allowedTimeSeconds = numberOfQuestions * 120; // Default 2 mins per question
         if (practiceTestId) {
@@ -666,7 +685,7 @@ router.post('/submit', async (req, res) => {
             try {
                 const isPractice = !!practiceTestId;
                 const ResultModel = isPractice ? PracticeTestResult : MCQTest;
-                
+
                 if (req.body.attemptId) {
                     testDocument = await ResultModel.findById(req.body.attemptId);
                 }
@@ -817,9 +836,9 @@ router.get('/history', async (req, res) => {
         if (branch) {
             if (branch === 'computer') {
                 query.$or = [
-                    { branch: 'computer' }, 
+                    { branch: 'computer' },
                     { branch: 'Computer Engineering' },
-                    { branch: { $exists: false } }, 
+                    { branch: { $exists: false } },
                     { branch: null },
                     { branch: '' }
                 ];
@@ -847,8 +866,8 @@ router.get('/history', async (req, res) => {
         // Merge and normalize for unified view
         const history = [
             ...aiTests.map(t => ({ ...t, type: 'ai' })),
-            ...filteredPracticeTests.map(t => ({ 
-                ...t, 
+            ...filteredPracticeTests.map(t => ({
+                ...t,
                 type: 'practice',
                 topic: t.practiceTestId?.topic || t.topic,
                 title: t.practiceTestId?.title || 'Practice Test'
@@ -1174,6 +1193,7 @@ router.get('/practice-tests/:id', checkFeatureEnabled('practice_tests'), async (
         let userAttempts = 0;
         if (userEmail) {
             const PracticeTestResult = require('../models/PracticeTestResult');
+            await expireStalePracticeAttempts(test._id, test.timeLimit, userEmail);
             userAttempts = await PracticeTestResult.countDocuments({ userEmail, practiceTestId: test._id });
         }
 
@@ -1263,6 +1283,7 @@ router.post('/practice-tests/:id/start', async (req, res) => {
         }
 
         // Check max attempts in dedicated model
+        await expireStalePracticeAttempts(test._id, test.timeLimit, userInfo.email);
         const userAttempts = await PracticeTestResult.countDocuments({
             userEmail: userInfo.email,
             practiceTestId: test._id
