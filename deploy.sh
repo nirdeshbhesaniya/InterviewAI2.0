@@ -113,6 +113,12 @@ git fetch origin "${BRANCH}"
 git checkout "${BRANCH}"
 git pull origin "${BRANCH}"
 
+# If deploy.sh itself was updated, re-execute the fresh script automatically
+if [ -n "$(git diff --name-only ORIG_HEAD HEAD 2>/dev/null | grep 'deploy.sh' || true)" ]; then
+    log_info "deploy.sh was updated from remote. Re-executing fresh script..."
+    exec bash "$0" "$@"
+fi
+
 LATEST_COMMIT=$(git log -1 --pretty=format:"%h - %s (%an, %ar)")
 log_success "Repository updated to latest commit: ${LATEST_COMMIT}"
 
